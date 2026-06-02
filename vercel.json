@@ -1,0 +1,44 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/area/utentes",
+      "destination": "/portal/modules/utentes/api/index.py"
+    },
+    {
+      "source": "/area/utentes/(.*)",
+      "destination": "/portal/modules/utentes/api/index.py"
+    },
+    {
+      "source": "/area/socios",
+      "destination": "/area/socios/index.html"
+    },
+    {
+      "source": "/area/socios/(.*)",
+      "destination": "/area/socios/$1"
+    },
+    {
+      "source": "/area/dispositivos",
+      "destination": "/area/dispositivos/index.html"
+    },
+    {
+      "source": "/area/dispositivos/(.*)",
+      "destination": "/area/dispositivos/$1"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "portal/modules/utentes/api/**/*.py": {
+      "excludeFiles": "{utentes.db,utentes.db-*,anexos/**,__pycache__/**,*.zip,.env}"
+    }
+  }
+}

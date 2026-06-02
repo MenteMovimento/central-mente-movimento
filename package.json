@@ -1,0 +1,12 @@
+{
+  "name": "central-mente-movimento",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix portal/modules/dispositivos install --no-audit --no-fund && npm --prefix portal/modules/dispositivos run build && node scripts/prepare-vercel-output.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1"
+  }
+}
