@@ -372,6 +372,40 @@ await writeFile(
 })();`,
 )
 
+await writeFile(
+  path.join(staticOutput, 'central-module-auth.js'),
+  `(() => {
+  const showPage = () => {
+    document.documentElement.removeAttribute("data-central-auth-pending");
+  };
+  const safePath = () => {
+    const path = window.location.pathname + window.location.search + window.location.hash;
+    if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\\\")) return "/dashboard";
+    return path;
+  };
+  const redirectToCentralLogin = () => {
+    window.location.replace("/login?next=" + encodeURIComponent(safePath()));
+  };
+  const config = window.CENTRAL_CONFIG || {};
+  if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
+    redirectToCentralLogin();
+    return;
+  }
+  const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  client.auth.getSession()
+    .then(({ data }) => {
+      if (!data?.session) {
+        redirectToCentralLogin();
+        return;
+      }
+      showPage();
+    })
+    .catch(() => redirectToCentralLogin());
+})();`,
+)
+
 await writeFile(path.join(publicDir, 'login.html'), loginPage)
 await writeFile(path.join(publicDir, 'logout.html'), logoutPage)
 await writeFile(path.join(publicDir, 'index.html'), dashboardPage)
@@ -427,8 +461,12 @@ await cp(sociosSource, sociosOutput, {
 const sociosIndexPath = path.join(sociosOutput, 'index.html')
 let sociosIndex = await readFile(sociosIndexPath, 'utf8')
 sociosIndex = sociosIndex
+  .replace(
+    '</title>',
+    '</title>\n    <script>document.documentElement.dataset.centralAuthPending = "true";</script>\n    <style>html[data-central-auth-pending="true"] body{visibility:hidden}</style>',
+  )
   .replace(/\s*<script src="central-socios-client\.js" defer><\/script>/, '')
-  .replace('<script src="app.js" defer></script>', '<script src="/static/vendor/supabase.js" defer></script>\n    <script src="config.js" defer></script>\n    <script src="app.js" defer></script>')
+  .replace('<script src="app.js" defer></script>', '<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js" defer></script>\n    <script src="config.js" defer></script>\n    <script src="/static/central-module-auth.js" defer></script>\n    <script src="app.js" defer></script>')
 await writeFile(sociosIndexPath, sociosIndex)
 await rm(path.join(sociosOutput, 'central-socios-client.js'), { force: true })
 
@@ -449,6 +487,19 @@ if (!existsSync(dispositivosDist)) {
 }
 
 await cp(dispositivosDist, dispositivosOutput, { recursive: true })
+
+const dispositivosIndexPath = path.join(dispositivosOutput, 'index.html')
+let dispositivosIndex = await readFile(dispositivosIndexPath, 'utf8')
+dispositivosIndex = dispositivosIndex
+  .replace(
+    '</title>',
+    '</title>\n    <script>document.documentElement.dataset.centralAuthPending = "true";</script>\n    <style>html[data-central-auth-pending="true"] body{visibility:hidden}</style>',
+  )
+  .replace(
+    '<script type="module"',
+    '<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js" defer></script>\n    <script src="/static/central-module-auth.js" defer></script>\n    <script type="module"',
+  )
+await writeFile(dispositivosIndexPath, dispositivosIndex)
 
 await writeFile(
   path.join(publicDir, '404.html'),
