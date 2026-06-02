@@ -280,6 +280,25 @@ await writeFile(
       node.textContent = session?.user?.user_metadata?.full_name || session?.user?.email || "Administrador";
     });
   };
+  const cacheKey = (session) => \`central-access:\${session?.user?.id || "anon"}\`;
+  const hasAccessCache = (session) => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session)) || "{}");
+      return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
+    } catch (_error) {
+      return false;
+    }
+  };
+  const saveAccessCache = (session) => {
+    try {
+      const authExpiresAt = Number(session?.expires_at || 0) * 1000;
+      const shortCacheExpiresAt = Date.now() + 10 * 60 * 1000;
+      const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
+      sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+    } catch (_error) {
+      // Sessao continua valida mesmo se o browser bloquear sessionStorage.
+    }
+  };
   const createClient = () => {
     if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
       showError("Falta configurar o Supabase na Vercel.");
@@ -291,22 +310,32 @@ await writeFile(
   };
   let accessPromise = null;
   const ensureCentralAccess = async (client) => {
-    if (accessPromise) return accessPromise;
-    accessPromise = (async () => {
-      const { data } = await client.auth.getSession();
-      const token = data?.session?.access_token || "";
-      if (!token) throw new Error("Sessao em falta.");
-      const response = await fetch("/api/ensure-access", {
-        method: "POST",
-        headers: { Authorization: \`Bearer \${token}\` }
-      });
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error || "Nao foi possivel preparar o acesso.");
-      }
-      return response.json();
-    })();
-    return accessPromise;
+    if (!accessPromise) {
+      accessPromise = (async () => {
+        const { data } = await client.auth.getSession();
+        const session = data?.session || null;
+        if (hasAccessCache(session)) return { ok: true };
+        const token = session?.access_token || "";
+        if (!token) throw new Error("Sessao em falta.");
+        const response = await fetch("/api/ensure-access", {
+          method: "POST",
+          headers: { Authorization: \`Bearer \${token}\` }
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => ({}));
+          throw new Error(payload.error || "Nao foi possivel preparar o acesso.");
+        }
+        const payload = await response.json().catch(() => ({ ok: true }));
+        saveAccessCache(session);
+        return payload;
+      })();
+    }
+    try {
+      return await accessPromise;
+    } catch (error) {
+      accessPromise = null;
+      throw error;
+    }
   };
   const ensureUtentesSession = async (client) => {
     const { data } = await client.auth.getSession();
@@ -411,7 +440,27 @@ await writeFile(
   const redirectToCentralLogin = () => {
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
   };
+  const cacheKey = (session) => \`central-access:\${session?.user?.id || "anon"}\`;
+  const hasAccessCache = (session) => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session)) || "{}");
+      return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
+    } catch (_error) {
+      return false;
+    }
+  };
+  const saveAccessCache = (session) => {
+    try {
+      const authExpiresAt = Number(session?.expires_at || 0) * 1000;
+      const shortCacheExpiresAt = Date.now() + 10 * 60 * 1000;
+      const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
+      sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+    } catch (_error) {
+      // Continua sem cache se o browser bloquear sessionStorage.
+    }
+  };
   const ensureAccess = async (session) => {
+    if (hasAccessCache(session)) return;
     const token = session?.access_token || "";
     if (!token) throw new Error("Sessao em falta.");
     const response = await fetch("/api/ensure-access", {
@@ -419,6 +468,7 @@ await writeFile(
       headers: { Authorization: \`Bearer \${token}\` }
     });
     if (!response.ok) throw new Error("Sem acesso preparado.");
+    saveAccessCache(session);
   };
   const config = window.CENTRAL_CONFIG || {};
   if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {

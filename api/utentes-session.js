@@ -10,7 +10,10 @@ const createAdminClient = (response) => {
     process.env.SUPABASE_URL ??
     process.env.VITE_SUPABASE_URL ??
     process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceRoleKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
     sendJson(response, 500, { error: 'Falta configurar as variaveis Supabase na Vercel.' })
@@ -41,13 +44,11 @@ const requireCentralUser = async (request, response, adminClient) => {
     return null
   }
 
-  const { data: profile, error: profileError } = await adminClient
+  const { data: profile } = await adminClient
     .from('app_users')
     .select('role, active, full_name')
     .eq('id', user.id)
     .maybeSingle()
-
-  if (profileError) throw profileError
 
   let effectiveProfile = profile
   if (!effectiveProfile) {
@@ -87,8 +88,19 @@ const requireCentralUser = async (request, response, adminClient) => {
 
 const ensureUtentesUser = async (adminClient, centralUser) => {
   const email = centralUser.email.toLowerCase()
-  const now = new Date().toISOString()
+  const now = formatDate(new Date())
   const perfil = centralUser.isAdmin ? 'Administrador' : 'Utilizador'
+  const payload = {
+    nome: centralUser.fullName,
+    email,
+    password_hash: 'supabase-auth',
+    perfil,
+    ativo: 1,
+    tema: 'claro',
+    idioma: 'pt',
+    created_at: now,
+    updated_at: now,
+  }
 
   const { data: existing, error: existingError } = await adminClient
     .from('utilizadores')
@@ -99,14 +111,10 @@ const ensureUtentesUser = async (adminClient, centralUser) => {
   if (existingError) throw existingError
 
   if (existing?.id) {
+    const { created_at: _createdAt, ...updatePayload } = payload
     const { error: updateError } = await adminClient
       .from('utilizadores')
-      .update({
-        nome: centralUser.fullName,
-        perfil,
-        ativo: 1,
-        updated_at: now,
-      })
+      .update(updatePayload)
       .eq('id', existing.id)
 
     if (updateError) throw updateError
@@ -115,23 +123,15 @@ const ensureUtentesUser = async (adminClient, centralUser) => {
 
   const { data: created, error: createError } = await adminClient
     .from('utilizadores')
-    .insert({
-      nome: centralUser.fullName,
-      email,
-      password_hash: 'supabase-auth',
-      perfil,
-      ativo: 1,
-      tema: 'claro',
-      idioma: 'pt',
-      created_at: now,
-      updated_at: now,
-    })
+    .upsert(payload, { onConflict: 'email' })
     .select('id')
     .single()
 
   if (createError) throw createError
   return created.id
 }
+
+const formatDate = (date) => date.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, '')
 
 export default async function handler(request, response) {
   if (request.method === 'DELETE') {
