@@ -10,6 +10,17 @@ const getSupabaseUrl = () =>
   process.env.VITE_SUPABASE_URL ??
   process.env.NEXT_PUBLIC_SUPABASE_URL
 
+const getJwtRole = (key) => {
+  if (typeof key !== 'string' || key.split('.').length !== 3) return null
+
+  try {
+    const payload = JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString('utf8'))
+    return typeof payload.role === 'string' ? payload.role : null
+  } catch {
+    return null
+  }
+}
+
 const createAdminClient = (response) => {
   const supabaseUrl = getSupabaseUrl()
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
@@ -17,6 +28,14 @@ const createAdminClient = (response) => {
   if (!supabaseUrl || !serviceRoleKey) {
     sendJson(response, 500, {
       error: 'Falta configurar SUPABASE_SERVICE_ROLE_KEY na Vercel para iniciar Utentes.',
+    })
+    return null
+  }
+
+  const role = getJwtRole(serviceRoleKey)
+  if (role && role !== 'service_role') {
+    sendJson(response, 500, {
+      error: 'A variavel SUPABASE_SERVICE_ROLE_KEY na Vercel tem de ser a service_role key, nao a anon public key.',
     })
     return null
   }
@@ -228,8 +247,12 @@ export default async function handler(request, response) {
     )
     sendJson(response, 200, { ok: true })
   } catch (error) {
+    const message = getErrorMessage(error)
     sendJson(response, 400, {
-      error: getErrorMessage(error),
+      error:
+        message.toLowerCase().includes('permission denied')
+          ? 'A chave service_role da Vercel nao tem permissao para criar a sessao de Utentes. Confirma SUPABASE_SERVICE_ROLE_KEY.'
+          : message,
     })
   }
 }
