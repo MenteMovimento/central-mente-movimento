@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Central MenteMovimento</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/vendor/lucide.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body class="login-page">
+    <main class="login-shell">
+      <section class="login-panel" aria-labelledby="loginTitle">
+        <div class="brand-line">
+          <span class="brand-symbol" aria-hidden="true"><i data-lucide="shield-check"></i></span>
+          <span>Central MenteMovimento</span>
+        </div>
+        <h1 id="loginTitle">Entrar</h1>
+        <p class="login-copy">Acesso reservado à gestão da associação.</p>
+
+        <form class="login-form" method="post" action="/login">
+          <input name="next" type="hidden" value="{{NEXT}}" />
+          <label class="field" for="email">
+            <span>Email</span>
+            <input id="email" name="email" type="email" autocomplete="email" value="{{EMAIL}}" required />
+          </label>
+          <label class="field" for="password">
+            <span>Password</span>
+            <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
+          </label>
+          {{ERROR}}
+          <button class="primary-button" type="submit">
+            <i data-lucide="log-in"></i>
+            <span>Entrar</span>
+          </button>
+        </form>
+      </section>
+    </main>
+  </body>
+</html>

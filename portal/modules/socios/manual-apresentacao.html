@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual de Apresentação - Gestão de Sócios</title>
+    <link rel="stylesheet" href="docs/manual-apresentacao.css" />
+  </head>
+  <body>
+    <main class="deck">
+      <section class="slide cover">
+        <img class="brand" src="assets/mente-movimento-logo-horizontal.png" alt="MenteMovimento Associação Pró-Saúde Mental" />
+        <p class="eyebrow">Manual da aplicação</p>
+        <h1>Gestão de Sócios</h1>
+        <p class="lead">Guia de utilização, manutenção diária e orientação técnica para futuras atualizações.</p>
+        <div class="meta-grid">
+          <div>
+            <span>Website</span>
+            <strong>socios-mente-movimento.vercel.app</strong>
+          </div>
+          <div>
+            <span>Base de dados</span>
+            <strong>Supabase PostgreSQL</strong>
+          </div>
+          <div>
+            <span>Publicação</span>
+            <strong>Vercel + GitHub</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Como usar este manual</p>
+        <h2>Modo de apresentação</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Para apresentar</h3>
+            <ul>
+              <li>Abrir este ficheiro no browser.</li>
+              <li>Usar F11 para ecrã completo.</li>
+              <li>Avançar com scroll, Page Down ou barra de espaço.</li>
+              <li>Imprimir para PDF se for preciso entregar em papel.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Para consultar depois</h3>
+            <ul>
+              <li>Parte 1: utilização normal da aplicação.</li>
+              <li>Parte 2: manutenção diária pela associação.</li>
+              <li>Parte 3: ficheiros, código e atualização técnica.</li>
+              <li>Parte 4: checklist de segurança e continuidade.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Visão geral</p>
+        <h2>Para que serve a aplicação</h2>
+        <div class="feature-grid">
+          <article>
+            <h3>Sócios</h3>
+            <p>Criar, consultar, editar e eliminar fichas de sócios autorizados.</p>
+          </article>
+          <article>
+            <h3>Quotas</h3>
+            <p>Controlar a última quota anual paga, a data do pagamento e alertar atrasos.</p>
+          </article>
+          <article>
+            <h3>Acessos</h3>
+            <p>Gerir administradores, operadores e utilizadores de consulta.</p>
+          </article>
+          <article>
+            <h3>Auditoria</h3>
+            <p>Consultar histórico de alterações para perceber quem alterou dados.</p>
+          </article>
+          <article>
+            <h3>Exportação</h3>
+            <p>Exportar os dados para Excel ou CSV para backup e análise externa.</p>
+          </article>
+          <article>
+            <h3>Segurança</h3>
+            <p>Login, permissões, RLS no Supabase e funções seguras na Vercel.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide image-slide">
+        <div>
+          <p class="eyebrow">Utilizador</p>
+          <h2>Entrar na aplicação</h2>
+          <ol>
+            <li>Abrir o website publicado.</li>
+            <li>Introduzir email e password.</li>
+            <li>Opcionalmente ativar "Lembrar neste dispositivo".</li>
+            <li>Clicar em "Entrar".</li>
+          </ol>
+          <p class="note">A conta tem de existir no Supabase Auth e estar ativa na lista de utilizadores autorizados.</p>
+        </div>
+        <img src="docs/images/guia-01-login.svg" alt="Ecrã de login da aplicação" />
+      </section>
+
+      <section class="slide image-slide">
+        <div>
+          <p class="eyebrow">Utilizador</p>
+          <h2>Painel principal</h2>
+          <ul>
+            <li>Pesquisar por nome, nº de sócio, NIF, localidade ou email.</li>
+            <li>Ver total de sócios e quotas em atraso.</li>
+            <li>Filtrar por todos, quotas em atraso ou quotas em dia.</li>
+            <li>Ordenar a lista por nome, nº de sócio, localidade ou quotas.</li>
+          </ul>
+        </div>
+        <img src="docs/images/guia-02-painel.svg" alt="Painel principal da aplicação" />
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Utilizador</p>
+        <h2>Criar ou editar um sócio</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Campos principais</h3>
+            <ul>
+              <li>Nº de sócio, opcional e único quando preenchido.</li>
+              <li>Nº de Ata de Aprovação, opcional.</li>
+              <li>Nome, morada, código postal e localidade.</li>
+              <li>BI/CC opcional, NIF, categoria, nascimento, telemóvel e email.</li>
+              <li>Observações internas para notas úteis da equipa.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Regras práticas</h3>
+            <ul>
+              <li>Confirmar sempre o nome antes de guardar.</li>
+              <li>Usar código postal no formato 0000-000.</li>
+              <li>Usar NIF com 9 dígitos.</li>
+              <li>Quando não existir nº atribuído, deixar vazio.</li>
+              <li>Guardar no fim e confirmar que a ficha aparece na tabela.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide image-slide">
+        <div>
+          <p class="eyebrow">Utilizador</p>
+          <h2>Quotas</h2>
+          <ul>
+            <li>A coluna "Quota anual" mostra o último ano pago.</li>
+            <li>Se a quota estiver atrasada, a linha aparece destacada a vermelho.</li>
+            <li>O botão "Pagar quota" avança sempre um ano.</li>
+            <li>O pagamento pede confirmação antes de gravar.</li>
+            <li>A data do pagamento é preenchida automaticamente.</li>
+          </ul>
+        </div>
+        <img src="docs/images/guia-04-quotas.svg" alt="Exemplo de gestão de quotas" />
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Utilizador</p>
+        <h2>Menu dos três traços</h2>
+        <div class="feature-grid compact">
+          <article>
+            <h3>Exportar</h3>
+            <p>Cria uma folha Excel com os dados visíveis.</p>
+          </article>
+          <article>
+            <h3>Tema</h3>
+            <p>Alterna entre tema claro e tema escuro.</p>
+          </article>
+          <article>
+            <h3>Histórico</h3>
+            <p>Mostra alterações feitas aos sócios, com data e utilizador.</p>
+          </article>
+          <article>
+            <h3>Idioma</h3>
+            <p>Permite usar a interface em português ou inglês.</p>
+          </article>
+        </div>
+        <p class="note">O botão "Gestor de Administradores" fica fora deste menu e só aparece a administradores.</p>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Utilizador administrador</p>
+        <h2>Gestor de Administradores</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Permite</h3>
+            <ul>
+              <li>Criar novos utilizadores.</li>
+              <li>Definir nome, email, password e perfil.</li>
+              <li>Editar permissões existentes.</li>
+              <li>Ativar ou desativar contas.</li>
+              <li>Eliminar utilizadores que já não devem aceder.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Perfis</h3>
+            <table>
+              <tr><th>Perfil</th><th>Permissão</th></tr>
+              <tr><td>Administrador</td><td>Tudo, incluindo utilizadores.</td></tr>
+              <tr><td>Operador</td><td>Criar e editar sócios.</td></tr>
+              <tr><td>Consulta</td><td>Apenas consultar.</td></tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Manutenção diária</p>
+        <h2>Rotina recomendada</h2>
+        <ol class="timeline">
+          <li><strong>Entrada:</strong> confirmar login e sessão individual.</li>
+          <li><strong>Novos sócios:</strong> preencher ficha, nº de sócio se existir, nº de ata e data de adesão.</li>
+          <li><strong>Quotas:</strong> filtrar atrasados e usar "Pagar quota" quando houver regularização.</li>
+          <li><strong>Dados:</strong> corrigir contactos, moradas e observações internas quando necessário.</li>
+          <li><strong>Exportação:</strong> exportar Excel regularmente para backup administrativo.</li>
+          <li><strong>Histórico:</strong> consultar quando houver dúvidas sobre alterações.</li>
+        </ol>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Manutenção diária</p>
+        <h2>Cuidados para qualquer utilizador</h2>
+        <div class="warning-grid">
+          <article>
+            <h3>Não apagar sem confirmar</h3>
+            <p>Apagar remove a ficha do sócio. Quando houver dúvida, editar ou adicionar observação interna.</p>
+          </article>
+          <article>
+            <h3>Passwords individuais</h3>
+            <p>Cada pessoa deve usar a sua conta. Não partilhar passwords entre utilizadores.</p>
+          </article>
+          <article>
+            <h3>Computadores partilhados</h3>
+            <p>Terminar sessão depois de usar a aplicação fora de computador pessoal.</p>
+          </article>
+          <article>
+            <h3>Dados pessoais</h3>
+            <p>Recolher apenas dados necessários e manter exportações em local protegido.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Manutenção diária</p>
+        <h2>Problemas comuns</h2>
+        <table>
+          <tr><th>Problema</th><th>O que fazer</th></tr>
+          <tr><td>Não consigo entrar</td><td>Confirmar email, password e se a conta está ativa.</td></tr>
+          <tr><td>Não vejo Gestor de Administradores</td><td>A conta provavelmente não é administradora.</td></tr>
+          <tr><td>Sócio aparece em atraso</td><td>Usar "Pagar quota" ou atualizar a última quota paga.</td></tr>
+          <tr><td>Campo novo não aparece</td><td>Confirmar se o SQL correspondente foi corrido no Supabase.</td></tr>
+          <tr><td>Site parece desatualizado</td><td>Fazer Ctrl + F5 para limpar cache do browser.</td></tr>
+        </table>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Onde está guardado o projeto</h2>
+        <div class="code-card">
+          <p><strong>Pasta local deste computador</strong></p>
+          <code>C:\Users\Asus\Documents\New project</code>
+        </div>
+        <div class="code-card">
+          <p><strong>Repositório GitHub</strong></p>
+          <code>https://github.com/jf77ps/Socios_MenteMovimento</code>
+        </div>
+        <div class="code-card">
+          <p><strong>Website publicado</strong></p>
+          <code>https://socios-mente-movimento.vercel.app</code>
+        </div>
+        <p class="note">O GitHub é a fonte principal para partilhar o projeto. A Vercel publica a partir do branch principal.</p>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Ficheiros principais</h2>
+        <table>
+          <tr><th>Ficheiro/Pasta</th><th>Função</th></tr>
+          <tr><td><code>index.html</code></td><td>Estrutura visual da app, botões, tabelas, formulários e modais.</td></tr>
+          <tr><td><code>styles.css</code></td><td>Layout, cores, tema claro/escuro, responsividade e aspeto das tabelas.</td></tr>
+          <tr><td><code>app.js</code></td><td>Lógica: login, permissões, sócios, quotas, filtros, exportação e chamadas ao Supabase.</td></tr>
+          <tr><td><code>config.js</code></td><td>Configuração pública do Supabase, nome da app e CAPTCHA se for ativado.</td></tr>
+          <tr><td><code>vercel.json</code></td><td>Headers de segurança e regras da publicação na Vercel.</td></tr>
+        </table>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Pastas técnicas</h2>
+        <div class="feature-grid compact">
+          <article>
+            <h3><code>api/</code></h3>
+            <p>Funções Vercel seguras: criar e eliminar utilizadores.</p>
+          </article>
+          <article>
+            <h3><code>supabase/</code></h3>
+            <p>SQL da base de dados, políticas RLS e migrações manuais.</p>
+          </article>
+          <article>
+            <h3><code>assets/</code></h3>
+            <p>Logotipo e imagens da associação.</p>
+          </article>
+          <article>
+            <h3><code>vendor/</code></h3>
+            <p>Bibliotecas locais usadas pela app, sem depender de CDN externa.</p>
+          </article>
+          <article>
+            <h3><code>docs/images/</code></h3>
+            <p>Imagens usadas nos guias e manuais.</p>
+          </article>
+          <article>
+            <h3>Manuais</h3>
+            <p><code>README.md</code>, <code>GUIA_RAPIDO_UTILIZACAO.md</code>, <code>RELATORIO_FINAL_PROJETO.md</code> e este manual.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Como atualizar o website</h2>
+        <ol class="timeline">
+          <li><strong>Editar:</strong> alterar os ficheiros necessários na pasta do projeto.</li>
+          <li><strong>Testar localmente:</strong> abrir a app num servidor local antes de publicar.</li>
+          <li><strong>Validar JavaScript:</strong> correr <code>node --check app.js</code>.</li>
+          <li><strong>Guardar no Git:</strong> fazer commit com uma mensagem clara.</li>
+          <li><strong>Enviar para GitHub:</strong> fazer push para o branch principal.</li>
+          <li><strong>Publicação:</strong> a Vercel faz redeploy automaticamente.</li>
+          <li><strong>Confirmar:</strong> abrir o site publicado e, se necessário, fazer Ctrl + F5.</li>
+        </ol>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Quando há mudanças na base de dados</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Regra principal</h3>
+            <p>Alterar código não chega quando é criado um campo novo. Também é preciso executar o SQL correspondente no Supabase.</p>
+          </div>
+          <div>
+            <h3>Onde executar</h3>
+            <ul>
+              <li>Entrar no painel Supabase.</li>
+              <li>Abrir o projeto da aplicação.</li>
+              <li>Ir a SQL Editor.</li>
+              <li>Colar o ficheiro SQL da pasta <code>supabase/</code>.</li>
+              <li>Clicar em Run.</li>
+            </ul>
+          </div>
+        </div>
+        <p class="note">Exemplos recentes: <code>add-quota-paid-at.sql</code> e <code>add-approval-minute-number.sql</code>.</p>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Funções seguras e variáveis</h2>
+        <div class="two-columns">
+          <div>
+            <h3>Funções API</h3>
+            <ul>
+              <li><code>api/create-user.js</code> cria utilizadores sem ir manualmente ao Supabase.</li>
+              <li><code>api/delete-user.js</code> elimina utilizadores com proteções adicionais.</li>
+              <li>Ambas confirmam sessão e perfil de administrador.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Variável importante</h3>
+            <ul>
+              <li><code>SUPABASE_SERVICE_ROLE_KEY</code> fica apenas na Vercel.</li>
+              <li>Nunca colocar esta chave em <code>config.js</code>.</li>
+              <li>Nunca publicar esta chave no GitHub.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Programador</p>
+        <h2>Checklist antes de publicar alterações</h2>
+        <ul class="checklist">
+          <li>O pedido foi compreendido e está limitado ao que é necessário?</li>
+          <li>Os ficheiros alterados são os corretos?</li>
+          <li>O JavaScript passa em <code>node --check app.js</code>?</li>
+          <li>Se houver campo novo, existe SQL em <code>supabase/</code>?</li>
+          <li>O site foi testado localmente no browser?</li>
+          <li>A alteração foi enviada para GitHub?</li>
+          <li>A Vercel publicou a versão nova?</li>
+          <li>O utilizador final sabe se precisa de correr SQL no Supabase?</li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Continuidade</p>
+        <h2>Para a associação não depender de uma pessoa</h2>
+        <div class="warning-grid">
+          <article>
+            <h3>Acessos partilhados de forma segura</h3>
+            <p>Manter pelo menos duas pessoas com acesso administrativo ao GitHub, Vercel e Supabase.</p>
+          </article>
+          <article>
+            <h3>Conta institucional</h3>
+            <p>Sempre que possível, usar emails da associação para propriedade dos serviços.</p>
+          </article>
+          <article>
+            <h3>Passwords e 2FA</h3>
+            <p>Guardar credenciais num local seguro e ativar autenticação de dois fatores.</p>
+          </article>
+          <article>
+            <h3>Backups</h3>
+            <p>Exportar dados regularmente e guardar cópias protegidas.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="eyebrow">Resumo final</p>
+        <h2>O essencial a memorizar</h2>
+        <div class="summary">
+          <p>A app serve para manter os sócios, quotas e acessos organizados num website online protegido.</p>
+          <p>Utilizadores devem manter os dados certos, exportar backups e evitar apagar sem confirmação.</p>
+          <p>Programadores devem mexer nos ficheiros certos, testar localmente, publicar pelo GitHub e aplicar SQL no Supabase quando houver mudanças na base de dados.</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

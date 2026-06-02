@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Central MenteMovimento</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/vendor/lucide.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    {{TOPBAR}}
+
+    <main class="dashboard">
+      <section class="dashboard-heading" aria-labelledby="dashboardTitle">
+        <div>
+          <p class="eyebrow">Gestão da associação</p>
+          <h2 id="dashboardTitle">Escolhe a área de trabalho</h2>
+        </div>
+        <span class="session-chip">
+          <i data-lucide="key-round"></i>
+          <span>Sessão única</span>
+        </span>
+      </section>
+
+      <section class="module-grid" aria-label="Aplicações disponíveis">
+        {{MODULE_CARDS}}
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">Quotas em atraso</title>
+  <desc id="desc">Esquema para identificar e atualizar quotas em atraso.</desc>
+  <rect width="980" height="560" fill="#f4f8fb"/>
+  <rect x="54" y="54" width="872" height="452" rx="8" fill="#ffffff" stroke="#d8e5ea"/>
+  <text x="88" y="104" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#071b4d">Controlar quotas</text>
+  <text x="88" y="136" font-family="Arial, sans-serif" font-size="17" fill="#526678">Usar o filtro e atualizar a data quando o sócio pagar.</text>
+
+  <rect x="88" y="176" width="152" height="44" rx="8" fill="#e3f8f0" stroke="#0ab47d"/>
+  <text x="164" y="204" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#071b4d">Todos</text>
+  <rect x="254" y="176" width="210" height="44" rx="8" fill="#fff6f4" stroke="#f4b7ae"/>
+  <text x="359" y="204" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#b42318">Quotas em atraso</text>
+  <rect x="478" y="176" width="120" height="44" rx="8" fill="#ffffff" stroke="#b8cbd2"/>
+  <text x="538" y="204" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#071b4d">Em dia</text>
+
+  <rect x="88" y="260" width="804" height="144" rx="8" fill="#ffffff" stroke="#d8e5ea"/>
+  <rect x="88" y="260" width="804" height="56" rx="8" fill="#f8fbfa"/>
+  <text x="116" y="294" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#385466">Nº</text>
+  <text x="190" y="294" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#385466">Nome</text>
+  <text x="520" y="294" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#385466">Quotas</text>
+  <text x="786" y="294" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#385466">Ações</text>
+  <rect x="88" y="316" width="804" height="88" fill="#fff0ed"/>
+  <text x="116" y="368" font-family="Arial, sans-serif" font-size="17" fill="#071b4d">67</text>
+  <text x="190" y="368" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#b42318">Sócio exemplo</text>
+  <text x="520" y="368" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#b42318">Em atraso desde 02/04/2026</text>
+  <rect x="776" y="340" width="44" height="42" rx="8" fill="#ffffff" stroke="#b8cbd2"/>
+  <text x="798" y="367" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" fill="#071b4d">✎</text>
+
+  <circle cx="356" cy="160" r="16" fill="#0ab47d"/>
+  <text x="356" y="166" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">1</text>
+  <text x="634" y="190" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#071b4d">Ver atrasos</text>
+  <text x="634" y="214" font-family="Arial, sans-serif" font-size="14" fill="#526678">Clicar em "Quotas em atraso".</text>
+
+  <circle cx="798" cy="324" r="16" fill="#0ab47d"/>
+  <text x="798" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#ffffff">2</text>
+  <text x="634" y="430" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#071b4d">Atualizar pagamento</text>
+  <text x="634" y="454" font-family="Arial, sans-serif" font-size="14" fill="#526678">Abrir no lápis e mudar "Quotas pagas até".</text>
+</svg>

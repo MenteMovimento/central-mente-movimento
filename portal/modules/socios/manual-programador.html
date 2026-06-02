@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual do Programador - Gestão de Sócios</title>
+    <link rel="stylesheet" href="docs/manual-pdf.css" />
+  </head>
+  <body>
+    <main class="manual">
+      <section class="cover">
+        <img class="cover-logo" src="assets/mente-movimento-logo-horizontal.png" alt="MenteMovimento Associação Pró-Saúde Mental" />
+        <p class="eyebrow">Manual do programador</p>
+        <h1>Manutenção técnica da aplicação</h1>
+        <p class="lead">Onde está o projeto, como funciona a arquitetura, como atualizar o website e que cuidados manter para a associação não depender de uma única pessoa.</p>
+        <div class="meta">
+          <div>
+            <span>Código</span>
+            <strong>GitHub: jf77ps/Socios_MenteMovimento</strong>
+          </div>
+          <div>
+            <span>Publicação</span>
+            <strong>Vercel, branch main</strong>
+          </div>
+          <div>
+            <span>Base de dados</span>
+            <strong>Supabase PostgreSQL</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">Índice</p>
+        <h2>O que este manual explica</h2>
+        <ul class="toc">
+          <li>1. Arquitetura geral</li>
+          <li>2. Onde estão os ficheiros</li>
+          <li>3. Como testar localmente</li>
+          <li>4. Como publicar alterações</li>
+          <li>5. Supabase e SQL</li>
+          <li>6. Funções seguras da Vercel</li>
+          <li>7. Segurança, passwords e backups</li>
+          <li>8. Plano semestral de cibersegurança</li>
+          <li>9. Alterações futuras</li>
+          <li>10. Transferência de responsabilidade</li>
+          <li>11. Checklist técnica</li>
+        </ul>
+        <p class="callout">Este manual é para a pessoa que fica responsável por manter o site, corrigir pequenos problemas e coordenar futuras alterações técnicas.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">1. Arquitetura</p>
+        <h2>Como o projeto está montado</h2>
+        <div class="grid three">
+          <article class="card">
+            <h3>Frontend</h3>
+            <p>Website estático com <code>index.html</code>, <code>styles.css</code> e <code>app.js</code>.</p>
+          </article>
+          <article class="card">
+            <h3>Base de dados</h3>
+            <p>Supabase PostgreSQL guarda sócios, utilizadores autorizados e histórico.</p>
+          </article>
+          <article class="card">
+            <h3>Autenticação</h3>
+            <p>Supabase Auth trata login por email e password.</p>
+          </article>
+          <article class="card">
+            <h3>Publicação</h3>
+            <p>Vercel publica automaticamente quando há push para o GitHub.</p>
+          </article>
+          <article class="card">
+            <h3>Funções API</h3>
+            <p>A pasta <code>api/</code> contém operações que precisam de chave privada no servidor.</p>
+          </article>
+          <article class="card">
+            <h3>Segurança</h3>
+            <p>Row Level Security no Supabase, headers no <code>vercel.json</code> e perfis de acesso na app.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">2. Ficheiros</p>
+        <h2>Onde está o código</h2>
+        <div class="callout">
+          <p><strong>Pasta local:</strong> <code>C:\Users\Asus\Documents\New project</code></p>
+          <p><strong>GitHub:</strong> <code>https://github.com/jf77ps/Socios_MenteMovimento</code></p>
+          <p><strong>Website:</strong> <code>https://socios-mente-movimento.vercel.app</code></p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ficheiro ou pasta</th>
+              <th>Função</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>index.html</code></td>
+              <td>Estrutura da aplicação: login, painel, modais e formulários.</td>
+            </tr>
+            <tr>
+              <td><code>styles.css</code></td>
+              <td>Aspeto visual da aplicação, temas claro/escuro e responsividade.</td>
+            </tr>
+            <tr>
+              <td><code>app.js</code></td>
+              <td>Lógica principal: Supabase, permissões, sócios, quotas, exportação e idiomas.</td>
+            </tr>
+            <tr>
+              <td><code>config.js</code></td>
+              <td>URL e chave pública do Supabase. Nunca colocar aqui a service role key.</td>
+            </tr>
+            <tr>
+              <td><code>api/</code></td>
+              <td>Funções de servidor para criar e eliminar utilizadores.</td>
+            </tr>
+            <tr>
+              <td><code>supabase/</code></td>
+              <td>Scripts SQL para criar ou alterar tabelas, políticas e funções.</td>
+            </tr>
+            <tr>
+              <td><code>docs/</code></td>
+              <td>CSS dos manuais, imagens e PDFs de documentação.</td>
+            </tr>
+            <tr>
+              <td><code>vendor/</code></td>
+              <td>Bibliotecas externas guardadas localmente, evitando dependência de CDN.</td>
+            </tr>
+            <tr>
+              <td><code>vercel.json</code></td>
+              <td>Configuração da Vercel, headers de segurança e regras das APIs.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">3. Testes locais</p>
+        <h2>Como testar antes de publicar</h2>
+        <ol class="steps">
+          <li>Abrir a pasta do projeto no editor.</li>
+          <li>Iniciar um servidor local na pasta do projeto, por exemplo <code>python -m http.server 4177</code>.</li>
+          <li>Abrir <code>http://127.0.0.1:4177</code> no browser.</li>
+          <li>Testar login, pesquisa, criar/editar sócio, pagar quota, exportar e gestor de administradores.</li>
+          <li>Validar o JavaScript com <code>node --check app.js</code>.</li>
+          <li>Confirmar que não existem erros visíveis na consola do browser.</li>
+        </ol>
+        <p class="warning">Nunca testar alterações diretamente em produção sem antes confirmar localmente que o fluxo principal continua a funcionar.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">4. Publicação</p>
+        <h2>Como atualizar o site</h2>
+        <ol class="steps">
+          <li>Alterar os ficheiros necessários.</li>
+          <li>Testar localmente.</li>
+          <li>Fazer commit no Git com uma mensagem clara.</li>
+          <li>Enviar para o GitHub no branch <code>main</code>.</li>
+          <li>A Vercel faz o deploy automaticamente.</li>
+          <li>Abrir o website publicado e confirmar a alteração.</li>
+        </ol>
+        <div class="callout">
+          <p>Fluxo esperado: <code>computador local → GitHub → Vercel → website público</code>.</p>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">5. Supabase</p>
+        <h2>Base de dados, SQL e RLS</h2>
+        <p>O código do site não altera sozinho a estrutura da base de dados. Quando há um campo novo, também é preciso executar SQL no Supabase.</p>
+        <ol class="steps">
+          <li>Entrar no Supabase.</li>
+          <li>Abrir o projeto da associação.</li>
+          <li>Ir a <strong>SQL Editor</strong>.</li>
+          <li>Colar o script da pasta <code>supabase/</code>.</li>
+          <li>Clicar em <strong>Run</strong>.</li>
+          <li>Testar no site publicado.</li>
+        </ol>
+        <table>
+          <thead>
+            <tr>
+              <th>Script</th>
+              <th>Quando usar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>schema.sql</code></td>
+              <td>Criação inicial da base de dados.</td>
+            </tr>
+            <tr>
+              <td><code>harden-rls.sql</code></td>
+              <td>Reforço das permissões e Row Level Security.</td>
+            </tr>
+            <tr>
+              <td><code>add-quota-paid-at.sql</code></td>
+              <td>Adiciona a data em que a quota foi paga.</td>
+            </tr>
+            <tr>
+              <td><code>add-approval-minute-number.sql</code></td>
+              <td>Adiciona o Nº de Ata de Aprovação.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">6. APIs</p>
+        <h2>Funções seguras da Vercel</h2>
+        <p>Algumas ações não devem ser feitas diretamente no browser porque precisam de permissões fortes. Por isso existem funções na pasta <code>api/</code>.</p>
+        <div class="grid">
+          <article class="card">
+            <h3><code>api/create-user.js</code></h3>
+            <p>Cria novos utilizadores autorizados através do Gestor de Administradores.</p>
+          </article>
+          <article class="card">
+            <h3><code>api/delete-user.js</code></h3>
+            <p>Remove utilizadores com validações para impedir ações inseguras.</p>
+          </article>
+        </div>
+        <p class="warning">A variável <code>SUPABASE_SERVICE_ROLE_KEY</code> fica apenas na Vercel, em Environment Variables. Nunca deve ir para GitHub, <code>config.js</code> ou qualquer ficheiro público.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">7. Segurança</p>
+        <h2>Cuidados obrigatórios de cibersegurança</h2>
+        <ul class="checklist">
+          <li>Manter Row Level Security ativa no Supabase.</li>
+          <li>Dar acesso administrativo apenas a quem realmente precisa.</li>
+          <li>Ativar 2FA/MFA nas contas GitHub, Vercel e Supabase.</li>
+          <li>Guardar passwords num local seguro e controlado pela associação.</li>
+          <li>Fazer backups/exportações regulares dos dados e testar recuperação.</li>
+          <li>Não colocar chaves privadas no código público.</li>
+          <li>Rever o histórico de alterações quando houver dúvidas.</li>
+          <li>Remover acessos quando uma pessoa sai da associação.</li>
+        </ul>
+        <p class="callout">Regra prática: cada pessoa deve ter a sua própria conta. Evitar contas partilhadas; quando forem inevitáveis, guardar a password num gestor seguro e mudar a password sempre que alguém com acesso sair da associação.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">8. Rotina semestral</p>
+        <h2>Plano semestral de cibersegurança</h2>
+        <p>De 6 em 6 meses deve existir uma revisão técnica formal, registada por escrito com data, responsável e resultado.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Tarefa</th>
+              <th>O que fazer</th>
+              <th>Registo mínimo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Backups</td>
+              <td>Exportar dados dos sócios e confirmar que existe cópia protegida fora da conta principal.</td>
+              <td>Data, responsável, local da cópia e ficheiro exportado.</td>
+            </tr>
+            <tr>
+              <td>Teste de recuperação</td>
+              <td>Confirmar que o ficheiro exportado abre corretamente e que os dados essenciais estão presentes.</td>
+              <td>Resultado do teste e erros encontrados.</td>
+            </tr>
+            <tr>
+              <td>Passwords administrativas</td>
+              <td>Rodar passwords das contas institucionais/admin e chaves partilhadas, evitando variações previsíveis.</td>
+              <td>Contas revistas e confirmação de atualização.</td>
+            </tr>
+            <tr>
+              <td>Acessos</td>
+              <td>Rever GitHub, Vercel, Supabase e Gestor de Administradores da app.</td>
+              <td>Lista de pessoas que ficaram com acesso.</td>
+            </tr>
+            <tr>
+              <td>MFA/2FA</td>
+              <td>Confirmar que administradores têm autenticação de dois fatores ativa.</td>
+              <td>Serviços verificados e contas sem 2FA.</td>
+            </tr>
+            <tr>
+              <td>Histórico e logs</td>
+              <td>Rever alterações recentes, eliminações e ações administrativas suspeitas.</td>
+              <td>Resumo da revisão e ações tomadas.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="warning">Além da revisão semestral, mudar passwords imediatamente se houver suspeita de acesso indevido, perda de computador/telemóvel, saída de alguém com acesso, ou partilha acidental de credenciais.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">8.1 Backups</p>
+        <h2>Política de backups</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Periodicidade mínima</h3>
+            <p>Backup semestral obrigatório. Se houver muitas alterações de sócios/quotas, fazer também backup mensal.</p>
+          </article>
+          <article class="card">
+            <h3>O que guardar</h3>
+            <p>Exportação da lista de sócios, registo de quotas, utilizadores autorizados e scripts SQL importantes.</p>
+          </article>
+          <article class="card">
+            <h3>Onde guardar</h3>
+            <p>Duas cópias: uma em armazenamento institucional protegido e outra em local separado, com acesso restrito.</p>
+          </article>
+          <article class="card">
+            <h3>Proteção</h3>
+            <p>Evitar enviar backups por email comum. Se possível, guardar em pasta protegida e com controlo de acessos.</p>
+          </article>
+        </div>
+        <p class="callout">Um backup só é útil se puder ser recuperado. Pelo menos uma vez por semestre, abrir o ficheiro exportado e confirmar que contém nomes, contactos, quotas e campos principais.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">8.2 Passwords</p>
+        <h2>Política de passwords e contas</h2>
+        <ul class="checklist">
+          <li>Usar passwords únicas para GitHub, Vercel, Supabase, email institucional e app.</li>
+          <li>Usar frases-password longas ou passwords geradas por gestor de passwords.</li>
+          <li>Ativar 2FA/MFA em todas as contas administrativas.</li>
+          <li>Fazer revisão semestral das passwords administrativas e institucionais.</li>
+          <li>Mudar passwords partilhadas sempre que alguém com acesso deixa a associação.</li>
+          <li>Não reutilizar passwords antigas nem criar variações óbvias, como mudar apenas o ano ou um número.</li>
+          <li>Não guardar passwords em documentos públicos, chats, folhas de cálculo abertas ou emails.</li>
+          <li>Desativar contas que já não são usadas.</li>
+        </ul>
+        <p class="callout">Nota técnica: recomendações modernas de cibersegurança dão prioridade a passwords únicas, longas, MFA e mudança imediata quando há suspeita de compromisso. A revisão semestral deve evitar criar passwords fracas ou previsíveis.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">8.3 Incidentes</p>
+        <h2>O que fazer se houver suspeita de problema</h2>
+        <ol class="steps">
+          <li>Suspender ou remover o acesso da conta suspeita no Gestor de Administradores.</li>
+          <li>Mudar passwords das contas afetadas e confirmar 2FA/MFA.</li>
+          <li>Rodar a <code>SUPABASE_SERVICE_ROLE_KEY</code> se houver suspeita de exposição da chave.</li>
+          <li>Rever histórico da app, utilizadores autorizados e logs do Supabase/Vercel.</li>
+          <li>Fazer backup do estado atual antes de alterações profundas.</li>
+          <li>Confirmar se houve acesso a dados pessoais dos sócios.</li>
+          <li>Informar a direção e avaliar obrigações RGPD com apoio adequado.</li>
+          <li>Registar o incidente: data, pessoa que detetou, impacto, ações tomadas e conclusão.</li>
+        </ol>
+        <p class="warning">Nunca apagar logs ou histórico para “limpar” o problema. Primeiro preservar evidências, depois corrigir o acesso.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">8.4 Referências</p>
+        <h2>Referências úteis de cibersegurança</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Fonte</th>
+              <th>Utilidade para este projeto</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a href="https://www.cisa.gov/audiences/small-and-medium-businesses/secure-your-business/back-up-business-data">CISA - Back Up Business Data</a></td>
+              <td>Planeamento de backups e recuperação após incidentes.</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.cisa.gov/stopransomware/ransomware-guide">CISA - Stop Ransomware Guide</a></td>
+              <td>Boas práticas para reduzir impacto de ransomware e testar backups.</td>
+            </tr>
+            <tr>
+              <td><a href="https://www.ncsc.gov.uk/collection/passwords/updating-your-approach">NCSC - Password policy</a></td>
+              <td>Orientação moderna para passwords, evitando regras que levem a passwords fracas.</td>
+            </tr>
+            <tr>
+              <td><a href="https://pages.nist.gov/800-63-3/">NIST Digital Identity Guidelines</a></td>
+              <td>Referência técnica para autenticação, passwords e gestão de identidade.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="callout">Estas referências não substituem apoio jurídico ou técnico especializado, mas ajudam a manter o projeto alinhado com boas práticas atuais.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">9. Alterações futuras</p>
+        <h2>Como adicionar um campo novo</h2>
+        <ol class="steps">
+          <li>Criar o SQL na pasta <code>supabase/</code>.</li>
+          <li>Executar o SQL no Supabase.</li>
+          <li>Adicionar o campo ao formulário em <code>index.html</code>.</li>
+          <li>Atualizar leitura, gravação, validação e exportação em <code>app.js</code>.</li>
+          <li>Atualizar textos de português/inglês se o campo aparecer no interface.</li>
+          <li>Atualizar <code>styles.css</code> se o layout precisar.</li>
+          <li>Atualizar manuais e relatórios.</li>
+          <li>Testar localmente e publicar pelo GitHub.</li>
+        </ol>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">10. Continuidade</p>
+        <h2>Como a associação deixa de depender de uma pessoa</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>GitHub</h3>
+            <p>Transferir o repositório para uma organização GitHub da associação.</p>
+          </article>
+          <article class="card">
+            <h3>Vercel</h3>
+            <p>Transferir o projeto para uma equipa Vercel controlada pela associação.</p>
+          </article>
+          <article class="card">
+            <h3>Supabase</h3>
+            <p>Garantir que a organização/projeto Supabase pertence à associação.</p>
+          </article>
+          <article class="card">
+            <h3>Acessos</h3>
+            <p>Ter pelo menos duas pessoas com acesso administrativo e 2FA ativo.</p>
+          </article>
+        </div>
+        <p class="callout">O ideal é usar emails institucionais da associação para propriedade, faturação, recuperação de conta e alertas técnicos.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">11. Checklist técnica</p>
+        <h2>Antes de publicar qualquer alteração</h2>
+        <ul class="checklist">
+          <li>O pedido está claro e limitado ao necessário?</li>
+          <li>Os ficheiros alterados são os corretos?</li>
+          <li>O site foi testado localmente?</li>
+          <li><code>node --check app.js</code> passou sem erros?</li>
+          <li>Se houve campo novo, o SQL foi criado e executado?</li>
+          <li>As permissões continuam corretas para admin, operador e consulta?</li>
+          <li>O commit foi enviado para o GitHub?</li>
+          <li>A Vercel publicou e o site final foi confirmado?</li>
+        </ul>
+        <p class="footer-note">Versão do manual: 22/05/2026.</p>
+      </section>
+    </main>
+  </body>
+</html>

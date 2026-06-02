@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{{AREA_NAME}} | Central MenteMovimento</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/vendor/lucide.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    {{TOPBAR}}
+
+    <main class="area-shell">
+      <aside class="area-nav" aria-label="Áreas">
+        {{AREA_NAV}}
+      </aside>
+
+      <section class="area-main area-{{AREA_ACCENT}}" aria-labelledby="areaTitle">
+        <div class="area-heading">
+          <span class="module-icon area-heading-icon" aria-hidden="true"><i data-lucide="{{AREA_ICON}}"></i></span>
+          <div>
+            <p class="eyebrow">Ramo {{AREA_SCHEMA}}</p>
+            <h2 id="areaTitle">{{AREA_LABEL}}</h2>
+            <p>{{AREA_DETAIL}}</p>
+          </div>
+        </div>
+
+        <div class="branch-card">
+          <div>
+            <span class="branch-label">Base de dados</span>
+            <strong>Supabase única</strong>
+          </div>
+          <div>
+            <span class="branch-label">Schema</span>
+            <strong>{{AREA_SCHEMA}}</strong>
+          </div>
+          <div>
+            <span class="branch-label">Tabela principal</span>
+            <strong>{{AREA_TABLE}}</strong>
+          </div>
+        </div>
+
+        <div class="tool-grid" aria-label="Ferramentas da área">
+          {{AREA_PANELS}}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

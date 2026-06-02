@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{{PAGE_TITLE}} | Central MenteMovimento</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/vendor/lucide.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    {{TOPBAR}}
+
+    <main class="global-shell">
+      <section class="global-panel" aria-labelledby="globalTitle">
+        <span class="module-icon area-heading-icon" aria-hidden="true"><i data-lucide="{{PAGE_ICON}}"></i></span>
+        <p class="eyebrow">{{PAGE_EYEBROW}}</p>
+        <h2 id="globalTitle">{{PAGE_TITLE}}</h2>
+        <p class="global-copy">{{PAGE_BODY}}</p>
+        <div class="global-grid">
+          {{PAGE_ITEMS}}
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

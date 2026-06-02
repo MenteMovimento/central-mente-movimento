@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Gestão de Sócios</title>
+    <script>
+      (() => {
+        try {
+          if (
+            localStorage.getItem("central-theme") === "dark" ||
+            localStorage.getItem("socios-theme") === "dark" ||
+            localStorage.getItem("mentemovimento-theme") === "dark"
+          ) {
+            document.documentElement.dataset.theme = "dark";
+          }
+        } catch (_error) {
+          document.documentElement.removeAttribute("data-theme");
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="vendor/lucide.min.js" defer></script>
+    <script src="vendor/xlsx.full.min.js" defer></script>
+    <script src="central-socios-client.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <section class="setup-view" id="setupView" hidden>
+      <div class="setup-panel">
+        <div class="brand-mark" aria-hidden="true">
+          <i data-lucide="shield-alert"></i>
+        </div>
+        <h1>Configuração necessária</h1>
+        <p>Configure o Supabase em <code>config.js</code> antes de publicar ou usar a app em produção.</p>
+        <a class="secondary-button" href="README.md">
+          <i data-lucide="book-open"></i>
+          <span>Ver instruções</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="auth-view" id="authView" hidden>
+      <form class="auth-panel" id="loginForm" method="post">
+        <input name="csrf_token" type="hidden" data-csrf-token />
+        <div class="auth-toolbar">
+          <button class="secondary-button compact-action theme-action" type="button" data-theme-toggle title="Mudar para tema escuro">
+            <i data-lucide="moon"></i>
+            <span>Escuro</span>
+          </button>
+        </div>
+        <div class="auth-logo" aria-label="Mente Movimento">
+          <img src="assets/mente-movimento-logo-horizontal.png" alt="Mente Movimento Associação Pró-Saúde Mental" />
+        </div>
+        <h1 id="authTitle">Gestão de Sócios</h1>
+        <p>Acesso reservado a utilizadores autorizados.</p>
+
+        <label class="field" for="loginEmail">
+          <span>Email</span>
+          <input id="loginEmail" name="email" type="email" autocomplete="email" required />
+        </label>
+
+        <label class="field" for="loginPassword">
+          <span>Password</span>
+          <input id="loginPassword" name="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <label class="check-field remember-login-field" for="rememberLoginDevice">
+          <input id="rememberLoginDevice" name="rememberLoginDevice" type="checkbox" />
+          <span>Lembrar neste dispositivo</span>
+        </label>
+
+        <div class="captcha-box" id="captchaContainer" hidden></div>
+
+        <p class="form-error" id="authError" role="alert"></p>
+
+        <button class="primary-button auth-submit" id="loginSubmitBtn" type="submit">
+          <i data-lucide="log-in"></i>
+          <span>Entrar</span>
+        </button>
+        <div class="login-motion" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </form>
+    </section>
+
+    <div class="app-shell" id="appShell" hidden>
+      <header class="topbar">
+        <div class="topbar-inner">
+          <a class="brand-block brand-link" href="/dashboard">
+            <span class="brand-symbol" aria-hidden="true">
+              <img src="assets/mente-movimento-logo.png" alt="" />
+            </span>
+            <div>
+              <h1>Central MenteMovimento</h1>
+            <h1 id="appTitle">Gestão de Sócios</h1>
+            <div class="user-chip" id="userChip">
+              <span id="userEmail"></span>
+              <strong id="userRole"></strong>
+            </div>
+          </div>
+          </a>
+
+        <nav class="topnav" aria-label="Areas principais">
+          <a class="topnav-link active" href="/area/socios/">
+            <i data-lucide="id-card"></i>
+            <span>Socios</span>
+          </a>
+          <a class="topnav-link" href="/area/utentes">
+            <i data-lucide="heart-handshake"></i>
+            <span>Utentes</span>
+          </a>
+          <a class="topnav-link" href="/area/dispositivos">
+            <i data-lucide="monitor-cog"></i>
+            <span>Dispositivos</span>
+          </a>
+        </nav>
+
+        <div class="header-logo" aria-label="Mente Movimento">
+          <img src="assets/mente-movimento-logo-horizontal.png" alt="Mente Movimento Associação Pró-Saúde Mental" />
+        </div>
+
+        <div class="topbar-actions" aria-label="Ações principais">
+          <button class="primary-button new-member-action topbar-new-member" id="newMemberBtn" type="button">
+            <i data-lucide="plus"></i>
+            <span>Novo socio</span>
+          </button>
+          <div class="tools-menu-wrap">
+            <button class="icon-link menu-trigger" id="toolsMenuBtn" type="button" title="Abrir menu" aria-label="Abrir menu" aria-haspopup="menu" aria-expanded="false" aria-controls="toolsMenu">
+              <i data-lucide="menu"></i>
+            </button>
+            <div class="tools-menu" id="toolsMenu" role="menu" hidden>
+              <button class="menu-item topbar-admin-action" id="adminManagerBtn" type="button" role="menuitem" hidden>
+                <i data-lucide="users-round"></i>
+                <span>Gestor de Administradores</span>
+              </button>
+              <button class="menu-item" id="exportJsonBtn" type="button" role="menuitem">
+                <i data-lucide="download"></i>
+                <span>Exportar</span>
+              </button>
+              <button class="menu-item" id="historyBtn" type="button" role="menuitem">
+                <i data-lucide="history"></i>
+                <span>Historico de alteracoes</span>
+              </button>
+              <button class="menu-item" id="manualBtn" type="button" role="menuitem" hidden>
+                <i data-lucide="book-open"></i>
+                <span>Manual</span>
+              </button>
+              <button class="menu-item" id="languageBtn" type="button" role="menuitem">
+                <i data-lucide="languages"></i>
+                <span>Mudar idioma</span>
+              </button>
+              <button class="menu-item theme-action" id="themeToggleBtn" type="button" role="menuitem" data-theme-toggle title="Mudar para tema escuro" aria-label="Mudar para tema escuro">
+                <i data-lucide="moon"></i>
+                <span>Escuro</span>
+              </button>
+            </div>
+          </div>
+          <button class="icon-link" id="logoutBtn" type="button" title="Terminar sessao" aria-label="Terminar sessao">
+            <i data-lucide="log-out"></i>
+            <span class="icon-label">Terminar sessao</span>
+          </button>
+          <div class="action-stack topbar-legacy-actions" aria-hidden="true">
+            <div class="action-row">
+              <button class="secondary-button admin-manager-action" id="legacyAdminManagerBtn" type="button" hidden>
+                <i data-lucide="shield-check"></i>
+                <span>Gestor de Administradores</span>
+              </button>
+              <div class="tools-menu-wrap">
+                <button class="icon-button menu-trigger" id="legacyToolsMenuBtn" type="button" aria-label="Abrir menu" aria-haspopup="menu" aria-expanded="false" aria-controls="legacyToolsMenu">
+                  <i data-lucide="menu"></i>
+                </button>
+                <div class="tools-menu" id="legacyToolsMenu" role="menu" hidden>
+                  <button class="menu-item" id="legacyExportJsonBtn" type="button" role="menuitem">
+                    <i data-lucide="download"></i>
+                    <span>Exportar</span>
+                  </button>
+                  <button class="menu-item theme-action" id="legacyThemeToggleBtn" type="button" role="menuitem" title="Mudar para tema escuro">
+                    <i data-lucide="moon"></i>
+                    <span>Escuro</span>
+                  </button>
+                  <button class="menu-item" id="legacyHistoryBtn" type="button" role="menuitem">
+                    <i data-lucide="history"></i>
+                    <span>Histórico de alterações</span>
+                  </button>
+                  <button class="menu-item" id="legacyManualBtn" type="button" role="menuitem" hidden>
+                    <i data-lucide="book-open"></i>
+                    <span>Manual</span>
+                  </button>
+                  <button class="menu-item" id="legacyLanguageBtn" type="button" role="menuitem">
+                    <i data-lucide="languages"></i>
+                    <span>Mudar idioma</span>
+                  </button>
+                </div>
+              </div>
+              <button class="icon-button" id="legacyLogoutBtn" type="button" title="Terminar sessão" aria-label="Terminar sessão">
+                <i data-lucide="log-out"></i>
+              </button>
+            </div>
+            <button class="primary-button new-member-action" id="legacyNewMemberBtn" type="button">
+              <i data-lucide="plus"></i>
+              <span>Novo sócio</span>
+            </button>
+          </div>
+          <input
+            id="importFile"
+            type="file"
+            accept=".xlsx,.xls,.csv,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,application/json"
+            hidden
+          />
+        </div>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="control-band" aria-label="Pesquisa e resumo">
+          <div class="search-stack">
+            <label class="search-field" for="searchInput">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <input id="searchInput" type="search" placeholder="Pesquisar por nº de sócio, nome, NIF, localidade, email..." autocomplete="off" />
+            </label>
+
+            <div class="quick-filters" aria-label="Filtros rápidos">
+              <button class="filter-chip is-active" type="button" data-filter="all">Todos</button>
+              <button class="filter-chip" type="button" data-filter="overdue">Quotas em atraso</button>
+              <button class="filter-chip" type="button" data-filter="paid">Em dia</button>
+            </div>
+          </div>
+
+          <div class="metrics" aria-label="Resumo">
+            <button class="metric metric-button is-active" type="button" data-filter="all">
+              <strong id="memberCount">0</strong>
+              <span>Sócios</span>
+            </button>
+            <button class="metric metric-button attention" type="button" data-filter="overdue">
+              <strong id="overdueCount">0</strong>
+              <span>Quotas em atraso</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="insight-band" aria-label="Estado da base de dados">
+          <article class="insight-card insight-card-primary" id="quotaInsightCard">
+            <div class="insight-icon" id="quotaInsightIcon" aria-hidden="true">
+              <i data-lucide="check-circle-2"></i>
+            </div>
+            <div>
+              <span>Estado das quotas</span>
+              <strong id="quotaInsightTitle">Sem quotas em atraso</strong>
+              <p id="quotaInsightDetail">As quotas registadas aparecem aqui em resumo.</p>
+            </div>
+          </article>
+
+          <article class="insight-card">
+            <div class="insight-icon" aria-hidden="true">
+              <i data-lucide="badge-check"></i>
+            </div>
+            <div>
+              <span>Quotas em dia</span>
+              <strong id="paidCount">0</strong>
+              <p>Sócios com pagamento dentro do prazo.</p>
+            </div>
+          </article>
+
+          <article class="insight-card">
+            <div class="insight-icon" aria-hidden="true">
+              <i data-lucide="clock-3"></i>
+            </div>
+            <div>
+              <span>Último registo</span>
+              <strong id="latestMemberName">Sem registos</strong>
+              <p id="latestMemberDetail">Aguardando o primeiro sócio.</p>
+            </div>
+          </article>
+        </section>
+
+        <section class="table-panel" aria-label="Lista de sócios">
+          <div class="table-tools">
+            <div>
+              <h2>Sócios registados</h2>
+              <p id="resultCount">0 resultados</p>
+            </div>
+            <div class="table-actions">
+              <label class="select-field" for="sortSelect">
+                <span>Ordenar</span>
+                <select id="sortSelect">
+                  <option value="nameAsc">Nome A-Z</option>
+                  <option value="nameDesc">Nome Z-A</option>
+                  <option value="memberNumberAsc">Nº de sócio</option>
+                  <option value="localityAsc">Localidade A-Z</option>
+                  <option value="quotaOldest">Quotas mais antigas</option>
+                  <option value="quotaNewest">Quotas mais recentes</option>
+                  <option value="updatedDesc">Atualização recente</option>
+                </select>
+              </label>
+              <button class="secondary-button" id="exportCsvBtn" type="button">
+                <i data-lucide="file-down"></i>
+                <span>CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nº</th>
+                  <th>Nome</th>
+                  <th>Localidade</th>
+                  <th>NIF</th>
+                  <th>Telemóvel</th>
+                  <th>Email</th>
+                  <th>Nº Ata</th>
+                  <th>Quotas</th>
+                  <th class="actions-column">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="membersTable"></tbody>
+            </table>
+
+            <div class="empty-state" id="emptyState" hidden>
+              <i data-lucide="database"></i>
+              <h3>Sem sócios registados</h3>
+              <p>Adicione o primeiro sócio para começar.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="admin-dialog" id="adminDialog">
+      <section class="admin-panel" id="adminPanel" aria-label="Gestor de administradores">
+        <div class="admin-panel-head">
+          <div>
+            <h2>Gestor de Administradores</h2>
+            <p>Crie acessos novos e edite permissões de utilizadores existentes.</p>
+          </div>
+          <div class="admin-head-actions">
+            <button class="secondary-button" id="refreshUsersBtn" type="button">
+              <i data-lucide="refresh-cw"></i>
+              <span>Atualizar</span>
+            </button>
+            <button class="icon-button ghost" id="closeAdminDialogBtn" type="button" title="Fechar" aria-label="Fechar">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-forms">
+          <form class="admin-form" id="createUserForm" method="post">
+            <input name="csrf_token" type="hidden" data-csrf-token />
+            <div class="form-section-title">
+              <h3>Criar utilizador</h3>
+              <p>O ID é criado automaticamente no Supabase Auth.</p>
+            </div>
+
+            <label class="field" for="createUserName">
+              <span>Nome</span>
+              <input id="createUserName" name="fullName" type="text" autocomplete="name" required />
+            </label>
+
+            <label class="field" for="createUserEmail">
+              <span>Email</span>
+              <input id="createUserEmail" name="email" type="email" autocomplete="email" required />
+            </label>
+
+            <label class="field" for="createUserPassword">
+              <span>Password</span>
+              <input id="createUserPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+            </label>
+
+            <label class="field" for="createUserRole">
+              <span>Perfil</span>
+              <select id="createUserRole" name="role">
+                <option value="admin">Administrador</option>
+                <option value="operator">Operador</option>
+                <option value="viewer">Consulta</option>
+              </select>
+            </label>
+
+            <p class="form-error" id="createUserError" role="alert"></p>
+
+            <button class="primary-button" type="submit">
+              <i data-lucide="user-plus"></i>
+              <span>Criar utilizador</span>
+            </button>
+          </form>
+
+          <form class="admin-form" id="userForm" method="post">
+            <input name="csrf_token" type="hidden" data-csrf-token />
+            <div class="form-section-title">
+              <h3>Editar utilizador</h3>
+              <p id="editingUserHint">Escolha um utilizador na lista para editar.</p>
+            </div>
+
+            <input id="accessUserId" name="id" type="hidden" />
+
+            <label class="field" for="accessUserName">
+              <span>Nome</span>
+              <input id="accessUserName" name="fullName" type="text" autocomplete="name" />
+            </label>
+
+            <label class="field" for="accessUserEmail">
+              <span>Email</span>
+              <input id="accessUserEmail" name="email" type="email" autocomplete="email" required />
+            </label>
+
+            <label class="field" for="accessUserRole">
+              <span>Perfil</span>
+              <select id="accessUserRole" name="role">
+                <option value="viewer">Consulta</option>
+                <option value="operator">Operador</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </label>
+
+            <label class="check-field" for="accessUserActive">
+              <input id="accessUserActive" name="active" type="checkbox" checked />
+              <span>Ativo</span>
+            </label>
+
+            <p class="form-error" id="userFormError" role="alert"></p>
+
+            <div class="user-form-actions">
+              <button class="secondary-button" id="clearUserFormBtn" type="button">Limpar</button>
+              <button class="primary-button" type="submit">
+                <i data-lucide="save"></i>
+                <span>Guardar alterações</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="user-table-wrap">
+          <table class="user-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Perfil</th>
+                <th>Estado</th>
+                <th class="actions-column">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </dialog>
+
+    <dialog class="history-dialog" id="historyDialog">
+      <section class="history-panel" aria-label="Histórico de alterações">
+        <div class="history-panel-head">
+          <div>
+            <h2>Histórico de alterações</h2>
+            <p>Registo das alterações feitas às fichas dos sócios.</p>
+          </div>
+          <div class="history-head-actions">
+            <button class="secondary-button" id="refreshHistoryBtn" type="button">
+              <i data-lucide="refresh-cw"></i>
+              <span>Atualizar</span>
+            </button>
+            <button class="icon-button ghost" id="closeHistoryDialogBtn" type="button" title="Fechar" aria-label="Fechar">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+        </div>
+
+        <p class="form-error history-error" id="historyError" role="alert"></p>
+
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Ação</th>
+                <th>Sócio</th>
+                <th>Alterado por</th>
+                <th>Detalhes</th>
+              </tr>
+            </thead>
+            <tbody id="historyTable"></tbody>
+          </table>
+
+          <div class="history-empty" id="historyEmptyState" hidden>
+            <i data-lucide="history"></i>
+            <h3>Sem alterações registadas</h3>
+            <p>Quando forem feitas alterações aos sócios, elas aparecem aqui.</p>
+          </div>
+        </div>
+      </section>
+    </dialog>
+
+    <dialog class="language-dialog" id="languageDialog">
+      <section class="language-panel" aria-label="Escolher idioma">
+        <div class="language-panel-head">
+          <div>
+            <h2>Idioma</h2>
+            <p>Escolha o idioma da aplicação neste browser.</p>
+          </div>
+          <button class="icon-button ghost" id="closeLanguageDialogBtn" type="button" title="Fechar" aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="language-options" role="group" aria-label="Idiomas disponíveis">
+          <button class="language-option" type="button" data-language-option="pt">
+            <span class="language-flag" aria-hidden="true">🇵🇹</span>
+            <span class="language-copy">
+              <strong data-language-name>Português</strong>
+              <span data-language-region>Portugal</span>
+            </span>
+          </button>
+          <button class="language-option" type="button" data-language-option="en">
+            <span class="language-flag" aria-hidden="true">🇬🇧</span>
+            <span class="language-copy">
+              <strong data-language-name>English</strong>
+              <span data-language-region>United Kingdom</span>
+            </span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
+    <dialog class="manual-dialog" id="manualDialog">
+      <section class="manual-panel" aria-label="Manuais da aplicação">
+        <div class="manual-panel-head">
+          <div>
+            <h2>Manual</h2>
+            <p>Escolha o manual adequado ao que pretende consultar.</p>
+          </div>
+          <button class="icon-button ghost" id="closeManualDialogBtn" type="button" title="Fechar" aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <div class="manual-options">
+          <a class="manual-card" href="docs/Manual_Utilizador_Gestao_Socios.pdf" target="_blank" rel="noopener">
+            <span class="manual-card-icon" aria-hidden="true">
+              <i data-lucide="users"></i>
+            </span>
+            <span class="manual-card-copy">
+              <strong data-manual-user-title>Manual do Utilizador</strong>
+              <span data-manual-user-desc>Para quem usa a app no dia a dia: login, sócios, quotas, pesquisa, exportação e acessos.</span>
+            </span>
+          </a>
+
+          <a class="manual-card" href="docs/Manual_Programador_Gestao_Socios.pdf" target="_blank" rel="noopener">
+            <span class="manual-card-icon" aria-hidden="true">
+              <i data-lucide="code-2"></i>
+            </span>
+            <span class="manual-card-copy">
+              <strong data-manual-programmer-title>Manual do Programador</strong>
+              <span data-manual-programmer-desc>Para quem mantém o projeto: ficheiros, GitHub, Vercel, Supabase, SQL, segurança e atualizações.</span>
+            </span>
+          </a>
+        </div>
+      </section>
+    </dialog>
+
+    <dialog class="member-dialog" id="memberDialog">
+      <form id="memberForm" method="post" novalidate>
+        <input name="csrf_token" type="hidden" data-csrf-token />
+        <div class="dialog-head">
+          <div>
+            <h2 id="dialogTitle">Novo sócio</h2>
+            <p id="dialogSubtitle">Ficha individual</p>
+          </div>
+          <button class="icon-button ghost" id="closeDialogBtn" type="button" title="Fechar" aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <input id="memberId" type="hidden" />
+
+        <div class="form-grid">
+          <label class="field" for="memberNumber">
+            <span>Nº de sócio (opcional)</span>
+            <input id="memberNumber" name="memberNumber" type="text" inputmode="numeric" autocomplete="off" />
+          </label>
+
+          <label class="field" id="approvalMinuteNumberField" for="approvalMinuteNumber">
+            <span>Nº de Ata de Aprovação</span>
+            <input id="approvalMinuteNumber" name="approvalMinuteNumber" type="text" inputmode="numeric" autocomplete="off" />
+          </label>
+
+          <label class="field" for="admissionDate">
+            <span>Data de adesão</span>
+            <input id="admissionDate" name="admissionDate" type="date" />
+          </label>
+
+          <label class="field" for="quotaPaidUntil">
+            <span>Última quota paga</span>
+            <select id="quotaPaidUntil" name="quotaPaidUntil">
+              <option value="">Sem quota registada</option>
+            </select>
+          </label>
+
+          <label class="field" id="quotaPaidAtField" for="quotaPaidAt">
+            <span>Data do pagamento</span>
+            <input id="quotaPaidAt" name="quotaPaidAt" type="date" />
+          </label>
+
+          <label class="field wide" for="name">
+            <span>Nome</span>
+            <input id="name" name="name" type="text" autocomplete="name" required />
+          </label>
+
+          <label class="field wide" for="address">
+            <span>Morada</span>
+            <input id="address" name="address" type="text" autocomplete="street-address" />
+          </label>
+
+          <label class="field" for="postalCode">
+            <span>Código postal</span>
+            <input id="postalCode" name="postalCode" type="text" inputmode="numeric" pattern="\d{4}-\d{3}" placeholder="0000-000" />
+          </label>
+
+          <label class="field" for="locality">
+            <span>Localidade</span>
+            <input id="locality" name="locality" type="text" autocomplete="address-level2" />
+          </label>
+
+          <label class="field" for="idNumber">
+            <span>BI ou CC (opcional)</span>
+            <input id="idNumber" name="idNumber" type="text" autocomplete="off" />
+          </label>
+
+          <label class="field" for="taxNumber">
+            <span>NIF</span>
+            <input id="taxNumber" name="taxNumber" type="text" inputmode="numeric" autocomplete="off" pattern="\d{9}" maxlength="9" />
+          </label>
+
+          <label class="field" for="profession">
+            <span>Categoria</span>
+            <input id="profession" name="profession" type="text" autocomplete="organization-title" />
+          </label>
+
+          <label class="field" for="birthDate">
+            <span>Data de nascimento</span>
+            <input id="birthDate" name="birthDate" type="date" />
+          </label>
+
+          <label class="field" for="phone">
+            <span>Telemóvel</span>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" pattern="[+\d\s().-]{9,24}" />
+          </label>
+
+          <label class="field" for="email">
+            <span>Email</span>
+            <input id="email" name="email" type="text" inputmode="email" autocomplete="email" />
+          </label>
+
+          <label class="field wide" id="notesField" for="notes">
+            <span>Observações internas</span>
+            <textarea id="notes" name="notes" rows="4" placeholder="Notas úteis para a equipa, chamadas, situações pendentes..."></textarea>
+          </label>
+        </div>
+
+        <p class="form-error" id="formError" role="alert"></p>
+
+        <div class="dialog-actions">
+          <button class="secondary-button danger" id="deleteMemberBtn" type="button">
+            <i data-lucide="trash-2"></i>
+            <span>Apagar</span>
+          </button>
+          <div class="dialog-save-actions">
+            <button class="secondary-button" id="cancelBtn" type="button">Cancelar</button>
+            <button class="primary-button" type="submit">
+              <i data-lucide="save"></i>
+              <span>Guardar</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
