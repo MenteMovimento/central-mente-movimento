@@ -5,18 +5,19 @@ const sendJson = (response, status, body) => {
   response.status(status).json(body)
 }
 
+const getSupabaseUrl = () =>
+  process.env.SUPABASE_URL ??
+  process.env.VITE_SUPABASE_URL ??
+  process.env.NEXT_PUBLIC_SUPABASE_URL
+
 const createAdminClient = (response) => {
-  const supabaseUrl =
-    process.env.SUPABASE_URL ??
-    process.env.VITE_SUPABASE_URL ??
-    process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.SUPABASE_SECRET_KEY ??
-    process.env.SUPABASE_KEY
+  const supabaseUrl = getSupabaseUrl()
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
-    sendJson(response, 500, { error: 'Falta configurar as variaveis Supabase na Vercel.' })
+    sendJson(response, 500, {
+      error: 'Falta configurar SUPABASE_SERVICE_ROLE_KEY na Vercel para iniciar Utentes.',
+    })
     return null
   }
 
@@ -25,10 +26,50 @@ const createAdminClient = (response) => {
   })
 }
 
-const requireCentralUser = async (request, response, adminClient) => {
-  const authHeader = request.headers.authorization ?? ''
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+const createUserClient = (response, token) => {
+  const supabaseUrl = getSupabaseUrl()
+  const anonKey =
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+  if (!supabaseUrl || !anonKey) {
+    sendJson(response, 500, { error: 'Falta configurar SUPABASE_ANON_KEY na Vercel.' })
+    return null
+  }
+
+  return createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
+
+const getBearerToken = (request) => {
+  const authHeader = request.headers.authorization ?? ''
+  return authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+}
+
+const getErrorMessage = (error, fallback = 'Nao foi possivel iniciar Utentes.') => {
+  if (!error) return fallback
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  if (typeof error.message === 'string') return error.message
+  if (typeof error.error_description === 'string') return error.error_description
+  if (typeof error.error === 'string') return error.error
+  return fallback
+}
+
+const cookieSecureAttribute = (request) => {
+  const forwardedProto = String(request.headers['x-forwarded-proto'] ?? '')
+  return process.env.VERCEL === '1' || forwardedProto.includes('https') ? '; Secure' : ''
+}
+
+const sessionCookie = (request, token, maxAge) =>
+  `utentes_session=${token}; Path=/area/utentes; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${cookieSecureAttribute(request)}`
+
+const clearSessionCookie = (request) => sessionCookie(request, '', 0)
+
+const requireCentralUser = async (response, userClient, adminClient, token) => {
   if (!token) {
     sendJson(response, 401, { error: 'Sessao em falta.' })
     return null
@@ -37,7 +78,7 @@ const requireCentralUser = async (request, response, adminClient) => {
   const {
     data: { user },
     error,
-  } = await adminClient.auth.getUser(token)
+  } = await userClient.auth.getUser(token)
 
   if (error || !user?.email) {
     sendJson(response, 401, { error: 'Sessao invalida.' })
@@ -137,7 +178,7 @@ export default async function handler(request, response) {
   if (request.method === 'DELETE') {
     response.setHeader(
       'Set-Cookie',
-      'utentes_session=; Path=/area/utentes; Max-Age=0; SameSite=Lax; Secure',
+      clearSessionCookie(request),
     )
     sendJson(response, 200, { ok: true })
     return
@@ -149,22 +190,26 @@ export default async function handler(request, response) {
     return
   }
 
-  const adminClient = createAdminClient(response)
-  if (!adminClient) return
-
   try {
-    const centralUser = await requireCentralUser(request, response, adminClient)
+    const bearerToken = getBearerToken(request)
+    const userClient = createUserClient(response, bearerToken)
+    if (!userClient) return
+
+    const adminClient = createAdminClient(response)
+    if (!adminClient) return
+
+    const centralUser = await requireCentralUser(response, userClient, adminClient, bearerToken)
     if (!centralUser) return
 
     const utilizadorId = await ensureUtentesUser(adminClient, centralUser)
     const now = new Date()
     const expires = new Date(now.getTime() + 12 * 60 * 60 * 1000)
-    const token = crypto.randomBytes(32).toString('base64url')
+    const sessionToken = crypto.randomBytes(32).toString('base64url')
 
     await adminClient.from('sessoes').delete().lt('expires_at', now.toISOString())
 
     const { error: sessionError } = await adminClient.from('sessoes').insert({
-      token,
+      token: sessionToken,
       utilizador_id: utilizadorId,
       created_at: now.toISOString(),
       expires_at: expires.toISOString(),
@@ -174,12 +219,12 @@ export default async function handler(request, response) {
 
     response.setHeader(
       'Set-Cookie',
-      `utentes_session=${token}; Path=/area/utentes; Max-Age=43200; SameSite=Lax; Secure`,
+      sessionCookie(request, sessionToken, 43200),
     )
     sendJson(response, 200, { ok: true })
   } catch (error) {
     sendJson(response, 400, {
-      error: error instanceof Error ? error.message : 'Nao foi possivel iniciar Utentes.',
+      error: getErrorMessage(error),
     })
   }
 }

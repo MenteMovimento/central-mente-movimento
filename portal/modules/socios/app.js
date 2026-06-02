@@ -8,6 +8,23 @@ const REMEMBER_LOGIN_STORAGE_KEY = "socios-remember-login";
 const REMEMBER_EMAIL_STORAGE_KEY = "socios-remember-email";
 const LOGIN_FAILURE_STORAGE_KEY = "socios-login-failures";
 const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
+const CENTRAL_AUTH_STORAGE_KEY = "central-mm-auth-token";
+
+const centralAuthStorage = {
+  getItem: (key) => sessionStorage.getItem(key),
+  setItem: (key, value) => sessionStorage.setItem(key, value),
+  removeItem: (key) => sessionStorage.removeItem(key),
+};
+
+function clearPersistentSupabaseAuth() {
+  try {
+    Object.keys(localStorage)
+      .filter((key) => /^sb-.*-auth-token$/.test(key) || key === "supabase.auth.token")
+      .forEach((key) => localStorage.removeItem(key));
+  } catch (_error) {
+    // A app continua funcional mesmo que o browser bloqueie localStorage.
+  }
+}
 
 const fields = [
   "memberNumber",
@@ -814,11 +831,15 @@ function initSupabase() {
     return null;
   }
 
+  clearPersistentSupabaseAuth();
+
   return window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       detectSessionInUrl: true,
       persistSession: true,
+      storageKey: CENTRAL_AUTH_STORAGE_KEY,
+      storage: centralAuthStorage,
     },
   });
 }
@@ -3406,6 +3427,12 @@ function friendlyAuthError(error) {
 
 async function handleLogout() {
   await supabaseClient.auth.signOut();
+  try {
+    sessionStorage.removeItem(CENTRAL_AUTH_STORAGE_KEY);
+  } catch (_error) {
+    // Logout continua mesmo sem acesso a sessionStorage.
+  }
+  clearPersistentSupabaseAuth();
   window.location.href = "/logout";
 }
 

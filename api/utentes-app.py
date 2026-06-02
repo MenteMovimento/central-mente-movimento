@@ -48,6 +48,9 @@ def rewrite_html(text):
     output = output.replace(f'href="{PREFIX}/area/utentes/"', f'href="{PREFIX}/"')
     output = output.replace(f'href="{PREFIX}/area/dispositivos"', 'href="/area/dispositivos"')
     output = output.replace(f'src="{PREFIX}/static/mente-movimento-logo.png"', 'src="/static/mente-movimento-logo.png"')
+    output = output.replace(f'src="{PREFIX}/static/vendor/supabase.js"', 'src="/static/vendor/supabase.js"')
+    output = output.replace(f'src="{PREFIX}/static/central-config.js"', 'src="/static/central-config.js"')
+    output = output.replace(f'src="{PREFIX}/static/central-module-auth.js"', 'src="/static/central-module-auth.js"')
     return output
 
 
@@ -68,13 +71,23 @@ def rewrite_cookie(value):
     return value.replace("Path=/;", f"Path={PREFIX};").replace("Path=/", f"Path={PREFIX}")
 
 
+def is_legacy_login(path):
+    return urlparse(path).path == "/login"
+
+
 class handler(UtentesHandler):
     def do_GET(self):
         self.path = rewrite_request_path(self.path)
+        if is_legacy_login(self.path):
+            self.redirect("/login")
+            return
         super().do_GET()
 
     def do_POST(self):
         self.path = rewrite_request_path(self.path)
+        if is_legacy_login(self.path):
+            self.redirect("/login")
+            return
         super().do_POST()
 
     def send_html(self, body, status=200):

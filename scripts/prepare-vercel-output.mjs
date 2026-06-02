@@ -264,6 +264,30 @@ await writeFile(
   `(() => {
   const config = window.CENTRAL_CONFIG || {};
   const page = document.body?.dataset.centralPage || "dashboard";
+  const authStorageKey = "central-mm-auth-token";
+  const authStorage = {
+    getItem: (key) => sessionStorage.getItem(key),
+    setItem: (key, value) => sessionStorage.setItem(key, value),
+    removeItem: (key) => sessionStorage.removeItem(key)
+  };
+  const clearPersistentAuth = () => {
+    try {
+      Object.keys(localStorage)
+        .filter((key) => /^sb-.*-auth-token$/.test(key) || key === "supabase.auth.token")
+        .forEach((key) => localStorage.removeItem(key));
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia localStorage.
+    }
+  };
+  const stripSensitiveLoginParams = () => {
+    if (page !== "login") return;
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("email") && !url.searchParams.has("password")) return;
+    url.searchParams.delete("email");
+    url.searchParams.delete("password");
+    const query = url.searchParams.toString();
+    window.history.replaceState(null, "", url.pathname + (query ? \`?\${query}\` : "") + url.hash);
+  };
   const safePath = (value, fallback) => {
     if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\\\")) return fallback;
     return value;
@@ -305,7 +329,13 @@ await writeFile(
       return null;
     }
     return window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: authStorageKey,
+        storage: authStorage
+      }
     });
   };
   let accessPromise = null;
@@ -343,6 +373,7 @@ await writeFile(
     if (!token) throw new Error("Sessao em falta.");
     const response = await fetch("/api/utentes-session", {
       method: "POST",
+      credentials: "same-origin",
       headers: { Authorization: \`Bearer \${token}\` }
     });
     if (!response.ok) {
@@ -371,13 +402,21 @@ await writeFile(
     });
   };
   document.addEventListener("DOMContentLoaded", async () => {
+    stripSensitiveLoginParams();
+    clearPersistentAuth();
     const client = createClient();
     if (!client) return;
     const { data } = await client.auth.getSession();
     const session = data?.session || null;
     if (page === "logout") {
-      await fetch("/api/utentes-session", { method: "DELETE" }).catch(() => {});
+      await fetch("/api/utentes-session", { method: "DELETE", credentials: "same-origin" }).catch(() => {});
       await client.auth.signOut();
+      try {
+        sessionStorage.removeItem(authStorageKey);
+      } catch (_error) {
+        // Logout continua mesmo sem acesso a sessionStorage.
+      }
+      clearPersistentAuth();
       window.location.replace("/login?next=" + encodeURIComponent(nextPath()));
       return;
     }
@@ -432,6 +471,21 @@ await writeFile(
   const showPage = () => {
     document.documentElement.removeAttribute("data-central-auth-pending");
   };
+  const authStorageKey = "central-mm-auth-token";
+  const authStorage = {
+    getItem: (key) => sessionStorage.getItem(key),
+    setItem: (key, value) => sessionStorage.setItem(key, value),
+    removeItem: (key) => sessionStorage.removeItem(key)
+  };
+  const clearPersistentAuth = () => {
+    try {
+      Object.keys(localStorage)
+        .filter((key) => /^sb-.*-auth-token$/.test(key) || key === "supabase.auth.token")
+        .forEach((key) => localStorage.removeItem(key));
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia localStorage.
+    }
+  };
   const safePath = () => {
     const path = window.location.pathname + window.location.search + window.location.hash;
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\\\")) return "/dashboard";
@@ -475,8 +529,15 @@ await writeFile(
     redirectToCentralLogin();
     return;
   }
+  clearPersistentAuth();
   const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: authStorageKey,
+      storage: authStorage
+    }
   });
   client.auth.getSession()
     .then(async ({ data }) => {
