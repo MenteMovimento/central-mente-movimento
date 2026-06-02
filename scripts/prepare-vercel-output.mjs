@@ -289,19 +289,54 @@ await writeFile(
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
   };
+  const ensureUtentesSession = async (client) => {
+    const { data } = await client.auth.getSession();
+    const token = data?.session?.access_token || "";
+    if (!token) throw new Error("Sessao em falta.");
+    const response = await fetch("/api/utentes-session", {
+      method: "POST",
+      headers: { Authorization: \`Bearer \${token}\` }
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || "Nao foi possivel iniciar Utentes.");
+    }
+  };
+  const goTo = async (client, target) => {
+    const path = safePath(target, "/dashboard");
+    if (path.startsWith("/area/utentes")) {
+      await ensureUtentesSession(client);
+    }
+    window.location.replace(path);
+  };
+  const wireUtentesLinks = (client) => {
+    document.querySelectorAll('a[href^="/area/utentes"]').forEach((link) => {
+      link.addEventListener("click", async (event) => {
+        event.preventDefault();
+        try {
+          await goTo(client, link.getAttribute("href") || "/area/utentes/");
+        } catch (error) {
+          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+        }
+      });
+    });
+  };
   document.addEventListener("DOMContentLoaded", async () => {
     const client = createClient();
     if (!client) return;
     const { data } = await client.auth.getSession();
     const session = data?.session || null;
     if (page === "logout") {
+      await fetch("/api/utentes-session", { method: "DELETE" }).catch(() => {});
       await client.auth.signOut();
       window.location.replace("/login?next=" + encodeURIComponent(nextPath()));
       return;
     }
     if (page === "login") {
       if (session) {
-        window.location.replace(nextPath());
+        await goTo(client, nextPath()).catch((error) => {
+          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+        });
         return;
       }
       document.querySelector("#centralLoginForm")?.addEventListener("submit", async (event) => {
@@ -319,7 +354,11 @@ await writeFile(
           showError("Credenciais invalidas ou utilizador sem acesso.");
           return;
         }
-        window.location.replace(nextPath());
+        try {
+          await goTo(client, nextPath());
+        } catch (error) {
+          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+        }
       });
       return;
     }
@@ -328,6 +367,7 @@ await writeFile(
       return;
     }
     setUserEmail(session);
+    wireUtentesLinks(client);
   });
 })();`,
 )

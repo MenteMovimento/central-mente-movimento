@@ -5,11 +5,11 @@
   "rewrites": [
     {
       "source": "/area/utentes",
-      "destination": "/portal/modules/utentes/api/index.py"
+      "destination": "/api/utentes-app.py"
     },
     {
       "source": "/area/utentes/(.*)",
-      "destination": "/portal/modules/utentes/api/index.py"
+      "destination": "/api/utentes-app.py"
     },
     {
       "source": "/area/socios",
