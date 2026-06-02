@@ -192,6 +192,11 @@ export default async function handler(request, response) {
 
   try {
     const bearerToken = getBearerToken(request)
+    if (!bearerToken) {
+      sendJson(response, 401, { error: 'Sessao em falta.' })
+      return
+    }
+
     const userClient = createUserClient(response, bearerToken)
     if (!userClient) return
 
