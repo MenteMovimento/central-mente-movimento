@@ -42,15 +42,13 @@ def rewrite_html(text):
     output = text
     for old, new in replacements.items():
         output = output.replace(old, new)
-    output = output.replace(f'href="{PREFIX}/logout"', 'href="/logout"')
-    output = output.replace(f'href="{PREFIX}/dashboard"', 'href="/dashboard"')
-    output = output.replace(f'href="{PREFIX}/area/socios"', 'href="/area/socios"')
-    output = output.replace(f'href="{PREFIX}/area/utentes/"', f'href="{PREFIX}/"')
-    output = output.replace(f'href="{PREFIX}/area/dispositivos"', 'href="/area/dispositivos"')
-    output = output.replace(f'src="{PREFIX}/static/mente-movimento-logo.png"', 'src="/static/mente-movimento-logo.png"')
-    output = output.replace(f'src="{PREFIX}/static/vendor/supabase.js"', 'src="/static/vendor/supabase.js"')
-    output = output.replace(f'src="{PREFIX}/static/central-config.js"', 'src="/static/central-config.js"')
-    output = output.replace(f'src="{PREFIX}/static/central-module-auth.js"', 'src="/static/central-module-auth.js"')
+    for attr in ("href", "action", "src", "data-frame-dialog-open"):
+        output = output.replace(f'{attr}="{PREFIX}/logout', f'{attr}="/logout')
+        output = output.replace(f'{attr}="{PREFIX}/dashboard', f'{attr}="/dashboard')
+        output = output.replace(f'{attr}="{PREFIX}/area/socios', f'{attr}="/area/socios')
+        output = output.replace(f'{attr}="{PREFIX}/area/utentes/', f'{attr}="{PREFIX}/')
+        output = output.replace(f'{attr}="{PREFIX}/area/dispositivos', f'{attr}="/area/dispositivos')
+        output = output.replace(f'{attr}="{PREFIX}/static/', f'{attr}="/static/')
     return output
 
 
@@ -75,9 +73,21 @@ def is_legacy_login(path):
     return urlparse(path).path == "/login"
 
 
+def central_redirect_target(path):
+    parsed = urlparse(path)
+    route = parsed.path
+    if route.startswith("/area/socios") or route.startswith("/area/dispositivos"):
+        return route + (f"?{parsed.query}" if parsed.query else "")
+    return None
+
+
 class handler(UtentesHandler):
     def do_GET(self):
         self.path = rewrite_request_path(self.path)
+        redirect_target = central_redirect_target(self.path)
+        if redirect_target:
+            super().redirect(redirect_target)
+            return
         if is_legacy_login(self.path):
             self.redirect("/login")
             return
@@ -85,6 +95,10 @@ class handler(UtentesHandler):
 
     def do_POST(self):
         self.path = rewrite_request_path(self.path)
+        redirect_target = central_redirect_target(self.path)
+        if redirect_target:
+            super().redirect(redirect_target)
+            return
         if is_legacy_login(self.path):
             self.redirect("/login")
             return
