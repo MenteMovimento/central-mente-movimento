@@ -978,7 +978,7 @@ function App() {
       window.localStorage.getItem(legacyDispositivosThemeStorageKey)
 
     if (storedTheme === 'dark' || storedTheme === 'light') return storedTheme
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    return 'light'
   })
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -1632,11 +1632,7 @@ function App() {
     if (!supabase) return
 
     await supabase.auth.signOut()
-    setNotice(null)
-    setAuthError(null)
-    setPendingConfirmationEmail('')
-    setDeviceForm(emptyDeviceForm)
-    setEditingId(null)
+    window.location.href = '/logout'
   }
 
   const handleDeviceSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -2657,7 +2653,7 @@ function App() {
           </a>
 
           <nav className="portal-nav" aria-label={t.managementAreas}>
-            <a className="portal-nav-link" href="/area/socios">
+            <a className="portal-nav-link" href="/area/socios/">
               <IdCard aria-hidden="true" />
               <span>Socios</span>
             </a>
@@ -2665,7 +2661,7 @@ function App() {
               <HeartHandshake aria-hidden="true" />
               <span>Utentes</span>
             </a>
-            <a className="portal-nav-link active" href="/area/dispositivos">
+            <a className="portal-nav-link active" href="/area/dispositivos/">
               <MonitorCog aria-hidden="true" />
               <span>Dispositivos</span>
             </a>

@@ -41,13 +41,38 @@ const requireCentralUser = async (request, response, adminClient) => {
     return null
   }
 
-  const { data: profile } = await adminClient
+  const { data: profile, error: profileError } = await adminClient
     .from('app_users')
     .select('role, active, full_name')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (!profile?.active) {
+  if (profileError) throw profileError
+
+  let effectiveProfile = profile
+  if (!effectiveProfile) {
+    const fullName =
+      typeof user.user_metadata?.full_name === 'string'
+        ? user.user_metadata.full_name
+        : user.email.split('@')[0]
+    effectiveProfile = {
+      role: 'admin',
+      active: true,
+      full_name: fullName || 'Administrador',
+    }
+
+    const { error: upsertError } = await adminClient.from('app_users').upsert({
+      id: user.id,
+      email: user.email,
+      full_name: effectiveProfile.full_name,
+      role: effectiveProfile.role,
+      active: true,
+    })
+
+    if (upsertError) throw upsertError
+  }
+
+  if (!effectiveProfile.active) {
     sendJson(response, 403, { error: 'Utilizador sem permissao na Central.' })
     return null
   }
@@ -55,8 +80,8 @@ const requireCentralUser = async (request, response, adminClient) => {
   return {
     id: user.id,
     email: user.email,
-    fullName: profile.full_name || user.user_metadata?.full_name || 'Administrador',
-    isAdmin: profile.role === 'admin' || profile.role === 'operator',
+    fullName: effectiveProfile.full_name || user.user_metadata?.full_name || 'Administrador',
+    isAdmin: effectiveProfile.role === 'admin' || effectiveProfile.role === 'operator',
   }
 }
 

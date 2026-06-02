@@ -289,6 +289,25 @@ await writeFile(
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
   };
+  let accessPromise = null;
+  const ensureCentralAccess = async (client) => {
+    if (accessPromise) return accessPromise;
+    accessPromise = (async () => {
+      const { data } = await client.auth.getSession();
+      const token = data?.session?.access_token || "";
+      if (!token) throw new Error("Sessao em falta.");
+      const response = await fetch("/api/ensure-access", {
+        method: "POST",
+        headers: { Authorization: \`Bearer \${token}\` }
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Nao foi possivel preparar o acesso.");
+      }
+      return response.json();
+    })();
+    return accessPromise;
+  };
   const ensureUtentesSession = async (client) => {
     const { data } = await client.auth.getSession();
     const token = data?.session?.access_token || "";
@@ -304,6 +323,7 @@ await writeFile(
   };
   const goTo = async (client, target) => {
     const path = safePath(target, "/dashboard");
+    await ensureCentralAccess(client);
     if (path.startsWith("/area/utentes")) {
       await ensureUtentesSession(client);
     }
@@ -316,7 +336,7 @@ await writeFile(
         try {
           await goTo(client, link.getAttribute("href") || "/area/utentes/");
         } catch (error) {
-          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+          window.location.href = "/login?next=" + encodeURIComponent(link.getAttribute("href") || "/area/utentes/");
         }
       });
     });
@@ -366,6 +386,11 @@ await writeFile(
       window.location.replace("/login?next=" + encodeURIComponent(window.location.pathname + window.location.search));
       return;
     }
+    try {
+      await ensureCentralAccess(client);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : "Nao foi possivel preparar o acesso.");
+    }
     setUserEmail(session);
     wireUtentesLinks(client);
   });
@@ -386,6 +411,15 @@ await writeFile(
   const redirectToCentralLogin = () => {
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
   };
+  const ensureAccess = async (session) => {
+    const token = session?.access_token || "";
+    if (!token) throw new Error("Sessao em falta.");
+    const response = await fetch("/api/ensure-access", {
+      method: "POST",
+      headers: { Authorization: \`Bearer \${token}\` }
+    });
+    if (!response.ok) throw new Error("Sem acesso preparado.");
+  };
   const config = window.CENTRAL_CONFIG || {};
   if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
     redirectToCentralLogin();
@@ -395,11 +429,13 @@ await writeFile(
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
   client.auth.getSession()
-    .then(({ data }) => {
-      if (!data?.session) {
+    .then(async ({ data }) => {
+      const session = data?.session || null;
+      if (!session) {
         redirectToCentralLogin();
         return;
       }
+      await ensureAccess(session);
       showPage();
     })
     .catch(() => redirectToCentralLogin());
