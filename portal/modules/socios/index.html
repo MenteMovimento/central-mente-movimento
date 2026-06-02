@@ -8,6 +8,15 @@
     <script>
       (() => {
         try {
+          const centralTheme = localStorage.getItem("central-theme");
+          if (centralTheme === "dark") {
+            document.documentElement.dataset.theme = "dark";
+            return;
+          }
+          if (centralTheme === "light") {
+            document.documentElement.removeAttribute("data-theme");
+            return;
+          }
           if (
             localStorage.getItem("central-theme") === "dark" ||
             localStorage.getItem("socios-theme") === "dark" ||

@@ -838,11 +838,22 @@ function applyOrganizationName() {
 
 function loadStoredTheme() {
   try {
-    return localStorage.getItem(THEME_STORAGE_KEY) === "dark" ||
-      localStorage.getItem(LEGACY_THEME_STORAGE_KEY) === "dark" ||
-      localStorage.getItem(DISPOSITIVOS_THEME_STORAGE_KEY) === "dark"
-      ? "dark"
-      : "light";
+    const centralTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (centralTheme === "dark" || centralTheme === "light") {
+      return centralTheme;
+    }
+
+    const sociosTheme = localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+    if (sociosTheme === "dark" || sociosTheme === "light") {
+      return sociosTheme;
+    }
+
+    const dispositivosTheme = localStorage.getItem(DISPOSITIVOS_THEME_STORAGE_KEY);
+    if (dispositivosTheme === "dark" || dispositivosTheme === "light") {
+      return dispositivosTheme;
+    }
+
+    return "light";
   } catch (_error) {
     return "light";
   }
