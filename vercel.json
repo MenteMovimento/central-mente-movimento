@@ -32,6 +32,26 @@
       "destination": "/index.html"
     },
     {
+      "source": "/login",
+      "destination": "/login.html"
+    },
+    {
+      "source": "/logout",
+      "destination": "/logout.html"
+    },
+    {
+      "source": "/historico",
+      "destination": "/historico.html"
+    },
+    {
+      "source": "/utilizadores",
+      "destination": "/utilizadores.html"
+    },
+    {
+      "source": "/manuais",
+      "destination": "/manuais.html"
+    },
+    {
       "source": "/",
       "destination": "/index.html"
     }

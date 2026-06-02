@@ -17,6 +17,7 @@ __pycache__/
 node_modules/
 dist/
 build/
+public/
 .vercel/
 
 # Old projects used only as references
