@@ -4,7 +4,7 @@ const sendJson = (response, status, body) => {
   response.status(status).json(body)
 }
 
-const createAdminClient = (response) => {
+const createAdminClient = () => {
   const supabaseUrl =
     process.env.SUPABASE_URL ??
     process.env.VITE_SUPABASE_URL ??
@@ -15,7 +15,6 @@ const createAdminClient = (response) => {
     process.env.SUPABASE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
-    sendJson(response, 500, { error: 'Falta configurar SUPABASE_SERVICE_ROLE_KEY na Vercel.' })
     return null
   }
 
@@ -24,9 +23,39 @@ const createAdminClient = (response) => {
   })
 }
 
+const createUserClient = (response, token) => {
+  const supabaseUrl =
+    process.env.SUPABASE_URL ??
+    process.env.VITE_SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey =
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !anonKey) {
+    sendJson(response, 500, { error: 'Falta configurar SUPABASE_ANON_KEY na Vercel.' })
+    return null
+  }
+
+  return createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
+
 const getBearerToken = (request) => {
   const authHeader = request.headers.authorization ?? ''
   return authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+}
+
+const errorMessage = (error) => {
+  if (!error) return 'Nao foi possivel preparar o acesso.'
+  if (error instanceof Error) return error.message
+  if (typeof error.message === 'string') return error.message
+  if (typeof error.error_description === 'string') return error.error_description
+  if (typeof error.error === 'string') return error.error
+  return 'Nao foi possivel preparar o acesso.'
 }
 
 const getDisplayName = (user) => {
@@ -81,15 +110,35 @@ const ensureProfile = async (adminClient, user) => {
   return row
 }
 
+const ensureExistingAccess = async (userClient, user) => {
+  const { data: appUser, error: appUserError } = await userClient
+    .from('app_users')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (appUserError) throw appUserError
+  if (!appUser || appUser.active === false) {
+    throw new Error('Utilizador sem acesso ativo.')
+  }
+
+  const { data: profile, error: profileError } = await userClient
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (profileError) throw profileError
+
+  return { appUser, profile: profile ?? null }
+}
+
 export default async function handler(request, response) {
   if (request.method !== 'POST') {
     response.setHeader('Allow', 'POST')
     sendJson(response, 405, { error: 'Metodo nao permitido.' })
     return
   }
-
-  const adminClient = createAdminClient(response)
-  if (!adminClient) return
 
   try {
     const token = getBearerToken(request)
@@ -99,25 +148,41 @@ export default async function handler(request, response) {
       return
     }
 
+    const userClient = createUserClient(response, token)
+    if (!userClient) return
+
     const {
       data: { user },
       error,
-    } = await adminClient.auth.getUser(token)
+    } = await userClient.auth.getUser(token)
 
     if (error || !user) {
       sendJson(response, 401, { error: 'Sessao invalida.' })
       return
     }
 
-    const [appUser, profile] = await Promise.all([
-      ensureAppUser(adminClient, user),
-      ensureProfile(adminClient, user),
-    ])
+    const adminClient = createAdminClient()
+    if (adminClient) {
+      try {
+        const [appUser, profile] = await Promise.all([
+          ensureAppUser(adminClient, user),
+          ensureProfile(adminClient, user),
+        ])
+
+        sendJson(response, 200, { ok: true, appUser, profile })
+        return
+      } catch (_adminError) {
+        // Se a chave service_role estiver ausente ou errada na Vercel, ainda
+        // deixamos entrar utilizadores que ja estejam autorizados nas tabelas.
+      }
+    }
+
+    const { appUser, profile } = await ensureExistingAccess(userClient, user)
 
     sendJson(response, 200, { ok: true, appUser, profile })
   } catch (error) {
     sendJson(response, 400, {
-      error: error instanceof Error ? error.message : 'Nao foi possivel preparar o acesso.',
+      error: errorMessage(error),
     })
   }
 }
