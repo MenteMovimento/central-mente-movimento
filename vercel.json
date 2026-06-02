@@ -35,10 +35,5 @@
       "source": "/",
       "destination": "/index.html"
     }
-  ],
-  "functions": {
-    "portal/modules/utentes/api/**/*.py": {
-      "excludeFiles": "{utentes.db,utentes.db-*,anexos/**,__pycache__/**,*.zip,.env}"
-    }
-  }
+  ]
 }
