@@ -1457,6 +1457,51 @@ tr:last-child td {
     line-height: 1.35;
 }
 
+.frame-dialog {
+    width: min(1180px, calc(100vw - 28px));
+    max-height: calc(100vh - 28px);
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    color: var(--text);
+    background: var(--panel);
+    box-shadow: 0 28px 80px rgba(21, 35, 34, 0.26);
+}
+
+.frame-dialog::backdrop {
+    background: rgba(15, 30, 30, 0.52);
+}
+
+.frame-dialog-panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: min(760px, calc(100vh - 28px));
+    overflow: hidden;
+}
+
+.frame-dialog-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+}
+
+.frame-dialog-head h2 {
+    margin: 0;
+    color: var(--brand-dark);
+    font-size: 1rem;
+}
+
+.frame-dialog-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: var(--bg);
+}
+
 .manual-page h4,
 .manual-page h5 {
     margin: 8px 0 0;
@@ -2011,6 +2056,58 @@ APP_SCRIPT = """
     }
     if (closeManualDialogButton) {
         closeManualDialogButton.addEventListener("click", closeManualDialog);
+    }
+
+    const frameDialog = document.getElementById("commonFrameDialog");
+    const frameDialogTitle = document.getElementById("commonFrameDialogTitle");
+    const frameDialogFrame = document.getElementById("commonFrameDialogFrame");
+    const closeFrameDialogButton = document.getElementById("closeCommonFrameDialog");
+    const closeFrameDialog = () => {
+        if (!frameDialog) {
+            return;
+        }
+        if (frameDialog.open && typeof frameDialog.close === "function") {
+            frameDialog.close();
+        } else {
+            frameDialog.removeAttribute("open");
+        }
+        if (frameDialogFrame) {
+            frameDialogFrame.setAttribute("src", "about:blank");
+        }
+    };
+    document.querySelectorAll("[data-frame-dialog-open]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+            if (!frameDialog || !frameDialogFrame) {
+                return;
+            }
+            const menu = button.closest("details");
+            if (menu) {
+                menu.open = false;
+            }
+            const target = button.getAttribute("data-frame-dialog-open") || "/";
+            const title = button.getAttribute("data-frame-dialog-title") || button.textContent.trim();
+            if (frameDialogTitle) {
+                frameDialogTitle.textContent = title;
+            }
+            frameDialogFrame.setAttribute("title", title);
+            frameDialogFrame.setAttribute("src", target);
+            if (typeof frameDialog.showModal === "function") {
+                frameDialog.showModal();
+            } else {
+                frameDialog.setAttribute("open", "");
+            }
+        });
+    });
+    if (frameDialog) {
+        frameDialog.addEventListener("click", (event) => {
+            if (event.target === frameDialog) {
+                closeFrameDialog();
+            }
+        });
+    }
+    if (closeFrameDialogButton) {
+        closeFrameDialogButton.addEventListener("click", closeFrameDialog);
     }
 
     const form = document.getElementById("edit-utente-form");
@@ -2909,15 +3006,15 @@ def language_cookie(language):
 TRANSLATIONS = {
     "pt": {
         "app_title": "Gestão de Utentes",
-        "user_manager": "Gestor de Utilizadores",
+        "user_manager": "Utilizadores",
         "consultation_profile": "Perfil de Consulta",
         "new_client": "+ Novo utente",
-        "history": "Histórico de alterações",
-        "manual": "Manual",
-        "change_language": "Mudar idioma",
+        "history": "Histórico",
+        "manual": "Manuais",
+        "change_language": "Idioma",
         "logout": "Sair",
-        "dark": "Escuro",
-        "light": "Claro",
+        "dark": "Tema escuro",
+        "light": "Tema claro",
         "back": "Voltar",
         "close": "Fechar",
         "refresh": "Atualizar",
@@ -2973,15 +3070,15 @@ TRANSLATIONS = {
     },
     "en": {
         "app_title": "Client Management",
-        "user_manager": "User Manager",
+        "user_manager": "Users",
         "consultation_profile": "View-only Profile",
         "new_client": "+ New client",
-        "history": "Change history",
-        "manual": "Manual",
-        "change_language": "Change language",
+        "history": "History",
+        "manual": "Manuals",
+        "change_language": "Language",
         "logout": "Sign out",
-        "dark": "Dark",
-        "light": "Light",
+        "dark": "Dark theme",
+        "light": "Light theme",
         "back": "Back",
         "close": "Close",
         "refresh": "Refresh",
@@ -3654,6 +3751,7 @@ def render_page(title, content, notice="", current_user=None):
     app_script = translate_static_fragment(APP_SCRIPT) if page_language == "en" else APP_SCRIPT
     default_theme = "dark" if current_user and current_user.get("tema") == "escuro" else "light"
     manual_dialog_html = render_manual_choice_dialog(current_user) if current_user else ""
+    frame_dialog_html = render_common_frame_dialog(current_user) if current_user else ""
     page = f"""<!doctype html>
 <html lang="{esc(page_language)}">
 <head>
@@ -3681,6 +3779,7 @@ def render_page(title, content, notice="", current_user=None):
         {content}
     </main>
     {manual_dialog_html}
+    {frame_dialog_html}
     <script>{app_script}</script>
 </body>
 </html>"""
@@ -3695,17 +3794,17 @@ def render_header(current_user):
     theme_label = tr(current_user, "light") if current_user.get("tema") == "escuro" else tr(current_user, "dark")
     if is_admin(current_user):
         admin_button = f"""
-        <a class="central-menu-item" href="/utilizadores">
-            {SHIELD_ICON}
+        <button class="central-menu-item" type="button" data-frame-dialog-open="/utilizadores" data-frame-dialog-title="{esc(tr(current_user, "user_manager"))}">
+            {USERS_ICON}
             <span>{esc(tr(current_user, "user_manager"))}</span>
-        </a>
+        </button>
         """
         new_button = f'<a class="central-primary-action" href="/novo"><span aria-hidden="true">+</span><span>{esc(tr(current_user, "new_client")).lstrip("+ ").strip()}</span></a>'
         history_button = f"""
-        <a class="central-menu-item" href="/historico">
+        <button class="central-menu-item" type="button" data-frame-dialog-open="/historico" data-frame-dialog-title="{esc(tr(current_user, "history"))}">
             {HISTORY_ICON}
             <span>{esc(tr(current_user, "history"))}</span>
-        </a>
+        </button>
         """
 
     return f"""
@@ -3723,7 +3822,7 @@ def render_header(current_user):
             </a>
 
             <nav class="central-nav" aria-label="Areas principais">
-                <a class="central-nav-link" href="/area/socios">
+                <a class="central-nav-link" href="/area/socios/">
                     {CENTRAL_SOCIOS_ICON}
                     <span>Socios</span>
                 </a>
@@ -3731,7 +3830,7 @@ def render_header(current_user):
                     {CENTRAL_UTENTES_ICON}
                     <span>Utentes</span>
                 </a>
-                <a class="central-nav-link" href="/area/dispositivos">
+                <a class="central-nav-link" href="/area/dispositivos/">
                     {CENTRAL_DISPOSITIVOS_ICON}
                     <span>Dispositivos</span>
                 </a>
@@ -3751,10 +3850,10 @@ def render_header(current_user):
                             {BOOK_ICON}
                             <span>{esc(tr(current_user, "manual"))}</span>
                         </button>
-                        <a class="central-menu-item" href="/idioma">
+                        <button class="central-menu-item" type="button" data-frame-dialog-open="/idioma" data-frame-dialog-title="{esc(tr(current_user, "change_language"))}">
                             {LANGUAGE_ICON}
                             <span>{esc(tr(current_user, "change_language"))}</span>
-                        </a>
+                        </button>
                         <button class="central-menu-item" type="button" data-global-theme-toggle>
                             <span data-theme-dark-icon>{MOON_ICON}</span>
                             <span data-theme-light-icon hidden>{SUN_ICON}</span>
@@ -3821,6 +3920,28 @@ def render_manual_choice_dialog(current_user):
                     </span>
                 </a>
             </div>
+        </section>
+    </dialog>
+    """
+
+
+def render_common_frame_dialog(current_user):
+    title = "Opção" if user_language(current_user) == "pt" else "Option"
+    close_label = esc(tr(current_user, "close"))
+    return f"""
+    <dialog class="frame-dialog" id="commonFrameDialog">
+        <section class="frame-dialog-panel" aria-label="{esc(title)}">
+            <div class="frame-dialog-head">
+                <h2 id="commonFrameDialogTitle">{esc(title)}</h2>
+                <button class="central-icon-link" id="closeCommonFrameDialog" type="button" title="{close_label}" aria-label="{close_label}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                    <span>{close_label}</span>
+                </button>
+            </div>
+            <iframe class="frame-dialog-frame" id="commonFrameDialogFrame" title="{esc(title)}" src="about:blank"></iframe>
         </section>
     </dialog>
     """
@@ -3945,6 +4066,15 @@ SHIELD_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 3 6 5.5v5.2c0 3.7 2.4 7.2 6 8.8 3.6-1.6 6-5.1 6-8.8V5.5Z"></path>
     <path d="m9.5 12 1.7 1.7 3.5-4"></path>
+</svg>
+"""
+
+
+USERS_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M18 21a8 8 0 0 0-16 0"></path>
+    <circle cx="10" cy="8" r="5"></circle>
+    <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path>
 </svg>
 """
 
@@ -6726,7 +6856,7 @@ def render_user_manager(current_user, edit_user_id="", error="", notice=""):
     content = f"""
 <div class="manager-head">
     <div>
-        <h2>Gestor de Utilizadores</h2>
+        <h2>{esc(tr(current_user, "user_manager"))}</h2>
         <p class="muted">Crie acessos novos e edite permissões de utilizadores existentes.</p>
     </div>
     <div class="title-actions">
@@ -6809,7 +6939,7 @@ def render_user_manager(current_user, edit_user_id="", error="", notice=""):
     </table>
 </section>
 """
-    return render_page("Gestor de Utilizadores", content, notice=notice, current_user=current_user)
+    return render_page(tr(current_user, "user_manager"), content, notice=notice, current_user=current_user)
 
 
 def render_history_page(current_user):

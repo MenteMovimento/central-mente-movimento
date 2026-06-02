@@ -1053,6 +1053,12 @@ textarea:focus {
   margin-bottom: 16px;
 }
 
+.section-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .section-heading h2 {
   color: var(--text);
   font-size: 1.15rem;
@@ -1669,6 +1675,26 @@ tbody tr:last-child td {
   width: 32%;
 }
 
+.module-content#users {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(12, 34, 50, 0.52);
+}
+
+.module-content#users .users-panel {
+  width: min(1180px, 100%);
+  max-height: min(820px, calc(100svh - 44px));
+  overflow: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
 .user-identity {
   display: grid;
   gap: 5px;
@@ -1756,7 +1782,7 @@ tbody tr:last-child td {
 .manual-overlay {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 50;
   display: grid;
   place-items: center;
   padding: 22px;
@@ -1791,6 +1817,63 @@ tbody tr:last-child td {
   font-size: 1.25rem;
   line-height: 1.2;
   letter-spacing: 0;
+}
+
+.global-history-dialog {
+  width: min(820px, 100%);
+}
+
+.global-history-list {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.language-choice-dialog {
+  width: min(520px, 100%);
+}
+
+.language-choice-list {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+}
+
+.language-choice {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-height: 72px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+  font: inherit;
+  font-weight: 800;
+}
+
+.language-choice:hover,
+.language-choice.active {
+  border-color: color-mix(in srgb, var(--brand-cyan) 44%, transparent);
+  background: var(--brand-cyan-soft);
+}
+
+.language-choice > svg {
+  justify-self: center;
+  width: 21px;
+  height: 21px;
+  color: var(--brand-blue);
+}
+
+.language-choice span {
+  display: grid;
+  gap: 3px;
+}
+
+.language-choice small {
+  color: var(--muted);
+  font-size: 0.84rem;
 }
 
 .manual-kicker {

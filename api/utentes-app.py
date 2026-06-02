@@ -35,6 +35,7 @@ def rewrite_html(text):
         'href="/': f'href="{PREFIX}/',
         'action="/': f'action="{PREFIX}/',
         'src="/': f'src="{PREFIX}/',
+        'data-frame-dialog-open="/': f'data-frame-dialog-open="{PREFIX}/',
         'fetch("/': f'fetch("{PREFIX}/',
         ".tab-link[href^='/editar']": f".tab-link[href^='{PREFIX}/editar']",
     }

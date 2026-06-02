@@ -523,7 +523,7 @@ const translations = {
     createUser: 'Criar utilizador',
     currentPermission: 'Permissao atual',
     dashboardAccess: 'Acesso interno da associacao',
-    darkTheme: 'Ativar tema escuro',
+    darkTheme: 'Tema escuro',
     delete: 'Apagar',
     deleteAll: 'Apagar tudo',
     demoMode: 'Modo demonstracao',
@@ -548,11 +548,11 @@ const translations = {
     moduleHint: 'Escolhe a area que queres usar.',
     moduleQuickAccess: 'Acesso rapido',
     language: 'Idioma',
-    lightTheme: 'Ativar tema claro',
+    lightTheme: 'Tema claro',
     loading: 'A carregar',
     loadingUsers: 'A carregar utilizadores',
     mostCommonBrands: 'Marcas mais comuns',
-    manual: 'Manual',
+    manual: 'Manuais',
     manualTitle: 'Manual de utilizacao',
     maintenance: 'Manutencao',
     managementAreas: 'Areas de gestao',
@@ -674,7 +674,7 @@ const translations = {
     createUser: 'Create user',
     currentPermission: 'Current permission',
     dashboardAccess: 'Internal association access',
-    darkTheme: 'Turn on dark theme',
+    darkTheme: 'Dark theme',
     delete: 'Delete',
     deleteAll: 'Delete all',
     demoMode: 'Demo mode',
@@ -699,13 +699,13 @@ const translations = {
     moduleHint: 'Choose the area you want to use.',
     moduleQuickAccess: 'Quick access',
     language: 'Language',
-    lightTheme: 'Turn on light theme',
+    lightTheme: 'Light theme',
     loading: 'Loading',
     loadingUsers: 'Loading users',
     mostCommonBrands: 'Most common brands',
     maintenance: 'Maintenance',
     managementAreas: 'Management areas',
-    manual: 'Manual',
+    manual: 'Manuals',
     manualTitle: 'User manual',
     name: 'Name',
     newDevice: 'New device',
@@ -1022,10 +1022,14 @@ function App() {
     typeof window === 'undefined' ? 'devices' : getViewFromHash(),
   )
   const [historyEntries, setHistoryEntries] = useState<DeviceHistoryEntry[]>([])
+  const [globalHistoryEntries, setGlobalHistoryEntries] = useState<DeviceHistoryEntry[]>([])
   const [attachments, setAttachments] = useState<DeviceAttachment[]>([])
   const [isLoadingDeviceExtras, setIsLoadingDeviceExtras] = useState(false)
+  const [isGlobalHistoryLoading, setIsGlobalHistoryLoading] = useState(false)
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false)
   const [isManualOpen, setIsManualOpen] = useState(false)
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
+  const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false)
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false)
   const csvInputRef = useRef<HTMLInputElement | null>(null)
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
@@ -1213,6 +1217,31 @@ function App() {
     },
     [isDemoMode],
   )
+
+  const refreshGlobalHistory = useCallback(async () => {
+    if (isDemoMode || !supabase) {
+      setGlobalHistoryEntries([])
+      return
+    }
+
+    setIsGlobalHistoryLoading(true)
+
+    try {
+      const result = await supabase
+        .from('device_history')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(80)
+
+      if (result.error) throw result.error
+
+      setGlobalHistoryEntries((result.data as DeviceHistoryEntry[]) ?? [])
+    } catch {
+      setGlobalHistoryEntries([])
+    } finally {
+      setIsGlobalHistoryLoading(false)
+    }
+  }, [isDemoMode])
 
   const recordDeviceHistory = useCallback(
     async (device: Device, action: string, summary: string) => {
@@ -2492,6 +2521,114 @@ function App() {
     </div>
   ) : null
 
+  const historyDialog = isHistoryDialogOpen ? (
+    <div
+      className="manual-overlay"
+      onClick={() => setIsHistoryDialogOpen(false)}
+      role="presentation"
+    >
+      <section
+        className="manual-dialog global-history-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="global-history-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="manual-header">
+          <div>
+            <p className="manual-kicker">{t.history}</p>
+            <h2 id="global-history-title">{t.history}</h2>
+          </div>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setIsHistoryDialogOpen(false)}
+            title={t.closeManual}
+            aria-label={t.closeManual}
+          >
+            <X aria-hidden="true" />
+          </button>
+        </header>
+        <div className="manual-body">
+          {isGlobalHistoryLoading ? (
+            <div className="loading-state">
+              <Loader2 className="spin" aria-hidden="true" />
+              {t.loading}
+            </div>
+          ) : globalHistoryEntries.length === 0 ? (
+            <p className="muted-note">{isDemoMode ? t.storageSetupRequired : t.noHistory}</p>
+          ) : (
+            <ol className="history-list global-history-list">
+              {globalHistoryEntries.map((entry) => (
+                <li key={entry.id}>
+                  <strong>{entry.summary ?? entry.action}</strong>
+                  <span>
+                    {entry.device_name ?? entry.serial_number ?? t.devices} -{' '}
+                    {formatProfileDate(entry.created_at, language)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      </section>
+    </div>
+  ) : null
+
+  const languageDialog = isLanguageDialogOpen ? (
+    <div
+      className="manual-overlay"
+      onClick={() => setIsLanguageDialogOpen(false)}
+      role="presentation"
+    >
+      <section
+        className="manual-dialog language-choice-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="language-dialog-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="manual-header">
+          <div>
+            <p className="manual-kicker">{t.language}</p>
+            <h2 id="language-dialog-title">{t.language}</h2>
+          </div>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setIsLanguageDialogOpen(false)}
+            title={t.closeManual}
+            aria-label={t.closeManual}
+          >
+            <X aria-hidden="true" />
+          </button>
+        </header>
+        <div className="language-choice-list" role="group" aria-label={t.language}>
+          {[
+            { value: 'pt' as AppLanguage, label: 'Portugues', region: 'Portugal' },
+            { value: 'en' as AppLanguage, label: 'English', region: 'United Kingdom' },
+          ].map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              className={language === option.value ? 'language-choice active' : 'language-choice'}
+              onClick={() => {
+                setLanguage(option.value)
+                setIsLanguageDialogOpen(false)
+              }}
+            >
+              <Languages aria-hidden="true" />
+              <span>
+                <strong>{option.label}</strong>
+                <small>{option.region}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  ) : null
+
   if (!isAuthenticated) {
     return (
       <main className="auth-shell">
@@ -2702,20 +2839,21 @@ function App() {
                     }}
                     role="menuitem"
                   >
-                    <ShieldCheck aria-hidden="true" />
+                    <UsersRound aria-hidden="true" />
                     <span>{t.users}</span>
                   </button>
                   <button
                     type="button"
                     className="portal-menu-item"
                     onClick={() => {
-                      navigateToView('stats')
+                      setIsHistoryDialogOpen(true)
                       setIsToolsMenuOpen(false)
+                      void refreshGlobalHistory()
                     }}
                     role="menuitem"
                   >
-                    <BarChart3 aria-hidden="true" />
-                    <span>{t.statistics}</span>
+                    <History aria-hidden="true" />
+                    <span>{t.history}</span>
                   </button>
                   <button
                     type="button"
@@ -2733,14 +2871,13 @@ function App() {
                     type="button"
                     className="portal-menu-item"
                     onClick={() => {
-                      setLanguage((current) => (current === 'pt' ? 'en' : 'pt'))
+                      setIsLanguageDialogOpen(true)
                       setIsToolsMenuOpen(false)
                     }}
                     role="menuitem"
                   >
                     <Languages aria-hidden="true" />
                     <span>{t.language}</span>
-                    <strong className="portal-menu-value">{language.toUpperCase()}</strong>
                   </button>
                   <button
                     type="button"
@@ -3348,19 +3485,30 @@ function App() {
                 {profiles.length} {t.registeredProfiles}
               </p>
             </div>
-            <button
-              type="button"
-              className="ghost-action"
-              onClick={() => void refreshUsers()}
-              disabled={isUsersLoading}
-            >
-              {isUsersLoading ? (
-                <Loader2 className="spin" aria-hidden="true" />
-              ) : (
-                <RefreshCw aria-hidden="true" />
-              )}
-              {t.refresh}
-            </button>
+            <div className="section-heading-actions">
+              <button
+                type="button"
+                className="ghost-action"
+                onClick={() => void refreshUsers()}
+                disabled={isUsersLoading}
+              >
+                {isUsersLoading ? (
+                  <Loader2 className="spin" aria-hidden="true" />
+                ) : (
+                  <RefreshCw aria-hidden="true" />
+                )}
+                {t.refresh}
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => navigateToView('devices')}
+                title={t.closeManual}
+                aria-label={t.closeManual}
+              >
+                <X aria-hidden="true" />
+              </button>
+            </div>
           </div>
 
           <div className="users-note">
@@ -3629,6 +3777,8 @@ function App() {
       )}
 
       {manualDialog}
+      {historyDialog}
+      {languageDialog}
     </main>
   )
 }

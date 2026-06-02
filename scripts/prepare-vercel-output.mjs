@@ -107,13 +107,13 @@ const topbar = (activeId = '') => `
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
-          <a class="menu-item" href="/historico" role="menuitem">
-            <i data-lucide="history"></i>
-            <span>Historico geral</span>
-          </a>
           <a class="menu-item" href="/utilizadores" role="menuitem">
             <i data-lucide="users-round"></i>
             <span>Utilizadores</span>
+          </a>
+          <a class="menu-item" href="/historico" role="menuitem">
+            <i data-lucide="history"></i>
+            <span>Historico</span>
           </a>
           <a class="menu-item" href="/manuais" role="menuitem">
             <i data-lucide="book-open"></i>

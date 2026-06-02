@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Central MenteMovimento</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/vendor/lucide.min.js" defer></script>
+    <script src="/static/vendor/supabase.js" defer></script>
+    <script src="/static/central-config.js" defer></script>
+    <script src="/static/app.js" defer></script>
+    <script src="/static/central-auth.js" defer></script>
+  </head>
+  <body data-central-page="dashboard">
+    
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-block brand-link" href="/dashboard">
+      <span class="brand-symbol brand-logo" aria-hidden="true">
+        <img src="/static/mente-movimento-logo.png" alt="" />
+      </span>
+      <div>
+        <h1>Central MenteMovimento</h1>
+        <p data-user-email>Administrador</p>
+      </div>
+    </a>
+    <nav class="topnav" aria-label="Areas principais">
+      <a class="topnav-link" href="/area/socios/">
+        <i data-lucide="id-card"></i>
+        <span>Socios</span>
+      </a>
+      <a class="topnav-link" href="/area/utentes/">
+        <i data-lucide="heart-handshake"></i>
+        <span>Utentes</span>
+      </a>
+      <a class="topnav-link" href="/area/dispositivos/">
+        <i data-lucide="monitor-cog"></i>
+        <span>Dispositivos</span>
+      </a>
+    </nav>
+    <div class="global-actions" aria-label="Ferramentas globais">
+      <details class="global-menu-wrap">
+        <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu">
+          <i data-lucide="menu"></i>
+        </summary>
+        <div class="global-tools-menu" role="menu">
+          <a class="menu-item" href="/utilizadores" role="menuitem">
+            <i data-lucide="users-round"></i>
+            <span>Utilizadores</span>
+          </a>
+          <a class="menu-item" href="/historico" role="menuitem">
+            <i data-lucide="history"></i>
+            <span>Historico</span>
+          </a>
+          <a class="menu-item" href="/manuais" role="menuitem">
+            <i data-lucide="book-open"></i>
+            <span>Manuais</span>
+          </a>
+          <button class="menu-item" type="button" data-language-toggle role="menuitem">
+            <i data-lucide="languages"></i>
+            <span>Idioma</span>
+          </button>
+          <button class="menu-item" type="button" data-theme-toggle role="menuitem">
+            <i data-lucide="moon"></i>
+            <span>Tema escuro</span>
+          </button>
+        </div>
+      </details>
+      <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao">
+        <i data-lucide="log-out"></i>
+      </a>
+    </div>
+  </div>
+</header>
+<main class="dashboard">
+  <section class="dashboard-heading" aria-labelledby="dashboardTitle">
+    <div>
+      <p class="eyebrow">Gestao da associacao</p>
+      <h2 id="dashboardTitle">Escolhe a area de trabalho</h2>
+    </div>
+    <span class="session-chip">
+      <i data-lucide="key-round"></i>
+      <span>Sessao unica</span>
+    </span>
+  </section>
+  <section class="module-grid" aria-label="Aplicacoes disponiveis">
+    
+<article class="module-card module-green" data-module-card="socios">
+  <div class="module-topline">
+    <span class="module-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
+    <span class="status-chip status-online" data-module-status="socios">Integrado</span>
+  </div>
+  <h2>Socios</h2>
+  <p>Base de socios</p>
+  <a class="module-action" href="/area/socios/">
+    <i data-lucide="arrow-right"></i>
+    <span>Entrar na area</span>
+  </a>
+</article>
+<article class="module-card module-blue" data-module-card="utentes">
+  <div class="module-topline">
+    <span class="module-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
+    <span class="status-chip status-online" data-module-status="utentes">Integrado</span>
+  </div>
+  <h2>Utentes</h2>
+  <p>Base de utentes</p>
+  <a class="module-action" href="/area/utentes/">
+    <i data-lucide="arrow-right"></i>
+    <span>Entrar na area</span>
+  </a>
+</article>
+<article class="module-card module-amber" data-module-card="dispositivos">
+  <div class="module-topline">
+    <span class="module-icon" aria-hidden="true"><i data-lucide="monitor-cog"></i></span>
+    <span class="status-chip status-online" data-module-status="dispositivos">Integrado</span>
+  </div>
+  <h2>Dispositivos</h2>
+  <p>Base de dispositivos</p>
+  <a class="module-action" href="/area/dispositivos/">
+    <i data-lucide="arrow-right"></i>
+    <span>Entrar na area</span>
+  </a>
+</article>
+  </section>
+</main>
+  </body>
+</html>
