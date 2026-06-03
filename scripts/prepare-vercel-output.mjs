@@ -316,7 +316,7 @@ await writeFile(
   const saveAccessCache = (session) => {
     try {
       const authExpiresAt = Number(session?.expires_at || 0) * 1000;
-      const shortCacheExpiresAt = Date.now() + 10 * 60 * 1000;
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
       sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
@@ -506,7 +506,7 @@ await writeFile(
   const saveAccessCache = (session) => {
     try {
       const authExpiresAt = Number(session?.expires_at || 0) * 1000;
-      const shortCacheExpiresAt = Date.now() + 10 * 60 * 1000;
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
       sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
@@ -612,6 +612,8 @@ sociosIndex = sociosIndex
     '</title>',
     '</title>\n    <script>document.documentElement.dataset.centralAuthPending = "true";</script>\n    <style>html[data-central-auth-pending="true"] body{visibility:hidden}</style>',
   )
+  .replace('<script src="vendor/lucide.min.js" defer></script>', '<script src="/static/vendor/lucide.min.js" defer></script>')
+  .replace(/\s*<script src="vendor\/xlsx\.full\.min\.js" defer><\/script>/, '')
   .replace(/\s*<script src="central-socios-client\.js" defer><\/script>/, '')
   .replace('<script src="app.js" defer></script>', '<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js" defer></script>\n    <script src="config.js" defer></script>\n    <script src="/static/central-module-auth.js" defer></script>\n    <script src="app.js" defer></script>')
 await writeFile(sociosIndexPath, sociosIndex)

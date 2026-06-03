@@ -37,7 +37,7 @@
   const saveAccessCache = (session) => {
     try {
       const authExpiresAt = Number(session?.expires_at || 0) * 1000;
-      const shortCacheExpiresAt = Date.now() + 10 * 60 * 1000;
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
       sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {

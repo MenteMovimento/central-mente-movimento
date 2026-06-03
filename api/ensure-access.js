@@ -113,24 +113,19 @@ const ensureProfile = async (adminClient, user) => {
 const ensureExistingAccess = async (userClient, user) => {
   const { data: appUser, error: appUserError } = await userClient
     .from('app_users')
-    .select('*')
+    .select('id, email, full_name, role, active')
     .eq('id', user.id)
     .maybeSingle()
 
   if (appUserError) throw appUserError
-  if (!appUser || appUser.active === false) {
+  if (appUser?.active === false) {
     throw new Error('Utilizador sem acesso ativo.')
   }
+  if (!appUser) {
+    throw new Error('Utilizador ainda nao preparado.')
+  }
 
-  const { data: profile, error: profileError } = await userClient
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
-
-  if (profileError) throw profileError
-
-  return { appUser, profile: profile ?? null }
+  return { appUser, profile: null }
 }
 
 export default async function handler(request, response) {
@@ -159,6 +154,17 @@ export default async function handler(request, response) {
     if (error || !user) {
       sendJson(response, 401, { error: 'Sessao invalida.' })
       return
+    }
+
+    try {
+      const { appUser, profile } = await ensureExistingAccess(userClient, user)
+      sendJson(response, 200, { ok: true, appUser, profile })
+      return
+    } catch (accessError) {
+      if (errorMessage(accessError) === 'Utilizador sem acesso ativo.') {
+        sendJson(response, 403, { error: 'Utilizador sem acesso ativo.' })
+        return
+      }
     }
 
     const adminClient = createAdminClient()

@@ -2777,7 +2777,35 @@ function spreadsheetAvailable() {
   return Boolean(window.XLSX?.utils && window.XLSX?.read && window.XLSX?.write);
 }
 
-function exportExcel() {
+let spreadsheetLoadPromise = null;
+
+function loadSpreadsheetLibrary() {
+  if (spreadsheetAvailable()) {
+    return Promise.resolve();
+  }
+
+  if (!spreadsheetLoadPromise) {
+    spreadsheetLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "vendor/xlsx.full.min.js";
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Não foi possível carregar a biblioteca Excel."));
+      document.head.appendChild(script);
+    });
+  }
+
+  return spreadsheetLoadPromise;
+}
+
+async function exportExcel() {
+  try {
+    await loadSpreadsheetLibrary();
+  } catch (error) {
+    showToast(error.message || "Exportação Excel indisponível.");
+    return;
+  }
+
   if (!spreadsheetAvailable()) {
     showToast("Exportação Excel indisponível. Recarregue a página e tente novamente.");
     return;
@@ -2903,6 +2931,7 @@ async function parseImportFile(file) {
   const fileName = file.name.toLocaleLowerCase("pt-PT");
 
   if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+    await loadSpreadsheetLibrary();
     return parseSpreadsheetImport(await file.arrayBuffer());
   }
 
