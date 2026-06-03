@@ -1891,6 +1891,73 @@ tbody tr:last-child td {
   padding: 4px 22px 22px;
 }
 
+.manual-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding-top: 18px;
+}
+
+.manual-card {
+  min-height: 118px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--surface);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.manual-card:hover {
+  border-color: color-mix(in srgb, var(--brand-cyan) 46%, transparent);
+  background: var(--brand-cyan-soft);
+}
+
+.manual-card-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--brand-blue);
+  background: var(--brand-cyan-soft);
+}
+
+.manual-card-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.manual-card-copy {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.manual-card-copy strong {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.manual-card-copy span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.manual-back-button {
+  justify-self: start;
+  margin-top: 14px;
+}
+
 .manual-section {
   padding: 18px 0;
   border-bottom: 1px solid var(--border);
@@ -2035,6 +2102,10 @@ tbody tr:last-child td {
 
   .manual-body {
     padding: 2px 18px 18px;
+  }
+
+  .manual-options {
+    grid-template-columns: 1fr;
   }
 
   .demo-banner {

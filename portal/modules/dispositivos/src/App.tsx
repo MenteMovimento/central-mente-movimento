@@ -76,6 +76,7 @@ const memberRoles: Profile['role'][] = ['admin', 'manager', 'member']
 type AppLanguage = 'pt' | 'en'
 type AppTheme = 'light' | 'dark'
 type AppView = 'devices' | 'utentes' | 'stats' | 'users'
+type ManualMode = 'choice' | 'user' | 'developer'
 type SortColumnKey = (typeof repairTableColumns)[number]['key']
 type SortDirection = 'asc' | 'desc'
 
@@ -504,6 +505,83 @@ const manualSectionsByLanguage: Record<
   ],
 }
 
+const developerManualSectionsByLanguage: Record<
+  AppLanguage,
+  Array<{
+    title: string
+    steps: string[]
+  }>
+> = {
+  pt: [
+    {
+      title: '1. Estrutura do projeto',
+      steps: [
+        'A area de dispositivos vive dentro do projeto central, em portal/modules/dispositivos.',
+        'As alteracoes devem ser feitas no projeto local e depois publicadas no GitHub para a Vercel atualizar.',
+        'Mantem os botoes comuns alinhados com Socios e Utentes para evitar comportamentos diferentes entre abas.',
+      ],
+    },
+    {
+      title: '2. Base de dados e ficheiros',
+      steps: [
+        'Executa os scripts SQL da pasta supabase quando forem adicionadas tabelas, permissoes ou funcionalidades novas.',
+        'Os dispositivos usam tabelas proprias para registos, historico, anexos e perfis de utilizadores.',
+        'Nunca coloques a chave service_role no codigo do frontend; deve ficar apenas nas variaveis protegidas da Vercel.',
+      ],
+    },
+    {
+      title: '3. Publicacao',
+      steps: [
+        'Confirma que o build local termina sem erros antes de publicar.',
+        'Depois de fazer push para main no GitHub, a Vercel cria automaticamente um novo deploy.',
+        'Se mudares variaveis de ambiente, faz redeploy para a versao publicada receber os novos valores.',
+      ],
+    },
+    {
+      title: '4. Manutencao',
+      steps: [
+        'Exporta CSV antes de alteracoes grandes ou migracoes de dados.',
+        'Testa login, troca de abas, modo escuro, idioma, historico e utilizadores depois de cada publicacao.',
+        'Mantem os dados antigos intocados ate a migracao definitiva estar validada.',
+      ],
+    },
+  ],
+  en: [
+    {
+      title: '1. Project structure',
+      steps: [
+        'The devices area lives inside the central project under portal/modules/dispositivos.',
+        'Make changes locally, then publish through GitHub so Vercel can update the deployment.',
+        'Keep shared buttons aligned with Members and Service users to avoid different behavior across areas.',
+      ],
+    },
+    {
+      title: '2. Database and files',
+      steps: [
+        'Run the SQL scripts in the supabase folder when new tables, permissions or features are added.',
+        'Devices use their own tables for records, history, attachments and user profiles.',
+        'Never place the service_role key in frontend code; keep it only in protected Vercel variables.',
+      ],
+    },
+    {
+      title: '3. Deployment',
+      steps: [
+        'Confirm the local build finishes without errors before publishing.',
+        'After pushing to main on GitHub, Vercel automatically creates a new deployment.',
+        'If environment variables change, redeploy so the published version receives the new values.',
+      ],
+    },
+    {
+      title: '4. Maintenance',
+      steps: [
+        'Export CSV before large edits or data migrations.',
+        'Test login, area navigation, dark mode, language, history and users after every deployment.',
+        'Keep old data untouched until the final migration has been validated.',
+      ],
+    },
+  ],
+}
+
 const translations = {
   pt: {
     addDevice: 'Adicionar dispositivo',
@@ -515,6 +593,7 @@ const translations = {
     archived: 'Arquivados',
     ascending: 'Crescente',
     authTabLabel: 'Autenticacao',
+    back: 'Voltar',
     cancel: 'Cancelar',
     closeManual: 'Fechar manual',
     confirmEmailTitle: 'Email por confirmar',
@@ -538,6 +617,7 @@ const translations = {
     editName: 'Editar nome',
     email: 'Email',
     exportCsv: 'Exportar CSV',
+    exportData: 'Exportar',
     finalResults: 'Resultados finais',
     fixedRoleLabel: 'Permissao',
     filterByStatus: 'Filtrar por estado',
@@ -553,7 +633,15 @@ const translations = {
     loadingUsers: 'A carregar utilizadores',
     mostCommonBrands: 'Marcas mais comuns',
     manual: 'Manuais',
+    manualChoiceSubtitle: 'Escolha o manual adequado ao que pretende consultar.',
+    manualChoiceTitle: 'Manual',
+    manualDeveloperDescription:
+      'Para quem mantem o projeto: GitHub, Vercel, Supabase, SQL, seguranca e atualizacoes.',
+    manualDeveloperTitle: 'Manual do Programador',
     manualTitle: 'Manual de utilizacao',
+    manualUserDescription:
+      'Para quem usa a app no dia a dia: dispositivos, reparacoes, CSV, anexos, historico e acessos.',
+    manualUserTitle: 'Manual do Utilizador',
     maintenance: 'Manutencao',
     managementAreas: 'Areas de gestao',
     name: 'Nome',
@@ -666,6 +754,7 @@ const translations = {
     archived: 'Archived',
     ascending: 'Ascending',
     authTabLabel: 'Authentication',
+    back: 'Back',
     cancel: 'Cancel',
     closeManual: 'Close manual',
     confirmEmailTitle: 'Email not confirmed',
@@ -689,6 +778,7 @@ const translations = {
     editName: 'Edit name',
     email: 'Email',
     exportCsv: 'Export CSV',
+    exportData: 'Export',
     finalResults: 'Final results',
     fixedRoleLabel: 'Permission',
     filterByStatus: 'Filter by status',
@@ -706,7 +796,15 @@ const translations = {
     maintenance: 'Maintenance',
     managementAreas: 'Management areas',
     manual: 'Manuals',
+    manualChoiceSubtitle: 'Choose the right manual for what you need to check.',
+    manualChoiceTitle: 'Manual',
+    manualDeveloperDescription:
+      'For maintaining the project: GitHub, Vercel, Supabase, SQL, security and updates.',
+    manualDeveloperTitle: 'Programmer manual',
     manualTitle: 'User manual',
+    manualUserDescription:
+      'For daily use: devices, repairs, CSV, attachments, history and access.',
+    manualUserTitle: 'User manual',
     name: 'Name',
     newDevice: 'New device',
     noDevices: 'No devices found.',
@@ -1028,6 +1126,7 @@ function App() {
   const [isGlobalHistoryLoading, setIsGlobalHistoryLoading] = useState(false)
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false)
   const [isManualOpen, setIsManualOpen] = useState(false)
+  const [manualMode, setManualMode] = useState<ManualMode>('choice')
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false)
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false)
@@ -1049,6 +1148,7 @@ function App() {
   const localizedRoleLabels = roleLabels[language]
   const localizedStatusLabels = statusLabels[language]
   const manualSections = manualSectionsByLanguage[language]
+  const developerManualSections = developerManualSectionsByLanguage[language]
   const translateRepairLabel = (label: string) => repairLabelTranslations[language][label] ?? label
   const moduleLinks = [
     { view: 'devices' as AppView, label: t.devices, icon: ClipboardList },
@@ -2477,6 +2577,15 @@ function App() {
     </div>
   )
 
+  const manualDialogTitle =
+    manualMode === 'choice'
+      ? t.manualChoiceTitle
+      : manualMode === 'developer'
+        ? t.manualDeveloperTitle
+        : t.manualUserTitle
+  const activeManualSections =
+    manualMode === 'developer' ? developerManualSections : manualSections
+
   const manualDialog = isManualOpen ? (
     <div
       className="manual-overlay"
@@ -2492,8 +2601,10 @@ function App() {
       >
         <header className="manual-header">
           <div>
-            <p className="manual-kicker">{t.help}</p>
-            <h2 id="manual-title">{t.manualTitle}</h2>
+            <p className="manual-kicker">
+              {manualMode === 'choice' ? t.manualChoiceSubtitle : t.help}
+            </p>
+            <h2 id="manual-title">{manualDialogTitle}</h2>
           </div>
           <button
             type="button"
@@ -2506,16 +2617,56 @@ function App() {
           </button>
         </header>
         <div className="manual-body">
-          {manualSections.map((section) => (
-            <article className="manual-section" key={section.title}>
-              <h3>{section.title}</h3>
-              <ol>
-                {section.steps.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-            </article>
-          ))}
+          {manualMode === 'choice' ? (
+            <div className="manual-options">
+              <button
+                type="button"
+                className="manual-card"
+                onClick={() => setManualMode('user')}
+              >
+                <span className="manual-card-icon" aria-hidden="true">
+                  <UsersRound />
+                </span>
+                <span className="manual-card-copy">
+                  <strong>{t.manualUserTitle}</strong>
+                  <span>{t.manualUserDescription}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="manual-card"
+                onClick={() => setManualMode('developer')}
+              >
+                <span className="manual-card-icon" aria-hidden="true">
+                  <FileText />
+                </span>
+                <span className="manual-card-copy">
+                  <strong>{t.manualDeveloperTitle}</strong>
+                  <span>{t.manualDeveloperDescription}</span>
+                </span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="ghost-action manual-back-button"
+                onClick={() => setManualMode('choice')}
+              >
+                {t.back}
+              </button>
+              {activeManualSections.map((section) => (
+                <article className="manual-section" key={section.title}>
+                  <h3>{section.title}</h3>
+                  <ol>
+                    {section.steps.map((step) => (
+                      <li key={step}>{step}</li>
+                    ))}
+                  </ol>
+                </article>
+              ))}
+            </>
+          )}
         </div>
       </section>
     </div>
@@ -2641,7 +2792,10 @@ function App() {
             <button
               type="button"
               className="manual-button auth-manual-button"
-              onClick={() => setIsManualOpen(true)}
+              onClick={() => {
+                setManualMode('choice')
+                setIsManualOpen(true)
+              }}
               title={t.manual}
             >
               <BookOpen aria-hidden="true" />
@@ -2834,13 +2988,25 @@ function App() {
                     type="button"
                     className="portal-menu-item"
                     onClick={() => {
-                      navigateToView('users')
+                      setActiveView('users')
                       setIsToolsMenuOpen(false)
                     }}
                     role="menuitem"
                   >
                     <UsersRound aria-hidden="true" />
                     <span>{t.users}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="portal-menu-item"
+                    onClick={() => {
+                      exportDevicesCsv()
+                      setIsToolsMenuOpen(false)
+                    }}
+                    role="menuitem"
+                  >
+                    <Download aria-hidden="true" />
+                    <span>{t.exportData}</span>
                   </button>
                   <button
                     type="button"
@@ -2859,6 +3025,7 @@ function App() {
                     type="button"
                     className="portal-menu-item"
                     onClick={() => {
+                      setManualMode('choice')
                       setIsManualOpen(true)
                       setIsToolsMenuOpen(false)
                     }}
