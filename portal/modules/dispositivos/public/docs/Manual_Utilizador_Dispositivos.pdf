@@ -1,0 +1,66 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 821 >>
+stream
+BT
+/F1 20 Tf
+72 780 Td
+(Manual do Utilizador - Dispositivos) Tj
+/F1 10 Tf
+0 -28 Td
+0 -14 Td
+/F1 13 Tf
+(Acesso) Tj
+/F1 10 Tf
+0 -18 Td
+(- Entrar uma vez na Central MenteMovimento e abrir Dispositivos sem segundo login.) Tj
+0 -15 Td
+(- Usar os tres tracinhos para utilizadores, exportacao, historico, manuais, idioma e tema.) Tj
+0 -15 Td
+0 -14 Td
+/F1 13 Tf
+(Dispositivos) Tj
+/F1 10 Tf
+0 -18 Td
+(- Criar e editar dispositivos com identificacao, hardware, sistema, reparacao e observacoes.) Tj
+0 -15 Td
+(- Pesquisar, ordenar, importar CSV, exportar CSV, imprimir relatorio e gerir anexos.) Tj
+0 -15 Td
+0 -14 Td
+/F1 13 Tf
+(Estados) Tj
+/F1 10 Tf
+0 -18 Td
+(- Usar Ativo, Manutencao e Arquivado para manter a listagem organizada.) Tj
+0 -15 Td
+(- Consultar estatisticas para acompanhar totais e reparacoes.) Tj
+0 -15 Td
+0 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000001057 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1183
+%%EOF

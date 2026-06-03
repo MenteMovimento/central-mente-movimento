@@ -44,6 +44,7 @@ load_local_env()
 DB_PATH = os.path.join(BASE_DIR, "utentes.db")
 LOGO_PATH = os.path.join(BASE_DIR, "logo-horizontal.png")
 ATTACHMENTS_DIR = os.path.join(BASE_DIR, "anexos")
+DOCS_DIR = os.path.join(BASE_DIR, "docs")
 MAX_PDF_BYTES = 30 * 1024 * 1024
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SECRET_KEY = (
@@ -55,12 +56,12 @@ SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "documentos-utentes")
 USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_SECRET_KEY)
 
 TAB_SECTIONS = [
-    ("referenciacao", "Formulário de Referenciação"),
-    ("emergencia", "Informações em Caso de Emergência"),
-    ("inscricao", "Ficha de Inscrição e Avaliação Inicial de Requisitos"),
-    ("diagnostica", "Avaliação Diagnóstica Multidisciplinar"),
+    ("referenciacao", "Formul?rio de Referencia??o"),
+    ("emergencia", "Informa??es em Caso de Emerg?ncia"),
+    ("inscricao", "Ficha de Inscri??o e Avalia??o Inicial de Requisitos"),
+    ("diagnostica", "Avalia??o Diagn?stica Multidisciplinar"),
     ("atendimentos", "Registo de Atendimentos e Acompanhamentos"),
-    ("protecao_dados", "Proteção de dados e Termos de Responsabilidade"),
+    ("protecao_dados", "Prote??o de dados e Termos de Responsabilidade"),
 ]
 
 PERFIL_ADMIN = "Administrador"
@@ -1479,6 +1480,15 @@ tr:last-child td {
     overflow: hidden;
 }
 
+.frame-dialog.utility-frame .frame-dialog-panel {
+    height: min(880px, calc(100vh - 28px));
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.frame-dialog.utility-frame .frame-dialog-head {
+    display: none;
+}
+
 .frame-dialog-head {
     display: flex;
     align-items: center;
@@ -1542,6 +1552,213 @@ tr:last-child td {
 
 .manager-column + .manager-column {
     border-left: 1px solid var(--line);
+}
+
+.utility-body {
+    background: transparent;
+}
+
+.utility-body main {
+    width: 100%;
+    padding: 0;
+}
+
+.utility-panel {
+    overflow: hidden;
+    min-height: 520px;
+    border-radius: 8px;
+    color: var(--text);
+    background: var(--panel);
+}
+
+.utility-panel-head,
+.utility-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.utility-panel-head {
+    justify-content: space-between;
+    padding: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.utility-panel-head h2,
+.utility-empty h3 {
+    margin: 0;
+    color: var(--brand-dark);
+}
+
+.utility-panel-head p {
+    margin: 4px 0 0;
+    color: var(--muted);
+}
+
+.utility-forms {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.95fr) minmax(260px, 1fr);
+    border-bottom: 1px solid var(--line);
+}
+
+.utility-form {
+    display: grid;
+    align-content: start;
+    gap: 12px;
+    padding: 18px;
+}
+
+.utility-form + .utility-form {
+    border-left: 1px solid var(--line);
+}
+
+.form-section-title h3 {
+    margin: 0;
+    color: var(--brand-dark);
+    font-size: 0.98rem;
+}
+
+.form-section-title p {
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+}
+
+.utility-form-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.utility-table-wrap {
+    position: relative;
+    overflow-x: auto;
+    min-height: 300px;
+    border-top: 1px solid var(--line);
+}
+
+.utility-table {
+    min-width: 820px;
+}
+
+.history-table {
+    min-width: 980px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.status-pill.is-active,
+.audit-action.is-create,
+.audit-action.is-update {
+    color: #02734e;
+    background: #dcf8ed;
+}
+
+.status-pill.is-inactive,
+.audit-action.is-delete {
+    color: var(--danger);
+    background: var(--danger-bg);
+}
+
+.audit-action {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.utility-empty {
+    display: grid;
+    min-height: 300px;
+    place-items: center;
+    padding: 44px 20px;
+    text-align: center;
+}
+
+.utility-empty svg {
+    width: 42px;
+    height: 42px;
+    color: var(--brand);
+    stroke: currentColor;
+}
+
+.utility-empty p {
+    margin: 8px 0 0;
+    color: var(--muted);
+}
+
+.utility-language-panel {
+    width: min(575px, 100%);
+    min-height: auto;
+    margin: 0 auto;
+}
+
+.utility-language-list,
+.utility-manual-list {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+}
+
+.utility-choice-card {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    min-height: 88px;
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    background: var(--panel);
+    text-align: left;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.utility-choice-card:hover,
+.utility-choice-card.is-active {
+    border-color: var(--brand);
+    background: var(--focus);
+}
+
+.utility-choice-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--brand);
+    background: var(--focus);
+    font-size: 1.25rem;
+}
+
+.utility-choice-copy {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.utility-choice-copy strong {
+    color: var(--brand-dark);
+}
+
+.utility-choice-copy span {
+    color: var(--muted);
+    line-height: 1.35;
 }
 
 .checkbox-row {
@@ -1673,6 +1890,21 @@ tr:last-child td {
     .header-tools,
     .manager-grid {
         grid-template-columns: 1fr;
+    }
+
+    .utility-panel-head,
+    .utility-head-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .utility-forms {
+        grid-template-columns: 1fr;
+    }
+
+    .utility-form + .utility-form {
+        border-left: 0;
+        border-top: 1px solid var(--line);
     }
 
     .manual-choice-grid {
@@ -2022,6 +2254,58 @@ APP_SCRIPT = """
         }
     });
 
+    const globalLanguageKeys = ["central-language", "socios-language", "mentemovimento-language"];
+    const loadGlobalLanguage = () => {
+        for (const key of globalLanguageKeys) {
+            try {
+                const value = window.localStorage.getItem(key);
+                if (value === "pt" || value === "en") {
+                    return value;
+                }
+            } catch (_error) {
+                return "";
+            }
+        }
+        return "";
+    };
+    const persistGlobalLanguage = (language) => {
+        globalLanguageKeys.forEach((key) => {
+            try {
+                window.localStorage.setItem(key, language);
+            } catch (_error) {
+                // O idioma fica guardado na conta mesmo que o browser bloqueie localStorage.
+            }
+        });
+    };
+    const currentLanguage = document.documentElement.lang.toLowerCase().startsWith("en") ? "en" : "pt";
+    const storedLanguage = loadGlobalLanguage();
+    const syncLanguage = (language) => {
+        if (!language || language === currentLanguage || window.location.pathname === "/login") {
+            return;
+        }
+        const syncKey = "utentes-language-sync";
+        if (window.sessionStorage.getItem(syncKey) === language) {
+            return;
+        }
+        window.sessionStorage.setItem(syncKey, language);
+        const data = new FormData();
+        data.set("idioma", language);
+        fetch("/idioma", { method: "POST", body: data, credentials: "same-origin" })
+            .then(() => window.location.reload())
+            .catch(() => window.sessionStorage.removeItem(syncKey));
+    };
+    if (storedLanguage) {
+        persistGlobalLanguage(storedLanguage);
+        syncLanguage(storedLanguage);
+    } else {
+        persistGlobalLanguage(currentLanguage);
+    }
+    window.addEventListener("storage", (event) => {
+        if (globalLanguageKeys.includes(event.key)) {
+            syncLanguage(loadGlobalLanguage());
+        }
+    });
+
     const manualDialog = document.getElementById("manualChoiceDialog");
     const openManualDialogButton = document.querySelector("[data-manual-dialog-open]");
     const closeManualDialogButton = document.getElementById("closeManualChoiceDialog");
@@ -2074,6 +2358,7 @@ APP_SCRIPT = """
         if (frameDialogFrame) {
             frameDialogFrame.setAttribute("src", "about:blank");
         }
+        frameDialog.classList.remove("utility-frame");
     };
     document.querySelectorAll("[data-frame-dialog-open]").forEach((button) => {
         button.addEventListener("click", (event) => {
@@ -2087,6 +2372,9 @@ APP_SCRIPT = """
             }
             const target = button.getAttribute("data-frame-dialog-open") || "/";
             const title = button.getAttribute("data-frame-dialog-title") || button.textContent.trim();
+            const utilityFrameTargets = ["/utilizadores", "/historico", "/idioma"];
+            const isUtilityFrame = utilityFrameTargets.some((item) => target === item || target.endsWith(item));
+            frameDialog.classList.toggle("utility-frame", isUtilityFrame);
             if (frameDialogTitle) {
                 frameDialogTitle.textContent = title;
             }
@@ -2118,13 +2406,13 @@ APP_SCRIPT = """
     const status = document.querySelector("[data-autosave-status]");
     const tabLinks = Array.from(document.querySelectorAll(".tab-link[href^='/editar']"));
     const diagramStates = [];
-    const unsavedMessage = "Existem alterações por guardar. Queres sair sem guardar?";
+    const unsavedMessage = "Existem altera??es por guardar. Queres sair sem guardar?";
     let hasUnsavedChanges = false;
     let allowNavigation = false;
 
     function markUnsaved() {
         hasUnsavedChanges = true;
-        setStatus("Alterações por guardar", "saving");
+        setStatus("Altera??es por guardar", "saving");
     }
 
     function svgElement(name, attrs = {}) {
@@ -2138,7 +2426,7 @@ APP_SCRIPT = """
             return {
                 kind,
                 notes: "",
-                nodes: [{ id: "n1", type: "central", label: "Utente / família", x: 500, y: 260 }],
+                nodes: [{ id: "n1", type: "central", label: "Utente / fam?lia", x: 500, y: 260 }],
                 edges: [],
             };
         }
@@ -2497,7 +2785,7 @@ APP_SCRIPT = """
         if (connect) {
             connect.addEventListener("click", () => {
                 if (state.selectedNodes.length !== 2) {
-                    alert("Seleciona dois elementos para criar a ligação.");
+                    alert("Seleciona dois elementos para criar a liga??o.");
                     return;
                 }
                 state.data.edges.push({
@@ -2622,7 +2910,7 @@ APP_SCRIPT = """
             credentials: "same-origin",
         });
         if (!response.ok) {
-            let message = "Não foi possível guardar este separador.";
+            let message = "N?o foi poss?vel guardar este separador.";
             try {
                 const payload = await response.json();
                 if (payload && payload.error) {
@@ -2677,7 +2965,7 @@ def supabase_headers(extra=None):
 
 def supabase_request(method, endpoint, query=None, payload=None, raw_body=None, headers=None, expect_json=True):
     if not supabase_available():
-        raise SupabaseError("Supabase não está configurado.")
+        raise SupabaseError("Supabase n?o est? configurado.")
     url = f"{SUPABASE_URL}{endpoint}"
     if query:
         url = f"{url}?{urlencode(query, doseq=True, safe='*,().:')}"
@@ -2702,7 +2990,7 @@ def supabase_request(method, endpoint, query=None, payload=None, raw_body=None, 
         details = exc.read().decode("utf-8", errors="replace")
         raise SupabaseError(f"Erro Supabase {exc.code}: {details[:500]}") from exc
     except URLError as exc:
-        raise SupabaseError(f"Não foi possível ligar ao Supabase: {exc.reason}") from exc
+        raise SupabaseError(f"N?o foi poss?vel ligar ao Supabase: {exc.reason}") from exc
 
 
 def table_select(table, query=None):
@@ -3005,7 +3293,7 @@ def language_cookie(language):
 
 TRANSLATIONS = {
     "pt": {
-        "app_title": "Gestão de Utentes",
+        "app_title": "Gest?o de Utentes",
         "user_manager": "Utilizadores",
         "consultation_profile": "Perfil de Consulta",
         "new_client": "+ Novo utente",
@@ -3019,7 +3307,7 @@ TRANSLATIONS = {
         "close": "Fechar",
         "refresh": "Atualizar",
         "name": "Nome",
-        "actions": "Ações",
+        "actions": "A??es",
         "view": "Ver",
         "edit": "Editar",
         "delete": "Eliminar",
@@ -3030,7 +3318,7 @@ TRANSLATIONS = {
         "no_clients_help": "Adicione o primeiro utente ou ajuste a pesquisa.",
         "new_client_title": "Novo utente",
         "save_client": "Guardar utente",
-        "save_changes": "Guardar alterações",
+        "save_changes": "Guardar altera??es",
         "cancel": "Cancelar",
         "full_name": "Nome completo *",
         "client_list": "Lista de utentes",
@@ -3038,8 +3326,8 @@ TRANSLATIONS = {
         "view_client": "Ver utente",
         "language_title": "Mudar idioma",
         "language_help": "Escolha o idioma da interface desta conta.",
-        "portuguese": "Português",
-        "english": "Inglês",
+        "portuguese": "Portugu?s",
+        "english": "Ingl?s",
         "active_language": "Idioma ativo",
         "apply_language": "Aplicar idioma",
         "language_updated": "Idioma atualizado com sucesso",
@@ -3047,8 +3335,8 @@ TRANSLATIONS = {
         "user": "Utilizador",
         "create_user": "Criar utilizador",
         "edit_user": "Editar utilizador",
-        "user_manager_help": "Crie acessos novos e edite permissões de utilizadores existentes.",
-        "access_available": "O acesso fica disponível de imediato.",
+        "user_manager_help": "Crie acessos novos e edite permiss?es de utilizadores existentes.",
+        "access_available": "O acesso fica dispon?vel de imediato.",
         "choose_user": "Escolha um utilizador na lista para editar.",
         "email": "Email",
         "password": "Password",
@@ -3058,15 +3346,15 @@ TRANSLATIONS = {
         "status": "Estado",
         "active": "Ativo",
         "inactive": "Inativo",
-        "history_help": "Veja quem fez alterações, o que fez e quando fez.",
+        "history_help": "Veja quem fez altera??es, o que fez e quando fez.",
         "when": "Quando",
         "who": "Quem",
-        "action": "Ação",
-        "area": "Área",
+        "action": "A??o",
+        "area": "?rea",
         "details": "Detalhes",
-        "no_history": "Ainda não existem alterações registadas.",
-        "manual_text": "O manual de utilização será acrescentado numa fase seguinte.",
-        "placeholder_text": "Esta área já está preparada no menu, mas ainda não tem funcionalidades ativas.",
+        "no_history": "Ainda n?o existem altera??es registadas.",
+        "manual_text": "O manual de utiliza??o ser? acrescentado numa fase seguinte.",
+        "placeholder_text": "Esta ?rea j? est? preparada no menu, mas ainda n?o tem funcionalidades ativas.",
     },
     "en": {
         "app_title": "Client Management",
@@ -3136,15 +3424,15 @@ TRANSLATIONS = {
 
 
 EN_STATIC_TRANSLATIONS = {
-    "Formulário de Referenciação - Unidade Sócio-Ocupacional": "Referral Form - Socio-Occupational Unit",
-    "Formulário de Referenciação": "Referral Form",
-    "Informações em Caso de Emergência": "Emergency Information",
-    "Ficha de Inscrição e Avaliação Inicial de Requisitos": "Registration Form and Initial Requirements Assessment",
-    "Avaliação Diagnóstica Multidisciplinar": "Multidisciplinary Diagnostic Assessment",
+    "Formul?rio de Referencia??o - Unidade S?cio-Ocupacional": "Referral Form - Socio-Occupational Unit",
+    "Formul?rio de Referencia??o": "Referral Form",
+    "Informa??es em Caso de Emerg?ncia": "Emergency Information",
+    "Ficha de Inscri??o e Avalia??o Inicial de Requisitos": "Registration Form and Initial Requirements Assessment",
+    "Avalia??o Diagn?stica Multidisciplinar": "Multidisciplinary Diagnostic Assessment",
     "Registo de Atendimentos e Acompanhamentos": "Service and Follow-up Records",
-    "Proteção de dados e Termos de Responsabilidade": "Data Protection and Responsibility Terms",
+    "Prote??o de dados e Termos de Responsabilidade": "Data Protection and Responsibility Terms",
     "Utentes MenteMovimento": "MenteMovimento Clients",
-    "Gestão de Utentes": "Client Management",
+    "Gest?o de Utentes": "Client Management",
     "Gestor de Utilizadores": "User Manager",
     "Perfil de Consulta": "View-only Profile",
     "+ Novo utente": "+ New client",
@@ -3152,11 +3440,11 @@ EN_STATIC_TRANSLATIONS = {
     "Lista de utentes": "Client list",
     "Editar utente": "Edit client",
     "Ver utente": "View client",
-    "Histórico de alterações": "Change history",
-    "Histórico": "History",
+    "Hist?rico de altera??es": "Change history",
+    "Hist?rico": "History",
     "Mudar idioma": "Change language",
-    "Português": "Portuguese",
-    "Inglês": "English",
+    "Portugu?s": "Portuguese",
+    "Ingl?s": "English",
     "Idioma ativo": "Active language",
     "Aplicar idioma": "Apply language",
     "Escolha o idioma da interface desta conta.": "Choose the interface language for this account.",
@@ -3166,8 +3454,8 @@ EN_STATIC_TRANSLATIONS = {
     "Escuro": "Dark",
     "Sair": "Sign out",
     "Entrar": "Sign in",
-    "Aceda à gestão de utentes.": "Access client management.",
-    "Credenciais inválidas ou utilizador inativo.": "Invalid credentials or inactive user.",
+    "Aceda ? gest?o de utentes.": "Access client management.",
+    "Credenciais inv?lidas ou utilizador inativo.": "Invalid credentials or inactive user.",
     "Administrador": "Administrator",
     "Utilizador": "User",
     "Pesquisar por nome": "Search by name",
@@ -3177,7 +3465,7 @@ EN_STATIC_TRANSLATIONS = {
     "Voltar": "Back",
     "Guardar": "Save",
     "Guardar utente": "Save client",
-    "Guardar alterações": "Save changes",
+    "Guardar altera??es": "Save changes",
     "Guardar nome": "Save name",
     "Atualizar": "Refresh",
     "Fechar": "Close",
@@ -3189,19 +3477,19 @@ EN_STATIC_TRANSLATIONS = {
     "Utente eliminado com sucesso": "Client deleted successfully",
     "Dados guardados com sucesso": "Data saved successfully",
     "Aba guardada com sucesso": "Tab saved successfully",
-    "Utente não encontrado": "Client not found",
-    "Sem permissão para criar utentes": "No permission to create clients",
-    "Sem permissão para essa ação": "No permission for that action",
-    "O nome completo é obrigatório.": "Full name is required.",
-    "Ações": "Actions",
+    "Utente n?o encontrado": "Client not found",
+    "Sem permiss?o para criar utentes": "No permission to create clients",
+    "Sem permiss?o para essa a??o": "No permission for that action",
+    "O nome completo ? obrigat?rio.": "Full name is required.",
+    "A??es": "Actions",
     "Editar": "Edit",
     "Eliminar": "Delete",
     "Ver": "View",
     "Eliminar este utente?": "Delete this client?",
-    "Áreas do utente": "Client areas",
-    "Conteúdo": "Content",
-    "Sem informação registada.": "No information recorded.",
-    "Ainda não existem PDFs anexados neste separador.": "There are no PDFs attached in this tab yet.",
+    "?reas do utente": "Client areas",
+    "Conte?do": "Content",
+    "Sem informa??o registada.": "No information recorded.",
+    "Ainda n?o existem PDFs anexados neste separador.": "There are no PDFs attached in this tab yet.",
     "Anexar PDF digitalizado": "Attach scanned PDF",
     "Anexar PDF": "Attach PDF",
     "PDFs deste utente": "This client's PDFs",
@@ -3211,30 +3499,30 @@ EN_STATIC_TRANSLATIONS = {
     "PDF anexado com sucesso": "PDF attached successfully",
     "PDF removido com sucesso": "PDF removed successfully",
     "Escolha um ficheiro PDF para anexar.": "Choose a PDF file to attach.",
-    "Só são permitidos ficheiros PDF.": "Only PDF files are allowed.",
-    "O ficheiro escolhido não parece ser um PDF válido.": "The selected file does not appear to be a valid PDF.",
+    "S? s?o permitidos ficheiros PDF.": "Only PDF files are allowed.",
+    "O ficheiro escolhido n?o parece ser um PDF v?lido.": "The selected file does not appear to be a valid PDF.",
     "O PDF excede o limite de 30 MB.": "The PDF exceeds the 30 MB limit.",
-    "PDF não encontrado": "PDF not found",
+    "PDF n?o encontrado": "PDF not found",
     "anexado em": "attached on",
-    " · por ": " · by ",
+    " ? por ": " ? by ",
 
-    "Data de Receção do documento": "Document reception date",
-    "1. Dados de Identificação e Contactos": "1. Identification and Contacts",
-    "1. Dados de Identificação do Utente": "1. Client Identification Data",
-    "Processo n.º": "Process no.",
-    "N.º Processo": "Process no.",
-    "N.º Internamentos até à data": "Number of admissions to date",
+    "Data de Rece??o do documento": "Document reception date",
+    "1. Dados de Identifica??o e Contactos": "1. Identification and Contacts",
+    "1. Dados de Identifica??o do Utente": "1. Client Identification Data",
+    "Processo n.?": "Process no.",
+    "N.? Processo": "Process no.",
+    "N.? Internamentos at? ? data": "Number of admissions to date",
     "Data de Nascimento": "Date of birth",
     "Data Nasc.": "Date of birth",
     "Idade": "Age",
     "Morada": "Address",
-    "Código Postal": "Postcode",
+    "C?digo Postal": "Postcode",
     "Freguesia": "Parish",
     "Concelho": "Municipality",
-    "Contacto Telefónico": "Phone contact",
+    "Contacto Telef?nico": "Phone contact",
     "Contacto": "Contact",
     "Contacto(s)": "Contact(s)",
-    "Familiar de Referência": "Reference family member",
+    "Familiar de Refer?ncia": "Reference family member",
     "Parentesco": "Relationship",
     "Parent.": "Relationship",
     "NIF": "Tax ID",
@@ -3242,249 +3530,249 @@ EN_STATIC_TRANSLATIONS = {
     "Email": "Email",
     "Telefone": "Phone",
     "Entidade": "Entity",
-    "Diagnóstico Atual": "Current diagnosis",
-    "Antecedentes clínicos": "Clinical history",
-    "2. Identificação da Entidade e Técnico(a) de Encaminhamento": "2. Referring Entity and Technician Identification",
-    "Nome do(a) Técnico(a)": "Technician name",
-    "Relação com o(a) Candidato(a)": "Relationship with the candidate",
-    "3. Informação Clínica": "3. Clinical Information",
-    "Data 1.º Internamento": "Date of first admission",
-    "Data do Último Internamento": "Date of last admission",
+    "Diagn?stico Atual": "Current diagnosis",
+    "Antecedentes cl?nicos": "Clinical history",
+    "2. Identifica??o da Entidade e T?cnico(a) de Encaminhamento": "2. Referring Entity and Technician Identification",
+    "Nome do(a) T?cnico(a)": "Technician name",
+    "Rela??o com o(a) Candidato(a)": "Relationship with the candidate",
+    "3. Informa??o Cl?nica": "3. Clinical Information",
+    "Data 1.? Internamento": "Date of first admission",
+    "Data do ?ltimo Internamento": "Date of last admission",
     "Tratamento em": "Treatment in",
     "Hospital de Dia": "Day Hospital",
     "Consulta Externa": "Outpatient Consultation",
     "Internamento": "Inpatient Admission",
-    "Resumo da Situação Clínica Atual": "Summary of Current Clinical Situation",
-    "Outros Problemas de Saúde": "Other Health Problems",
-    "Urinários": "Urinary",
-    "Reumáticos": "Rheumatic",
-    "Cardíacos": "Cardiac",
-    "Hipertensão": "Hypertension",
-    "Doenças infetocontagiosas": "Infectious diseases",
-    "Doenças cancerígenas": "Cancer diseases",
+    "Resumo da Situa??o Cl?nica Atual": "Summary of Current Clinical Situation",
+    "Outros Problemas de Sa?de": "Other Health Problems",
+    "Urin?rios": "Urinary",
+    "Reum?ticos": "Rheumatic",
+    "Card?acos": "Cardiac",
+    "Hipertens?o": "Hypertension",
+    "Doen?as infetocontagiosas": "Infectious diseases",
+    "Doen?as cancer?genas": "Cancer diseases",
     "Sistema nervoso": "Nervous system",
-    "Visão": "Vision",
+    "Vis?o": "Vision",
     "Diabetes": "Diabetes",
     "Alergias": "Allergies",
     "Intestinais": "Intestinal",
-    "Respiratórios": "Respiratory",
+    "Respirat?rios": "Respiratory",
     "Auditivos": "Hearing",
     "Outros": "Other",
     "Outro": "Other",
     "Quais?": "Which?",
     "Qual?": "Which?",
     "Outro motivo": "Other reason",
-    "5. Avaliação de Risco": "5. Risk Assessment",
-    "Sem adesão Terapêutica": "No therapeutic adherence",
+    "5. Avalia??o de Risco": "5. Risk Assessment",
+    "Sem ades?o Terap?utica": "No therapeutic adherence",
     "Comportamentos Agressivos": "Aggressive behaviour",
     "Sem Retaguarda Familiar": "No family backup",
-    "Comportamentos Automutilatórios": "Self-harming behaviour",
-    "Ideação Suicida": "Suicidal ideation",
-    "Consumo de Substâncias": "Substance use",
+    "Comportamentos Automutilat?rios": "Self-harming behaviour",
+    "Idea??o Suicida": "Suicidal ideation",
+    "Consumo de Subst?ncias": "Substance use",
     "6. Motivo do Encaminhamento": "6. Referral Reason",
-    "Ativação Comportamental": "Behavioural activation",
-    "Treino de Competências Sociais": "Social skills training",
-    "Estruturação de Rotinas": "Routine structuring",
-    "Redução do Isolamento Social": "Reduction of social isolation",
-    "Gestão da Sintomatologia": "Symptom management",
-    "Treino da Funcionalidade (Atividades de Vida Diária)": "Functionality training (Activities of Daily Living)",
+    "Ativa??o Comportamental": "Behavioural activation",
+    "Treino de Compet?ncias Sociais": "Social skills training",
+    "Estrutura??o de Rotinas": "Routine structuring",
+    "Redu??o do Isolamento Social": "Reduction of social isolation",
+    "Gest?o da Sintomatologia": "Symptom management",
+    "Treino da Funcionalidade (Atividades de Vida Di?ria)": "Functionality training (Activities of Daily Living)",
     "Treino da Funcionalidade (Laboral/Comunidade)": "Functionality training (Work/Community)",
     "Treino da Funcionalidade (Relacional/Social)": "Functionality training (Relational/Social)",
-    "Medicação": "Medication",
+    "Medica??o": "Medication",
     "Medicamento": "Medication",
     "Jejum": "Fasting",
-    "P. Almoço": "Before lunch",
-    "Almoço": "Lunch",
+    "P. Almo?o": "Before lunch",
+    "Almo?o": "Lunch",
     "Lanche": "Snack",
     "Jantar": "Dinner",
     "Deitar": "Bedtime",
-    "Observações": "Notes",
+    "Observa??es": "Notes",
 
-    "Identificação": "Identification",
-    "Em caso de urgência contactar": "In case of emergency contact",
-    "Dados de saúde": "Health data",
-    "Grupo sanguíneo": "Blood group",
-    "N.º SNS": "SNS no.",
-    "Nome do médico de família": "Family doctor's name",
-    "Centro de Saúde": "Health Centre",
-    "Médico Psiquiatra": "Psychiatrist",
-    "Alergias e observações": "Allergies and notes",
-    "Problemas de Saúde": "Health Problems",
-    "Informação geral adicional": "Additional general information",
-    "Informação Geral Relevante": "Relevant General Information",
-    "Informação": "Information",
+    "Identifica??o": "Identification",
+    "Em caso de urg?ncia contactar": "In case of emergency contact",
+    "Dados de sa?de": "Health data",
+    "Grupo sangu?neo": "Blood group",
+    "N.? SNS": "SNS no.",
+    "Nome do m?dico de fam?lia": "Family doctor's name",
+    "Centro de Sa?de": "Health Centre",
+    "M?dico Psiquiatra": "Psychiatrist",
+    "Alergias e observa??es": "Allergies and notes",
+    "Problemas de Sa?de": "Health Problems",
+    "Informa??o geral adicional": "Additional general information",
+    "Informa??o Geral Relevante": "Relevant General Information",
+    "Informa??o": "Information",
 
     "Data": "Date",
     "Nome pelo qual prefere ser tratado": "Preferred name",
-    "Cartão de Cidadão": "Citizen Card",
-    "N.º Segurança Social": "Social Security no.",
-    "N.º SNS/Utente": "SNS/User no.",
-    "Pessoa de referência": "Reference person",
-    "Nome e contacto de pessoa de referência": "Reference person's name and contact",
+    "Cart?o de Cidad?o": "Citizen Card",
+    "N.? Seguran?a Social": "Social Security no.",
+    "N.? SNS/Utente": "SNS/User no.",
+    "Pessoa de refer?ncia": "Reference person",
+    "Nome e contacto de pessoa de refer?ncia": "Reference person's name and contact",
     "1. Pedido": "1. Request",
-    "2. Formulação e Identificação do Pedido": "2. Request Formulation and Identification",
-    "Descrição do motivo e expectativas acerca da Unidade Sócio Ocupacional": "Description of reason and expectations regarding the Socio-Occupational Unit",
-    "3. Sinalização Global dos Serviços de Preferência": "3. Overall Indication of Preferred Services",
-    "Descrição do pedido / motivo da inscrição": "Request description / registration reason",
-    "Outro serviço": "Other service",
-    "2. Serviços pretendidos": "2. Requested services",
-    "Atividade Física (Ginástica, Hidroginástica, etc.)": "Physical activity (gymnastics, water aerobics, etc.)",
-    "Expressão Corporal (Teatro, dança, etc.)": "Body expression (theatre, dance, etc.)",
-    "Expressão Artística (Desenho, Pintura, Fotografia, etc.)": "Artistic expression (drawing, painting, photography, etc.)",
-    "Expressão Musical": "Musical expression",
-    "Grupos de Conversação": "Conversation groups",
-    "Treino de Atividades de Vida Diária": "Activities of daily living training",
+    "2. Formula??o e Identifica??o do Pedido": "2. Request Formulation and Identification",
+    "Descri??o do motivo e expectativas acerca da Unidade S?cio Ocupacional": "Description of reason and expectations regarding the Socio-Occupational Unit",
+    "3. Sinaliza??o Global dos Servi?os de Prefer?ncia": "3. Overall Indication of Preferred Services",
+    "Descri??o do pedido / motivo da inscri??o": "Request description / registration reason",
+    "Outro servi?o": "Other service",
+    "2. Servi?os pretendidos": "2. Requested services",
+    "Atividade F?sica (Gin?stica, Hidrogin?stica, etc.)": "Physical activity (gymnastics, water aerobics, etc.)",
+    "Express?o Corporal (Teatro, dan?a, etc.)": "Body expression (theatre, dance, etc.)",
+    "Express?o Art?stica (Desenho, Pintura, Fotografia, etc.)": "Artistic expression (drawing, painting, photography, etc.)",
+    "Express?o Musical": "Musical expression",
+    "Grupos de Conversa??o": "Conversation groups",
+    "Treino de Atividades de Vida Di?ria": "Activities of daily living training",
     "Relaxamento": "Relaxation",
     "Atelier Laboral": "Work atelier",
     "Psicoterapia Individual": "Individual psychotherapy",
-    "Estimulação Cognitiva": "Cognitive stimulation",
-    "Formação Profissional": "Vocational training",
+    "Estimula??o Cognitiva": "Cognitive stimulation",
+    "Forma??o Profissional": "Vocational training",
     "3. Admissibilidade": "3. Admissibility",
-    "Não Aceitação": "Non-acceptance",
-    "Grau de dependência elevado": "High level of dependency",
+    "N?o Aceita??o": "Non-acceptance",
+    "Grau de depend?ncia elevado": "High level of dependency",
     "Resposta": "Answer",
-    "Observações / fundamentos": "Notes / grounds",
-    "4. Avaliação Inicial de Requisitos": "4. Initial Requirements Assessment",
-    "4. Admissibilidade e Ponderação": "4. Admissibility and Weighting",
+    "Observa??es / fundamentos": "Notes / grounds",
+    "4. Avalia??o Inicial de Requisitos": "4. Initial Requirements Assessment",
+    "4. Admissibilidade e Pondera??o": "4. Admissibility and Weighting",
     "Admissibilidade": "Admissibility",
-    "4.4 Tabela de ponderação": "4.4 Weighting table",
-    "4.1 Apresenta algum critério de Não Admissibilidade?": "4.1 Does the client present any non-admissibility criterion?",
+    "4.4 Tabela de pondera??o": "4.4 Weighting table",
+    "4.1 Apresenta algum crit?rio de N?o Admissibilidade?": "4.1 Does the client present any non-admissibility criterion?",
     "4.2 Tem Transporte? (assinale com uma X)": "4.2 Has transport? (mark with an X)",
     "4.3 A Resposta Social ajusta-se ao pedido do Utente? (assinale com uma X)": "4.3 Does the social response fit the client's request? (mark with an X)",
-    "Se não, porquê?": "If no, why?",
-    "Utilização de Transportes": "Use of Transport",
-    "Critério": "Criterion",
-    "Ponderação": "Weighting",
-    "Pontuação": "Score",
+    "Se n?o, porqu??": "If no, why?",
+    "Utiliza??o de Transportes": "Use of Transport",
+    "Crit?rio": "Criterion",
+    "Pondera??o": "Weighting",
+    "Pontua??o": "Score",
     "Valor ponderado": "Weighted value",
     "Total": "Total",
-    "Idade do utente (quanto menor for, maior pontuação)": "Client age (the lower it is, the higher the score)",
-    "Residência na Região de Entre Douro e Vouga": "Residence in the Entre Douro e Vouga region",
-    "Limitações na estrutura familiar": "Limitations in the family structure",
-    "Encaminhado pelo Departamento de Saúde Mental do CHEDV": "Referred by the CHEDV Mental Health Department",
-    "Estabilização clínica ultrapassada da fase aguda da doença": "Clinical stabilization after the acute phase of illness",
-    "Funcionalidade básica conservada ou adquirida em reabilitação anterior": "Basic functioning preserved or acquired in previous rehabilitation",
-    "Perturbação da funcionalidade relacional, ocupacional e/ou profissional": "Relational, occupational and/or professional functioning impairment",
-    "Capacidade para eventual exercício de atividade socialmente útil": "Capacity for possible socially useful activity",
-    "Tempo de evolução da doença (quanto menor for, maior pontuação)": "Disease duration (the shorter it is, the higher the score)",
+    "Idade do utente (quanto menor for, maior pontua??o)": "Client age (the lower it is, the higher the score)",
+    "Resid?ncia na Regi?o de Entre Douro e Vouga": "Residence in the Entre Douro e Vouga region",
+    "Limita??es na estrutura familiar": "Limitations in the family structure",
+    "Encaminhado pelo Departamento de Sa?de Mental do CHEDV": "Referred by the CHEDV Mental Health Department",
+    "Estabiliza??o cl?nica ultrapassada da fase aguda da doen?a": "Clinical stabilization after the acute phase of illness",
+    "Funcionalidade b?sica conservada ou adquirida em reabilita??o anterior": "Basic functioning preserved or acquired in previous rehabilitation",
+    "Perturba??o da funcionalidade relacional, ocupacional e/ou profissional": "Relational, occupational and/or professional functioning impairment",
+    "Capacidade para eventual exerc?cio de atividade socialmente ?til": "Capacity for possible socially useful activity",
+    "Tempo de evolu??o da doen?a (quanto menor for, maior pontua??o)": "Disease duration (the shorter it is, the higher the score)",
 
-    "Data da Avaliação": "Assessment date",
-    "Técnico de referência": "Reference technician",
-    "1. Dados Sócio-Demográficos": "1. Socio-Demographic Data",
+    "Data da Avalia??o": "Assessment date",
+    "T?cnico de refer?ncia": "Reference technician",
+    "1. Dados S?cio-Demogr?ficos": "1. Socio-Demographic Data",
     "1.1 Nome": "1.1 Name",
     "1.2 Estado Civil": "1.2 Marital Status",
     "Estado Civil": "Marital Status",
     "Solteiro(a)": "Single",
     "Casado(a)": "Married",
-    "União de Facto": "Civil partnership",
+    "Uni?o de Facto": "Civil partnership",
     "Separado(a)/Divorciado(a)": "Separated/Divorced",
-    "Viúvo(a)": "Widowed",
+    "Vi?vo(a)": "Widowed",
     "Nacionalidade": "Nationality",
-    "Língua(s) falada(s)": "Spoken language(s)",
+    "L?ngua(s) falada(s)": "Spoken language(s)",
     "1.4 Grau de escolaridade mais elevado": "1.4 Highest education level",
-    "Não sabe ler, nem escrever": "Cannot read or write",
+    "N?o sabe ler, nem escrever": "Cannot read or write",
     "Sabe ler e escrever": "Can read and write",
-    "Ensino Básico (ensino primário)": "Basic education (primary school)",
-    "Ensino Preparatório": "Preparatory education",
-    "Ensino Secundário": "Secondary education",
+    "Ensino B?sico (ensino prim?rio)": "Basic education (primary school)",
+    "Ensino Preparat?rio": "Preparatory education",
+    "Ensino Secund?rio": "Secondary education",
     "Bacharelato": "Bachelor's degree",
-    "Ensino Técnico Profissional": "Technical vocational education",
+    "Ensino T?cnico Profissional": "Technical vocational education",
     "Licenciatura": "Undergraduate degree",
-    "Pós-graduação": "Postgraduate degree",
+    "P?s-gradua??o": "Postgraduate degree",
     "Mestrado": "Master's degree",
     "Doutoramento": "Doctorate",
     "Idade com que completou a escolaridade": "Age when education was completed",
-    "Observações/Eventos significativos no percurso escolar": "Notes/Significant events in education",
-    "1.5 Situação Laboral": "1.5 Employment Situation",
-    "Trabalho por conta própria": "Self-employed",
+    "Observa??es/Eventos significativos no percurso escolar": "Notes/Significant events in education",
+    "1.5 Situa??o Laboral": "1.5 Employment Situation",
+    "Trabalho por conta pr?pria": "Self-employed",
     "Trabalho por conta de outrem": "Employed by others",
-    "Prestação de Serviços": "Service provision",
+    "Presta??o de Servi?os": "Service provision",
     "Desempregado": "Unemployed",
     "Voluntariado": "Volunteering",
     "Reforma/Invalidez": "Retirement/Disability",
-    "Se empregado, a relação jurídica de emprego é": "If employed, the legal employment relationship is",
+    "Se empregado, a rela??o jur?dica de emprego ?": "If employed, the legal employment relationship is",
     "Contrato a Termo Certo": "Fixed-term contract",
     "Contrato a Termo Incerto (efetivo)": "Open-ended contract",
-    "Trabalho temporário/Substituição": "Temporary work/Substitution",
-    "Estágio Profissional": "Professional internship",
-    "Há quanto tempo trabalha": "How long has worked",
-    "1.6 Problemas de Inserção Profissional": "1.6 Professional Integration Problems",
-    "Emprego Precário": "Precarious employment",
-    "Baixa Qualificação Profissional": "Low professional qualification",
-    "Desadequação entre expectativas/habilitações académicas": "Mismatch between expectations/academic qualifications",
+    "Trabalho tempor?rio/Substitui??o": "Temporary work/Substitution",
+    "Est?gio Profissional": "Professional internship",
+    "H? quanto tempo trabalha": "How long has worked",
+    "1.6 Problemas de Inser??o Profissional": "1.6 Professional Integration Problems",
+    "Emprego Prec?rio": "Precarious employment",
+    "Baixa Qualifica??o Profissional": "Low professional qualification",
+    "Desadequa??o entre expectativas/habilita??es acad?micas": "Mismatch between expectations/academic qualifications",
     "Falta de ofertas do mercado de trabalho": "Lack of labour market offers",
-    "Salários em atraso": "Delayed wages",
-    "Dificuldade de adaptação a um horário rígido": "Difficulty adapting to a rigid schedule",
-    "1.7 Situação Económica": "1.7 Economic Situation",
+    "Sal?rios em atraso": "Delayed wages",
+    "Dificuldade de adapta??o a um hor?rio r?gido": "Difficulty adapting to a rigid schedule",
+    "1.7 Situa??o Econ?mica": "1.7 Economic Situation",
     "Rendimento do Trabalho": "Employment income",
-    "Prestação Social para a Inclusão (PSI)": "Social Inclusion Benefit (PSI)",
-    "Subsídio de Doença": "Sickness benefit",
-    "Pensão de Invalidez relativa": "Relative disability pension",
-    "Pensão de Invalidez absoluta": "Absolute disability pension",
-    "Complemento por Dependência": "Dependency supplement",
-    "Complemento Solidário para Idosos": "Solidarity Supplement for the Elderly",
-    "Rendimento Social de Inserção (RSI)": "Social Integration Income (RSI)",
+    "Presta??o Social para a Inclus?o (PSI)": "Social Inclusion Benefit (PSI)",
+    "Subs?dio de Doen?a": "Sickness benefit",
+    "Pens?o de Invalidez relativa": "Relative disability pension",
+    "Pens?o de Invalidez absoluta": "Absolute disability pension",
+    "Complemento por Depend?ncia": "Dependency supplement",
+    "Complemento Solid?rio para Idosos": "Solidarity Supplement for the Elderly",
+    "Rendimento Social de Inser??o (RSI)": "Social Integration Income (RSI)",
     "Reforma": "Retirement pension",
     "Sem Rendimentos": "No income",
-    "1.8 Habitação": "1.8 Housing",
-    "Adequada às necessidades": "Suitable for needs",
-    "Barreiras arquitetónicas na casa": "Architectural barriers at home",
+    "1.8 Habita??o": "1.8 Housing",
+    "Adequada ?s necessidades": "Suitable for needs",
+    "Barreiras arquitet?nicas na casa": "Architectural barriers at home",
     "Humidade, falta de higiene": "Humidity, lack of hygiene",
-    "Ausência de acessibilidades": "Lack of accessibility",
-    "Habitação inadequada": "Inadequate housing",
-    "2. Situação Sócio-Familiar": "2. Socio-Family Situation",
-    "Vive com a família sem dependência física/psíquica": "Lives with family without physical/psychological dependency",
-    "Vive com o cônjuge de similar idade": "Lives with spouse of similar age",
-    "Vive com a família e/ou cônjuge com algum grau de dependência": "Lives with family and/or spouse with some degree of dependency",
-    "Vive sozinho mas tem familiares próximos": "Lives alone but has close relatives",
-    "Vive sozinho sem familiares próximos": "Lives alone without close relatives",
-    "Habilitações Literárias": "Education",
-    "Situação Profissional": "Professional Situation",
+    "Aus?ncia de acessibilidades": "Lack of accessibility",
+    "Habita??o inadequada": "Inadequate housing",
+    "2. Situa??o S?cio-Familiar": "2. Socio-Family Situation",
+    "Vive com a fam?lia sem depend?ncia f?sica/ps?quica": "Lives with family without physical/psychological dependency",
+    "Vive com o c?njuge de similar idade": "Lives with spouse of similar age",
+    "Vive com a fam?lia e/ou c?njuge com algum grau de depend?ncia": "Lives with family and/or spouse with some degree of dependency",
+    "Vive sozinho mas tem familiares pr?ximos": "Lives alone but has close relatives",
+    "Vive sozinho sem familiares pr?ximos": "Lives alone without close relatives",
+    "Habilita??es Liter?rias": "Education",
+    "Situa??o Profissional": "Professional Situation",
     "2.3 Genograma": "2.3 Genogram",
     "Genograma": "Genogram",
     "Homem": "Man",
     "Mulher": "Woman",
     "Casamento": "Marriage",
-    "União/Coabitação": "Union/Cohabitation",
-    "União": "Union",
-    "Filiação": "Parent-child",
-    "Separação": "Separation",
-    "Divórcio": "Divorce",
-    "Relação próxima": "Close relationship",
+    "Uni?o/Coabita??o": "Union/Cohabitation",
+    "Uni?o": "Union",
+    "Filia??o": "Parent-child",
+    "Separa??o": "Separation",
+    "Div?rcio": "Divorce",
+    "Rela??o pr?xima": "Close relationship",
     "Conflito": "Conflict",
     "Corte/distanciamento": "Cut-off/distance",
     "Falecido": "Deceased",
-    "Próxima": "Close",
+    "Pr?xima": "Close",
     "Corte": "Cut-off",
-    "2.4 Relações Sociais": "2.4 Social Relationships",
-    "Relações sociais só com a família": "Social relationships only with family",
-    "Relações sociais só com a família e vizinhos": "Social relationships only with family and neighbours",
-    "Não sai do domicílio, mas recebe visitas": "Does not leave home, but receives visitors",
-    "Não sai do domicílio nem recebe visitas": "Does not leave home or receive visitors",
+    "2.4 Rela??es Sociais": "2.4 Social Relationships",
+    "Rela??es sociais s? com a fam?lia": "Social relationships only with family",
+    "Rela??es sociais s? com a fam?lia e vizinhos": "Social relationships only with family and neighbours",
+    "N?o sai do domic?lio, mas recebe visitas": "Does not leave home, but receives visitors",
+    "N?o sai do domic?lio nem recebe visitas": "Does not leave home or receive visitors",
     "2.5 Rede Social": "2.5 Social Network",
     "Com apoio familiar ou de vizinhos": "With family or neighbour support",
-    "Voluntariado social, ajuda domiciliária": "Social volunteering, home support",
-    "Não tem apoio": "Has no support",
-    "Pendente de institucionalização": "Pending institutionalization",
+    "Voluntariado social, ajuda domicili?ria": "Social volunteering, home support",
+    "N?o tem apoio": "Has no support",
+    "Pendente de institucionaliza??o": "Pending institutionalization",
     "Tem cuidados permanentes": "Has permanent care",
     "2.6 Ecomapa": "2.6 Ecomap",
     "Ecomapa": "Ecomap",
-    "Pessoa/Família": "Person/Family",
+    "Pessoa/Fam?lia": "Person/Family",
     "Sistema/Rede": "System/Network",
-    "Ligação forte": "Strong link",
-    "Ligação fraca/ténue": "Weak link",
-    "Ligação stressante": "Stressful link",
+    "Liga??o forte": "Strong link",
+    "Liga??o fraca/t?nue": "Weak link",
+    "Liga??o stressante": "Stressful link",
     "Fluxo para o utente": "Flow to client",
     "Fluxo do utente": "Flow from client",
     "Fluxo bidirecional": "Bidirectional flow",
-    "Utente/família": "Client/family",
-    "Utente / família": "Client / family",
+    "Utente/fam?lia": "Client/family",
+    "Utente / fam?lia": "Client / family",
     "Nome do sistema/rede:": "System/network name:",
     "Nome:": "Name:",
-    "Seleciona dois elementos para criar a ligação.": "Select two elements to create the link.",
+    "Seleciona dois elementos para criar a liga??o.": "Select two elements to create the link.",
     "Seleciona um elemento para editar.": "Select one element to edit.",
     "Seleciona uma pessoa.": "Select a person.",
-    "Clique uma vez numa figura para selecionar. Para ligar duas figuras, selecione a primeira e depois a segunda, e carregue em “Ligar selecionados”. Arraste uma figura para a mover.": "Click a figure once to select it. To connect two figures, select the first and then the second, and press “Connect selected”. Drag a figure to move it.",
+    "Clique uma vez numa figura para selecionar. Para ligar duas figuras, selecione a primeira e depois a segunda, e carregue em ?Ligar selecionados?. Arraste uma figura para a mover.": "Click a figure once to select it. To connect two figures, select the first and then the second, and press ?Connect selected?. Drag a figure to move it.",
     "Rede externa": "External network",
     "Forte": "Strong",
     "Fraca": "Weak",
@@ -3496,72 +3784,72 @@ EN_STATIC_TRANSLATIONS = {
     "Apagar selecionado": "Delete selected",
     "Legenda": "Legend",
     "Notas": "Notes",
-    "3. Saúde": "3. Health",
-    "História e doença atual": "Current history and illness",
-    "Antecedentes Psiquiátricos Pessoais": "Personal psychiatric history",
-    "Antecedentes Psiquiátricos Familiares": "Family psychiatric history",
+    "3. Sa?de": "3. Health",
+    "Hist?ria e doen?a atual": "Current history and illness",
+    "Antecedentes Psiqui?tricos Pessoais": "Personal psychiatric history",
+    "Antecedentes Psiqui?tricos Familiares": "Family psychiatric history",
     "Internamentos": "Admissions",
-    "Outros problemas de saúde e antecedentes médicos a referir": "Other health problems and medical history to mention",
-    "Antipsicótico injetável": "Injectable antipsychotic",
-    "Local de administração": "Administration location",
-    "Responsável": "Responsible person",
-    "4. Outros Aspetos Relevantes na Reabilitação": "4. Other Relevant Aspects in Rehabilitation",
-    "4.1 Breve descrição da Rotina": "4.1 Brief description of routine",
-    "Horário de deitar": "Bedtime",
-    "Horário de levantar": "Wake-up time",
-    "Número de horas que costuma dormir": "Usual number of sleeping hours",
+    "Outros problemas de sa?de e antecedentes m?dicos a referir": "Other health problems and medical history to mention",
+    "Antipsic?tico injet?vel": "Injectable antipsychotic",
+    "Local de administra??o": "Administration location",
+    "Respons?vel": "Responsible person",
+    "4. Outros Aspetos Relevantes na Reabilita??o": "4. Other Relevant Aspects in Rehabilitation",
+    "4.1 Breve descri??o da Rotina": "4.1 Brief description of routine",
+    "Hor?rio de deitar": "Bedtime",
+    "Hor?rio de levantar": "Wake-up time",
+    "N?mero de horas que costuma dormir": "Usual number of sleeping hours",
     "Acorda antes da hora desejada": "Wakes up before the desired time",
-    "Observações sobre sono/repouso": "Notes on sleep/rest",
-    "4.3 Condição Física": "4.3 Physical Condition",
+    "Observa??es sobre sono/repouso": "Notes on sleep/rest",
+    "4.3 Condi??o F?sica": "4.3 Physical Condition",
     "4.4 Comportamentos de risco/Consumos": "4.4 Risk behaviours/Use",
-    "4.5 Adesão terapêutica": "4.5 Therapeutic adherence",
-    "4.6 Atividades de Vida Diária Instrumentais - Perspetiva do Utente": "4.6 Instrumental Activities of Daily Living - Client's Perspective",
-    "Gestão de Dinheiro": "Money management",
-    "Gestão de Medicação": "Medication management",
-    "Preparação de Refeições": "Meal preparation",
-    "Cuidados Domésticos (limpeza, roupa, etc.)": "Household tasks (cleaning, laundry, etc.)",
+    "4.5 Ades?o terap?utica": "4.5 Therapeutic adherence",
+    "4.6 Atividades de Vida Di?ria Instrumentais - Perspetiva do Utente": "4.6 Instrumental Activities of Daily Living - Client's Perspective",
+    "Gest?o de Dinheiro": "Money management",
+    "Gest?o de Medica??o": "Medication management",
+    "Prepara??o de Refei??es": "Meal preparation",
+    "Cuidados Dom?sticos (limpeza, roupa, etc.)": "Household tasks (cleaning, laundry, etc.)",
     "Autocuidado": "Self-care",
     "Compras de Bens Essenciais": "Essential goods shopping",
-    "Gestão de Agenda/Compromissos": "Schedule/appointment management",
-    "Comunicação (telefone, e-mail, etc.)": "Communication (phone, email, etc.)",
-    "Gestão de Documentação Pessoal": "Personal document management",
-    "Relacionamento com Serviços e Entidades": "Relationship with Services and Entities",
-    "Planeamento e Organização do Dia": "Day planning and organization",
+    "Gest?o de Agenda/Compromissos": "Schedule/appointment management",
+    "Comunica??o (telefone, e-mail, etc.)": "Communication (phone, email, etc.)",
+    "Gest?o de Documenta??o Pessoal": "Personal document management",
+    "Relacionamento com Servi?os e Entidades": "Relationship with Services and Entities",
+    "Planeamento e Organiza??o do Dia": "Day planning and organization",
     "AVDI's": "IADLs",
     "Independente": "Independent",
     "Com Ajuda Parcial": "With partial help",
     "Dependente": "Dependent",
-    "Observações/Relevância": "Notes/Relevance",
-    "5. Informações relevantes a registar": "5. Relevant information to record",
-    "Informações relevantes": "Relevant information",
-    "6. Contactos Úteis": "6. Useful Contacts",
+    "Observa??es/Relev?ncia": "Notes/Relevance",
+    "5. Informa??es relevantes a registar": "5. Relevant information to record",
+    "Informa??es relevantes": "Relevant information",
+    "6. Contactos ?teis": "6. Useful Contacts",
     "Contactos": "Contacts",
     "Sim": "Yes",
-    "Não": "No",
+    "N?o": "No",
 
     "Registos": "Records",
     "Nome do Utente": "Client name",
-    "Data / Âmbito / Tipo": "Date / Scope / Type",
-    "Descrição da Intervenção / Atividades Realizadas": "Intervention Description / Activities Performed",
-    "Observações / Recomendações": "Notes / Recommendations",
+    "Data / ?mbito / Tipo": "Date / Scope / Type",
+    "Descri??o da Interven??o / Atividades Realizadas": "Intervention Description / Activities Performed",
+    "Observa??es / Recomenda??es": "Notes / Recommendations",
     "Profissionais / Pessoas Envolvidas": "Professionals / People Involved",
-    "Âmbito": "Scope",
-    "Avaliação Inicial": "Initial Assessment",
-    "Acompanhamento de Técnico de Referência": "Reference Technician Follow-up",
-    "Intervenção em Crise": "Crisis Intervention",
+    "?mbito": "Scope",
+    "Avalia??o Inicial": "Initial Assessment",
+    "Acompanhamento de T?cnico de Refer?ncia": "Reference Technician Follow-up",
+    "Interven??o em Crise": "Crisis Intervention",
     "Psicologia": "Psychology",
-    "Serviço Social": "Social Work",
+    "Servi?o Social": "Social Work",
     "Terapia Ocupacional": "Occupational Therapy",
-    "Diálogo Aberto": "Open Dialogue",
+    "Di?logo Aberto": "Open Dialogue",
     "Tipo": "Type",
     "Presencial": "In person",
-    "Telefónico": "Phone",
+    "Telef?nico": "Phone",
 
     "Criar utilizador": "Create user",
     "Editar utilizador": "Edit user",
     "Eliminar utilizador": "Delete user",
-    "Crie acessos novos e edite permissões de utilizadores existentes.": "Create new access accounts and edit existing user permissions.",
-    "O acesso fica disponível de imediato.": "Access becomes available immediately.",
+    "Crie acessos novos e edite permiss?es de utilizadores existentes.": "Create new access accounts and edit existing user permissions.",
+    "O acesso fica dispon?vel de imediato.": "Access becomes available immediately.",
     "Escolha um utilizador na lista para editar.": "Choose a user from the list to edit.",
     "Password": "Password",
     "Nova password": "New password",
@@ -3574,20 +3862,20 @@ EN_STATIC_TRANSLATIONS = {
     "Utilizador criado com sucesso": "User created successfully",
     "Utilizador atualizado com sucesso": "User updated successfully",
     "Utilizador eliminado com sucesso": "User deleted successfully",
-    "Nome, email e password são obrigatórios.": "Name, email and password are required.",
-    "Nome e email são obrigatórios.": "Name and email are required.",
-    "Já existe um utilizador com esse email.": "A user with this email already exists.",
+    "Nome, email e password s?o obrigat?rios.": "Name, email and password are required.",
+    "Nome e email s?o obrigat?rios.": "Name and email are required.",
+    "J? existe um utilizador com esse email.": "A user with this email already exists.",
     "Escolha um utilizador para editar.": "Choose a user to edit.",
-    "Utilizador não encontrado.": "User not found.",
-    "Não pode remover ou desativar o último administrador ativo.": "You cannot remove or deactivate the last active administrator.",
-    "Não pode eliminar o último administrador ativo.": "You cannot delete the last active administrator.",
+    "Utilizador n?o encontrado.": "User not found.",
+    "N?o pode remover ou desativar o ?ltimo administrador ativo.": "You cannot remove or deactivate the last active administrator.",
+    "N?o pode eliminar o ?ltimo administrador ativo.": "You cannot delete the last active administrator.",
     "Quando": "When",
     "Quem": "Who",
-    "Ação": "Action",
-    "Área": "Area",
+    "A??o": "Action",
+    "?rea": "Area",
     "Detalhes": "Details",
-    "Veja quem fez alterações, o que fez e quando fez.": "See who changed what, and when.",
-    "Ainda não existem alterações registadas.": "There are no recorded changes yet.",
+    "Veja quem fez altera??es, o que fez e quando fez.": "See who changed what, and when.",
+    "Ainda n?o existem altera??es registadas.": "There are no recorded changes yet.",
     "Criou utente": "Created client",
     "Guardou utente": "Saved client",
     "Guardou aba": "Saved tab",
@@ -3598,8 +3886,8 @@ EN_STATIC_TRANSLATIONS = {
     "Alterou tema": "Changed theme",
     "Alterou idioma": "Changed language",
     "Entrou no sistema": "Signed in",
-    "O manual de utilização será acrescentado numa fase seguinte.": "The user manual will be added later.",
-    "Esta área já está preparada no menu, mas ainda não tem funcionalidades ativas.": "This area is already available in the menu, but does not have active features yet.",
+    "O manual de utiliza??o ser? acrescentado numa fase seguinte.": "The user manual will be added later.",
+    "Esta ?rea j? est? preparada no menu, mas ainda n?o tem funcionalidades ativas.": "This area is already available in the menu, but does not have active features yet.",
 }
 
 
@@ -3711,7 +3999,7 @@ def history_target_label(value, user):
         "Utente": "Client",
         "Utilizador": "User",
         "Conta": "Account",
-        "Sessão": "Session",
+        "Sess?o": "Session",
     }.get(value, value)
 
 
@@ -3743,15 +4031,20 @@ def log_action(user, acao, alvo_tipo, alvo_id=None, detalhes=""):
         )
 
 
-def render_page(title, content, notice="", current_user=None):
+def render_page(title, content, notice="", current_user=None, embedded=False):
     notice_html = f'<div class="notice">{esc(notice)}</div>' if notice else ""
-    header_html = render_header(current_user) if current_user else ""
-    body_class = "dark-theme" if current_user and current_user.get("tema") == "escuro" else ""
+    header_html = render_header(current_user) if current_user and not embedded else ""
+    body_classes = []
+    if current_user and current_user.get("tema") == "escuro":
+        body_classes.append("dark-theme")
+    if embedded:
+        body_classes.append("utility-body")
+    body_class = " ".join(body_classes)
     page_language = user_language(current_user)
     app_script = translate_static_fragment(APP_SCRIPT) if page_language == "en" else APP_SCRIPT
     default_theme = "dark" if current_user and current_user.get("tema") == "escuro" else "light"
-    manual_dialog_html = render_manual_choice_dialog(current_user) if current_user else ""
-    frame_dialog_html = render_common_frame_dialog(current_user) if current_user else ""
+    manual_dialog_html = render_manual_choice_dialog(current_user) if current_user and not embedded else ""
+    frame_dialog_html = render_common_frame_dialog(current_user) if current_user and not embedded else ""
     page = f"""<!doctype html>
 <html lang="{esc(page_language)}">
 <head>
@@ -3931,7 +4224,7 @@ def render_manual_choice_dialog(current_user):
 
 
 def render_common_frame_dialog(current_user):
-    title = "Opção" if user_language(current_user) == "pt" else "Option"
+    title = "Op??o" if user_language(current_user) == "pt" else "Option"
     close_label = esc(tr(current_user, "close"))
     return f"""
     <dialog class="frame-dialog" id="commonFrameDialog">
@@ -3991,7 +4284,7 @@ def render_login_page(error="", language="pt"):
         <form class="panel auth-card" method="post" action="/login">
             <img class="auth-logo" src="/logo.png" alt="MenteMovimento">
             <h1>Entrar</h1>
-            <p class="muted">Aceda à gestão de utentes.</p>
+            <p class="muted">Aceda ? gest?o de utentes.</p>
             {error_html}
             <div class="field">
                 <label for="email">Email</label>
@@ -4055,6 +4348,71 @@ TRASH_ICON = """
     <path d="M19 6l-1 14H6L5 6"></path>
     <path d="M10 11v5"></path>
     <path d="M14 11v5"></path>
+</svg>
+"""
+
+
+REFRESH_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M3 12a9 9 0 0 1 15.3-6.3"></path>
+    <path d="M18 3v5h-5"></path>
+    <path d="M21 12a9 9 0 0 1-15.3 6.3"></path>
+    <path d="M6 21v-5h5"></path>
+</svg>
+"""
+
+
+CLOSE_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M18 6 6 18"></path>
+    <path d="m6 6 12 12"></path>
+</svg>
+"""
+
+
+SAVE_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path>
+    <path d="M17 21v-8H7v8"></path>
+    <path d="M7 3v5h8"></path>
+</svg>
+"""
+
+
+USER_PLUS_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M19 8v6"></path>
+    <path d="M22 11h-6"></path>
+</svg>
+"""
+
+
+USER_CHECK_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="m16 11 2 2 4-4"></path>
+</svg>
+"""
+
+
+USER_X_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="m17 8 5 5"></path>
+    <path d="m22 8-5 5"></path>
+</svg>
+"""
+
+
+CODE_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="m16 18 6-6-6-6"></path>
+    <path d="m8 6-6 6 6 6"></path>
+    <path d="m14.5 4-5 16"></path>
 </svg>
 """
 
@@ -4199,35 +4557,35 @@ REFERENCIACAO_CHECKBOX_GROUPS = [
         "inline",
     ),
     (
-        "Outros Problemas de Saúde",
+        "Outros Problemas de Sa?de",
         [
-            ("problema_urinarios", "Urinários"),
-            ("problema_reumaticos", "Reumáticos"),
-            ("problema_cardiacos", "Cardíacos"),
-            ("problema_hipertensao", "Hipertensão"),
+            ("problema_urinarios", "Urin?rios"),
+            ("problema_reumaticos", "Reum?ticos"),
+            ("problema_cardiacos", "Card?acos"),
+            ("problema_hipertensao", "Hipertens?o"),
             ("problema_hiv_sida", "HIV/SIDA"),
-            ("problema_infetocontagiosas", "Doenças infetocontagiosas"),
-            ("problema_cancerigenas", "Doenças cancerígenas"),
+            ("problema_infetocontagiosas", "Doen?as infetocontagiosas"),
+            ("problema_cancerigenas", "Doen?as cancer?genas"),
             ("problema_sistema_nervoso", "Sistema nervoso"),
-            ("problema_visao", "Visão"),
+            ("problema_visao", "Vis?o"),
             ("problema_diabetes", "Diabetes"),
             ("problema_alergias", "Alergias"),
             ("problema_intestinais", "Intestinais"),
-            ("problema_respiratorios", "Respiratórios"),
+            ("problema_respiratorios", "Respirat?rios"),
             ("problema_auditivos", "Auditivos"),
             ("problema_outros", "Outros"),
         ],
         "grid",
     ),
     (
-        "5. Avaliação de Risco",
+        "5. Avalia??o de Risco",
         [
-            ("risco_sem_adesao", "Sem adesão Terapêutica"),
+            ("risco_sem_adesao", "Sem ades?o Terap?utica"),
             ("risco_agressivos", "Comportamentos Agressivos"),
             ("risco_sem_retaguarda", "Sem Retaguarda Familiar"),
-            ("risco_automutilatorios", "Comportamentos Automutilatórios"),
-            ("risco_ideacao_suicida", "Ideação Suicida"),
-            ("risco_substancias", "Consumo de Substâncias"),
+            ("risco_automutilatorios", "Comportamentos Automutilat?rios"),
+            ("risco_ideacao_suicida", "Idea??o Suicida"),
+            ("risco_substancias", "Consumo de Subst?ncias"),
             ("risco_outro", "Outro"),
         ],
         "grid",
@@ -4235,12 +4593,12 @@ REFERENCIACAO_CHECKBOX_GROUPS = [
     (
         "6. Motivo do Encaminhamento",
         [
-            ("motivo_ativacao", "Ativação Comportamental"),
-            ("motivo_competencias_sociais", "Treino de Competências Sociais"),
-            ("motivo_rotinas", "Estruturação de Rotinas"),
-            ("motivo_isolamento", "Redução do Isolamento Social"),
-            ("motivo_sintomatologia", "Gestão da Sintomatologia"),
-            ("motivo_avd", "Treino da Funcionalidade (Atividades de Vida Diária)"),
+            ("motivo_ativacao", "Ativa??o Comportamental"),
+            ("motivo_competencias_sociais", "Treino de Compet?ncias Sociais"),
+            ("motivo_rotinas", "Estrutura??o de Rotinas"),
+            ("motivo_isolamento", "Redu??o do Isolamento Social"),
+            ("motivo_sintomatologia", "Gest?o da Sintomatologia"),
+            ("motivo_avd", "Treino da Funcionalidade (Atividades de Vida Di?ria)"),
             ("motivo_laboral", "Treino da Funcionalidade (Laboral/Comunidade)"),
             ("motivo_relacional", "Treino da Funcionalidade (Relacional/Social)"),
             ("motivo_outro", "Outro"),
@@ -4253,12 +4611,12 @@ REFERENCIACAO_CHECKBOX_GROUPS = [
 MEDICATION_COLUMNS = [
     ("medicamento", "Medicamento"),
     ("jejum", "Jejum"),
-    ("pre_almoco", "P. Almoço"),
-    ("almoco", "Almoço"),
+    ("pre_almoco", "P. Almo?o"),
+    ("almoco", "Almo?o"),
     ("lanche", "Lanche"),
     ("jantar", "Jantar"),
     ("deitar", "Deitar"),
-    ("observacoes", "Observações"),
+    ("observacoes", "Observa??es"),
 ]
 
 MEDICATION_ROWS = 8
@@ -4335,42 +4693,42 @@ INSCRICAO_TEXT_FIELDS = [
 
 
 INSCRICAO_SERVICOS = [
-    ("ins_servico_atividade_fisica", "Atividade Física (Ginástica, Hidroginástica, etc.)"),
+    ("ins_servico_atividade_fisica", "Atividade F?sica (Gin?stica, Hidrogin?stica, etc.)"),
     ("ins_servico_pilates", "Pilates"),
     ("ins_servico_yoga", "Yoga"),
-    ("ins_servico_expressao_corporal", "Expressão Corporal (Teatro, dança, etc.)"),
-    ("ins_servico_expressao_artistica", "Expressão Artística (Desenho, Pintura, Fotografia, etc.)"),
-    ("ins_servico_expressao_musical", "Expressão Musical"),
-    ("ins_servico_conversacao", "Grupos de Conversação"),
-    ("ins_servico_avd", "Treino de Atividades de Vida Diária"),
+    ("ins_servico_expressao_corporal", "Express?o Corporal (Teatro, dan?a, etc.)"),
+    ("ins_servico_expressao_artistica", "Express?o Art?stica (Desenho, Pintura, Fotografia, etc.)"),
+    ("ins_servico_expressao_musical", "Express?o Musical"),
+    ("ins_servico_conversacao", "Grupos de Conversa??o"),
+    ("ins_servico_avd", "Treino de Atividades de Vida Di?ria"),
     ("ins_servico_relaxamento", "Relaxamento"),
-    ("ins_servico_competencias_sociais", "Treino de Competências Sociais"),
+    ("ins_servico_competencias_sociais", "Treino de Compet?ncias Sociais"),
     ("ins_servico_atelier_laboral", "Atelier Laboral"),
     ("ins_servico_psicoterapia_individual", "Psicoterapia Individual"),
-    ("ins_servico_estimulacao_cognitiva", "Estimulação Cognitiva"),
-    ("ins_servico_formacao_profissional", "Formação Profissional"),
+    ("ins_servico_estimulacao_cognitiva", "Estimula??o Cognitiva"),
+    ("ins_servico_formacao_profissional", "Forma??o Profissional"),
     ("ins_servico_outro", "Outro"),
 ]
 
 
 INSCRICAO_ADMISSIBILIDADE = [
-    ("ins_nao_aceitacao", "Não Aceitação"),
-    ("ins_grau_dependencia", "Grau de dependência elevado"),
-    ("ins_consumo_substancias", "Consumo de Substâncias"),
+    ("ins_nao_aceitacao", "N?o Aceita??o"),
+    ("ins_grau_dependencia", "Grau de depend?ncia elevado"),
+    ("ins_consumo_substancias", "Consumo de Subst?ncias"),
     ("ins_admissibilidade_outro", "Outro"),
 ]
 
 
 INSCRICAO_PONDERACAO_ROWS = [
-    ("idade", "Idade do utente (quanto menor for, maior pontuação)", "0,15"),
-    ("residencia", "Residência na Região de Entre Douro e Vouga", "0,05"),
-    ("familia", "Limitações na estrutura familiar", "0,15"),
-    ("chedv", "Encaminhado pelo Departamento de Saúde Mental do CHEDV", "0,05"),
-    ("estabilizacao", "Estabilização clínica ultrapassada da fase aguda da doença", "0,15"),
-    ("funcionalidade_basica", "Funcionalidade básica conservada ou adquirida em reabilitação anterior", "0,10"),
-    ("perturbacao_funcionalidade", "Perturbação da funcionalidade relacional, ocupacional e/ou profissional", "0,20"),
-    ("atividade_util", "Capacidade para eventual exercício de atividade socialmente útil", "0,10"),
-    ("tempo_doenca", "Tempo de evolução da doença (quanto menor for, maior pontuação)", "0,05"),
+    ("idade", "Idade do utente (quanto menor for, maior pontua??o)", "0,15"),
+    ("residencia", "Resid?ncia na Regi?o de Entre Douro e Vouga", "0,05"),
+    ("familia", "Limita??es na estrutura familiar", "0,15"),
+    ("chedv", "Encaminhado pelo Departamento de Sa?de Mental do CHEDV", "0,05"),
+    ("estabilizacao", "Estabiliza??o cl?nica ultrapassada da fase aguda da doen?a", "0,15"),
+    ("funcionalidade_basica", "Funcionalidade b?sica conservada ou adquirida em reabilita??o anterior", "0,10"),
+    ("perturbacao_funcionalidade", "Perturba??o da funcionalidade relacional, ocupacional e/ou profissional", "0,20"),
+    ("atividade_util", "Capacidade para eventual exerc?cio de atividade socialmente ?til", "0,10"),
+    ("tempo_doenca", "Tempo de evolu??o da doen?a (quanto menor for, maior pontua??o)", "0,05"),
 ]
 
 
@@ -4420,31 +4778,31 @@ DIAGNOSTICA_TEXT_FIELDS = [
 DIAGNOSTICA_ESTADO_CIVIL = [
     ("solteiro", "Solteiro(a)"),
     ("casado", "Casado(a)"),
-    ("uniao_facto", "União de Facto"),
+    ("uniao_facto", "Uni?o de Facto"),
     ("separado_divorciado", "Separado(a)/Divorciado(a)"),
-    ("viuvo", "Viúvo(a)"),
+    ("viuvo", "Vi?vo(a)"),
 ]
 
 
 DIAGNOSTICA_ESCOLARIDADE = [
-    ("diag_esc_nao_sabe", "Não sabe ler, nem escrever"),
+    ("diag_esc_nao_sabe", "N?o sabe ler, nem escrever"),
     ("diag_esc_sabe_ler", "Sabe ler e escrever"),
-    ("diag_esc_basico", "Ensino Básico (ensino primário)"),
-    ("diag_esc_preparatorio", "Ensino Preparatório"),
-    ("diag_esc_secundario", "Ensino Secundário"),
+    ("diag_esc_basico", "Ensino B?sico (ensino prim?rio)"),
+    ("diag_esc_preparatorio", "Ensino Preparat?rio"),
+    ("diag_esc_secundario", "Ensino Secund?rio"),
     ("diag_esc_bacharelato", "Bacharelato"),
-    ("diag_esc_tecnico", "Ensino Técnico Profissional"),
+    ("diag_esc_tecnico", "Ensino T?cnico Profissional"),
     ("diag_esc_licenciatura", "Licenciatura"),
-    ("diag_esc_pos_graduacao", "Pós-graduação"),
+    ("diag_esc_pos_graduacao", "P?s-gradua??o"),
     ("diag_esc_mestrado", "Mestrado"),
     ("diag_esc_doutoramento", "Doutoramento"),
 ]
 
 
 DIAGNOSTICA_LABORAL = [
-    ("diag_labor_conta_propria", "Trabalho por conta própria"),
+    ("diag_labor_conta_propria", "Trabalho por conta pr?pria"),
     ("diag_labor_conta_outrem", "Trabalho por conta de outrem"),
-    ("diag_labor_prestacao_servicos", "Prestação de Serviços"),
+    ("diag_labor_prestacao_servicos", "Presta??o de Servi?os"),
     ("diag_labor_desempregado", "Desempregado"),
     ("diag_labor_voluntariado", "Voluntariado"),
     ("diag_labor_reforma_invalidez", "Reforma/Invalidez"),
@@ -4454,69 +4812,69 @@ DIAGNOSTICA_LABORAL = [
 DIAGNOSTICA_RELACAO_JURIDICA = [
     ("termo_certo", "Contrato a Termo Certo"),
     ("termo_incerto", "Contrato a Termo Incerto (efetivo)"),
-    ("temporario", "Trabalho temporário/Substituição"),
-    ("estagio", "Estágio Profissional"),
+    ("temporario", "Trabalho tempor?rio/Substitui??o"),
+    ("estagio", "Est?gio Profissional"),
 ]
 
 
 DIAGNOSTICA_INSERCAO = [
-    ("diag_insercao_precario", "Emprego Precário"),
-    ("diag_insercao_baixa_qualificacao", "Baixa Qualificação Profissional"),
-    ("diag_insercao_desadequacao", "Desadequação entre expectativas/habilitações académicas"),
+    ("diag_insercao_precario", "Emprego Prec?rio"),
+    ("diag_insercao_baixa_qualificacao", "Baixa Qualifica??o Profissional"),
+    ("diag_insercao_desadequacao", "Desadequa??o entre expectativas/habilita??es acad?micas"),
     ("diag_insercao_falta_ofertas", "Falta de ofertas do mercado de trabalho"),
-    ("diag_insercao_salarios_atraso", "Salários em atraso"),
-    ("diag_insercao_horario", "Dificuldade de adaptação a um horário rígido"),
+    ("diag_insercao_salarios_atraso", "Sal?rios em atraso"),
+    ("diag_insercao_horario", "Dificuldade de adapta??o a um hor?rio r?gido"),
     ("diag_insercao_outros", "Outros"),
 ]
 
 
 DIAGNOSTICA_ECONOMICA = [
     ("diag_econ_trabalho", "Rendimento do Trabalho"),
-    ("diag_econ_psi", "Prestação Social para a Inclusão (PSI)"),
-    ("diag_econ_subsidio_doenca", "Subsídio de Doença"),
-    ("diag_econ_pensao_invalidez_relativa", "Pensão de Invalidez relativa"),
-    ("diag_econ_pensao_invalidez_absoluta", "Pensão de Invalidez absoluta"),
-    ("diag_econ_dependencia", "Complemento por Dependência"),
-    ("diag_econ_csi", "Complemento Solidário para Idosos"),
-    ("diag_econ_rsi", "Rendimento Social de Inserção (RSI)"),
+    ("diag_econ_psi", "Presta??o Social para a Inclus?o (PSI)"),
+    ("diag_econ_subsidio_doenca", "Subs?dio de Doen?a"),
+    ("diag_econ_pensao_invalidez_relativa", "Pens?o de Invalidez relativa"),
+    ("diag_econ_pensao_invalidez_absoluta", "Pens?o de Invalidez absoluta"),
+    ("diag_econ_dependencia", "Complemento por Depend?ncia"),
+    ("diag_econ_csi", "Complemento Solid?rio para Idosos"),
+    ("diag_econ_rsi", "Rendimento Social de Inser??o (RSI)"),
     ("diag_econ_reforma", "Reforma"),
     ("diag_econ_sem_rendimentos", "Sem Rendimentos"),
 ]
 
 
 DIAGNOSTICA_HABITACAO = [
-    ("diag_hab_adequada", "Adequada às necessidades"),
-    ("diag_hab_barreiras", "Barreiras arquitetónicas na casa"),
+    ("diag_hab_adequada", "Adequada ?s necessidades"),
+    ("diag_hab_barreiras", "Barreiras arquitet?nicas na casa"),
     ("diag_hab_humidade", "Humidade, falta de higiene"),
-    ("diag_hab_sem_acessibilidades", "Ausência de acessibilidades"),
-    ("diag_hab_inadequada", "Habitação inadequada"),
+    ("diag_hab_sem_acessibilidades", "Aus?ncia de acessibilidades"),
+    ("diag_hab_inadequada", "Habita??o inadequada"),
 ]
 
 
 DIAGNOSTICA_FAMILIAR = [
-    ("diag_familiar_sem_dependencia", "Vive com a família sem dependência física/psíquica"),
-    ("diag_familiar_conjuge", "Vive com o cônjuge de similar idade"),
-    ("diag_familiar_com_dependencia", "Vive com a família e/ou cônjuge com algum grau de dependência"),
-    ("diag_familiar_sozinho_com_familia", "Vive sozinho mas tem familiares próximos"),
-    ("diag_familiar_sozinho_sem_familia", "Vive sozinho sem familiares próximos"),
+    ("diag_familiar_sem_dependencia", "Vive com a fam?lia sem depend?ncia f?sica/ps?quica"),
+    ("diag_familiar_conjuge", "Vive com o c?njuge de similar idade"),
+    ("diag_familiar_com_dependencia", "Vive com a fam?lia e/ou c?njuge com algum grau de depend?ncia"),
+    ("diag_familiar_sozinho_com_familia", "Vive sozinho mas tem familiares pr?ximos"),
+    ("diag_familiar_sozinho_sem_familia", "Vive sozinho sem familiares pr?ximos"),
     ("diag_familiar_outro", "Outro"),
 ]
 
 
 DIAGNOSTICA_RELACOES_SOCIAIS = [
-    ("diag_relacoes_familia", "Relações sociais só com a família"),
-    ("diag_relacoes_familia_vizinhos", "Relações sociais só com a família e vizinhos"),
-    ("diag_relacoes_recebe_visitas", "Não sai do domicílio, mas recebe visitas"),
-    ("diag_relacoes_sem_visitas", "Não sai do domicílio nem recebe visitas"),
+    ("diag_relacoes_familia", "Rela??es sociais s? com a fam?lia"),
+    ("diag_relacoes_familia_vizinhos", "Rela??es sociais s? com a fam?lia e vizinhos"),
+    ("diag_relacoes_recebe_visitas", "N?o sai do domic?lio, mas recebe visitas"),
+    ("diag_relacoes_sem_visitas", "N?o sai do domic?lio nem recebe visitas"),
     ("diag_relacoes_outro", "Outro"),
 ]
 
 
 DIAGNOSTICA_REDE_SOCIAL = [
     ("diag_rede_apoio_familiar", "Com apoio familiar ou de vizinhos"),
-    ("diag_rede_voluntariado", "Voluntariado social, ajuda domiciliária"),
-    ("diag_rede_sem_apoio", "Não tem apoio"),
-    ("diag_rede_institucionalizacao", "Pendente de institucionalização"),
+    ("diag_rede_voluntariado", "Voluntariado social, ajuda domicili?ria"),
+    ("diag_rede_sem_apoio", "N?o tem apoio"),
+    ("diag_rede_institucionalizacao", "Pendente de institucionaliza??o"),
     ("diag_rede_cuidados_permanentes", "Tem cuidados permanentes"),
     ("diag_rede_outro", "Outro"),
 ]
@@ -4529,25 +4887,25 @@ DIAGNOSTICA_AGREGADO_COLUMNS = [
     ("data_nascimento", "Data Nasc."),
     ("parentesco", "Parent."),
     ("estado_civil", "Estado Civil"),
-    ("habilitacoes", "Habilitações Literárias"),
-    ("situacao_profissional", "Situação Profissional"),
-    ("observacoes", "Observações"),
+    ("habilitacoes", "Habilita??es Liter?rias"),
+    ("situacao_profissional", "Situa??o Profissional"),
+    ("observacoes", "Observa??es"),
 ]
 
 
 DIAGNOSTICA_AVDI_ROWS = [
-    ("gestao_dinheiro", "Gestão de Dinheiro"),
-    ("gestao_medicacao", "Gestão de Medicação"),
-    ("preparacao_refeicoes", "Preparação de Refeições"),
-    ("cuidados_domesticos", "Cuidados Domésticos (limpeza, roupa, etc.)"),
+    ("gestao_dinheiro", "Gest?o de Dinheiro"),
+    ("gestao_medicacao", "Gest?o de Medica??o"),
+    ("preparacao_refeicoes", "Prepara??o de Refei??es"),
+    ("cuidados_domesticos", "Cuidados Dom?sticos (limpeza, roupa, etc.)"),
     ("autocuidado", "Autocuidado"),
     ("compras", "Compras de Bens Essenciais"),
-    ("transportes", "Utilização de Transportes"),
-    ("agenda", "Gestão de Agenda/Compromissos"),
-    ("comunicacao", "Comunicação (telefone, e-mail, etc.)"),
-    ("documentacao", "Gestão de Documentação Pessoal"),
-    ("servicos", "Relacionamento com Serviços e Entidades"),
-    ("planeamento", "Planeamento e Organização do Dia"),
+    ("transportes", "Utiliza??o de Transportes"),
+    ("agenda", "Gest?o de Agenda/Compromissos"),
+    ("comunicacao", "Comunica??o (telefone, e-mail, etc.)"),
+    ("documentacao", "Gest?o de Documenta??o Pessoal"),
+    ("servicos", "Relacionamento com Servi?os e Entidades"),
+    ("planeamento", "Planeamento e Organiza??o do Dia"),
 ]
 
 
@@ -4561,20 +4919,20 @@ ATENDIMENTO_TEXT_FIELDS = [
 
 
 ATENDIMENTO_AMBITOS = [
-    ("avaliacao_inicial", "Avaliação Inicial"),
-    ("tecnico_referencia", "Acompanhamento de Técnico de Referência"),
-    ("crise", "Intervenção em Crise"),
+    ("avaliacao_inicial", "Avalia??o Inicial"),
+    ("tecnico_referencia", "Acompanhamento de T?cnico de Refer?ncia"),
+    ("crise", "Interven??o em Crise"),
     ("psicologia", "Psicologia"),
-    ("servico_social", "Serviço Social"),
+    ("servico_social", "Servi?o Social"),
     ("terapia_ocupacional", "Terapia Ocupacional"),
-    ("dialogo_aberto", "Diálogo Aberto"),
+    ("dialogo_aberto", "Di?logo Aberto"),
     ("outro", "Outro"),
 ]
 
 
 ATENDIMENTO_TIPOS = [
     ("presencial", "Presencial"),
-    ("telefonico", "Telefónico"),
+    ("telefonico", "Telef?nico"),
 ]
 
 
@@ -4955,7 +5313,7 @@ def update_utente_core_from_shared(utente_id, post_data):
     if supabase_available():
         current = get_utente(utente_id)
         if not current:
-            raise ValueError("Utente nÃ£o encontrado.")
+            raise ValueError("Utente n??o encontrado.")
         nome = first_post_entry(post_data, SHARED_FIELD_ALIASES["nome"], current["nome"]) or current["nome"]
         data_nascimento = first_post_entry(
             post_data,
@@ -4973,7 +5331,7 @@ def update_utente_core_from_shared(utente_id, post_data):
             current.get("numero_utente") or "",
         )
         if not nome:
-            raise ValueError("O nome completo Ã© obrigatÃ³rio.")
+            raise ValueError("O nome completo ?? obrigat??rio.")
         table_update(
             "utentes",
             {"id": f"eq.{utente_id}"},
@@ -4996,7 +5354,7 @@ def update_utente_core_from_shared(utente_id, post_data):
             (utente_id,),
         ).fetchone()
         if not current:
-            raise ValueError("Utente não encontrado.")
+            raise ValueError("Utente n?o encontrado.")
         nome = first_post_entry(post_data, SHARED_FIELD_ALIASES["nome"], current["nome"]) or current["nome"]
         data_nascimento = first_post_entry(
             post_data,
@@ -5014,7 +5372,7 @@ def update_utente_core_from_shared(utente_id, post_data):
             current["numero_utente"] or "",
         )
         if not nome:
-            raise ValueError("O nome completo é obrigatório.")
+            raise ValueError("O nome completo ? obrigat?rio.")
         conn.execute(
             """
             UPDATE utentes
@@ -5161,7 +5519,7 @@ def render_checkbox_groups(data, readonly=False):
                 text_key, text_label = other_fields[key]
                 extra += render_text_input(data, text_key, text_label, "span-4", readonly=readonly)
         if title == "Tratamento em":
-            extra += render_textarea_input(data, "resumo_situacao", "Resumo da Situação Clínica Atual", readonly=readonly)
+            extra += render_textarea_input(data, "resumo_situacao", "Resumo da Situa??o Cl?nica Atual", readonly=readonly)
         groups_html += f"""
         <section class="form-section readonly-section">
             <h4 class="section-title">{esc(title)}</h4>
@@ -5187,7 +5545,7 @@ def render_medication_table(data, readonly=False):
         rows += f"<tr>{cells}</tr>"
     return f"""
     <section class="form-section readonly-section">
-        <h4 class="section-title">Medicação</h4>
+        <h4 class="section-title">Medica??o</h4>
         <div class="medication-wrap">
             <table class="medication-table">
                 <thead><tr>{header}</tr></thead>
@@ -5203,51 +5561,51 @@ def render_referenciacao_form(data, readonly=False):
     return f"""
     <div class="referenciacao-form{readonly_class}">
         <section class="form-section">
-            <h4 class="section-title">Formulário de Referenciação - Unidade Sócio-Ocupacional</h4>
+            <h4 class="section-title">Formul?rio de Referencia??o - Unidade S?cio-Ocupacional</h4>
             <div class="form-grid">
-                {render_text_input(data, "data_rececao", "Data de Receção do documento", "span-4", "date", readonly)}
-                {render_text_input(data, "processo_numero", "Processo n.º", "span-4", readonly=readonly)}
+                {render_text_input(data, "data_rececao", "Data de Rece??o do documento", "span-4", "date", readonly)}
+                {render_text_input(data, "processo_numero", "Processo n.?", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1. Dados de Identificação e Contactos</h4>
+            <h4 class="section-title">1. Dados de Identifica??o e Contactos</h4>
             <div class="form-grid">
                 {render_text_input(data, "ref_nome", "Nome", "span-12", readonly=readonly)}
                 {render_text_input(data, "data_nascimento", "Data de Nascimento", "span-3", "date", readonly)}
                 {render_text_input(data, "idade", "Idade", "span-2", readonly=readonly)}
-                {render_text_input(data, "numero_processo", "N.º Processo", "span-3", readonly=readonly)}
+                {render_text_input(data, "numero_processo", "N.? Processo", "span-3", readonly=readonly)}
                 {render_text_input(data, "morada", "Morada", "span-8", readonly=readonly)}
-                {render_text_input(data, "codigo_postal", "Código Postal", "span-4", readonly=readonly)}
+                {render_text_input(data, "codigo_postal", "C?digo Postal", "span-4", readonly=readonly)}
                 {render_text_input(data, "freguesia", "Freguesia", "span-6", readonly=readonly)}
                 {render_text_input(data, "concelho", "Concelho", "span-6", readonly=readonly)}
-                {render_text_input(data, "contacto_telefonico", "Contacto Telefónico", "span-4", readonly=readonly)}
+                {render_text_input(data, "contacto_telefonico", "Contacto Telef?nico", "span-4", readonly=readonly)}
                 {render_text_input(data, "nif", "NIF", "span-4", readonly=readonly)}
-                {render_text_input(data, "familiar_referencia", "Familiar de Referência", "span-5", readonly=readonly)}
+                {render_text_input(data, "familiar_referencia", "Familiar de Refer?ncia", "span-5", readonly=readonly)}
                 {render_text_input(data, "parentesco", "Parentesco", "span-3", readonly=readonly)}
                 {render_text_input(data, "contacto_familiar", "Contacto", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">2. Identificação da Entidade e Técnico(a) de Encaminhamento</h4>
+            <h4 class="section-title">2. Identifica??o da Entidade e T?cnico(a) de Encaminhamento</h4>
             <div class="form-grid">
-                {render_text_input(data, "tecnico_nome", "Nome do(a) Técnico(a)", "span-6", readonly=readonly)}
-                {render_text_input(data, "relacao_candidato", "Relação com o(a) Candidato(a)", "span-6", readonly=readonly)}
+                {render_text_input(data, "tecnico_nome", "Nome do(a) T?cnico(a)", "span-6", readonly=readonly)}
+                {render_text_input(data, "relacao_candidato", "Rela??o com o(a) Candidato(a)", "span-6", readonly=readonly)}
                 {render_text_input(data, "entidade", "Entidade", "span-12", readonly=readonly)}
-                {render_text_input(data, "entidade_contacto", "Contacto Telefónico", "span-6", readonly=readonly)}
+                {render_text_input(data, "entidade_contacto", "Contacto Telef?nico", "span-6", readonly=readonly)}
                 {render_text_input(data, "entidade_email", "Email", "span-6", "email", readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">3. Informação Clínica</h4>
+            <h4 class="section-title">3. Informa??o Cl?nica</h4>
             <div class="form-grid">
-                {render_textarea_input(data, "diagnostico_atual", "Diagnóstico Atual", readonly=readonly)}
-                {render_textarea_input(data, "antecedentes_clinicos", "Antecedentes clínicos", readonly=readonly)}
-                {render_text_input(data, "data_primeiro_internamento", "Data 1.º Internamento", "span-4", "date", readonly)}
-                {render_text_input(data, "data_ultimo_internamento", "Data do Último Internamento", "span-4", "date", readonly)}
-                {render_text_input(data, "numero_internamentos", "N.º Internamentos até à data", "span-4", readonly=readonly)}
+                {render_textarea_input(data, "diagnostico_atual", "Diagn?stico Atual", readonly=readonly)}
+                {render_textarea_input(data, "antecedentes_clinicos", "Antecedentes cl?nicos", readonly=readonly)}
+                {render_text_input(data, "data_primeiro_internamento", "Data 1.? Internamento", "span-4", "date", readonly)}
+                {render_text_input(data, "data_ultimo_internamento", "Data do ?ltimo Internamento", "span-4", "date", readonly)}
+                {render_text_input(data, "numero_internamentos", "N.? Internamentos at? ? data", "span-4", readonly=readonly)}
             </div>
         </section>
 
@@ -5261,19 +5619,19 @@ def render_referenciacao_form(data, readonly=False):
 def render_emergencia_form(data, readonly=False):
     disabled = "disabled" if readonly else ""
     health_options = [
-        ("em_problema_urinarios", "Urinários"),
-        ("em_problema_reumaticos", "Reumáticos"),
-        ("em_problema_cardiacos", "Cardíacos"),
-        ("em_problema_hipertensao", "Hipertensão"),
+        ("em_problema_urinarios", "Urin?rios"),
+        ("em_problema_reumaticos", "Reum?ticos"),
+        ("em_problema_cardiacos", "Card?acos"),
+        ("em_problema_hipertensao", "Hipertens?o"),
         ("em_problema_hiv_sida", "HIV/SIDA"),
-        ("em_problema_infetocontagiosas", "Doenças infetocontagiosas"),
-        ("em_problema_cancerigenas", "Doenças cancerígenas"),
+        ("em_problema_infetocontagiosas", "Doen?as infetocontagiosas"),
+        ("em_problema_cancerigenas", "Doen?as cancer?genas"),
         ("em_problema_sistema_nervoso", "Sistema nervoso"),
-        ("em_problema_visao", "Visão"),
+        ("em_problema_visao", "Vis?o"),
         ("em_problema_diabetes", "Diabetes"),
         ("em_problema_alergias", "Alergias"),
         ("em_problema_intestinais", "Intestinais"),
-        ("em_problema_respiratorios", "Respiratórios"),
+        ("em_problema_respiratorios", "Respirat?rios"),
         ("em_problema_auditivos", "Auditivos"),
         ("em_problema_outros", "Outros"),
     ]
@@ -5289,14 +5647,14 @@ def render_emergencia_form(data, readonly=False):
     return f"""
     <div class="emergencia-form{' readonly-section' if readonly else ''}">
         <section class="form-section">
-            <h4 class="section-title">Informações em Caso de Emergência</h4>
+            <h4 class="section-title">Informa??es em Caso de Emerg?ncia</h4>
             <div class="form-grid">
-                {render_text_input(data, "em_processo_numero", "Processo n.º", "span-4", readonly=readonly)}
+                {render_text_input(data, "em_processo_numero", "Processo n.?", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">Identificação</h4>
+            <h4 class="section-title">Identifica??o</h4>
             <div class="form-grid">
                 {render_text_input(data, "em_nome", "Nome", "span-8", readonly=readonly)}
                 {render_text_input(data, "em_data_nascimento", "Data de Nascimento", "span-3", "date", readonly)}
@@ -5305,7 +5663,7 @@ def render_emergencia_form(data, readonly=False):
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">Em caso de urgência contactar</h4>
+            <h4 class="section-title">Em caso de urg?ncia contactar</h4>
             <div class="form-grid">
                 {render_text_input(data, "em_contacto_urgencia_nome", "Nome", "span-6", readonly=readonly)}
                 {render_text_input(data, "em_contacto_urgencia_contactos", "Contacto(s)", "span-6", readonly=readonly)}
@@ -5313,30 +5671,30 @@ def render_emergencia_form(data, readonly=False):
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">Dados de saúde</h4>
+            <h4 class="section-title">Dados de sa?de</h4>
             <div class="form-grid">
-                {render_text_input(data, "em_grupo_sanguineo", "Grupo sanguíneo", "span-3", readonly=readonly)}
-                {render_text_input(data, "em_numero_sns", "N.º SNS", "span-3", readonly=readonly)}
-                {render_text_input(data, "em_medico_familia", "Nome do médico de família", "span-6", readonly=readonly)}
+                {render_text_input(data, "em_grupo_sanguineo", "Grupo sangu?neo", "span-3", readonly=readonly)}
+                {render_text_input(data, "em_numero_sns", "N.? SNS", "span-3", readonly=readonly)}
+                {render_text_input(data, "em_medico_familia", "Nome do m?dico de fam?lia", "span-6", readonly=readonly)}
                 {render_text_input(data, "em_medico_familia_telefone", "Telefone", "span-3", readonly=readonly)}
-                {render_text_input(data, "em_centro_saude", "Centro de Saúde", "span-6", readonly=readonly)}
-                {render_text_input(data, "em_medico_psiquiatra", "Médico Psiquiatra", "span-6", readonly=readonly)}
+                {render_text_input(data, "em_centro_saude", "Centro de Sa?de", "span-6", readonly=readonly)}
+                {render_text_input(data, "em_medico_psiquiatra", "M?dico Psiquiatra", "span-6", readonly=readonly)}
                 {render_text_input(data, "em_entidade", "Entidade", "span-6", readonly=readonly)}
                 {render_text_input(data, "em_entidade_contacto", "Contacto", "span-6", readonly=readonly)}
-                {render_textarea_input(data, "em_diagnostico_atual", "Diagnóstico Atual", readonly=readonly)}
+                {render_textarea_input(data, "em_diagnostico_atual", "Diagn?stico Atual", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">Alergias e observações</h4>
+            <h4 class="section-title">Alergias e observa??es</h4>
             <div class="form-grid">
                 {render_textarea_input(data, "em_alergias", "Alergias", "span-6", readonly=readonly)}
-                {render_textarea_input(data, "em_observacoes", "Observações", "span-6", readonly=readonly)}
+                {render_textarea_input(data, "em_observacoes", "Observa??es", "span-6", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">Problemas de Saúde</h4>
+            <h4 class="section-title">Problemas de Sa?de</h4>
             <div class="checkbox-grid">
                 {health_html}
             </div>
@@ -5346,9 +5704,9 @@ def render_emergencia_form(data, readonly=False):
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">Informação Geral Relevante</h4>
+            <h4 class="section-title">Informa??o Geral Relevante</h4>
             <div class="form-grid">
-                {render_textarea_input(data, "em_informacao_geral", "Informação", readonly=readonly)}
+                {render_textarea_input(data, "em_informacao_geral", "Informa??o", readonly=readonly)}
             </div>
         </section>
     </div>
@@ -5374,7 +5732,7 @@ def render_inscricao_checkbox_options(data, options, readonly=False):
 def render_sheet_radio(data, key, value, readonly=False):
     disabled = "disabled" if readonly else ""
     checked = "checked" if data.get(key) == value else ""
-    label = "Sim" if value == "sim" else "Não"
+    label = "Sim" if value == "sim" else "N?o"
     return f"""
     <label class="sheet-radio" aria-label="{label}">
         <input type="radio" name="{key}" value="{value}" {checked} {disabled}>
@@ -5397,21 +5755,21 @@ def render_inscricao_ponderacao_table(data, readonly=False):
         </tr>
         """
     return f"""
-    <div class="sheet-subtitle">4.4 Tabela de ponderação</div>
+    <div class="sheet-subtitle">4.4 Tabela de pondera??o</div>
     <div class="medication-wrap">
         <table class="sheet-table scoring-table">
             <thead>
                 <tr>
-                    <th>Critério</th>
-                    <th>Ponderação</th>
-                    <th>Pontuação 0-10</th>
+                    <th>Crit?rio</th>
+                    <th>Pondera??o</th>
+                    <th>Pontua??o 0-10</th>
                     <th>Valor *</th>
                 </tr>
             </thead>
             <tbody>
                 {rows}
                 <tr>
-                    <td><strong>* Ponderação x Pontuação</strong></td>
+                    <td><strong>* Pondera??o x Pontua??o</strong></td>
                     <td></td>
                     <td><strong>Total</strong></td>
                     <td><input name="ins_ponder_total" value="{esc(data.get('ins_ponder_total'))}" {disabled}></td>
@@ -5426,17 +5784,17 @@ def render_inscricao_ponto4(data, readonly=False):
     disabled = "disabled" if readonly else ""
     return f"""
     <section class="form-section readonly-section">
-        <h4 class="section-title">4. Admissibilidade e Ponderação</h4>
+        <h4 class="section-title">4. Admissibilidade e Pondera??o</h4>
 
-        <div class="sheet-subtitle">4.1 Apresenta algum critério de Não Admissibilidade?</div>
+        <div class="sheet-subtitle">4.1 Apresenta algum crit?rio de N?o Admissibilidade?</div>
         <div class="medication-wrap">
             <table class="sheet-table">
                 <thead>
                     <tr>
-                        <th class="question-cell">Critérios de Não Admissibilidade</th>
+                        <th class="question-cell">Crit?rios de N?o Admissibilidade</th>
                         <th>Sim</th>
-                        <th>Não</th>
-                        <th class="observations-cell">Observações</th>
+                        <th>N?o</th>
+                        <th class="observations-cell">Observa??es</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -5466,8 +5824,8 @@ def render_inscricao_ponto4(data, readonly=False):
                 <thead>
                     <tr>
                         <th>Sim</th>
-                        <th>Não</th>
-                        <th class="observations-cell">Observações</th>
+                        <th>N?o</th>
+                        <th class="observations-cell">Observa??es</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -5488,8 +5846,8 @@ def render_inscricao_ponto4(data, readonly=False):
                 <thead>
                     <tr>
                         <th>Sim</th>
-                        <th>Não</th>
-                        <th class="observations-cell">Se não, porquê?</th>
+                        <th>N?o</th>
+                        <th class="observations-cell">Se n?o, porqu??</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -5514,45 +5872,45 @@ def render_inscricao_form(data, readonly=False):
     return f"""
     <div class="inscricao-form{readonly_class}">
         <section class="form-section">
-            <h4 class="section-title">Ficha de Inscrição e Avaliação Inicial de Requisitos</h4>
+            <h4 class="section-title">Ficha de Inscri??o e Avalia??o Inicial de Requisitos</h4>
             <div class="form-grid">
                 {render_text_input(data, "ins_data", "Data", "span-4", "date", readonly)}
-                {render_text_input(data, "ins_processo_numero", "Processo n.º", "span-4", readonly=readonly)}
+                {render_text_input(data, "ins_processo_numero", "Processo n.?", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1. Dados de Identificação do Utente</h4>
+            <h4 class="section-title">1. Dados de Identifica??o do Utente</h4>
             <div class="form-grid">
                 {render_text_input(data, "ins_nome", "Nome", "span-12", readonly=readonly)}
                 {render_text_input(data, "ins_nome_tratado", "Nome a ser tratado", "span-6", readonly=readonly)}
                 {render_text_input(data, "ins_contactos", "Contacto(s)", "span-6", readonly=readonly)}
                 {render_text_input(data, "ins_morada", "Morada", "span-8", readonly=readonly)}
-                {render_text_input(data, "ins_codigo_postal", "Código Postal", "span-4", readonly=readonly)}
+                {render_text_input(data, "ins_codigo_postal", "C?digo Postal", "span-4", readonly=readonly)}
                 {render_text_input(data, "ins_data_nascimento", "Data de Nascimento", "span-3", "date", readonly)}
                 {render_text_input(data, "ins_naturalidade", "Naturalidade", "span-5", readonly=readonly)}
-                {render_text_input(data, "ins_cartao_cidadao", "Cartão de Cidadão", "span-4", readonly=readonly)}
+                {render_text_input(data, "ins_cartao_cidadao", "Cart?o de Cidad?o", "span-4", readonly=readonly)}
                 {render_text_input(data, "ins_nif", "NIF", "span-4", readonly=readonly)}
-                {render_text_input(data, "ins_numero_sns", "N.º SNS", "span-4", readonly=readonly)}
+                {render_text_input(data, "ins_numero_sns", "N.? SNS", "span-4", readonly=readonly)}
                 {render_text_input(data, "ins_niss", "NISS", "span-4", readonly=readonly)}
-                {render_text_input(data, "ins_pessoa_referencia", "Nome e contacto de pessoa de referência", "span-12", readonly=readonly)}
+                {render_text_input(data, "ins_pessoa_referencia", "Nome e contacto de pessoa de refer?ncia", "span-12", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">2. Formulação e Identificação do Pedido</h4>
+            <h4 class="section-title">2. Formula??o e Identifica??o do Pedido</h4>
             <div class="form-grid">
-                {render_textarea_input(data, "ins_pedido_descricao", "Descrição do motivo e expectativas acerca da Unidade Sócio Ocupacional", readonly=readonly)}
+                {render_textarea_input(data, "ins_pedido_descricao", "Descri??o do motivo e expectativas acerca da Unidade S?cio Ocupacional", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">3. Sinalização Global dos Serviços de Preferência</h4>
+            <h4 class="section-title">3. Sinaliza??o Global dos Servi?os de Prefer?ncia</h4>
             <div class="checkbox-grid">
                 {render_inscricao_checkbox_options(data, INSCRICAO_SERVICOS, readonly)}
             </div>
             <div class="form-grid">
-                {render_text_input(data, "ins_servico_outro_texto", "Outro serviço", "span-6", readonly=readonly)}
+                {render_text_input(data, "ins_servico_outro_texto", "Outro servi?o", "span-6", readonly=readonly)}
             </div>
         </section>
 
@@ -5636,7 +5994,7 @@ def render_diagnostica_avdi_table(data, readonly=False):
         """
     return f"""
     <section class="form-section readonly-section">
-        <h4 class="section-title">4.6 Atividades de Vida Diária Instrumentais - Perspetiva do Utente</h4>
+        <h4 class="section-title">4.6 Atividades de Vida Di?ria Instrumentais - Perspetiva do Utente</h4>
         <div class="medication-wrap">
             <table class="sheet-table">
                 <thead>
@@ -5645,7 +6003,7 @@ def render_diagnostica_avdi_table(data, readonly=False):
                         <th>Independente</th>
                         <th>Com Ajuda Parcial</th>
                         <th>Dependente</th>
-                        <th>Observações/Relevância</th>
+                        <th>Observa??es/Relev?ncia</th>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>
@@ -5665,11 +6023,11 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
             <button class="button secondary" type="button" data-diagram-add="unknown">Outro</button>
             <select data-diagram-relation>
                 <option value="marriage">Casamento</option>
-                <option value="union">União/Coabitação</option>
-                <option value="parent_child">Filiação</option>
-                <option value="separated">Separação</option>
-                <option value="divorced">Divórcio</option>
-                <option value="close">Relação próxima</option>
+                <option value="union">Uni?o/Coabita??o</option>
+                <option value="parent_child">Filia??o</option>
+                <option value="separated">Separa??o</option>
+                <option value="divorced">Div?rcio</option>
+                <option value="close">Rela??o pr?xima</option>
                 <option value="conflict">Conflito</option>
                 <option value="cutoff">Corte/distanciamento</option>
             </select>
@@ -5680,29 +6038,29 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><polygon points="29,3 43,17 29,31 15,17" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Outro</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="17" y="5" width="24" height="24" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="15" y1="3" x2="43" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="43" y1="3" x2="15" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Falecido</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Casamento</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="7 5"/></svg></span><span class="legend-label">União</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><path d="M10 8 H48 M29 8 V27 M20 27 H38" fill="none" stroke="#f3fbf8" stroke-width="2.6"/></svg></span><span class="legend-label">Filiação</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/><line x1="28" y1="6" x2="34" y2="28" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Separação</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/><line x1="24" y1="6" x2="30" y2="28" stroke="#f3fbf8" stroke-width="3"/><line x1="34" y1="6" x2="40" y2="28" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Divórcio</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="7 5"/></svg></span><span class="legend-label">Uni?o</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><path d="M10 8 H48 M29 8 V27 M20 27 H38" fill="none" stroke="#f3fbf8" stroke-width="2.6"/></svg></span><span class="legend-label">Filia??o</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/><line x1="28" y1="6" x2="34" y2="28" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Separa??o</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/><line x1="24" y1="6" x2="30" y2="28" stroke="#f3fbf8" stroke-width="3"/><line x1="34" y1="6" x2="40" y2="28" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Div?rcio</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><path d="M6 17 L12 9 L18 25 L24 9 L30 25 L36 9 L42 25 L52 17" fill="none" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Conflito</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="5"/></svg></span><span class="legend-label">Próxima</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="5"/></svg></span><span class="legend-label">Pr?xima</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="3 6"/></svg></span><span class="legend-label">Corte</span></li>
         """
     else:
         toolbar = """
-            <button class="button secondary" type="button" data-diagram-add="central">Pessoa/Família</button>
+            <button class="button secondary" type="button" data-diagram-add="central">Pessoa/Fam?lia</button>
             <button class="button secondary" type="button" data-diagram-add="system">Sistema/Rede</button>
             <select data-diagram-relation>
-                <option value="strong">Ligação forte</option>
-                <option value="weak">Ligação fraca/ténue</option>
-                <option value="stress">Ligação stressante</option>
+                <option value="strong">Liga??o forte</option>
+                <option value="weak">Liga??o fraca/t?nue</option>
+                <option value="stress">Liga??o stressante</option>
                 <option value="resource_to">Fluxo para o utente</option>
                 <option value="resource_from">Fluxo do utente</option>
                 <option value="resource_both">Fluxo bidirecional</option>
             </select>
         """
         legend = """
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="15" fill="#dff8ee" stroke="#12b886" stroke-width="3"/></svg></span><span class="legend-label">Utente/família</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="15" fill="#dff8ee" stroke="#12b886" stroke-width="3"/></svg></span><span class="legend-label">Utente/fam?lia</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="8" y="7" width="42" height="20" rx="5" fill="#eef6ff" stroke="#8bb7ff" stroke-width="2.4"/></svg></span><span class="legend-label">Rede externa</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="5"/></svg></span><span class="legend-label">Forte</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="7 5"/></svg></span><span class="legend-label">Fraca</span></li>
@@ -5719,7 +6077,7 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
             {"<button class='button secondary' type='button' data-diagram-deceased>Falecido</button>" if kind == "genograma" else ""}
             <button class="button danger" type="button" data-diagram-delete>Apagar selecionado</button>
         </div>
-        <p class="diagram-help">Clique uma vez numa figura para selecionar. Para ligar duas figuras, selecione a primeira e depois a segunda, e carregue em “Ligar selecionados”. Arraste uma figura para a mover.</p>
+        <p class="diagram-help">Clique uma vez numa figura para selecionar. Para ligar duas figuras, selecione a primeira e depois a segunda, e carregue em ?Ligar selecionados?. Arraste uma figura para a mover.</p>
     """
     return f"""
     <div class="diagram-editor" data-diagram-editor data-diagram-kind="{kind}" data-readonly="{readonly_attr}">
@@ -5743,25 +6101,25 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
 
 def render_diagnostica_form(data, readonly=False):
     readonly_class = " readonly-section" if readonly else ""
-    sim_nao = [("sim", "Sim"), ("nao", "Não")]
+    sim_nao = [("sim", "Sim"), ("nao", "N?o")]
     return f"""
     <div class="diagnostica-form{readonly_class}">
         <section class="form-section">
-            <h4 class="section-title">Avaliação Diagnóstica Multidisciplinar</h4>
+            <h4 class="section-title">Avalia??o Diagn?stica Multidisciplinar</h4>
             <div class="form-grid">
-                {render_text_input(data, "diag_data_avaliacao", "Data da Avaliação", "span-4", "date", readonly)}
-                {render_text_input(data, "diag_processo_numero", "Processo n.º", "span-4", readonly=readonly)}
-                {render_text_input(data, "diag_tecnico_referencia", "Técnico de referência", "span-4", readonly=readonly)}
+                {render_text_input(data, "diag_data_avaliacao", "Data da Avalia??o", "span-4", "date", readonly)}
+                {render_text_input(data, "diag_processo_numero", "Processo n.?", "span-4", readonly=readonly)}
+                {render_text_input(data, "diag_tecnico_referencia", "T?cnico de refer?ncia", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1. Dados Sócio-Demográficos</h4>
+            <h4 class="section-title">1. Dados S?cio-Demogr?ficos</h4>
             <div class="form-grid">
                 {render_text_input(data, "diag_nome", "1.1 Nome", "span-12", readonly=readonly)}
                 {render_choice_group(data, "diag_estado_civil", "1.2 Estado Civil", DIAGNOSTICA_ESTADO_CIVIL, "span-12", readonly)}
                 {render_text_input(data, "diag_nacionalidade", "Nacionalidade", "span-6", readonly=readonly)}
-                {render_text_input(data, "diag_linguas", "Língua(s) falada(s)", "span-6", readonly=readonly)}
+                {render_text_input(data, "diag_linguas", "L?ngua(s) falada(s)", "span-6", readonly=readonly)}
             </div>
         </section>
 
@@ -5772,24 +6130,24 @@ def render_diagnostica_form(data, readonly=False):
             </div>
             <div class="form-grid">
                 {render_text_input(data, "diag_idade_escolaridade", "Idade com que completou a escolaridade", "span-4", readonly=readonly)}
-                {render_textarea_input(data, "diag_escolaridade_observacoes", "Observações/Eventos significativos no percurso escolar", "span-8", readonly=readonly)}
+                {render_textarea_input(data, "diag_escolaridade_observacoes", "Observa??es/Eventos significativos no percurso escolar", "span-8", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1.5 Situação Laboral</h4>
+            <h4 class="section-title">1.5 Situa??o Laboral</h4>
             <div class="checkbox-grid">
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_LABORAL, readonly)}
             </div>
             <div class="form-grid">
-                {render_textarea_input(data, "diag_labor_observacoes", "Observações", "span-12", readonly=readonly)}
-                {render_choice_group(data, "diag_relacao_juridica", "Se empregado, a relação jurídica de emprego é", DIAGNOSTICA_RELACAO_JURIDICA, "span-8", readonly)}
-                {render_text_input(data, "diag_tempo_trabalho", "Há quanto tempo trabalha", "span-4", readonly=readonly)}
+                {render_textarea_input(data, "diag_labor_observacoes", "Observa??es", "span-12", readonly=readonly)}
+                {render_choice_group(data, "diag_relacao_juridica", "Se empregado, a rela??o jur?dica de emprego ?", DIAGNOSTICA_RELACAO_JURIDICA, "span-8", readonly)}
+                {render_text_input(data, "diag_tempo_trabalho", "H? quanto tempo trabalha", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1.6 Problemas de Inserção Profissional</h4>
+            <h4 class="section-title">1.6 Problemas de Inser??o Profissional</h4>
             <div class="checkbox-grid">
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_INSERCAO, readonly)}
             </div>
@@ -5799,27 +6157,27 @@ def render_diagnostica_form(data, readonly=False):
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1.7 Situação Económica</h4>
+            <h4 class="section-title">1.7 Situa??o Econ?mica</h4>
             <div class="checkbox-grid">
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_ECONOMICA, readonly)}
             </div>
             <div class="form-grid">
-                {render_textarea_input(data, "diag_economica_observacoes", "Observações", readonly=readonly)}
+                {render_textarea_input(data, "diag_economica_observacoes", "Observa??es", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">1.8 Habitação</h4>
+            <h4 class="section-title">1.8 Habita??o</h4>
             <div class="checkbox-grid">
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_HABITACAO, readonly)}
             </div>
             <div class="form-grid">
-                {render_textarea_input(data, "diag_habitacao_observacoes", "Observações", readonly=readonly)}
+                {render_textarea_input(data, "diag_habitacao_observacoes", "Observa??es", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">2. Situação Sócio-Familiar</h4>
+            <h4 class="section-title">2. Situa??o S?cio-Familiar</h4>
             <div class="checkbox-grid">
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_FAMILIAR, readonly)}
             </div>
@@ -5836,7 +6194,7 @@ def render_diagnostica_form(data, readonly=False):
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">2.4 Relações Sociais</h4>
+            <h4 class="section-title">2.4 Rela??es Sociais</h4>
             <div class="checkbox-grid">
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_RELACOES_SOCIAIS, readonly)}
             </div>
@@ -5861,45 +6219,45 @@ def render_diagnostica_form(data, readonly=False):
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">3. Saúde</h4>
+            <h4 class="section-title">3. Sa?de</h4>
             <div class="form-grid">
-                {render_textarea_input(data, "diag_historia_doenca", "História e doença atual", readonly=readonly)}
-                {render_textarea_input(data, "diag_antecedentes_pessoais", "Antecedentes Psiquiátricos Pessoais", readonly=readonly)}
-                {render_textarea_input(data, "diag_antecedentes_familiares", "Antecedentes Psiquiátricos Familiares", readonly=readonly)}
+                {render_textarea_input(data, "diag_historia_doenca", "Hist?ria e doen?a atual", readonly=readonly)}
+                {render_textarea_input(data, "diag_antecedentes_pessoais", "Antecedentes Psiqui?tricos Pessoais", readonly=readonly)}
+                {render_textarea_input(data, "diag_antecedentes_familiares", "Antecedentes Psiqui?tricos Familiares", readonly=readonly)}
                 {render_textarea_input(data, "diag_internamentos", "Internamentos", readonly=readonly)}
-                {render_textarea_input(data, "diag_outros_problemas_saude", "Outros problemas de saúde e antecedentes médicos a referir", readonly=readonly)}
-                {render_choice_group(data, "diag_antipsicotico_injetavel", "Antipsicótico injetável", sim_nao, "span-4", readonly)}
-                {render_text_input(data, "diag_antipsicotico_local", "Local de administração", "span-4", readonly=readonly)}
-                {render_text_input(data, "diag_antipsicotico_responsavel", "Responsável", "span-4", readonly=readonly)}
+                {render_textarea_input(data, "diag_outros_problemas_saude", "Outros problemas de sa?de e antecedentes m?dicos a referir", readonly=readonly)}
+                {render_choice_group(data, "diag_antipsicotico_injetavel", "Antipsic?tico injet?vel", sim_nao, "span-4", readonly)}
+                {render_text_input(data, "diag_antipsicotico_local", "Local de administra??o", "span-4", readonly=readonly)}
+                {render_text_input(data, "diag_antipsicotico_responsavel", "Respons?vel", "span-4", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">4. Outros Aspetos Relevantes na Reabilitação</h4>
+            <h4 class="section-title">4. Outros Aspetos Relevantes na Reabilita??o</h4>
             <div class="form-grid">
-                {render_textarea_input(data, "diag_rotina", "4.1 Breve descrição da Rotina", readonly=readonly)}
-                {render_text_input(data, "diag_sono_deitar", "Horário de deitar", "span-3", readonly=readonly)}
-                {render_text_input(data, "diag_sono_levantar", "Horário de levantar", "span-3", readonly=readonly)}
-                {render_text_input(data, "diag_sono_horas", "Número de horas que costuma dormir", "span-3", readonly=readonly)}
+                {render_textarea_input(data, "diag_rotina", "4.1 Breve descri??o da Rotina", readonly=readonly)}
+                {render_text_input(data, "diag_sono_deitar", "Hor?rio de deitar", "span-3", readonly=readonly)}
+                {render_text_input(data, "diag_sono_levantar", "Hor?rio de levantar", "span-3", readonly=readonly)}
+                {render_text_input(data, "diag_sono_horas", "N?mero de horas que costuma dormir", "span-3", readonly=readonly)}
                 {render_choice_group(data, "diag_sono_acorda_antes", "Acorda antes da hora desejada", sim_nao, "span-3", readonly)}
-                {render_textarea_input(data, "diag_sono_observacoes", "Observações sobre sono/repouso", readonly=readonly)}
-                {render_textarea_input(data, "diag_condicao_fisica", "4.3 Condição Física", readonly=readonly)}
+                {render_textarea_input(data, "diag_sono_observacoes", "Observa??es sobre sono/repouso", readonly=readonly)}
+                {render_textarea_input(data, "diag_condicao_fisica", "4.3 Condi??o F?sica", readonly=readonly)}
                 {render_textarea_input(data, "diag_comportamentos_risco", "4.4 Comportamentos de risco/Consumos", readonly=readonly)}
-                {render_textarea_input(data, "diag_adesao_terapeutica", "4.5 Adesão terapêutica", readonly=readonly)}
+                {render_textarea_input(data, "diag_adesao_terapeutica", "4.5 Ades?o terap?utica", readonly=readonly)}
             </div>
         </section>
 
         {render_diagnostica_avdi_table(data, readonly)}
 
         <section class="form-section">
-            <h4 class="section-title">5. Informações relevantes a registar</h4>
+            <h4 class="section-title">5. Informa??es relevantes a registar</h4>
             <div class="form-grid">
-                {render_textarea_input(data, "diag_informacoes_relevantes", "Informações relevantes", readonly=readonly)}
+                {render_textarea_input(data, "diag_informacoes_relevantes", "Informa??es relevantes", readonly=readonly)}
             </div>
         </section>
 
         <section class="form-section">
-            <h4 class="section-title">6. Contactos Úteis</h4>
+            <h4 class="section-title">6. Contactos ?teis</h4>
             <div class="form-grid">
                 {render_textarea_input(data, "diag_contactos_uteis", "Contactos", readonly=readonly)}
             </div>
@@ -5955,7 +6313,7 @@ def render_atendimentos_form(data, readonly=False):
                         <input id="atend_{row}_data" name="atend_{row}_data" type="date" value="{esc(data.get(f'atend_{row}_data'))}" {disabled}>
                     </div>
                     <div>
-                        <label>Âmbito</label>
+                        <label>?mbito</label>
                         <div class="sheet-checks">
                             {render_atendimento_ambitos(data, row, readonly)}
                         </div>
@@ -5989,7 +6347,7 @@ def render_atendimentos_form(data, readonly=False):
             <h4 class="section-title">Registo de Atendimentos e Acompanhamentos</h4>
             <div class="form-grid">
                 {render_text_input(data, "atend_nome", "Nome do Utente", "span-8", readonly=readonly)}
-                {render_text_input(data, "atend_processo_numero", "Processo n.º", "span-4", readonly=readonly)}
+                {render_text_input(data, "atend_processo_numero", "Processo n.?", "span-4", readonly=readonly)}
             </div>
         </section>
 
@@ -5999,9 +6357,9 @@ def render_atendimentos_form(data, readonly=False):
                 <table class="sheet-table attendance-table">
                     <thead>
                         <tr>
-                            <th>Data / Âmbito / Tipo</th>
-                            <th>Descrição da Intervenção / Atividades Realizadas</th>
-                            <th>Observações / Recomendações</th>
+                            <th>Data / ?mbito / Tipo</th>
+                            <th>Descri??o da Interven??o / Atividades Realizadas</th>
+                            <th>Observa??es / Recomenda??es</th>
                             <th>Profissionais / Pessoas Envolvidas</th>
                         </tr>
                     </thead>
@@ -6046,8 +6404,8 @@ def render_protecao_dados_form(utente_id, readonly=False):
                 <div>
                     <div class="attachment-name">{esc(row["original_name"])}</div>
                     <div class="attachment-meta">
-                        {esc(format_file_size(row["size_bytes"]))} · anexado em {esc(row["created_at"])}
-                        {f" · por {esc(row['uploaded_by_name'])}" if row["uploaded_by_name"] else ""}
+                        {esc(format_file_size(row["size_bytes"]))} ? anexado em {esc(row["created_at"])}
+                        {f" ? por {esc(row['uploaded_by_name'])}" if row["uploaded_by_name"] else ""}
                     </div>
                 </div>
                 <div class="attachment-actions">
@@ -6057,7 +6415,7 @@ def render_protecao_dados_form(utente_id, readonly=False):
             </div>
             """
     else:
-        items = '<div class="empty">Ainda não existem PDFs anexados neste separador.</div>'
+        items = '<div class="empty">Ainda n?o existem PDFs anexados neste separador.</div>'
     return f"""
     <div class="protecao-form">
         {upload_html}
@@ -6104,7 +6462,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     else:
         tab_body = f"""
                 <div class="field full">
-                    <label for="conteudo">Conteúdo</label>
+                    <label for="conteudo">Conte?do</label>
                     <textarea class="large-textarea" id="conteudo" name="conteudo">{esc(tab_content)}</textarea>
                 </div>
         """
@@ -6126,7 +6484,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         <input type="hidden" name="tab" value="{esc(active_tab)}">
     </form>
     <section class="panel tabs-panel">
-        <nav class="tab-list" aria-label="Áreas do utente">
+        <nav class="tab-list" aria-label="?reas do utente">
             {tab_links}
         </nav>
         <div class="tab-content">
@@ -6151,7 +6509,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         <input type="hidden" name="id" value="{esc(utente.get('id'))}">
         <input type="hidden" name="tab" value="{esc(active_tab)}">
         <section class="panel tabs-panel">
-            <nav class="tab-list" aria-label="Áreas do utente">
+            <nav class="tab-list" aria-label="?reas do utente">
                 {tab_links}
             </nav>
             <div class="tab-content">
@@ -6197,8 +6555,8 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
     else:
         tab_body = f"""
             <div class="field full">
-                <label>Conteúdo</label>
-                <div class="readonly-field readonly-text">{esc(tab_content) or "Sem informação registada."}</div>
+                <label>Conte?do</label>
+                <div class="readonly-field readonly-text">{esc(tab_content) or "Sem informa??o registada."}</div>
             </div>
         """
     content = f"""
@@ -6209,7 +6567,7 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
         </div>
     </div>
     <section class="panel tabs-panel">
-        <nav class="tab-list" aria-label="Áreas do utente">
+        <nav class="tab-list" aria-label="?reas do utente">
             {tab_links}
         </nav>
         <div class="tab-content">
@@ -6450,9 +6808,9 @@ def save_pdf_attachment(utente_id, original_name, content, user):
         raise ValueError("O PDF excede o limite de 30 MB.")
     safe_name = safe_filename(original_name)
     if not safe_name.lower().endswith(".pdf"):
-        raise ValueError("Só são permitidos ficheiros PDF.")
+        raise ValueError("S? s?o permitidos ficheiros PDF.")
     if not content.startswith(b"%PDF"):
-        raise ValueError("O ficheiro escolhido não parece ser um PDF válido.")
+        raise ValueError("O ficheiro escolhido n?o parece ser um PDF v?lido.")
     if supabase_available():
         stored_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{secrets.token_hex(6)}.pdf"
         timestamp = now()
@@ -6547,7 +6905,7 @@ def read_post(handler):
 def read_multipart(handler):
     content_type = handler.headers.get("Content-Type", "")
     if "multipart/form-data" not in content_type:
-        raise ValueError("Pedido inválido.")
+        raise ValueError("Pedido inv?lido.")
     length = int(handler.headers.get("Content-Length", "0"))
     raw = handler.rfile.read(length)
     message = BytesParser(policy=policy.default).parsebytes(
@@ -6573,7 +6931,7 @@ def read_multipart(handler):
 def save_utente(data, utente_id=None):
     nome = field_value(data, "nome")
     if not nome:
-        raise ValueError("O nome completo é obrigatório.")
+        raise ValueError("O nome completo ? obrigat?rio.")
 
     values = {
         "nome": nome,
@@ -6686,11 +7044,11 @@ def create_user(data):
     password = field_value(data, "password")
     perfil = normalize_perfil(field_value(data, "perfil"))
     if not nome or not email or not password:
-        raise ValueError("Nome, email e password são obrigatórios.")
+        raise ValueError("Nome, email e password s?o obrigat?rios.")
     timestamp = now()
     if supabase_available():
         if get_user_by_email(email):
-            raise ValueError("Já existe um utilizador com esse email.")
+            raise ValueError("J? existe um utilizador com esse email.")
         row = table_insert(
             "utilizadores",
             {
@@ -6716,7 +7074,7 @@ def create_user(data):
                 (nome, email, hash_password(password), perfil, timestamp, timestamp),
             )
         except sqlite3.IntegrityError:
-            raise ValueError("Já existe um utilizador com esse email.")
+            raise ValueError("J? existe um utilizador com esse email.")
     return cursor.lastrowid
 
 
@@ -6727,7 +7085,7 @@ def update_user(data):
     user_id = int(user_id)
     current = get_user_by_id(user_id)
     if not current:
-        raise ValueError("Utilizador não encontrado.")
+        raise ValueError("Utilizador n?o encontrado.")
 
     nome = field_value(data, "nome")
     email = field_value(data, "email").lower()
@@ -6735,15 +7093,15 @@ def update_user(data):
     perfil = normalize_perfil(field_value(data, "perfil"))
     ativo = 1 if field_value(data, "ativo") == "on" else 0
     if not nome or not email:
-        raise ValueError("Nome e email são obrigatórios.")
+        raise ValueError("Nome e email s?o obrigat?rios.")
     if current["perfil"] == PERFIL_ADMIN and (perfil != PERFIL_ADMIN or not ativo) and active_admin_count(user_id) == 0:
-        raise ValueError("Não pode remover ou desativar o último administrador ativo.")
+        raise ValueError("N?o pode remover ou desativar o ?ltimo administrador ativo.")
 
     timestamp = now()
     if supabase_available():
         existing = get_user_by_email(email)
         if existing and int(existing["id"]) != user_id:
-            raise ValueError("Já existe um utilizador com esse email.")
+            raise ValueError("J? existe um utilizador com esse email.")
         values = {
             "nome": nome,
             "email": email,
@@ -6776,7 +7134,7 @@ def update_user(data):
                     (nome, email, perfil, ativo, timestamp, user_id),
                 )
         except sqlite3.IntegrityError:
-            raise ValueError("Já existe um utilizador com esse email.")
+            raise ValueError("J? existe um utilizador com esse email.")
     return user_id
 
 
@@ -6785,7 +7143,7 @@ def delete_user(user_id):
     if not user:
         return
     if user["perfil"] == PERFIL_ADMIN and active_admin_count(user_id) == 0:
-        raise ValueError("Não pode eliminar o último administrador ativo.")
+        raise ValueError("N?o pode eliminar o ?ltimo administrador ativo.")
     if supabase_available():
         table_delete("sessoes", {"utilizador_id": f"eq.{user_id}"})
         table_delete("utilizadores", {"id": f"eq.{user_id}"})
@@ -6793,6 +7151,20 @@ def delete_user(user_id):
     with get_connection() as conn:
         conn.execute("DELETE FROM sessoes WHERE utilizador_id = ?", (user_id,))
         conn.execute("DELETE FROM utilizadores WHERE id = ?", (user_id,))
+
+
+def toggle_user_active(user_id):
+    user = get_user_by_id(user_id)
+    if not user:
+        raise ValueError("Utilizador n?o encontrado.")
+    next_active = 0 if int(user["ativo"] or 0) else 1
+    if user["perfil"] == PERFIL_ADMIN and not next_active and active_admin_count(user_id) == 0:
+        raise ValueError("N?o pode remover ou desativar o ?ltimo administrador ativo.")
+    if supabase_available():
+        table_update("utilizadores", {"id": f"eq.{user_id}"}, {"ativo": next_active, "updated_at": now()})
+        return
+    with get_connection() as conn:
+        conn.execute("UPDATE utilizadores SET ativo = ?, updated_at = ? WHERE id = ?", (next_active, now(), user_id))
 
 
 def toggle_theme(user):
@@ -6862,7 +7234,7 @@ def render_user_manager(current_user, edit_user_id="", error="", notice=""):
 <div class="manager-head">
     <div>
         <h2>{esc(tr(current_user, "user_manager"))}</h2>
-        <p class="muted">Crie acessos novos e edite permissões de utilizadores existentes.</p>
+        <p class="muted">Crie acessos novos e edite permiss?es de utilizadores existentes.</p>
     </div>
     <div class="title-actions">
         <a class="button secondary" href="/utilizadores">Atualizar</a>
@@ -6873,7 +7245,7 @@ def render_user_manager(current_user, edit_user_id="", error="", notice=""):
 <section class="panel manager-grid">
     <form class="manager-column" method="post" action="/utilizadores/criar">
         <h3>Criar utilizador</h3>
-        <p class="muted">O acesso fica disponível de imediato.</p>
+        <p class="muted">O acesso fica dispon?vel de imediato.</p>
         <div class="field">
             <label for="create_nome">Nome</label>
             <input id="create_nome" name="nome" required>
@@ -6926,7 +7298,7 @@ def render_user_manager(current_user, edit_user_id="", error="", notice=""):
         </label>
         <div class="actions">
             <a class="button secondary" href="/utilizadores">Limpar</a>
-            <button class="button" type="submit" {disabled}>Guardar alterações</button>
+            <button class="button" type="submit" {disabled}>Guardar altera??es</button>
         </div>
     </form>
 </section>
@@ -6937,7 +7309,7 @@ def render_user_manager(current_user, edit_user_id="", error="", notice=""):
                 <th>Nome</th>
                 <th>Cargo</th>
                 <th>Estado</th>
-                <th class="actions-cell">Ações</th>
+                <th class="actions-cell">A??es</th>
             </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -6972,12 +7344,12 @@ def render_history_page(current_user):
         </tr>
         """
     if not rows:
-        rows_html = '<tr><td colspan="5"><div class="empty">Ainda não existem alterações registadas.</div></td></tr>'
+        rows_html = '<tr><td colspan="5"><div class="empty">Ainda n?o existem altera??es registadas.</div></td></tr>'
     content = f"""
 <div class="manager-head">
     <div>
-        <h2>Histórico de alterações</h2>
-        <p class="muted">Veja quem fez alterações, o que fez e quando fez.</p>
+        <h2>Hist?rico de altera??es</h2>
+        <p class="muted">Veja quem fez altera??es, o que fez e quando fez.</p>
     </div>
     <a class="button secondary" href="/">{esc(tr(current_user, "back"))}</a>
 </div>
@@ -6987,8 +7359,8 @@ def render_history_page(current_user):
             <tr>
                 <th>Quando</th>
                 <th>Quem</th>
-                <th>Ação</th>
-                <th>Área</th>
+                <th>A??o</th>
+                <th>?rea</th>
                 <th>Detalhes</th>
             </tr>
         </thead>
@@ -6996,7 +7368,7 @@ def render_history_page(current_user):
     </table>
 </section>
 """
-    return render_page("Histórico", content, current_user=current_user)
+    return render_page("Hist?rico", content, current_user=current_user)
 
 
 def render_placeholder_page(current_user, title, message):
@@ -7029,9 +7401,9 @@ def render_manual_page(current_user):
         title = "Manuais"
         subtitle = "Escolha o guia que pretende abrir."
         user_title = "Manual de utilizador"
-        user_description = "Guia para o uso diário do site: login, utentes, separadores, gravação, PDFs, histórico, tema e idioma."
+        user_description = "Guia para o uso di?rio do site: login, utentes, separadores, grava??o, PDFs, hist?rico, tema e idioma."
         developer_title = "Manual de desenvolvedor"
-        developer_description = "Guia técnico para manutenção do código, GitHub, Supabase, Vercel, variáveis de ambiente, deploys e alterações seguras."
+        developer_description = "Guia t?cnico para manuten??o do c?digo, GitHub, Supabase, Vercel, vari?veis de ambiente, deploys e altera??es seguras."
         open_label = "Abrir manual"
     content = f"""
 <div class="manager-head">
@@ -7087,7 +7459,7 @@ def render_user_manual_page(current_user):
             <li>The eye button opens read-only view mode.</li>
             <li>The pencil button opens edit mode. It is available only to administrators.</li>
             <li>The trash button deletes a client. It is available only to administrators and should be used with care.</li>
-            <li>The “New client” button creates a new client record with the name as the initial required field.</li>
+            <li>The ?New client? button creates a new client record with the name as the initial required field.</li>
         </ul>
     </div>
 
@@ -7095,8 +7467,8 @@ def render_user_manual_page(current_user):
         <h3>3. Editing and saving</h3>
         <p>Each client has several tabs with structured forms. Administrators can edit the fields and save the whole record.</p>
         <ul class="manual-list">
-            <li>The “Back” button returns to the main screen.</li>
-            <li>The “Save” button saves the current client and returns to the main screen.</li>
+            <li>The ?Back? button returns to the main screen.</li>
+            <li>The ?Save? button saves the current client and returns to the main screen.</li>
             <li>When switching between tabs, the current tab is saved in the background, so information is not lost while filling several tabs.</li>
             <li>Shared fields such as name, date of birth, process number, phone and health problems are synchronized between tabs when they represent the same information.</li>
         </ul>
@@ -7176,108 +7548,108 @@ def render_user_manual_page(current_user):
 <div class="manager-head">
     <div>
         <h2>Manual</h2>
-        <p class="muted">Guia completo de utilização da base de dados de utentes MenteMovimento.</p>
+        <p class="muted">Guia completo de utiliza??o da base de dados de utentes MenteMovimento.</p>
     </div>
     <a class="button secondary" href="/">{back_label}</a>
 </div>
 <section class="panel form-panel manual-page">
     <div class="manual-section">
         <h3>1. Acesso e cargos</h3>
-        <p>O site está protegido por credenciais de entrada. Cada utilizador tem um cargo que define o que pode fazer.</p>
+        <p>O site est? protegido por credenciais de entrada. Cada utilizador tem um cargo que define o que pode fazer.</p>
         <ul class="manual-list">
-            <li><strong>Administrador:</strong> pode criar, editar, ver e eliminar utentes, gerir utilizadores, consultar histórico, mudar tema e idioma, e anexar ou remover PDFs.</li>
-            <li><strong>Utilizador:</strong> pode entrar e consultar a informação dos utentes, mas não pode criar, editar, eliminar ou alterar registos.</li>
-            <li>Use o botão de sair na barra superior para voltar à tela de login.</li>
+            <li><strong>Administrador:</strong> pode criar, editar, ver e eliminar utentes, gerir utilizadores, consultar hist?rico, mudar tema e idioma, e anexar ou remover PDFs.</li>
+            <li><strong>Utilizador:</strong> pode entrar e consultar a informa??o dos utentes, mas n?o pode criar, editar, eliminar ou alterar registos.</li>
+            <li>Use o bot?o de sair na barra superior para voltar ? tela de login.</li>
         </ul>
     </div>
 
     <div class="manual-section">
         <h3>2. Tela principal</h3>
-        <p>A tela principal mostra a lista de utentes e dá acesso às ações principais.</p>
+        <p>A tela principal mostra a lista de utentes e d? acesso ?s a??es principais.</p>
         <ul class="manual-list">
             <li>Use a pesquisa para encontrar um utente pelo nome.</li>
-            <li>O botão com o olho abre o modo de consulta, sem edição.</li>
-            <li>O botão com o lápis abre o modo de edição. Só aparece para administradores.</li>
-            <li>O botão do caixote do lixo elimina o utente. Só aparece para administradores e deve ser usado com cuidado.</li>
-            <li>O botão “Novo utente” cria uma nova ficha, começando pelo nome.</li>
+            <li>O bot?o com o olho abre o modo de consulta, sem edi??o.</li>
+            <li>O bot?o com o l?pis abre o modo de edi??o. S? aparece para administradores.</li>
+            <li>O bot?o do caixote do lixo elimina o utente. S? aparece para administradores e deve ser usado com cuidado.</li>
+            <li>O bot?o ?Novo utente? cria uma nova ficha, come?ando pelo nome.</li>
         </ul>
     </div>
 
     <div class="manual-section">
         <h3>3. Editar e guardar</h3>
-        <p>Cada utente tem vários separadores com formulários próprios. Os administradores podem preencher e guardar a ficha completa.</p>
+        <p>Cada utente tem v?rios separadores com formul?rios pr?prios. Os administradores podem preencher e guardar a ficha completa.</p>
         <ul class="manual-list">
-            <li>O botão “Voltar” regressa à tela principal.</li>
-            <li>O botão “Guardar” guarda o utente e volta à tela principal.</li>
-            <li>Ao trocar de separador, o separador atual é guardado em segundo plano para não perder informação enquanto preenche vários formulários.</li>
-            <li>Campos partilhados como nome, data de nascimento, número de processo, contacto telefónico e problemas de saúde são interligados entre separadores quando representam a mesma informação.</li>
+            <li>O bot?o ?Voltar? regressa ? tela principal.</li>
+            <li>O bot?o ?Guardar? guarda o utente e volta ? tela principal.</li>
+            <li>Ao trocar de separador, o separador atual ? guardado em segundo plano para n?o perder informa??o enquanto preenche v?rios formul?rios.</li>
+            <li>Campos partilhados como nome, data de nascimento, n?mero de processo, contacto telef?nico e problemas de sa?de s?o interligados entre separadores quando representam a mesma informa??o.</li>
         </ul>
-        <div class="manual-note">Os dados escritos nas fichas dos utentes mantêm-se exatamente como foram introduzidos. Mudar o idioma da interface não traduz nomes, notas clínicas ou texto livre já registado.</div>
+        <div class="manual-note">Os dados escritos nas fichas dos utentes mant?m-se exatamente como foram introduzidos. Mudar o idioma da interface n?o traduz nomes, notas cl?nicas ou texto livre j? registado.</div>
     </div>
 
     <div class="manual-section">
         <h3>4. Separadores do utente</h3>
         <ul class="manual-list">
-            <li><strong>Formulário de Referenciação:</strong> identificação, entidade de encaminhamento, informação clínica, tratamento, problemas de saúde, avaliação de risco, motivo do encaminhamento e tabela de medicação.</li>
-            <li><strong>Informações em Caso de Emergência:</strong> contacto de urgência, dados de saúde, contactos médicos, alergias, observações e problemas de saúde interligados com o formulário de referenciação.</li>
-            <li><strong>Ficha de Inscrição e Avaliação Inicial de Requisitos:</strong> pedido, serviços pretendidos, admissibilidade e tabela de ponderação dos requisitos.</li>
-            <li><strong>Avaliação Diagnóstica Multidisciplinar:</strong> dados sociodemográficos, escolaridade, trabalho, situação económica e habitacional, rede familiar/social, genograma, ecomapa, saúde, rotina e avaliação de AVDI.</li>
-            <li><strong>Registo de Atendimentos e Acompanhamentos:</strong> registo estruturado de intervenção com data, âmbito, tipo, descrição, recomendações e profissionais envolvidos.</li>
-            <li><strong>Proteção de dados e Termos de Responsabilidade:</strong> zona para anexar PDFs digitalizados desse utente específico.</li>
+            <li><strong>Formul?rio de Referencia??o:</strong> identifica??o, entidade de encaminhamento, informa??o cl?nica, tratamento, problemas de sa?de, avalia??o de risco, motivo do encaminhamento e tabela de medica??o.</li>
+            <li><strong>Informa??es em Caso de Emerg?ncia:</strong> contacto de urg?ncia, dados de sa?de, contactos m?dicos, alergias, observa??es e problemas de sa?de interligados com o formul?rio de referencia??o.</li>
+            <li><strong>Ficha de Inscri??o e Avalia??o Inicial de Requisitos:</strong> pedido, servi?os pretendidos, admissibilidade e tabela de pondera??o dos requisitos.</li>
+            <li><strong>Avalia??o Diagn?stica Multidisciplinar:</strong> dados sociodemogr?ficos, escolaridade, trabalho, situa??o econ?mica e habitacional, rede familiar/social, genograma, ecomapa, sa?de, rotina e avalia??o de AVDI.</li>
+            <li><strong>Registo de Atendimentos e Acompanhamentos:</strong> registo estruturado de interven??o com data, ?mbito, tipo, descri??o, recomenda??es e profissionais envolvidos.</li>
+            <li><strong>Prote??o de dados e Termos de Responsabilidade:</strong> zona para anexar PDFs digitalizados desse utente espec?fico.</li>
         </ul>
     </div>
 
     <div class="manual-section">
         <h3>5. Genograma e ecomapa</h3>
-        <p>A avaliação diagnóstica inclui ferramentas visuais para mapear família e rede de apoio.</p>
+        <p>A avalia??o diagn?stica inclui ferramentas visuais para mapear fam?lia e rede de apoio.</p>
         <ul class="manual-list">
-            <li>Use os botões do diagrama para adicionar pessoas, familiares, sistemas ou redes.</li>
-            <li>Selecione dois elementos e escolha o tipo de relação para os ligar.</li>
-            <li>Use a legenda ao lado de cada diagrama para perceber formas, linhas, setas e tipos de relação.</li>
-            <li>Use as notas para registar contexto adicional que não caiba apenas no esquema.</li>
+            <li>Use os bot?es do diagrama para adicionar pessoas, familiares, sistemas ou redes.</li>
+            <li>Selecione dois elementos e escolha o tipo de rela??o para os ligar.</li>
+            <li>Use a legenda ao lado de cada diagrama para perceber formas, linhas, setas e tipos de rela??o.</li>
+            <li>Use as notas para registar contexto adicional que n?o caiba apenas no esquema.</li>
         </ul>
     </div>
 
     <div class="manual-section">
         <h3>6. Anexos PDF</h3>
-        <p>O separador Proteção de dados e Termos de Responsabilidade guarda documentos digitalizados em PDF.</p>
+        <p>O separador Prote??o de dados e Termos de Responsabilidade guarda documentos digitalizados em PDF.</p>
         <ul class="manual-list">
-            <li>Cada utente tem os seus próprios PDFs. Os anexos não são gerais nem são partilhados entre utentes.</li>
-            <li>Só são aceites ficheiros PDF.</li>
+            <li>Cada utente tem os seus pr?prios PDFs. Os anexos n?o s?o gerais nem s?o partilhados entre utentes.</li>
+            <li>S? s?o aceites ficheiros PDF.</li>
             <li>Administradores podem anexar, abrir e remover PDFs.</li>
-            <li>Utilizadores em modo de consulta podem abrir PDFs, mas não podem adicionar nem remover.</li>
+            <li>Utilizadores em modo de consulta podem abrir PDFs, mas n?o podem adicionar nem remover.</li>
         </ul>
     </div>
 
     <div class="manual-section">
-        <h3>7. Gestão de utilizadores</h3>
-        <p>O Gestor de Utilizadores está disponível apenas para administradores.</p>
+        <h3>7. Gest?o de utilizadores</h3>
+        <p>O Gestor de Utilizadores est? dispon?vel apenas para administradores.</p>
         <ul class="manual-list">
             <li>Crie utilizadores preenchendo nome, email, password e cargo.</li>
             <li>Edite um utilizador existente escolhendo-o na lista.</li>
-            <li>Os cargos disponíveis são Administrador e Utilizador.</li>
+            <li>Os cargos dispon?veis s?o Administrador e Utilizador.</li>
             <li>Um utilizador pode estar ativo ou inativo.</li>
-            <li>O sistema impede remover ou desativar o último administrador ativo.</li>
+            <li>O sistema impede remover ou desativar o ?ltimo administrador ativo.</li>
         </ul>
     </div>
 
     <div class="manual-section">
-        <h3>8. Histórico, tema e idioma</h3>
+        <h3>8. Hist?rico, tema e idioma</h3>
         <ul class="manual-list">
-            <li><strong>Histórico de alterações:</strong> mostra quem fez alterações, o que fez e quando fez.</li>
+            <li><strong>Hist?rico de altera??es:</strong> mostra quem fez altera??es, o que fez e quando fez.</li>
             <li><strong>Escuro/Claro:</strong> muda o tema visual da conta atual.</li>
-            <li><strong>Mudar idioma:</strong> alterna a interface entre Português e Inglês para a conta atual.</li>
+            <li><strong>Mudar idioma:</strong> alterna a interface entre Portugu?s e Ingl?s para a conta atual.</li>
             <li><strong>Manual:</strong> abre este guia.</li>
         </ul>
     </div>
 
     <div class="manual-section">
-        <h3>9. Boas práticas</h3>
+        <h3>9. Boas pr?ticas</h3>
         <ul class="manual-list">
             <li>Pesquise o utente antes de criar uma ficha nova para evitar duplicados.</li>
-            <li>Confirme os campos interligados quando alterar nomes, datas de nascimento ou números de processo.</li>
-            <li>Anexe apenas PDFs digitalizados finais no separador de proteção/termos.</li>
-            <li>Use o botão de consulta quando só precisa de ver informação.</li>
+            <li>Confirme os campos interligados quando alterar nomes, datas de nascimento ou n?meros de processo.</li>
+            <li>Anexe apenas PDFs digitalizados finais no separador de prote??o/termos.</li>
+            <li>Use o bot?o de consulta quando s? precisa de ver informa??o.</li>
             <li>Saia da conta quando terminar, sobretudo em computadores partilhados.</li>
         </ul>
     </div>
@@ -7367,13 +7739,13 @@ def render_developer_manual_page(current_user):
         with open(manual_path, "r", encoding="utf-8") as manual_file:
             manual_text = manual_file.read()
     except OSError:
-        manual_text = "# Manual do Desenvolvedor\n\nO ficheiro MANUAL_DESENVOLVEDOR.md não foi encontrado."
+        manual_text = "# Manual do Desenvolvedor\n\nO ficheiro MANUAL_DESENVOLVEDOR.md n?o foi encontrado."
     if user_language(current_user) == "en":
         title = "Developer manual"
         subtitle = "Technical guide for maintaining code, GitHub, Supabase and Vercel."
     else:
         title = "Manual de desenvolvedor"
-        subtitle = "Guia técnico para manutenção do código, GitHub, Supabase e Vercel."
+        subtitle = "Guia t?cnico para manuten??o do c?digo, GitHub, Supabase e Vercel."
     content = f"""
 <div class="manager-head">
     <div>
@@ -7427,6 +7799,340 @@ def render_language_page(current_user, notice=""):
     return render_page(tr(current_user, "language_title"), content, notice=notice, current_user=current_user)
 
 
+def render_manual_choice_dialog(current_user):
+    if user_language(current_user) == "en":
+        title = "Manual"
+        subtitle = "Choose the right manual for what you need to check."
+        user_title = "User manual"
+        user_description = "For daily use: login, service users, tabs, PDF attachments, history, theme and language."
+        developer_title = "Programmer manual"
+        developer_description = "For maintaining the project: code, GitHub, Supabase, Vercel, publication and safe changes."
+        close_label = "Close"
+        user_href = "/docs/Manual_User_Utentes.pdf"
+        developer_href = "/docs/Manual_Programmer_Utentes.pdf"
+    else:
+        title = "Manual"
+        subtitle = "Escolha o manual adequado ao que pretende consultar."
+        user_title = "Manual do Utilizador"
+        user_description = "Para quem usa a app no dia a dia: login, utentes, separadores, PDFs, historico, tema e idioma."
+        developer_title = "Manual do Programador"
+        developer_description = "Para quem mantem o projeto: ficheiros, GitHub, Vercel, Supabase, SQL, seguranca e atualizacoes."
+        close_label = "Fechar"
+        user_href = "/docs/Manual_Utilizador_Utentes.pdf"
+        developer_href = "/docs/Manual_Programador_Utentes.pdf"
+    return f"""
+    <dialog class="manual-dialog" id="manualChoiceDialog">
+        <section class="manual-dialog-panel" aria-label="{esc(title)}">
+            <div class="manual-dialog-head">
+                <div>
+                    <h2>{esc(title)}</h2>
+                    <p>{esc(subtitle)}</p>
+                </div>
+                <button class="central-icon-link" id="closeManualChoiceDialog" type="button" title="{esc(close_label)}" aria-label="{esc(close_label)}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                    <span>{esc(close_label)}</span>
+                </button>
+            </div>
+            <div class="manual-dialog-options">
+                <a class="manual-dialog-card" href="{esc(user_href)}" target="_blank" rel="noopener">
+                    <span class="manual-dialog-icon" aria-hidden="true">{USER_PLUS_ICON}</span>
+                    <span class="manual-dialog-copy">
+                        <strong>{esc(user_title)}</strong>
+                        <span>{esc(user_description)}</span>
+                    </span>
+                </a>
+                <a class="manual-dialog-card" href="{esc(developer_href)}" target="_blank" rel="noopener">
+                    <span class="manual-dialog-icon" aria-hidden="true">{CODE_ICON}</span>
+                    <span class="manual-dialog-copy">
+                        <strong>{esc(developer_title)}</strong>
+                        <span>{esc(developer_description)}</span>
+                    </span>
+                </a>
+            </div>
+        </section>
+    </dialog>
+    """
+
+
+def close_parent_dialog_button(label="Fechar"):
+    return f"""
+    <button class="button secondary icon-button" type="button" onclick="parent.document.getElementById('commonFrameDialog')?.close()" title="{esc(label)}" aria-label="{esc(label)}">
+        {CLOSE_ICON}
+    </button>
+    """
+
+
+def render_user_manager(current_user, edit_user_id="", error="", notice=""):
+    users = list_users()
+    selected = get_user_by_id(int(edit_user_id)) if str(edit_user_id).isdigit() else None
+    message_html = f'<div class="notice">{esc(error)}</div>' if error else ""
+    if notice:
+        message_html += f'<div class="notice success">{esc(notice)}</div>'
+    rows_html = ""
+    for user in users:
+        is_current = int(user["id"]) == int(current_user["id"])
+        is_active = bool(user["ativo"])
+        status_class = "status-pill is-active" if is_active else "status-pill is-inactive"
+        status_text = "Ativo" if is_active else "Inativo"
+        toggle_label = "Desativar utilizador" if is_active else "Ativar utilizador"
+        toggle_icon = USER_X_ICON if is_active else USER_CHECK_ICON
+        toggle_action = (
+            '<span class="muted">Atual</span>'
+            if is_current
+            else f"""
+            <form method="post" action="/utilizadores/alternar">
+                <input type="hidden" name="id" value="{user["id"]}">
+                <button class="button secondary icon-button" type="submit" aria-label="{esc(toggle_label)}" title="{esc(toggle_label)}">
+                    {toggle_icon}
+                </button>
+            </form>
+            """
+        )
+        delete_disabled = "disabled" if is_current else ""
+        rows_html += f"""
+        <tr>
+            <td>
+                <div class="name">{esc(user["nome"])}</div>
+                <div class="muted">{esc(user["id"])}</div>
+            </td>
+            <td>{esc(user["email"])}</td>
+            <td>{esc(user["perfil"])}</td>
+            <td><span class="{status_class}">{esc(status_text)}</span></td>
+            <td class="actions-cell">
+                <div class="row-actions">
+                    <a class="button secondary icon-button" href="/utilizadores?edit_user_id={user["id"]}" aria-label="Editar utilizador" title="Editar utilizador">
+                        {PENCIL_ICON}
+                    </a>
+                    {toggle_action}
+                    <form method="post" action="/utilizadores/eliminar" onsubmit="return confirm('Eliminar este utilizador?');">
+                        <input type="hidden" name="id" value="{user["id"]}">
+                        <button class="button danger icon-button" type="submit" {delete_disabled} aria-label="Eliminar utilizador" title="Eliminar utilizador">
+                            {TRASH_ICON}
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        """
+
+    edit_id = selected["id"] if selected else ""
+    edit_nome = selected["nome"] if selected else ""
+    edit_email = selected["email"] if selected else ""
+    edit_perfil = selected["perfil"] if selected else PERFIL_UTILIZADOR
+    edit_checked = "checked" if not selected or selected["ativo"] else ""
+    disabled = "" if selected else "disabled"
+
+    content = f"""
+<section class="utility-panel" aria-label="Utilizadores">
+    <div class="utility-panel-head">
+        <div>
+            <h2>Utilizadores</h2>
+            <p>Crie acessos novos e edite permissoes de utilizadores existentes.</p>
+        </div>
+        <div class="utility-head-actions">
+            <a class="button secondary" href="/utilizadores">{REFRESH_ICON}<span>Atualizar</span></a>
+            {close_parent_dialog_button("Fechar")}
+        </div>
+    </div>
+    {message_html}
+    <div class="utility-forms">
+        <form class="utility-form" method="post" action="/utilizadores/criar">
+            <h3>Criar utilizador</h3>
+            <p>O ID e criado automaticamente no Supabase Auth.</p>
+            <div class="field">
+                <label for="create_nome">Nome</label>
+                <input id="create_nome" name="nome" required>
+            </div>
+            <div class="field">
+                <label for="create_email">Email</label>
+                <input id="create_email" name="email" type="email" required>
+            </div>
+            <div class="field">
+                <label for="create_password">Password</label>
+                <input id="create_password" name="password" type="password" required>
+            </div>
+            <div class="field">
+                <label for="create_perfil">Perfil</label>
+                <select id="create_perfil" name="perfil">
+                    <option value="{PERFIL_ADMIN}">{PERFIL_ADMIN}</option>
+                    <option value="{PERFIL_UTILIZADOR}">{PERFIL_UTILIZADOR}</option>
+                </select>
+            </div>
+            <button class="button" type="submit">{USER_PLUS_ICON}<span>Criar utilizador</span></button>
+        </form>
+        <form class="utility-form" method="post" action="/utilizadores/editar">
+            <h3>Editar utilizador</h3>
+            <p>Escolha um utilizador na lista para editar.</p>
+            <input type="hidden" name="id" value="{esc(edit_id)}">
+            <div class="field">
+                <label for="edit_nome">Nome</label>
+                <input id="edit_nome" name="nome" value="{esc(edit_nome)}" {disabled}>
+            </div>
+            <div class="field">
+                <label for="edit_email">Email</label>
+                <input id="edit_email" name="email" type="email" value="{esc(edit_email)}" {disabled}>
+            </div>
+            <div class="field">
+                <label for="edit_password">Nova password</label>
+                <input id="edit_password" name="password" type="password" placeholder="Deixe em branco para manter" {disabled}>
+            </div>
+            <div class="field">
+                <label for="edit_perfil">Perfil</label>
+                <select id="edit_perfil" name="perfil" {disabled}>
+                    <option value="{PERFIL_ADMIN}" {"selected" if edit_perfil == PERFIL_ADMIN else ""}>{PERFIL_ADMIN}</option>
+                    <option value="{PERFIL_UTILIZADOR}" {"selected" if edit_perfil == PERFIL_UTILIZADOR else ""}>{PERFIL_UTILIZADOR}</option>
+                </select>
+            </div>
+            <label class="field checkbox-row">
+                <input name="ativo" type="checkbox" {edit_checked} {disabled}>
+                Ativo
+            </label>
+            <div class="utility-form-actions">
+                <a class="button secondary" href="/utilizadores">Limpar</a>
+                <button class="button" type="submit" {disabled}>{SAVE_ICON}<span>Guardar alteracoes</span></button>
+            </div>
+        </form>
+    </div>
+    <div class="utility-table-wrap">
+        <table class="utility-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Perfil</th>
+                    <th>Estado</th>
+                    <th class="actions-cell">Acoes</th>
+                </tr>
+            </thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+    </div>
+</section>
+"""
+    return render_page("Utilizadores", content, current_user=current_user, embedded=True)
+
+
+def render_history_page(current_user):
+    if supabase_available():
+        rows = table_select("historico", {"select": "*", "order": "created_at.desc", "limit": "200"})
+    else:
+        with get_connection() as conn:
+            rows = conn.execute(
+                """
+                SELECT *
+                FROM historico
+                ORDER BY created_at DESC
+                LIMIT 200
+                """
+            ).fetchall()
+    rows_html = ""
+    for row in rows:
+        action = row["acao"]
+        action_class = "audit-action"
+        if "Criou" in action or "criou" in action:
+            action_class += " is-create"
+        elif "Eliminou" in action or "apag" in action.lower():
+            action_class += " is-delete"
+        else:
+            action_class += " is-update"
+        target = history_target_label(row["alvo_tipo"], current_user)
+        if row["alvo_id"]:
+            target = f"{target} #{row['alvo_id']}"
+        details = row["detalhes"] or "Sem detalhes"
+        rows_html += f"""
+        <tr>
+            <td>{esc(row["created_at"])}</td>
+            <td><span class="{action_class}">{esc(action)}</span></td>
+            <td>{esc(target)}</td>
+            <td>{esc(row["utilizador_nome"])}</td>
+            <td>{esc(details)}</td>
+        </tr>
+        """
+
+    empty_html = ""
+    if not rows:
+        empty_html = f"""
+        <div class="utility-empty">
+            {HISTORY_ICON}
+            <h3>Sem alteracoes registadas</h3>
+            <p>Quando forem feitas alteracoes aos utentes, elas aparecem aqui.</p>
+        </div>
+        """
+
+    content = f"""
+<section class="utility-panel" aria-label="Historico de alteracoes">
+    <div class="utility-panel-head">
+        <div>
+            <h2>Historico de alteracoes</h2>
+            <p>Registo das alteracoes feitas as fichas dos utentes.</p>
+        </div>
+        <div class="utility-head-actions">
+            <a class="button secondary" href="/historico">{REFRESH_ICON}<span>Atualizar</span></a>
+            {close_parent_dialog_button("Fechar")}
+        </div>
+    </div>
+    <div class="utility-table-wrap">
+        <table class="utility-table history-table">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Acao</th>
+                    <th>Utente</th>
+                    <th>Alterado por</th>
+                    <th>Detalhes</th>
+                </tr>
+            </thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+        {empty_html}
+    </div>
+</section>
+"""
+    return render_page("Historico", content, current_user=current_user, embedded=True)
+
+
+def render_language_page(current_user, notice=""):
+    active = user_language(current_user)
+    message_html = f'<div class="notice success">{esc(notice)}</div>' if notice else ""
+    options = [
+        ("pt", "&#127477;&#127481;", "Portugues", "Portugal"),
+        ("en", "&#127468;&#127463;", "English", "United Kingdom"),
+    ]
+    option_html = ""
+    for value, flag, label, region in options:
+        active_class = " is-active" if active == value else ""
+        option_html += f"""
+        <button class="utility-choice-card{active_class}" type="submit" name="idioma" value="{value}" onclick="window.localStorage.setItem('central-language','{value}'); window.localStorage.setItem('socios-language','{value}'); window.localStorage.setItem('mentemovimento-language','{value}')">
+            <span class="utility-choice-icon" aria-hidden="true">{flag}</span>
+            <span class="utility-choice-copy">
+                <strong>{esc(label)}</strong>
+                <span>{esc(region)}</span>
+            </span>
+        </button>
+        """
+    content = f"""
+<section class="utility-panel utility-language-panel" aria-label="Idioma">
+    <div class="utility-panel-head">
+        <div>
+            <h2>Idioma</h2>
+            <p>Escolha o idioma da aplicacao neste browser.</p>
+        </div>
+        <div class="utility-head-actions">
+            {close_parent_dialog_button("Fechar")}
+        </div>
+    </div>
+    {message_html}
+    <form class="utility-language-list" method="post" action="/idioma">
+        {option_html}
+    </form>
+</section>
+"""
+    return render_page("Idioma", content, current_user=current_user, embedded=True)
+
+
 class UtentesHandler(BaseHTTPRequestHandler):
     def current_user(self):
         if not hasattr(self, "_current_user"):
@@ -7445,7 +8151,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         if not user:
             return None
         if not is_admin(user):
-            self.redirect(f"/?msg={quote('Sem permissão para essa ação')}")
+            self.redirect(f"/?msg={quote('Sem permiss?o para essa a??o')}")
             return None
         return user
 
@@ -7476,13 +8182,17 @@ class UtentesHandler(BaseHTTPRequestHandler):
         if parsed.path == "/anexo":
             attachment_id = query_params.get("id", [""])[0]
             if not attachment_id.isdigit():
-                self.send_error(404, "PDF não encontrado")
+                self.send_error(404, "PDF n?o encontrado")
                 return
             attachment = get_pdf_attachment(int(attachment_id))
             if not attachment:
-                self.send_error(404, "PDF não encontrado")
+                self.send_error(404, "PDF n?o encontrado")
                 return
             self.send_pdf_attachment(attachment)
+            return
+
+        if parsed.path.startswith("/docs/"):
+            self.send_static_pdf(parsed.path.removeprefix("/docs/"))
             return
 
         if parsed.path == "/tema":
@@ -7499,7 +8209,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
 
         if parsed.path == "/novo":
             if not is_admin(user):
-                self.redirect(f"/?msg={quote('Sem permissão para criar utentes')}")
+                self.redirect(f"/?msg={quote('Sem permiss?o para criar utentes')}")
                 return
             self.send_html(render_form("/adicionar", "Novo utente", current_user=user))
             return
@@ -7513,11 +8223,11 @@ class UtentesHandler(BaseHTTPRequestHandler):
             active_tab = normalize_tab_key(query_params.get("tab", [TAB_SECTIONS[0][0]])[0])
             notice = query_params.get("msg", [""])[0].strip()
             if not utente_id.isdigit():
-                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                self.redirect(f"/?msg={quote('Utente n?o encontrado')}")
                 return
             utente = get_utente(int(utente_id))
             if not utente:
-                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                self.redirect(f"/?msg={quote('Utente n?o encontrado')}")
                 return
             self.send_html(render_edit_page(dict(utente), active_tab, notice=notice, current_user=user))
             return
@@ -7527,11 +8237,11 @@ class UtentesHandler(BaseHTTPRequestHandler):
             active_tab = normalize_tab_key(query_params.get("tab", [TAB_SECTIONS[0][0]])[0])
             notice = query_params.get("msg", [""])[0].strip()
             if not utente_id.isdigit():
-                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                self.redirect(f"/?msg={quote('Utente n?o encontrado')}")
                 return
             utente = get_utente(int(utente_id))
             if not utente:
-                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                self.redirect(f"/?msg={quote('Utente n?o encontrado')}")
                 return
             self.send_html(render_view_page(dict(utente), active_tab, notice=notice, current_user=user))
             return
@@ -7569,7 +8279,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
             self.send_html(render_language_page(user, notice=notice))
             return
 
-        self.send_error(404, "Página não encontrada")
+        self.send_error(404, "P?gina n?o encontrada")
 
     def do_POST(self):
         parsed = urlparse(self.path)
@@ -7586,12 +8296,12 @@ class UtentesHandler(BaseHTTPRequestHandler):
             user = get_user_by_email(email)
             if not user or not user["ativo"] or not verify_password(password, user["password_hash"]):
                 self.send_html(
-                    render_login_page("Credenciais inválidas ou utilizador inativo.", language=get_request_language(self)),
+                    render_login_page("Credenciais inv?lidas ou utilizador inativo.", language=get_request_language(self)),
                     status=401,
                 )
                 return
             token = create_session(user["id"])
-            log_action(user, "Entrou no sistema", "Sessão", user["id"], "Login efetuado")
+            log_action(user, "Entrou no sistema", "Sess?o", user["id"], "Login efetuado")
             self.redirect("/", headers={"Set-Cookie": [session_cookie(token), language_cookie(user.get("idioma"))]})
             return
 
@@ -7643,7 +8353,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
             utente_id = field_value(data, "id")
             active_tab = normalize_tab_key(field_value(data, "tab"))
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
-                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                self.redirect(f"/?msg={quote('Utente n?o encontrado')}")
                 return
             try:
                 update_utente_core_from_shared(int(utente_id), data)
@@ -7682,9 +8392,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             active_tab = normalize_tab_key(field_value(data, "tab"))
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
                 if background_save:
-                    self.send_json({"ok": False, "error": "Utente não encontrado."}, status=404)
+                    self.send_json({"ok": False, "error": "Utente n?o encontrado."}, status=404)
                     return
-                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                self.redirect(f"/?msg={quote('Utente n?o encontrado')}")
                 return
             try:
                 if active_tab == "referenciacao":
@@ -7762,6 +8472,22 @@ class UtentesHandler(BaseHTTPRequestHandler):
             self.redirect(f"/utilizadores?edit_user_id={user_id}&msg={quote('Utilizador atualizado com sucesso')}")
             return
 
+        if parsed.path == "/utilizadores/alternar":
+            admin = self.require_admin()
+            if not admin:
+                return
+            user_id = field_value(data, "id")
+            if user_id.isdigit():
+                target = get_user_by_id(int(user_id))
+                try:
+                    toggle_user_active(int(user_id))
+                except ValueError as exc:
+                    self.redirect(f"/utilizadores?msg={quote(str(exc))}")
+                    return
+                log_action(admin, "Alterou estado de utilizador", "Utilizador", int(user_id), target["email"] if target else "")
+            self.redirect(f"/utilizadores?msg={quote('Estado atualizado com sucesso')}")
+            return
+
         if parsed.path == "/utilizadores/eliminar":
             admin = self.require_admin()
             if not admin:
@@ -7778,7 +8504,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
             self.redirect(f"/utilizadores?msg={quote('Utilizador eliminado com sucesso')}")
             return
 
-        self.send_error(404, "Página não encontrada")
+        self.send_error(404, "P?gina n?o encontrada")
 
     def handle_pdf_upload(self):
         admin = self.require_admin()
@@ -7789,7 +8515,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
             fields, files = read_multipart(self)
             utente_id = field_value(fields, "utente_id")
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
-                raise ValueError("Utente não encontrado.")
+                raise ValueError("Utente n?o encontrado.")
             upload = files.get("pdf")
             if not upload:
                 raise ValueError("Escolha um ficheiro PDF para anexar.")
@@ -7812,12 +8538,12 @@ class UtentesHandler(BaseHTTPRequestHandler):
             try:
                 data = supabase_download_pdf(attachment)
             except SupabaseError:
-                self.send_error(404, "PDF não encontrado")
+                self.send_error(404, "PDF n?o encontrado")
                 return
         else:
             path = attachment_path(attachment)
             if not os.path.exists(path):
-                self.send_error(404, "PDF não encontrado")
+                self.send_error(404, "PDF n?o encontrado")
                 return
             with open(path, "rb") as file:
                 data = file.read()
@@ -7825,6 +8551,23 @@ class UtentesHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "application/pdf")
         self.send_header("Content-Disposition", f"inline; filename=\"{filename}\"; filename*=UTF-8''{quote(filename)}")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def send_static_pdf(self, filename):
+        safe_name = safe_filename(os.path.basename(filename))
+        file_path = os.path.abspath(os.path.join(DOCS_DIR, safe_name))
+        docs_root = os.path.abspath(DOCS_DIR)
+        if not file_path.startswith(docs_root + os.sep) or not os.path.exists(file_path):
+            self.send_error(404, "PDF n?o encontrado")
+            return
+        with open(file_path, "rb") as file:
+            data = file.read()
+        self.send_response(200)
+        self.send_header("Content-Type", "application/pdf")
+        self.send_header("Content-Disposition", f"inline; filename=\"{safe_name}\"; filename*=UTF-8''{quote(safe_name)}")
+        self.send_header("Cache-Control", "public, max-age=3600")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -7847,7 +8590,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
 
     def send_logo(self):
         if not os.path.exists(LOGO_PATH):
-            self.send_error(404, "Imagem não encontrada")
+            self.send_error(404, "Imagem n?o encontrada")
             return
         with open(LOGO_PATH, "rb") as image:
             data = image.read()

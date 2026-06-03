@@ -41,37 +41,37 @@ const moduleCards = `
 <article class="module-card module-green" data-module-card="socios">
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
-    <span class="status-chip status-online" data-module-status="socios">Integrado</span>
+    <span class="status-chip status-online" data-module-status="socios" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2>Socios</h2>
-  <p>Base de socios</p>
+  <h2 data-i18n="module.socios.title">Socios</h2>
+  <p data-i18n="module.socios.detail">Base de socios</p>
   <a class="module-action" href="/area/socios/">
     <i data-lucide="arrow-right"></i>
-    <span>Entrar na area</span>
+    <span data-i18n="module.enter">Entrar na area</span>
   </a>
 </article>
 <article class="module-card module-blue" data-module-card="utentes">
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
-    <span class="status-chip status-online" data-module-status="utentes">Integrado</span>
+    <span class="status-chip status-online" data-module-status="utentes" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2>Utentes</h2>
-  <p>Base de utentes</p>
+  <h2 data-i18n="module.utentes.title">Utentes</h2>
+  <p data-i18n="module.utentes.detail">Base de utentes</p>
   <a class="module-action" href="/area/utentes/">
     <i data-lucide="arrow-right"></i>
-    <span>Entrar na area</span>
+    <span data-i18n="module.enter">Entrar na area</span>
   </a>
 </article>
 <article class="module-card module-amber" data-module-card="dispositivos">
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="monitor-cog"></i></span>
-    <span class="status-chip status-online" data-module-status="dispositivos">Integrado</span>
+    <span class="status-chip status-online" data-module-status="dispositivos" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2>Dispositivos</h2>
-  <p>Base de dispositivos</p>
+  <h2 data-i18n="module.dispositivos.title">Dispositivos</h2>
+  <p data-i18n="module.dispositivos.detail">Base de dispositivos</p>
   <a class="module-action" href="/area/dispositivos/">
     <i data-lucide="arrow-right"></i>
-    <span>Entrar na area</span>
+    <span data-i18n="module.enter">Entrar na area</span>
   </a>
 </article>`
 
@@ -87,56 +87,56 @@ const topbar = (activeId = '') => `
         <p data-user-email>Administrador</p>
       </div>
     </a>
-    <nav class="topnav" aria-label="Areas principais">
+    <nav class="topnav" aria-label="Areas principais" data-i18n-aria-label="nav.areas">
       <a class="topnav-link${activeId === 'socios' ? ' active' : ''}" href="/area/socios/">
         <i data-lucide="id-card"></i>
-        <span>Socios</span>
+        <span data-i18n="nav.socios">Socios</span>
       </a>
       <a class="topnav-link${activeId === 'utentes' ? ' active' : ''}" href="/area/utentes/">
         <i data-lucide="heart-handshake"></i>
-        <span>Utentes</span>
+        <span data-i18n="nav.utentes">Utentes</span>
       </a>
       <a class="topnav-link${activeId === 'dispositivos' ? ' active' : ''}" href="/area/dispositivos/">
         <i data-lucide="monitor-cog"></i>
-        <span>Dispositivos</span>
+        <span data-i18n="nav.dispositivos">Dispositivos</span>
       </a>
     </nav>
-    <div class="global-actions" aria-label="Ferramentas globais">
+    <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
       <details class="global-menu-wrap">
-        <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu">
+        <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
           <a class="menu-item" href="/utilizadores" role="menuitem">
             <i data-lucide="users-round"></i>
-            <span>Utilizadores</span>
+            <span data-i18n="menu.users">Utilizadores</span>
           </a>
           <a class="menu-item" href="/historico" role="menuitem">
             <i data-lucide="history"></i>
-            <span>Historico</span>
+            <span data-i18n="menu.history">Historico</span>
           </a>
           <a class="menu-item" href="/manuais" role="menuitem">
             <i data-lucide="book-open"></i>
-            <span>Manuais</span>
+            <span data-i18n="menu.manuals">Manuais</span>
           </a>
           <button class="menu-item" type="button" data-language-toggle role="menuitem">
             <i data-lucide="languages"></i>
-            <span>Idioma</span>
+            <span data-i18n="menu.language">Idioma</span>
           </button>
           <button class="menu-item" type="button" data-theme-toggle role="menuitem">
             <i data-lucide="moon"></i>
-            <span>Tema escuro</span>
+            <span data-i18n="menu.dark">Tema escuro</span>
           </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao">
+      <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
         <i data-lucide="log-out"></i>
       </a>
     </div>
   </div>
 </header>`
 
-const pageShell = ({ title, body, page }) => `<!doctype html>
+const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
 <html lang="pt">
   <head>
     <meta charset="utf-8" />
@@ -150,7 +150,7 @@ const pageShell = ({ title, body, page }) => `<!doctype html>
     <script src="/static/app.js" defer></script>
     <script src="/static/central-auth.js" defer></script>
   </head>
-  <body data-central-page="${page}">
+  <body data-central-page="${page}"${titleKey ? ` data-title-key="${titleKey}"` : ''}>
     ${body}
   </body>
 </html>`
@@ -163,23 +163,23 @@ const loginPage = pageShell({
   <section class="login-panel" aria-labelledby="loginTitle">
     <div class="brand-line">
       <span class="brand-symbol" aria-hidden="true"><i data-lucide="shield-check"></i></span>
-      <span>Central MenteMovimento</span>
+      <span data-i18n="app.title">Central MenteMovimento</span>
     </div>
-    <h1 id="loginTitle">Entrar</h1>
-    <p class="login-copy">Acesso reservado a gestao da associacao.</p>
+    <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
+    <p class="login-copy" data-i18n="login.copy">Acesso reservado a gestao da associacao.</p>
     <form class="login-form" id="centralLoginForm">
       <label class="field" for="email">
-        <span>Email</span>
+        <span data-i18n="login.email">Email</span>
         <input id="email" name="email" type="email" autocomplete="email" required />
       </label>
       <label class="field" for="password">
-        <span>Password</span>
+        <span data-i18n="login.password">Password</span>
         <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
       </label>
       <p class="form-error" id="centralAuthError" role="alert" hidden></p>
       <button class="primary-button" type="submit">
         <i data-lucide="log-in"></i>
-        <span>Entrar</span>
+        <span data-i18n="login.submit">Entrar</span>
       </button>
     </form>
   </section>
@@ -194,15 +194,15 @@ ${topbar()}
 <main class="dashboard">
   <section class="dashboard-heading" aria-labelledby="dashboardTitle">
     <div>
-      <p class="eyebrow">Gestao da associacao</p>
-      <h2 id="dashboardTitle">Escolhe a area de trabalho</h2>
+      <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestao da associacao</p>
+      <h2 id="dashboardTitle" data-i18n="dashboard.title">Escolhe a area de trabalho</h2>
     </div>
     <span class="session-chip">
       <i data-lucide="key-round"></i>
-      <span>Sessao unica</span>
+      <span data-i18n="dashboard.session">Sessao unica</span>
     </span>
   </section>
-  <section class="module-grid" aria-label="Aplicacoes disponiveis">
+  <section class="module-grid" aria-label="Aplicacoes disponiveis" data-i18n-aria-label="dashboard.available">
     ${moduleCards}
   </section>
 </main>`,
@@ -214,26 +214,27 @@ const logoutPage = pageShell({
   body: '<main class="login-shell"><section class="login-panel"><h1>A terminar sessao...</h1><p class="login-copy">Aguarde um momento.</p></section></main>',
 }).replace('<body data-central-page="logout">', '<body class="login-page" data-central-page="logout">')
 
-const globalPage = ({ file, title, icon, eyebrow, copy, items }) => ({
+const globalPage = ({ file, key, title, icon, copy, items }) => ({
   file,
   html: pageShell({
     title: `${title} - Central MenteMovimento`,
     page: 'dashboard',
+    titleKey: `${key}.title`,
     body: `
 ${topbar()}
 <main class="global-shell">
   <section class="global-panel">
-    <p class="eyebrow">${eyebrow}</p>
+    <p class="eyebrow" data-i18n="global.eyebrow">Ferramenta global</p>
     <i data-lucide="${icon}"></i>
-    <h2>${title}</h2>
-    <p class="global-copy">${copy}</p>
+    <h2 data-i18n="${key}.title">${title}</h2>
+    <p class="global-copy" data-i18n="${key}.copy">${copy}</p>
     <div class="global-grid">
       ${items
         .map(
-          ([itemTitle, itemCopy]) => `
+          ([itemKey, itemTitle, itemCopy]) => `
       <article class="global-item">
-        <strong>${itemTitle}</strong>
-        <p>${itemCopy}</p>
+        <strong data-i18n="${key}.${itemKey}.title">${itemTitle}</strong>
+        <p data-i18n="${key}.${itemKey}.copy">${itemCopy}</p>
       </article>`,
         )
         .join('')}
@@ -559,38 +560,38 @@ await writeFile(path.join(publicDir, 'index.html'), dashboardPage)
 for (const page of [
   globalPage({
     file: 'historico.html',
+    key: 'global.history',
     title: 'Historico geral',
     icon: 'history',
-    eyebrow: 'Ferramenta global',
     copy: 'Registo comum de alteracoes feitas nos ramos de socios, utentes e dispositivos.',
     items: [
-      ['Socios', 'Alteracoes em fichas e quotas.'],
-      ['Utentes', 'Alteracoes em fichas, separadores e anexos.'],
-      ['Dispositivos', 'Alteracoes em listagens, reparacoes, estados, anexos e CSV.'],
+      ['socios', 'Socios', 'Alteracoes em fichas e quotas.'],
+      ['utentes', 'Utentes', 'Alteracoes em fichas, separadores e anexos.'],
+      ['dispositivos', 'Dispositivos', 'Alteracoes em listagens, reparacoes, estados, anexos e CSV.'],
     ],
   }),
   globalPage({
     file: 'utilizadores.html',
+    key: 'global.users',
     title: 'Utilizadores e permissoes',
     icon: 'users-round',
-    eyebrow: 'Ferramenta global',
     copy: 'Gestao unica de administradores, utilizadores e acessos a cada ramo.',
     items: [
-      ['Administrador', 'Acesso total a central.'],
-      ['Gestor de ramo', 'Acesso limitado a socios, utentes ou dispositivos.'],
-      ['Consulta', 'Acesso so de leitura quando necessario.'],
+      ['admin', 'Administrador', 'Acesso total a central.'],
+      ['manager', 'Gestor de ramo', 'Acesso limitado a socios, utentes ou dispositivos.'],
+      ['viewer', 'Consulta', 'Acesso so de leitura quando necessario.'],
     ],
   }),
   globalPage({
     file: 'manuais.html',
+    key: 'global.manuals',
     title: 'Manuais',
     icon: 'book-open',
-    eyebrow: 'Ferramenta global',
     copy: 'Area comum para consultar os manuais dos tres ramos e os manuais tecnicos.',
     items: [
-      ['Manual de socios', 'Quotas, exportacoes e gestao de socios.'],
-      ['Manual de utentes', 'Fichas, separadores, anexos PDF, genograma e ecomapa.'],
-      ['Manual de dispositivos', 'Reparacoes, estados, estatisticas, anexos e CSV.'],
+      ['socios', 'Manual de socios', 'Quotas, exportacoes e gestao de socios.'],
+      ['utentes', 'Manual de utentes', 'Fichas, separadores, anexos PDF, genograma e ecomapa.'],
+      ['dispositivos', 'Manual de dispositivos', 'Reparacoes, estados, estatisticas, anexos e CSV.'],
     ],
   }),
 ]) {

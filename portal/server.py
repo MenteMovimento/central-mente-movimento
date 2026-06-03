@@ -39,18 +39,18 @@ SESSION_SECONDS = 12 * 60 * 60
 MODULES = [
     {
         "id": "socios",
-        "name": "Gestão de Sócios",
-        "label": "Sócios",
+        "name": "Gest?o de S?cios",
+        "label": "S?cios",
         "path": "/area/socios",
         "schema": "socios",
         "icon": "id-card",
         "accent": "green",
-        "detail": "Base de sócios",
+        "detail": "Base de s?cios",
         "table": "members",
     },
     {
         "id": "utentes",
-        "name": "Gestão de Utentes",
+        "name": "Gest?o de Utentes",
         "label": "Utentes",
         "path": "/area/utentes",
         "schema": "utentes",
@@ -61,7 +61,7 @@ MODULES = [
     },
     {
         "id": "dispositivos",
-        "name": "Gestão de Dispositivos",
+        "name": "Gest?o de Dispositivos",
         "label": "Dispositivos",
         "path": "/area/dispositivos",
         "schema": "dispositivos",
@@ -580,13 +580,13 @@ def module_cards():
             <article class="module-card module-{html.escape(module["accent"])}" data-module-card="{html.escape(module["id"])}">
               <div class="module-topline">
                 <span class="module-icon" aria-hidden="true"><i data-lucide="{html.escape(module["icon"])}"></i></span>
-                <span class="status-chip status-online" data-module-status="{html.escape(module["id"])}">Integrado</span>
+                <span class="status-chip status-online" data-module-status="{html.escape(module["id"])}" data-status-kind="integrated">Integrado</span>
               </div>
-              <h2>{html.escape(module["label"])}</h2>
-              <p>{html.escape(module["detail"])}</p>
+              <h2 data-i18n="module.{html.escape(module["id"])}.title">{html.escape(module["label"])}</h2>
+              <p data-i18n="module.{html.escape(module["id"])}.detail">{html.escape(module["detail"])}</p>
               <a class="module-action" href="{path}">
                 <i data-lucide="arrow-right"></i>
-                <span>Entrar na área</span>
+                <span data-i18n="module.enter">Entrar na area</span>
               </a>
             </article>
             """
@@ -602,7 +602,7 @@ def topbar(active_id=""):
             f"""
             <a class="topnav-link{active}" href="{html.escape(module["path"], quote=True)}">
               <i data-lucide="{html.escape(module["icon"])}"></i>
-              <span>{html.escape(module["label"])}</span>
+              <span data-i18n="nav.{html.escape(module["id"])}">{html.escape(module["label"])}</span>
             </a>
             """
         )
@@ -619,38 +619,38 @@ def topbar(active_id=""):
             <p>{html.escape(CENTRAL_EMAIL)}</p>
           </div>
         </a>
-        <nav class="topnav" aria-label="Áreas principais">
+        <nav class="topnav" aria-label="Areas principais" data-i18n-aria-label="nav.areas">
           {''.join(area_links)}
         </nav>
-        <div class="global-actions" aria-label="Ferramentas globais">
+        <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
           <details class="global-menu-wrap">
-            <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu">
+            <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
               <i data-lucide="menu"></i>
             </summary>
             <div class="global-tools-menu" role="menu">
               <a class="menu-item" href="/historico" role="menuitem">
                 <i data-lucide="history"></i>
-                <span>Histórico geral</span>
+                <span data-i18n="menu.historyFull">Historico geral</span>
               </a>
               <a class="menu-item" href="/utilizadores" role="menuitem">
                 <i data-lucide="users-round"></i>
-                <span>Utilizadores</span>
+                <span data-i18n="menu.users">Utilizadores</span>
               </a>
               <a class="menu-item" href="/manuais" role="menuitem">
                 <i data-lucide="book-open"></i>
-                <span>Manuais</span>
+                <span data-i18n="menu.manuals">Manuais</span>
               </a>
               <button class="menu-item" type="button" data-language-toggle role="menuitem">
                 <i data-lucide="languages"></i>
-                <span>Idioma</span>
+                <span data-i18n="menu.language">Idioma</span>
               </button>
               <button class="menu-item" type="button" data-theme-toggle role="menuitem">
                 <i data-lucide="moon"></i>
-                <span>Tema escuro</span>
+                <span data-i18n="menu.dark">Tema escuro</span>
               </button>
             </div>
           </details>
-          <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão">
+          <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
             <i data-lucide="log-out"></i>
           </a>
         </div>
@@ -667,7 +667,7 @@ def module_nav(active_id):
             f"""
             <a class="area-nav-link{active}" href="{html.escape(module["path"], quote=True)}">
               <i data-lucide="{html.escape(module["icon"])}"></i>
-              <span>{html.escape(module["label"])}</span>
+              <span data-i18n="nav.{html.escape(module["id"])}">{html.escape(module["label"])}</span>
             </a>
             """
         )
@@ -677,9 +677,9 @@ def module_nav(active_id):
 def area_panels(module):
     labels_by_module = {
         "socios": [
-            ("Gestão de sócios", "id-card"),
+            ("Gest?o de s?cios", "id-card"),
             ("Quotas", "calendar-check"),
-            ("Exportações", "download"),
+            ("Exporta??es", "download"),
         ],
         "utentes": [
             ("Fichas", "clipboard-list"),
@@ -689,9 +689,9 @@ def area_panels(module):
         ],
         "dispositivos": [
             ("Listagem", "table-2"),
-            ("Reparações", "wrench"),
+            ("Repara??es", "wrench"),
             ("Estados", "list-checks"),
-            ("Estatísticas", "bar-chart-3"),
+            ("Estat?sticas", "bar-chart-3"),
             ("Anexos", "paperclip"),
             ("CSV", "file-spreadsheet"),
         ],
@@ -715,36 +715,36 @@ def find_module(area_id):
 
 GLOBAL_PAGES = {
     "historico": {
-        "title": "Histórico geral",
+        "title": "Hist?rico geral",
         "icon": "history",
         "eyebrow": "Ferramenta global",
-        "body": "Registo comum de alterações feitas nos ramos de sócios, utentes e dispositivos.",
+        "body": "Registo comum de altera??es feitas nos ramos de s?cios, utentes e dispositivos.",
         "items": [
-            ("Sócios", "Alterações em fichas e quotas."),
-            ("Utentes", "Alterações em fichas, separadores e anexos."),
-            ("Dispositivos", "Alterações em listagens, reparações, estados, anexos e CSV."),
+            ("S?cios", "Altera??es em fichas e quotas."),
+            ("Utentes", "Altera??es em fichas, separadores e anexos."),
+            ("Dispositivos", "Altera??es em listagens, repara??es, estados, anexos e CSV."),
         ],
     },
     "utilizadores": {
-        "title": "Utilizadores e permissões",
+        "title": "Utilizadores e permiss?es",
         "icon": "users-round",
         "eyebrow": "Ferramenta global",
-        "body": "Gestão única de administradores, utilizadores e acessos a cada ramo.",
+        "body": "Gest?o ?nica de administradores, utilizadores e acessos a cada ramo.",
         "items": [
-            ("Administrador", "Acesso total à central."),
-            ("Gestor de ramo", "Acesso limitado a sócios, utentes ou dispositivos."),
-            ("Consulta", "Acesso só de leitura quando necessário."),
+            ("Administrador", "Acesso total ? central."),
+            ("Gestor de ramo", "Acesso limitado a s?cios, utentes ou dispositivos."),
+            ("Consulta", "Acesso s? de leitura quando necess?rio."),
         ],
     },
     "manuais": {
         "title": "Manuais",
         "icon": "book-open",
         "eyebrow": "Ferramenta global",
-        "body": "Área comum para consultar os manuais dos três ramos e os manuais técnicos.",
+        "body": "?rea comum para consultar os manuais dos tr?s ramos e os manuais t?cnicos.",
         "items": [
-            ("Manual de sócios", "Quotas, exportações e gestão de sócios."),
+            ("Manual de s?cios", "Quotas, exporta??es e gest?o de s?cios."),
             ("Manual de utentes", "Fichas, separadores, anexos PDF, genograma e ecomapa."),
-            ("Manual de dispositivos", "Reparações, estados, estatísticas, anexos e CSV."),
+            ("Manual de dispositivos", "Repara??es, estados, estat?sticas, anexos e CSV."),
         ],
     },
 }
@@ -807,7 +807,7 @@ class PortalHandler(BaseHTTPRequestHandler):
 
         if request_path == "/api/status":
             if not self.is_authenticated():
-                self.send_json({"error": "Não autenticado"}, status=401)
+                self.send_json({"error": "N?o autenticado"}, status=401)
                 return
             statuses = []
             for module in MODULES:
@@ -879,7 +879,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             area_id = request_path.removeprefix("/area/").strip("/")
             module = find_module(area_id)
             if not module:
-                self.send_error(404, "Área não encontrada")
+                self.send_error(404, "?rea n?o encontrada")
                 return
             self.send_html(
                 render_template(
@@ -917,7 +917,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             )
             return
 
-        self.send_error(404, "Página não encontrada")
+        self.send_error(404, "P?gina n?o encontrada")
 
     def do_POST(self):
         request_path = self.path.split("?", 1)[0]
@@ -942,7 +942,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             return
 
         if request_path != "/login":
-            self.send_error(404, "Página não encontrada")
+            self.send_error(404, "P?gina n?o encontrada")
             return
 
         length = int(self.headers.get("Content-Length", "0") or "0")
@@ -957,7 +957,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_html(
                 render_template(
                     "login.html",
-                    ERROR='<p class="form-error">Credenciais inválidas.</p>',
+                    ERROR='<p class="form-error">Credenciais inv?lidas.</p>',
                     EMAIL=html.escape(email, quote=True),
                     NEXT=html.escape(next_path, quote=True),
                 ),
@@ -1113,7 +1113,7 @@ class PortalHandler(BaseHTTPRequestHandler):
                 render_template(
                     "area.html",
                     TOPBAR=topbar("utentes"),
-                    AREA_NAME="Gestão de Utentes",
+                    AREA_NAME="Gest?o de Utentes",
                     AREA_LABEL="Utentes",
                     AREA_DETAIL=html.escape(str(error)),
                     AREA_ICON="heart-handshake",
@@ -1121,7 +1121,7 @@ class PortalHandler(BaseHTTPRequestHandler):
                     AREA_SCHEMA="utentes",
                     AREA_TABLE="utentes",
                     AREA_NAV=module_nav("utentes"),
-                    AREA_PANELS='<p class="muted">A app de Utentes ainda não arrancou. Tenta reiniciar com .\\start-local.ps1.</p>',
+                    AREA_PANELS='<p class="muted">A app de Utentes ainda n?o arrancou. Tenta reiniciar com .\\start-local.ps1.</p>',
                 ),
                 status=503,
             )
@@ -1162,7 +1162,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             data = response.read()
             response_headers = response.getheaders()
         except OSError:
-            self.send_error(503, "A app local de Utentes não está ligada")
+            self.send_error(503, "A app local de Utentes n?o est? ligada")
             return
         finally:
             try:
@@ -1225,9 +1225,9 @@ class PortalHandler(BaseHTTPRequestHandler):
                 render_template(
                     "area.html",
                     TOPBAR=topbar("dispositivos"),
-                    AREA_NAME="Gestão de Dispositivos",
+                    AREA_NAME="Gest?o de Dispositivos",
                     AREA_LABEL="Dispositivos",
-                    AREA_DETAIL="O módulo de Dispositivos ainda não está ligado. Reinicie com .\\start-local.ps1.",
+                    AREA_DETAIL="O m?dulo de Dispositivos ainda n?o est? ligado. Reinicie com .\\start-local.ps1.",
                     AREA_ICON="monitor-cog",
                     AREA_ACCENT="amber",
                     AREA_SCHEMA="dispositivos",
@@ -1262,10 +1262,10 @@ class PortalHandler(BaseHTTPRequestHandler):
         requested = (STATIC_DIR / raw_path).resolve()
         static_root = STATIC_DIR.resolve()
         if static_root not in requested.parents and requested != static_root:
-            self.send_error(404, "Ficheiro não encontrado")
+            self.send_error(404, "Ficheiro n?o encontrado")
             return
         if not requested.is_file():
-            self.send_error(404, "Ficheiro não encontrado")
+            self.send_error(404, "Ficheiro n?o encontrado")
             return
         content_type = with_charset(mimetypes.guess_type(str(requested))[0] or "application/octet-stream")
         data = requested.read_bytes()
@@ -1283,10 +1283,10 @@ class PortalHandler(BaseHTTPRequestHandler):
         requested = (root / raw_path).resolve()
         module_root = root.resolve()
         if module_root not in requested.parents and requested != module_root:
-            self.send_error(404, "Ficheiro não encontrado")
+            self.send_error(404, "Ficheiro n?o encontrado")
             return
         if not requested.is_file():
-            self.send_error(404, "Ficheiro não encontrado")
+            self.send_error(404, "Ficheiro n?o encontrado")
             return
         content_type = with_charset(mimetypes.guess_type(str(requested))[0] or "application/octet-stream")
         data = requested.read_bytes()

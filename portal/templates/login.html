@@ -9,30 +9,30 @@
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/app.js" defer></script>
   </head>
-  <body class="login-page">
+  <body class="login-page" data-central-page="login">
     <main class="login-shell">
       <section class="login-panel" aria-labelledby="loginTitle">
         <div class="brand-line">
           <span class="brand-symbol" aria-hidden="true"><i data-lucide="shield-check"></i></span>
-          <span>Central MenteMovimento</span>
+          <span data-i18n="app.title">Central MenteMovimento</span>
         </div>
-        <h1 id="loginTitle">Entrar</h1>
-        <p class="login-copy">Acesso reservado à gestão da associação.</p>
+        <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
+        <p class="login-copy" data-i18n="login.copy">Acesso reservado a gestao da associacao.</p>
 
         <form class="login-form" method="post" action="/login">
           <input name="next" type="hidden" value="{{NEXT}}" />
           <label class="field" for="email">
-            <span>Email</span>
+            <span data-i18n="login.email">Email</span>
             <input id="email" name="email" type="email" autocomplete="email" value="{{EMAIL}}" required />
           </label>
           <label class="field" for="password">
-            <span>Password</span>
+            <span data-i18n="login.password">Password</span>
             <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
           </label>
           {{ERROR}}
           <button class="primary-button" type="submit">
             <i data-lucide="log-in"></i>
-            <span>Entrar</span>
+            <span data-i18n="login.submit">Entrar</span>
           </button>
         </form>
       </section>

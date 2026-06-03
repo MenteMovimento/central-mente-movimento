@@ -12,7 +12,7 @@
     <script src="/static/app.js" defer></script>
     <script src="/static/central-auth.js" defer></script>
   </head>
-  <body data-central-page="dashboard">
+  <body data-central-page="dashboard" data-title-key="global.history.title">
     
 
 <header class="topbar">
@@ -26,49 +26,49 @@
         <p data-user-email>Administrador</p>
       </div>
     </a>
-    <nav class="topnav" aria-label="Areas principais">
+    <nav class="topnav" aria-label="Areas principais" data-i18n-aria-label="nav.areas">
       <a class="topnav-link" href="/area/socios/">
         <i data-lucide="id-card"></i>
-        <span>Socios</span>
+        <span data-i18n="nav.socios">Socios</span>
       </a>
       <a class="topnav-link" href="/area/utentes/">
         <i data-lucide="heart-handshake"></i>
-        <span>Utentes</span>
+        <span data-i18n="nav.utentes">Utentes</span>
       </a>
       <a class="topnav-link" href="/area/dispositivos/">
         <i data-lucide="monitor-cog"></i>
-        <span>Dispositivos</span>
+        <span data-i18n="nav.dispositivos">Dispositivos</span>
       </a>
     </nav>
-    <div class="global-actions" aria-label="Ferramentas globais">
+    <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
       <details class="global-menu-wrap">
-        <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu">
+        <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
           <a class="menu-item" href="/utilizadores" role="menuitem">
             <i data-lucide="users-round"></i>
-            <span>Utilizadores</span>
+            <span data-i18n="menu.users">Utilizadores</span>
           </a>
           <a class="menu-item" href="/historico" role="menuitem">
             <i data-lucide="history"></i>
-            <span>Historico</span>
+            <span data-i18n="menu.history">Historico</span>
           </a>
           <a class="menu-item" href="/manuais" role="menuitem">
             <i data-lucide="book-open"></i>
-            <span>Manuais</span>
+            <span data-i18n="menu.manuals">Manuais</span>
           </a>
           <button class="menu-item" type="button" data-language-toggle role="menuitem">
             <i data-lucide="languages"></i>
-            <span>Idioma</span>
+            <span data-i18n="menu.language">Idioma</span>
           </button>
           <button class="menu-item" type="button" data-theme-toggle role="menuitem">
             <i data-lucide="moon"></i>
-            <span>Tema escuro</span>
+            <span data-i18n="menu.dark">Tema escuro</span>
           </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao">
+      <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
         <i data-lucide="log-out"></i>
       </a>
     </div>
@@ -76,23 +76,23 @@
 </header>
 <main class="global-shell">
   <section class="global-panel">
-    <p class="eyebrow">Ferramenta global</p>
+    <p class="eyebrow" data-i18n="global.eyebrow">Ferramenta global</p>
     <i data-lucide="history"></i>
-    <h2>Historico geral</h2>
-    <p class="global-copy">Registo comum de alteracoes feitas nos ramos de socios, utentes e dispositivos.</p>
+    <h2 data-i18n="global.history.title">Historico geral</h2>
+    <p class="global-copy" data-i18n="global.history.copy">Registo comum de alteracoes feitas nos ramos de socios, utentes e dispositivos.</p>
     <div class="global-grid">
       
       <article class="global-item">
-        <strong>Socios</strong>
-        <p>Alteracoes em fichas e quotas.</p>
+        <strong data-i18n="global.history.socios.title">Socios</strong>
+        <p data-i18n="global.history.socios.copy">Alteracoes em fichas e quotas.</p>
       </article>
       <article class="global-item">
-        <strong>Utentes</strong>
-        <p>Alteracoes em fichas, separadores e anexos.</p>
+        <strong data-i18n="global.history.utentes.title">Utentes</strong>
+        <p data-i18n="global.history.utentes.copy">Alteracoes em fichas, separadores e anexos.</p>
       </article>
       <article class="global-item">
-        <strong>Dispositivos</strong>
-        <p>Alteracoes em listagens, reparacoes, estados, anexos e CSV.</p>
+        <strong data-i18n="global.history.dispositivos.title">Dispositivos</strong>
+        <p data-i18n="global.history.dispositivos.copy">Alteracoes em listagens, reparacoes, estados, anexos e CSV.</p>
       </article>
     </div>
   </section>

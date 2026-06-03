@@ -1,0 +1,73 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 947 >>
+stream
+BT
+/F1 20 Tf
+72 780 Td
+(Manual do Programador - Utentes) Tj
+/F1 10 Tf
+0 -28 Td
+0 -14 Td
+/F1 13 Tf
+(Estrutura) Tj
+/F1 10 Tf
+0 -18 Td
+(- A area Utentes corre dentro de portal/modules/utentes no projeto central.) Tj
+0 -15 Td
+(- O handler Python serve paginas, anexos PDF, utilizadores, historico, idioma e tema.) Tj
+0 -15 Td
+0 -14 Td
+/F1 13 Tf
+(Publicacao) Tj
+/F1 10 Tf
+0 -18 Td
+(- Alterar localmente, testar build e publicar pelo GitHub para a Vercel atualizar.) Tj
+0 -15 Td
+(- Guardar variaveis sensiveis apenas na Vercel e nunca no codigo fonte.) Tj
+0 -15 Td
+0 -14 Td
+/F1 13 Tf
+(Supabase) Tj
+/F1 10 Tf
+0 -18 Td
+(- Usar tabelas separadas por ramo dentro do mesmo projeto.) Tj
+0 -15 Td
+(- Validar RLS, policies e migrations antes de migrar dados antigos.) Tj
+0 -15 Td
+0 -14 Td
+/F1 13 Tf
+(Verificacao) Tj
+/F1 10 Tf
+0 -18 Td
+(- Testar login, troca de abas, tema, idioma, historico, utilizadores e manuais depois de cada deploy) Tj
+0 -15 Td
+0 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000001183 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1309
+%%EOF

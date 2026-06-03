@@ -9,22 +9,22 @@
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/app.js" defer></script>
   </head>
-  <body>
+  <body data-central-page="dashboard">
     {{TOPBAR}}
 
     <main class="dashboard">
       <section class="dashboard-heading" aria-labelledby="dashboardTitle">
         <div>
-          <p class="eyebrow">Gestão da associação</p>
-          <h2 id="dashboardTitle">Escolhe a área de trabalho</h2>
+          <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestao da associacao</p>
+          <h2 id="dashboardTitle" data-i18n="dashboard.title">Escolhe a area de trabalho</h2>
         </div>
         <span class="session-chip">
           <i data-lucide="key-round"></i>
-          <span>Sessão única</span>
+          <span data-i18n="dashboard.session">Sessao unica</span>
         </span>
       </section>
 
-      <section class="module-grid" aria-label="Aplicações disponíveis">
+      <section class="module-grid" aria-label="Aplicacoes disponiveis" data-i18n-aria-label="dashboard.available">
         {{MODULE_CARDS}}
       </section>
     </main>

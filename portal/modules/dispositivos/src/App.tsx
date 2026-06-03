@@ -40,7 +40,6 @@ import {
   RefreshCw,
   Save,
   Search,
-  ShieldCheck,
   Sun,
   Trash2,
   Upload,
@@ -125,6 +124,7 @@ const authEmailCooldownSeconds = 60
 const authCooldownStorageKey = 'mentemovimento-auth-email-cooldowns'
 const languageStorageKey = 'mentemovimento-language'
 const centralLanguageStorageKey = 'central-language'
+const legacySociosLanguageStorageKey = 'socios-language'
 const themeStorageKey = 'central-theme'
 const legacySociosThemeStorageKey = 'socios-theme'
 const legacyDispositivosThemeStorageKey = 'mentemovimento-theme'
@@ -371,7 +371,7 @@ const manualSectionsByLanguage: Record<
     {
       title: '2. Criar um dispositivo',
       steps: [
-        'No painel Novo dispositivo, preenche pelo menos ID, Modelo e Nº Série.',
+        'No painel Novo dispositivo, preenche pelo menos ID, Modelo e N? S?rie.',
         'Usa as secoes Identificacao, Hardware e sistema, Diagnostico e reparacao, Configuracao e contas.',
         'Clica em Adicionar dispositivo para guardar na base de dados.',
       ],
@@ -389,8 +389,8 @@ const manualSectionsByLanguage: Record<
       steps: [
         'No Google Sheets, vai a Ficheiro > Transferir > Valores separados por virgulas (.csv).',
         'No site, clica em Importar CSV e escolhe o ficheiro exportado.',
-        'A importacao usa o Nº Série para atualizar dispositivos existentes sem duplicar.',
-        'As colunas principais esperadas sao ID, Data Entrada, Marca, Modelo, Nº Série, CPU, RAM, Disco, Estado e Observacoes.',
+        'A importacao usa o N? S?rie para atualizar dispositivos existentes sem duplicar.',
+        'As colunas principais esperadas sao ID, Data Entrada, Marca, Modelo, N? S?rie, CPU, RAM, Disco, Estado e Observacoes.',
       ],
     },
     {
@@ -595,11 +595,13 @@ const translations = {
     authTabLabel: 'Autenticacao',
     back: 'Voltar',
     cancel: 'Cancelar',
+    clear: 'Limpar',
     closeManual: 'Fechar manual',
     confirmEmailTitle: 'Email por confirmar',
     created: 'Criado',
     createAccount: 'Criar conta',
     createUser: 'Criar utilizador',
+    currentUserLabel: 'Atual',
     currentPermission: 'Permissao atual',
     dashboardAccess: 'Acesso interno da associacao',
     darkTheme: 'Tema escuro',
@@ -615,6 +617,7 @@ const translations = {
     edit: 'Editar',
     editDevice: 'Editar dispositivo',
     editName: 'Editar nome',
+    editUser: 'Editar utilizador',
     email: 'Email',
     exportCsv: 'Exportar CSV',
     exportData: 'Exportar',
@@ -624,10 +627,21 @@ const translations = {
     formIdentification: 'Identificacao',
     help: 'Ajuda',
     history: 'Historico',
+    historyAction: 'Acao',
+    historyDate: 'Data',
+    historyDetails: 'Detalhes',
+    historyEmptyText: 'Quando forem feitas alteracoes aos dispositivos, elas aparecem aqui.',
+    historyEmptyTitle: 'Sem alteracoes registadas',
+    historySubject: 'Dispositivo',
+    historySubtitle: 'Registo das alteracoes feitas aos dispositivos.',
+    historyTitle: 'Historico de alteracoes',
+    historyUser: 'Alterado por',
     importCsv: 'Importar CSV',
+    chooseUserToEdit: 'Escolha um utilizador na lista para editar.',
     moduleHint: 'Escolhe a area que queres usar.',
     moduleQuickAccess: 'Acesso rapido',
     language: 'Idioma',
+    languageSubtitle: 'Escolha o idioma da aplicacao neste browser.',
     lightTheme: 'Tema claro',
     loading: 'A carregar',
     loadingUsers: 'A carregar utilizadores',
@@ -662,11 +676,13 @@ const translations = {
     search: 'Pesquisar',
     signIn: 'Entrar',
     signOut: 'Sair',
+    systemUser: 'Sistema',
     sortAscending: 'Ordenacao crescente',
     sortBy: 'Ordenar por',
     sortDescending: 'Ordenacao decrescente',
     sortDirection: 'Direcao',
     statistics: 'Estatisticas',
+    status: 'Estado',
     storageSetupRequired:
       'Para anexos e historico, executa supabase/feature-upgrades.sql no SQL Editor do Supabase.',
     temporaryPassword: 'Palavra-passe temporaria',
@@ -680,6 +696,7 @@ const translations = {
     usersNote:
       'Cria utilizadores nesta area. Todas as contas novas ficam como Administrador e prontas para entrar com a palavra-passe definida.',
     usersNoteCreate: 'As novas contas ficam automaticamente com acesso de administrador.',
+    userIdAuto: 'O ID e criado automaticamente no Supabase Auth.',
     visibleRecords: 'registos visiveis',
     readOnlyAccount: 'Esta conta tem acesso de leitura.',
     accountCreated: 'Conta criada com sucesso.',
@@ -729,9 +746,9 @@ const translations = {
     changePermissionFor: (name: string) => `Alterar permissao de ${name}`,
     csvImported: (count: number) => `${count} dispositivos importados do CSV.`,
     csvImportedUpdated: (count: number) => `${count} dispositivos importados/atualizados.`,
-    csvLineRequired: (row: number) => `Linha ${row}: ID, Nº Série e Modelo sao obrigatorios.`,
-    duplicateSerialFound: (serial: string) => `Ja existe um dispositivo com o Nº Série ${serial}.`,
-    duplicateSerialInCsv: (serial: string) => `O Nº Série ${serial} aparece mais do que uma vez no CSV.`,
+    csvLineRequired: (row: number) => `Linha ${row}: ID, N? S?rie e Modelo sao obrigatorios.`,
+    duplicateSerialFound: (serial: string) => `Ja existe um dispositivo com o N? S?rie ${serial}.`,
+    duplicateSerialInCsv: (serial: string) => `O N? S?rie ${serial} aparece mais do que uma vez no CSV.`,
     deleteAllConfirm: (count: number) =>
       `Vais apagar TODOS os ${count} dispositivos. Esta acao nao pode ser desfeita. Continuar?`,
     deleteOne: (name: string) => `Apagar "${name}"?`,
@@ -756,11 +773,13 @@ const translations = {
     authTabLabel: 'Authentication',
     back: 'Back',
     cancel: 'Cancel',
+    clear: 'Clear',
     closeManual: 'Close manual',
     confirmEmailTitle: 'Email not confirmed',
     created: 'Created',
     createAccount: 'Create account',
     createUser: 'Create user',
+    currentUserLabel: 'Current',
     currentPermission: 'Current permission',
     dashboardAccess: 'Internal association access',
     darkTheme: 'Dark theme',
@@ -776,6 +795,7 @@ const translations = {
     edit: 'Edit',
     editDevice: 'Edit device',
     editName: 'Edit name',
+    editUser: 'Edit user',
     email: 'Email',
     exportCsv: 'Export CSV',
     exportData: 'Export',
@@ -785,10 +805,21 @@ const translations = {
     formIdentification: 'Identification',
     help: 'Help',
     history: 'History',
+    historyAction: 'Action',
+    historyDate: 'Date',
+    historyDetails: 'Details',
+    historyEmptyText: 'When device changes are made, they appear here.',
+    historyEmptyTitle: 'No changes recorded',
+    historySubject: 'Device',
+    historySubtitle: 'Record of the changes made to devices.',
+    historyTitle: 'Change history',
+    historyUser: 'Changed by',
     importCsv: 'Import CSV',
+    chooseUserToEdit: 'Choose a user in the list to edit.',
     moduleHint: 'Choose the area you want to use.',
     moduleQuickAccess: 'Quick access',
     language: 'Language',
+    languageSubtitle: 'Choose the application language in this browser.',
     lightTheme: 'Light theme',
     loading: 'Loading',
     loadingUsers: 'Loading users',
@@ -823,11 +854,13 @@ const translations = {
     search: 'Search',
     signIn: 'Sign in',
     signOut: 'Sign out',
+    systemUser: 'System',
     sortAscending: 'Ascending order',
     sortBy: 'Sort by',
     sortDescending: 'Descending order',
     sortDirection: 'Direction',
     statistics: 'Statistics',
+    status: 'Status',
     storageSetupRequired:
       'For attachments and history, run supabase/feature-upgrades.sql in the Supabase SQL Editor.',
     temporaryPassword: 'Temporary password',
@@ -841,6 +874,7 @@ const translations = {
     usersNote:
       'Create users in this area. All new accounts are Administrators and ready to sign in with the defined password.',
     usersNoteCreate: 'New accounts automatically get administrator access.',
+    userIdAuto: 'The ID is created automatically in Supabase Auth.',
     visibleRecords: 'visible records',
     readOnlyAccount: 'This account has read-only access.',
     accountCreated: 'Account created successfully.',
@@ -913,38 +947,38 @@ const repairLabelTranslations: Record<AppLanguage, Record<string, string>> = {
     'Data Entrada': 'Entry Date',
     Marca: 'Brand',
     Modelo: 'Model',
-    'Nº Série': 'Serial No.',
+    'N? S?rie': 'Serial No.',
     'RAM (GB)': 'RAM (GB)',
     Disco: 'Disk',
     'Sistema Operativo': 'Operating System',
     Liga: 'Powers On',
-    'Dá Imagem': 'Has Image',
-    'Estado Físico': 'Physical State',
+    'D? Imagem': 'Has Image',
+    'Estado F?sico': 'Physical State',
     'Necessita Limpeza': 'Needs Cleaning',
     Avaria: 'Fault',
-    Diagnóstico: 'Diagnosis',
-    'Peças Necessárias': 'Parts Needed',
+    Diagn?stico: 'Diagnosis',
+    'Pe?as Necess?rias': 'Parts Needed',
     'Custo Estimado': 'Estimated Cost',
     'Tempo Estimado (min)': 'Estimated Time (min)',
-    Técnico: 'Technician',
+    T?cnico: 'Technician',
     Estado: 'State',
     'Resultado Final': 'Final Result',
     'credencial administrador': 'administrator credential',
     privilegio: 'privilege',
     chrocme: 'chrome',
-    aplicação: 'application',
-    'data copia de segurança': 'backup date',
+    aplica??o: 'application',
+    'data copia de seguran?a': 'backup date',
     'USB bloqueada': 'USB blocked',
     'Conta GD': 'GD Account',
-    'data copia de segurança Google Drive': 'Google Drive backup date',
+    'data copia de seguran?a Google Drive': 'Google Drive backup date',
     'Rastrear todas as contas GD e gmail e verificar acessos de partilha':
       'Track all GD and Gmail accounts and sharing access',
     'Unifiormizar o desktop': 'Standardize desktop',
-    'App estimulação cognmitiva': 'Cognitive stimulation app',
-    Observações: 'Notes',
+    'App estimula??o cognmitiva': 'Cognitive stimulation app',
+    Observa??es: 'Notes',
     'Hardware e sistema': 'Hardware and system',
-    'Diagnóstico e reparação': 'Diagnosis and repair',
-    'Configuração e contas': 'Configuration and accounts',
+    'Diagn?stico e repara??o': 'Diagnosis and repair',
+    'Configura??o e contas': 'Configuration and accounts',
   },
 }
 
@@ -1374,6 +1408,7 @@ function App() {
     document.documentElement.lang = language === 'pt' ? 'pt-PT' : 'en'
     window.localStorage.setItem(centralLanguageStorageKey, language)
     window.localStorage.setItem(languageStorageKey, language)
+    window.localStorage.setItem(legacySociosLanguageStorageKey, language)
   }, [language])
 
   useEffect(() => {
@@ -1389,6 +1424,21 @@ function App() {
 
     window.addEventListener('storage', syncGlobalTheme)
     return () => window.removeEventListener('storage', syncGlobalTheme)
+  }, [])
+
+  useEffect(() => {
+    const syncGlobalLanguage = (event: StorageEvent) => {
+      if (
+        event.key === centralLanguageStorageKey ||
+        event.key === languageStorageKey ||
+        event.key === legacySociosLanguageStorageKey
+      ) {
+        setLanguage(event.newValue === 'en' ? 'en' : 'pt')
+      }
+    }
+
+    window.addEventListener('storage', syncGlobalLanguage)
+    return () => window.removeEventListener('storage', syncGlobalLanguage)
   }, [])
 
   useEffect(() => {
@@ -2520,7 +2570,7 @@ function App() {
           <h1>${escapeHtml(t.appTitle)}</h1>
           <p>${escapeHtml(t.printReport)} - ${escapeHtml(generatedAt)} - ${filteredDevices.length} ${escapeHtml(t.visibleRecords)}</p>
           <table>
-            <thead><tr><th>ID</th><th>${escapeHtml(translateRepairLabel('Marca'))}</th><th>${escapeHtml(translateRepairLabel('Modelo'))}</th><th>${escapeHtml(translateRepairLabel('Nº Série'))}</th><th>CPU</th><th>${escapeHtml(translateRepairLabel('Estado'))}</th><th>${escapeHtml(translateRepairLabel('Avaria'))}</th></tr></thead>
+            <thead><tr><th>ID</th><th>${escapeHtml(translateRepairLabel('Marca'))}</th><th>${escapeHtml(translateRepairLabel('Modelo'))}</th><th>${escapeHtml(translateRepairLabel('N? S?rie'))}</th><th>CPU</th><th>${escapeHtml(translateRepairLabel('Estado'))}</th><th>${escapeHtml(translateRepairLabel('Avaria'))}</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </body>
@@ -2550,6 +2600,10 @@ function App() {
     setSortColumn(columnKey)
     setSortDirection('asc')
   }
+
+  const selectedProfileForEdit = editingProfileId
+    ? (profiles.find((userProfile) => userProfile.id === editingProfileId) ?? null)
+    : null
 
   const appControls = (
     <div className="app-controls" aria-label={t.displaySettings}>
@@ -2601,10 +2655,8 @@ function App() {
       >
         <header className="manual-header">
           <div>
-            <p className="manual-kicker">
-              {manualMode === 'choice' ? t.manualChoiceSubtitle : t.help}
-            </p>
             <h2 id="manual-title">{manualDialogTitle}</h2>
+            <p>{manualMode === 'choice' ? t.manualChoiceSubtitle : t.help}</p>
           </div>
           <button
             type="button"
@@ -2619,10 +2671,11 @@ function App() {
         <div className="manual-body">
           {manualMode === 'choice' ? (
             <div className="manual-options">
-              <button
-                type="button"
+              <a
                 className="manual-card"
-                onClick={() => setManualMode('user')}
+                href="docs/Manual_Utilizador_Dispositivos.pdf"
+                target="_blank"
+                rel="noopener"
               >
                 <span className="manual-card-icon" aria-hidden="true">
                   <UsersRound />
@@ -2631,11 +2684,12 @@ function App() {
                   <strong>{t.manualUserTitle}</strong>
                   <span>{t.manualUserDescription}</span>
                 </span>
-              </button>
-              <button
-                type="button"
+              </a>
+              <a
                 className="manual-card"
-                onClick={() => setManualMode('developer')}
+                href="docs/Manual_Programador_Dispositivos.pdf"
+                target="_blank"
+                rel="noopener"
               >
                 <span className="manual-card-icon" aria-hidden="true">
                   <FileText />
@@ -2644,7 +2698,7 @@ function App() {
                   <strong>{t.manualDeveloperTitle}</strong>
                   <span>{t.manualDeveloperDescription}</span>
                 </span>
-              </button>
+              </a>
             </div>
           ) : (
             <>
@@ -2687,39 +2741,84 @@ function App() {
       >
         <header className="manual-header">
           <div>
-            <p className="manual-kicker">{t.history}</p>
-            <h2 id="global-history-title">{t.history}</h2>
+            <h2 id="global-history-title">{t.historyTitle}</h2>
+            <p>{t.historySubtitle}</p>
           </div>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={() => setIsHistoryDialogOpen(false)}
-            title={t.closeManual}
-            aria-label={t.closeManual}
-          >
-            <X aria-hidden="true" />
-          </button>
+          <div className="dialog-head-actions">
+            <button
+              type="button"
+              className="ghost-action"
+              onClick={() => void refreshGlobalHistory()}
+              disabled={isGlobalHistoryLoading}
+            >
+              {isGlobalHistoryLoading ? (
+                <Loader2 className="spin" aria-hidden="true" />
+              ) : (
+                <RefreshCw aria-hidden="true" />
+              )}
+              {t.refresh}
+            </button>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setIsHistoryDialogOpen(false)}
+              title={t.closeManual}
+              aria-label={t.closeManual}
+            >
+              <X aria-hidden="true" />
+            </button>
+          </div>
         </header>
-        <div className="manual-body">
+        <div className="manual-body history-dialog-body">
           {isGlobalHistoryLoading ? (
             <div className="loading-state">
               <Loader2 className="spin" aria-hidden="true" />
               {t.loading}
             </div>
           ) : globalHistoryEntries.length === 0 ? (
-            <p className="muted-note">{isDemoMode ? t.storageSetupRequired : t.noHistory}</p>
+            <div className="dialog-empty-state">
+              <History aria-hidden="true" />
+              <h3>{t.historyEmptyTitle}</h3>
+              <p>{isDemoMode ? t.storageSetupRequired : t.historyEmptyText}</p>
+            </div>
           ) : (
-            <ol className="history-list global-history-list">
-              {globalHistoryEntries.map((entry) => (
-                <li key={entry.id}>
-                  <strong>{entry.summary ?? entry.action}</strong>
-                  <span>
-                    {entry.device_name ?? entry.serial_number ?? t.devices} -{' '}
-                    {formatProfileDate(entry.created_at, language)}
-                  </span>
-                </li>
-              ))}
-            </ol>
+            <div className="dialog-table-wrap">
+              <table className="dialog-table">
+                <thead>
+                  <tr>
+                    <th>{t.historyDate}</th>
+                    <th>{t.historyAction}</th>
+                    <th>{t.historySubject}</th>
+                    <th>{t.historyUser}</th>
+                    <th>{t.historyDetails}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {globalHistoryEntries.map((entry) => {
+                    const author = entry.created_by
+                      ? profiles.find((profile) => profile.id === entry.created_by)
+                      : null
+                    const authorName =
+                      author?.full_name ?? author?.email ?? entry.created_by ?? t.systemUser
+
+                    return (
+                      <tr key={entry.id}>
+                        <td>{formatProfileDate(entry.created_at, language)}</td>
+                        <td>
+                          <span className="audit-action is-update">{entry.action}</span>
+                        </td>
+                        <td>
+                          <strong>{entry.device_name ?? entry.serial_number ?? t.devices}</strong>
+                          {entry.serial_number && <small>{entry.serial_number}</small>}
+                        </td>
+                        <td>{authorName}</td>
+                        <td>{entry.summary ?? '-'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </section>
@@ -2741,8 +2840,8 @@ function App() {
       >
         <header className="manual-header">
           <div>
-            <p className="manual-kicker">{t.language}</p>
             <h2 id="language-dialog-title">{t.language}</h2>
+            <p>{t.languageSubtitle}</p>
           </div>
           <button
             type="button"
@@ -2756,8 +2855,8 @@ function App() {
         </header>
         <div className="language-choice-list" role="group" aria-label={t.language}>
           {[
-            { value: 'pt' as AppLanguage, label: 'Portugues', region: 'Portugal' },
-            { value: 'en' as AppLanguage, label: 'English', region: 'United Kingdom' },
+            { value: 'pt' as AppLanguage, label: 'Portugues', region: 'Portugal', flag: '????' },
+            { value: 'en' as AppLanguage, label: 'English', region: 'United Kingdom', flag: '????' },
           ].map((option) => (
             <button
               key={option.value}
@@ -2768,7 +2867,7 @@ function App() {
                 setIsLanguageDialogOpen(false)
               }}
             >
-              <Languages aria-hidden="true" />
+              <span className="language-flag" aria-hidden="true">{option.flag}</span>
               <span>
                 <strong>{option.label}</strong>
                 <small>{option.region}</small>
@@ -3179,7 +3278,7 @@ function App() {
                   </label>
 
                   <label>
-                    {translateRepairLabel('Nº Série')}
+                    {translateRepairLabel('N? S?rie')}
                     <input
                       required
                       placeholder="Ex: PF-09UN6N"
@@ -3621,7 +3720,7 @@ function App() {
           <div className="analytics-grid">
             {[
               { title: t.mostCommonBrands, items: statistics.brands },
-              { title: translateRepairLabel('Técnico'), items: statistics.technicians },
+              { title: translateRepairLabel('T?cnico'), items: statistics.technicians },
               { title: translateRepairLabel('Avaria'), items: statistics.faults },
               { title: t.finalResults, items: statistics.finalResults },
             ].map((panel) => (
@@ -3648,9 +3747,7 @@ function App() {
           <div className="section-heading">
             <div>
               <h2 id="users-title">{t.users}</h2>
-              <p>
-                {profiles.length} {t.registeredProfiles}
-              </p>
+              <p>{t.usersModuleHint}</p>
             </div>
             <div className="section-heading-actions">
               <button
@@ -3678,20 +3775,23 @@ function App() {
             </div>
           </div>
 
-          <div className="users-note">
-            <ShieldCheck aria-hidden="true" />
-            <p>{t.usersNote}</p>
-          </div>
+          {authError && (
+            <p className="feedback error">
+              <CircleAlert size={18} aria-hidden="true" />
+              {authError}
+            </p>
+          )}
+          {notice && (
+            <p className="feedback success">
+              <CheckCircle2 size={18} aria-hidden="true" />
+              {notice}
+            </p>
+          )}
 
-          <form className="user-create-panel" onSubmit={createUser}>
-            <div className="user-create-heading">
-              <UserPlus aria-hidden="true" />
-              <div>
-                <h3>{t.createUser}</h3>
-                <p>{t.usersNoteCreate}</p>
-              </div>
-            </div>
-            <div className="user-create-form">
+          <div className="users-manager-grid">
+            <form className="user-create-panel" onSubmit={createUser}>
+              <h3>{t.createUser}</h3>
+              <p>{t.userIdAuto}</p>
               <label>
                 {t.name}
                 <input
@@ -3720,7 +3820,7 @@ function App() {
                 />
               </label>
               <label>
-                {t.temporaryPassword}
+                {t.password}
                 <input
                   required
                   minLength={6}
@@ -3734,33 +3834,89 @@ function App() {
                   }
                 />
               </label>
-              <div className="fixed-role-preview" aria-label={t.permission}>
-                <span>{t.permission}</span>
-                <strong>{localizedRoleLabels.admin}</strong>
-              </div>
-            </div>
-            <button className="primary-action" type="submit" disabled={isCreatingUser}>
-              {isCreatingUser ? (
-                <Loader2 className="spin" aria-hidden="true" />
-              ) : (
-                <UserPlus aria-hidden="true" />
-              )}
-              {t.createUser}
-            </button>
-          </form>
+              <label>
+                {t.permission}
+                <select value="admin" disabled>
+                  <option value="admin">{localizedRoleLabels.admin}</option>
+                </select>
+              </label>
+              <button className="primary-action" type="submit" disabled={isCreatingUser}>
+                {isCreatingUser ? (
+                  <Loader2 className="spin" aria-hidden="true" />
+                ) : (
+                  <UserPlus aria-hidden="true" />
+                )}
+                {t.createUser}
+              </button>
+            </form>
 
-          {authError && (
-            <p className="feedback error">
-              <CircleAlert size={18} aria-hidden="true" />
-              {authError}
-            </p>
-          )}
-          {notice && (
-            <p className="feedback success">
-              <CheckCircle2 size={18} aria-hidden="true" />
-              {notice}
-            </p>
-          )}
+            <form
+              className="user-create-panel"
+              onSubmit={(event) => {
+                event.preventDefault()
+                if (selectedProfileForEdit) void updateProfileName(selectedProfileForEdit)
+              }}
+            >
+              <h3>{t.editUser}</h3>
+              <p>{t.chooseUserToEdit}</p>
+              <label>
+                {t.name}
+                <input
+                  value={editingProfileName}
+                  disabled={!selectedProfileForEdit}
+                  onChange={(event) => setEditingProfileName(event.target.value)}
+                />
+              </label>
+              <label>
+                {t.email}
+                <input value={selectedProfileForEdit?.email ?? ''} disabled />
+              </label>
+              <label>
+                {t.permission}
+                <select
+                  value={selectedProfileForEdit?.role ?? 'member'}
+                  disabled={!selectedProfileForEdit || selectedProfileForEdit.id === currentProfileId}
+                  onChange={(event) => {
+                    if (selectedProfileForEdit) {
+                      void updateProfileRole(selectedProfileForEdit, event.target.value as Profile['role'])
+                    }
+                  }}
+                >
+                  {memberRoles.map((role) => (
+                    <option key={role} value={role}>
+                      {localizedRoleLabels[role]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="checkbox-inline">
+                <input type="checkbox" checked readOnly disabled />
+                {localizedStatusLabels.active}
+              </label>
+              <div className="user-form-actions">
+                <button
+                  type="button"
+                  className="ghost-action"
+                  onClick={cancelEditingProfileName}
+                  disabled={!selectedProfileForEdit}
+                >
+                  {t.clear}
+                </button>
+                <button
+                  className="primary-action"
+                  type="submit"
+                  disabled={!selectedProfileForEdit || savingProfileId === selectedProfileForEdit.id}
+                >
+                  {selectedProfileForEdit && savingProfileId === selectedProfileForEdit.id ? (
+                    <Loader2 className="spin" aria-hidden="true" />
+                  ) : (
+                    <Save aria-hidden="true" />
+                  )}
+                  {t.saveChanges}
+                </button>
+              </div>
+            </form>
+          </div>
 
           {isUsersLoading ? (
             <div className="loading-state">
@@ -3777,18 +3933,16 @@ function App() {
               <table className="users-table">
                 <thead>
                   <tr>
-                    <th>{t.users}</th>
-                    <th>{t.currentPermission}</th>
-                    <th>{t.updatePermission}</th>
-                    <th>{t.created}</th>
-                    <th>{t.updated}</th>
+                    <th>{t.name}</th>
+                    <th>{t.email}</th>
+                    <th>{t.permission}</th>
+                    <th>{t.status}</th>
                     <th>{t.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {profiles.map((userProfile) => {
                     const isCurrentProfile = userProfile.id === currentProfileId
-                    const isEditingName = editingProfileId === userProfile.id
                     const isSavingProfile = savingProfileId === userProfile.id
                     const isDeletingProfile = deletingProfileId === userProfile.id
                     const profileDisplayName = getProfileDisplayName(userProfile, t.noName)
@@ -3797,103 +3951,32 @@ function App() {
                       <tr key={userProfile.id}>
                         <td>
                           <div className="user-identity">
-                            {isEditingName ? (
-                              <div className="profile-name-editor">
-                                <input
-                                  value={editingProfileName}
-                                  onChange={(event) => setEditingProfileName(event.target.value)}
-                                  onKeyDown={(event) => {
-                                    if (event.key === 'Enter') {
-                                      event.preventDefault()
-                                      void updateProfileName(userProfile)
-                                    }
-
-                                    if (event.key === 'Escape') {
-                                      cancelEditingProfileName()
-                                    }
-                                  }}
-                                  aria-label={t.name}
-                                />
-                                <div className="profile-name-actions">
-                                  <button
-                                    type="button"
-                                    className="icon-button"
-                                    onClick={() => void updateProfileName(userProfile)}
-                                    disabled={isSavingProfile}
-                                    title={t.saveChanges}
-                                    aria-label={t.saveChanges}
-                                  >
-                                    {isSavingProfile ? (
-                                      <Loader2 className="spin" aria-hidden="true" />
-                                    ) : (
-                                      <Save aria-hidden="true" />
-                                    )}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="icon-button"
-                                    onClick={cancelEditingProfileName}
-                                    disabled={isSavingProfile}
-                                    title={t.cancel}
-                                    aria-label={t.cancel}
-                                  >
-                                    <X aria-hidden="true" />
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="profile-name-display">
-                                <strong>{profileDisplayName}</strong>
-                                <button
-                                  type="button"
-                                  className="icon-button"
-                                  onClick={() => startEditingProfileName(userProfile)}
-                                  disabled={isSavingProfile || isDeletingProfile}
-                                  title={t.editName}
-                                  aria-label={t.editName}
-                                >
-                                  <Edit3 aria-hidden="true" />
-                                </button>
-                              </div>
-                            )}
-                            {isCurrentProfile && <span>{t.thisIsYou}</span>}
-                            {userProfile.email && <small>{userProfile.email}</small>}
+                            <strong>{profileDisplayName}</strong>
+                            {isCurrentProfile && <span>{t.currentUserLabel}</span>}
                             <small>{userProfile.id}</small>
                           </div>
                         </td>
+                        <td>{userProfile.email ?? '-'}</td>
                         <td>
                           <span className={`role-badge role-${userProfile.role}`}>
                             {localizedRoleLabels[userProfile.role]}
                           </span>
                         </td>
                         <td>
-                          <div className="role-control">
-                            <select
-                              value={userProfile.role}
-                              onChange={(event) =>
-                                void updateProfileRole(
-                                  userProfile,
-                                  event.target.value as Profile['role'],
-                                )
-                              }
-                              disabled={isCurrentProfile || isSavingProfile || isDeletingProfile}
-                              aria-label={t.changePermissionFor(profileDisplayName)}
-                            >
-                              {memberRoles.map((role) => (
-                                <option key={role} value={role}>
-                                  {localizedRoleLabels[role]}
-                                </option>
-                              ))}
-                            </select>
-                            {isCurrentProfile && (
-                              <span className="role-helper">{t.protectedRole}</span>
-                            )}
-                          </div>
+                          <span className="status-pill is-active">{localizedStatusLabels.active}</span>
                         </td>
-                        <td>{formatProfileDate(userProfile.created_at, language)}</td>
-                        <td>{formatProfileDate(userProfile.updated_at, language)}</td>
                         <td>
                           <div className="row-actions">
+                            <button
+                              type="button"
+                              className="icon-button"
+                              onClick={() => startEditingProfileName(userProfile)}
+                              disabled={isSavingProfile || isDeletingProfile}
+                              title={t.editUser}
+                              aria-label={t.editUser}
+                            >
+                              <Edit3 aria-hidden="true" />
+                            </button>
                             <button
                               type="button"
                               className="icon-button danger"

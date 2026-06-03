@@ -1,0 +1,57 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 548 >>
+stream
+BT
+/F1 20 Tf
+72 780 Td
+(Programmer Manual - Service Users) Tj
+/F1 10 Tf
+0 -28 Td
+0 -14 Td
+/F1 13 Tf
+(Structure) Tj
+/F1 10 Tf
+0 -18 Td
+(- The Service Users area runs under portal/modules/utentes in the central project.) Tj
+0 -15 Td
+(- The Python handler serves pages, PDF attachments, users, history, language and theme.) Tj
+0 -15 Td
+0 -14 Td
+/F1 13 Tf
+(Deployment) Tj
+/F1 10 Tf
+0 -18 Td
+(- Test locally, push to GitHub and let Vercel create the deployment.) Tj
+0 -15 Td
+(- Keep secrets only in Vercel environment variables.) Tj
+0 -15 Td
+0 -14 Td
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000000784 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+910
+%%EOF
