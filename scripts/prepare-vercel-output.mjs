@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260605-socios-login-logo'
+const assetVersion = '20260605-login-menu-socios-import'
 
 const authPendingHead = `<script>
       (() => {
@@ -154,18 +154,10 @@ const topbar = (activeId = '') => `
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
-          <a class="menu-item" href="/utilizadores" role="menuitem">
+          <button class="menu-item" type="button" data-users-toggle role="menuitem">
             <i data-lucide="users-round"></i>
             <span data-i18n="menu.users">Utilizadores</span>
-          </a>
-          <a class="menu-item" href="/historico" role="menuitem">
-            <i data-lucide="history"></i>
-            <span data-i18n="menu.history">Histórico</span>
-          </a>
-          <a class="menu-item" href="/manuais" role="menuitem">
-            <i data-lucide="book-open"></i>
-            <span data-i18n="menu.manuals">Manuais</span>
-          </a>
+          </button>
           <button class="menu-item" type="button" data-language-toggle role="menuitem">
             <i data-lucide="languages"></i>
             <span data-i18n="menu.language">Idioma</span>
@@ -202,6 +194,112 @@ const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
   </body>
 </html>`
 
+const centralUsersDialog = `
+<dialog class="central-admin-dialog" id="centralUsersDialog">
+  <section class="central-admin-panel" aria-label="Utilizadores">
+    <div class="central-admin-head">
+      <div>
+        <h2 data-i18n="users.title">Utilizadores</h2>
+        <p data-i18n="users.subtitle">Crie acessos novos e edite permissões de utilizadores existentes.</p>
+      </div>
+      <div class="central-admin-actions">
+        <button class="secondary-button" id="centralRefreshUsersBtn" type="button">
+          <i data-lucide="refresh-cw"></i>
+          <span data-i18n="users.refresh">Atualizar</span>
+        </button>
+        <button class="icon-link" id="centralCloseUsersBtn" type="button" title="Fechar" aria-label="Fechar" data-i18n-title="language.close" data-i18n-aria-label="language.close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="central-admin-forms">
+      <form class="central-admin-form" id="centralCreateUserForm">
+        <div class="form-section-title">
+          <h3 data-i18n="users.createTitle">Criar utilizador</h3>
+          <p data-i18n="users.createHint">O ID é criado automaticamente no Supabase Auth.</p>
+        </div>
+        <label class="field" for="centralCreateUserName">
+          <span data-i18n="users.name">Nome</span>
+          <input id="centralCreateUserName" name="fullName" type="text" autocomplete="name" required />
+        </label>
+        <label class="field" for="centralCreateUserEmail">
+          <span data-i18n="login.email">Email</span>
+          <input id="centralCreateUserEmail" name="email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" for="centralCreateUserPassword">
+          <span data-i18n="login.password">Password</span>
+          <input id="centralCreateUserPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        </label>
+        <label class="field" for="centralCreateUserRole">
+          <span data-i18n="users.role">Perfil</span>
+          <select id="centralCreateUserRole" name="role">
+            <option value="admin" data-i18n="users.roleAdmin">Administrador</option>
+            <option value="operator" data-i18n="users.roleOperator">Operador</option>
+            <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
+          </select>
+        </label>
+        <p class="form-error" id="centralCreateUserError" role="alert" hidden></p>
+        <button class="primary-button" type="submit">
+          <i data-lucide="user-plus"></i>
+          <span data-i18n="users.createButton">Criar utilizador</span>
+        </button>
+      </form>
+
+      <form class="central-admin-form" id="centralEditUserForm">
+        <div class="form-section-title">
+          <h3 data-i18n="users.editTitle">Editar utilizador</h3>
+          <p id="centralEditingUserHint" data-i18n="users.editHint">Escolha um utilizador na lista para editar.</p>
+        </div>
+        <input id="centralEditUserId" name="id" type="hidden" />
+        <label class="field" for="centralEditUserName">
+          <span data-i18n="users.name">Nome</span>
+          <input id="centralEditUserName" name="fullName" type="text" autocomplete="name" />
+        </label>
+        <label class="field" for="centralEditUserEmail">
+          <span data-i18n="login.email">Email</span>
+          <input id="centralEditUserEmail" name="email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" for="centralEditUserRole">
+          <span data-i18n="users.role">Perfil</span>
+          <select id="centralEditUserRole" name="role">
+            <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
+            <option value="operator" data-i18n="users.roleOperator">Operador</option>
+            <option value="admin" data-i18n="users.roleAdmin">Administrador</option>
+          </select>
+        </label>
+        <label class="remember-field" for="centralEditUserActive">
+          <input id="centralEditUserActive" name="active" type="checkbox" checked />
+          <span data-i18n="users.active">Ativo</span>
+        </label>
+        <p class="form-error" id="centralEditUserError" role="alert" hidden></p>
+        <div class="central-user-form-actions">
+          <button class="secondary-button" id="centralClearUserBtn" type="button" data-i18n="users.clear">Limpar</button>
+          <button class="primary-button" type="submit">
+            <i data-lucide="save"></i>
+            <span data-i18n="users.save">Guardar alterações</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="central-users-table-wrap">
+      <table class="central-users-table">
+        <thead>
+          <tr>
+            <th data-i18n="users.name">Nome</th>
+            <th data-i18n="login.email">Email</th>
+            <th data-i18n="users.role">Perfil</th>
+            <th data-i18n="users.status">Estado</th>
+            <th data-i18n="users.actions">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="centralUsersTable"></tbody>
+      </table>
+    </div>
+  </section>
+</dialog>`
+
 const loginPage = pageShell({
   title: 'Central MenteMovimento',
   page: 'login',
@@ -225,6 +323,10 @@ const loginPage = pageShell({
         <span data-i18n="login.password">Password</span>
         <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
       </label>
+      <label class="remember-field" for="rememberCredentials">
+        <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
+        <span data-i18n="login.remember">Lembrar neste browser</span>
+      </label>
       <p class="form-error" id="centralAuthError" role="alert" hidden></p>
       <button class="primary-button" type="submit">
         <i data-lucide="log-in"></i>
@@ -246,15 +348,12 @@ ${topbar()}
       <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestão da associação</p>
       <h2 id="dashboardTitle" data-i18n="dashboard.title">Escolhe a área de trabalho</h2>
     </div>
-    <span class="session-chip">
-      <i data-lucide="key-round"></i>
-      <span data-i18n="dashboard.session">Sessão única</span>
-    </span>
   </section>
   <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
     ${moduleCards}
   </section>
-</main>`,
+</main>
+${centralUsersDialog}`,
 })
 
 const logoutPage = pageShell({
@@ -289,7 +388,8 @@ ${topbar()}
         .join('')}
     </div>
   </section>
-</main>`,
+</main>
+${centralUsersDialog}`,
   }),
 })
 
@@ -315,6 +415,8 @@ await writeFile(
   const config = window.CENTRAL_CONFIG || {};
   const page = document.body?.dataset.centralPage || "dashboard";
   const authStorageKey = "central-mm-auth-token";
+  const rememberLoginKey = "central-remember-login";
+  const rememberEmailKey = "central-remember-email";
   const authStorage = {
     getItem: (key) => sessionStorage.getItem(key),
     setItem: (key, value) => sessionStorage.setItem(key, value),
@@ -327,6 +429,49 @@ await writeFile(
         .forEach((key) => localStorage.removeItem(key));
     } catch (_error) {
       // Sem impacto quando o browser bloqueia localStorage.
+    }
+  };
+  const clearCentralSession = async (client) => {
+    accessPromise = null;
+    try {
+      await client.auth.signOut();
+    } catch (_error) {
+      // Continua a limpeza local mesmo se o pedido remoto falhar.
+    }
+    try {
+      sessionStorage.removeItem(authStorageKey);
+      Object.keys(sessionStorage)
+        .filter((key) => key.startsWith("central-access:"))
+        .forEach((key) => sessionStorage.removeItem(key));
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia sessionStorage.
+    }
+    clearPersistentAuth();
+  };
+  const loadRememberedLogin = () => {
+    if (page !== "login") return;
+    try {
+      const remember = localStorage.getItem(rememberLoginKey) === "true";
+      const email = remember ? localStorage.getItem(rememberEmailKey) || "" : "";
+      const emailInput = document.querySelector("#email");
+      const rememberInput = document.querySelector("#rememberCredentials");
+      if (emailInput && email) emailInput.value = email;
+      if (rememberInput) rememberInput.checked = remember;
+    } catch (_error) {
+      // O login continua normal sem esta preferência.
+    }
+  };
+  const saveRememberedLogin = (email, remember) => {
+    try {
+      if (remember) {
+        localStorage.setItem(rememberLoginKey, "true");
+        localStorage.setItem(rememberEmailKey, email);
+        return;
+      }
+      localStorage.removeItem(rememberLoginKey);
+      localStorage.removeItem(rememberEmailKey);
+    } catch (_error) {
+      // O login continua mesmo sem acesso a localStorage.
     }
   };
   const stripSensitiveLoginParams = () => {
@@ -471,27 +616,34 @@ await writeFile(
       return;
     }
     if (page === "login") {
+      loadRememberedLogin();
       if (session) {
-        await goTo(client, nextPath()).catch((error) => {
-          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
-        });
-        return;
+        try {
+          await goTo(client, nextPath());
+          return;
+        } catch (_error) {
+          await clearCentralSession(client);
+          showError("Sessão expirada. Volte a entrar.");
+        }
       }
       document.querySelector("#centralLoginForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         const email = String(form.get("email") || "").trim();
         const password = String(form.get("password") || "");
+        const remember = form.get("rememberCredentials") === "on";
         const submit = event.currentTarget.querySelector("button[type='submit']");
         submit.disabled = true;
         showError("");
         document.querySelector("#centralAuthError").hidden = true;
+        await clearCentralSession(client);
         const { error } = await client.auth.signInWithPassword({ email, password });
         submit.disabled = false;
         if (error) {
           showError("Credenciais inválidas ou utilizador sem acesso.");
           return;
         }
+        saveRememberedLogin(email, remember);
         try {
           await goTo(client, nextPath());
         } catch (error) {
@@ -518,9 +670,10 @@ await writeFile(
 await writeFile(
   path.join(staticOutput, 'central-module-auth.js'),
   `(() => {
-  let fallbackTimer = 0;
+  let loginTimer = 0;
+  let visualTimer = 0;
   const showPage = () => {
-    window.clearTimeout(fallbackTimer);
+    window.clearTimeout(visualTimer);
     document.documentElement.removeAttribute("data-central-auth-pending");
     document.getElementById("centralAuthLoading")?.remove();
   };
@@ -546,13 +699,24 @@ await writeFile(
   };
   const redirectToCentralLogin = () => {
     showPage();
+    window.clearTimeout(loginTimer);
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
   };
-  fallbackTimer = window.setTimeout(() => {
+  visualTimer = window.setTimeout(() => {
     if (document.documentElement.dataset.centralAuthPending === "true") {
-      redirectToCentralLogin();
+      window.CENTRAL_AUTH_VISUAL_TIMEOUT = true;
+      showPage();
     }
-  }, 8000);
+  }, 3500);
+  loginTimer = window.setTimeout(() => {
+    let hasToken = false;
+    try {
+      hasToken = Boolean(sessionStorage.getItem(authStorageKey));
+    } catch (_error) {
+      hasToken = false;
+    }
+    if (!hasToken) redirectToCentralLogin();
+  }, 9000);
   const cacheKey = (session) => \`central-access:\${session?.user?.id || "anon"}\`;
   const hasAccessCache = (session) => {
     try {
@@ -605,7 +769,8 @@ await writeFile(
         redirectToCentralLogin();
         return;
       }
-      await ensureAccess(session);
+      window.clearTimeout(loginTimer);
+      ensureAccess(session).catch((error) => console.warn("Preparação de acesso adiada:", error));
       showPage();
     })
     .catch(() => redirectToCentralLogin());

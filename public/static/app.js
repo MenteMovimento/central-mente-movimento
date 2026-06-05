@@ -24,6 +24,7 @@ const translations = {
     "login.submit": "Entrar",
     "login.email": "Email",
     "login.password": "Password",
+    "login.remember": "Lembrar neste browser",
     "nav.areas": "\u00c1reas principais",
     "nav.tools": "Ferramentas globais",
     "nav.openMenu": "Abrir menu",
@@ -86,6 +87,33 @@ const translations = {
     "global.manuals.utentes.copy": "Fichas, separadores, anexos PDF, genograma e ecomapa.",
     "global.manuals.dispositivos.title": "Manual de dispositivos",
     "global.manuals.dispositivos.copy": "Repara\u00e7\u00f5es, estados, estat\u00edsticas, anexos e CSV.",
+    "users.title": "Utilizadores",
+    "users.subtitle": "Crie acessos novos e edite permiss\u00f5es de utilizadores existentes.",
+    "users.refresh": "Atualizar",
+    "users.createTitle": "Criar utilizador",
+    "users.createHint": "O ID \u00e9 criado automaticamente no Supabase Auth.",
+    "users.editTitle": "Editar utilizador",
+    "users.editHint": "Escolha um utilizador na lista para editar.",
+    "users.name": "Nome",
+    "users.role": "Perfil",
+    "users.roleAdmin": "Administrador",
+    "users.roleOperator": "Operador",
+    "users.roleViewer": "Consulta",
+    "users.createButton": "Criar utilizador",
+    "users.active": "Ativo",
+    "users.inactive": "Inativo",
+    "users.status": "Estado",
+    "users.actions": "A\u00e7\u00f5es",
+    "users.clear": "Limpar",
+    "users.save": "Guardar altera\u00e7\u00f5es",
+    "users.empty": "Sem utilizadores registados.",
+    "users.self": "A pr\u00f3pria conta",
+    "users.adminOnly": "S\u00f3 administradores podem gerir utilizadores.",
+    "users.saved": "Acesso de utilizador guardado.",
+    "users.created": "Utilizador criado.",
+    "users.deleted": "Utilizador eliminado.",
+    "users.activated": "Utilizador ativado.",
+    "users.deactivated": "Utilizador desativado.",
   },
   en: {
     "app.title": "Central MenteMovimento",
@@ -94,6 +122,7 @@ const translations = {
     "login.submit": "Sign in",
     "login.email": "Email",
     "login.password": "Password",
+    "login.remember": "Remember on this browser",
     "nav.areas": "Main areas",
     "nav.tools": "Global tools",
     "nav.openMenu": "Open menu",
@@ -156,6 +185,33 @@ const translations = {
     "global.manuals.utentes.copy": "Records, sections, PDF attachments, genogram and ecomap.",
     "global.manuals.dispositivos.title": "Devices manual",
     "global.manuals.dispositivos.copy": "Repairs, states, statistics, attachments and CSV.",
+    "users.title": "Users",
+    "users.subtitle": "Create new access and edit permissions for existing users.",
+    "users.refresh": "Refresh",
+    "users.createTitle": "Create user",
+    "users.createHint": "The ID is created automatically in Supabase Auth.",
+    "users.editTitle": "Edit user",
+    "users.editHint": "Choose a user in the list to edit.",
+    "users.name": "Name",
+    "users.role": "Profile",
+    "users.roleAdmin": "Administrator",
+    "users.roleOperator": "Operator",
+    "users.roleViewer": "Viewer",
+    "users.createButton": "Create user",
+    "users.active": "Active",
+    "users.inactive": "Inactive",
+    "users.status": "Status",
+    "users.actions": "Actions",
+    "users.clear": "Clear",
+    "users.save": "Save changes",
+    "users.empty": "No users registered.",
+    "users.self": "Current account",
+    "users.adminOnly": "Only administrators can manage users.",
+    "users.saved": "User access saved.",
+    "users.created": "User created.",
+    "users.deleted": "User deleted.",
+    "users.activated": "User activated.",
+    "users.deactivated": "User deactivated.",
   },
 };
 
@@ -371,6 +427,366 @@ const refreshStatus = async () => {
   }
 };
 
+const centralUsersState = {
+  client: null,
+  session: null,
+  profile: null,
+  users: [],
+  editingId: "",
+};
+
+const centralAuthStorageKey = "central-mm-auth-token";
+const centralAuthStorage = {
+  getItem: (key) => sessionStorage.getItem(key),
+  setItem: (key, value) => sessionStorage.setItem(key, value),
+  removeItem: (key) => sessionStorage.removeItem(key),
+};
+
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+const roleLabel = (role) => {
+  const map = {
+    admin: getTranslation("users.roleAdmin"),
+    operator: getTranslation("users.roleOperator"),
+    viewer: getTranslation("users.roleViewer"),
+  };
+  return map[role] || role || getTranslation("users.roleViewer");
+};
+
+const centralUsersElements = () => ({
+  dialog: document.querySelector("#centralUsersDialog"),
+  closeBtn: document.querySelector("#centralCloseUsersBtn"),
+  refreshBtn: document.querySelector("#centralRefreshUsersBtn"),
+  table: document.querySelector("#centralUsersTable"),
+  createForm: document.querySelector("#centralCreateUserForm"),
+  createError: document.querySelector("#centralCreateUserError"),
+  editForm: document.querySelector("#centralEditUserForm"),
+  editError: document.querySelector("#centralEditUserError"),
+  editHint: document.querySelector("#centralEditingUserHint"),
+  editId: document.querySelector("#centralEditUserId"),
+  editName: document.querySelector("#centralEditUserName"),
+  editEmail: document.querySelector("#centralEditUserEmail"),
+  editRole: document.querySelector("#centralEditUserRole"),
+  editActive: document.querySelector("#centralEditUserActive"),
+  clearBtn: document.querySelector("#centralClearUserBtn"),
+});
+
+const showCentralFormError = (node, message) => {
+  if (!node) return;
+  node.textContent = message || "";
+  node.hidden = !message;
+};
+
+const createCentralClient = () => {
+  if (centralUsersState.client) return centralUsersState.client;
+  const config = window.CENTRAL_CONFIG || {};
+  if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
+    throw new Error("Falta configurar o Supabase.");
+  }
+  centralUsersState.client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: centralAuthStorageKey,
+      storage: centralAuthStorage,
+    },
+  });
+  return centralUsersState.client;
+};
+
+const getCentralSession = async () => {
+  const client = createCentralClient();
+  const { data } = await client.auth.getSession();
+  centralUsersState.session = data?.session || null;
+  return centralUsersState.session;
+};
+
+const requireCentralAdmin = async () => {
+  const client = createCentralClient();
+  const session = await getCentralSession();
+  if (!session?.user?.id) throw new Error("Sessão em falta.");
+
+  const { data, error } = await client
+    .from("app_users")
+    .select("id,email,full_name,role,active")
+    .eq("id", session.user.id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.active || data.role !== "admin") throw new Error(getTranslation("users.adminOnly"));
+
+  centralUsersState.profile = data;
+  return data;
+};
+
+const resetCentralUserForms = () => {
+  const elements = centralUsersElements();
+  elements.createForm?.reset();
+  elements.editForm?.reset();
+  centralUsersState.editingId = "";
+  if (elements.editId) elements.editId.value = "";
+  if (elements.editRole) elements.editRole.value = "viewer";
+  if (elements.editActive) elements.editActive.checked = true;
+  if (elements.editHint) elements.editHint.textContent = getTranslation("users.editHint");
+  showCentralFormError(elements.createError, "");
+  showCentralFormError(elements.editError, "");
+};
+
+const renderCentralUsers = () => {
+  const { table } = centralUsersElements();
+  if (!table) return;
+
+  if (!centralUsersState.users.length) {
+    table.innerHTML = `<tr><td colspan="5">${escapeHtml(getTranslation("users.empty"))}</td></tr>`;
+    refreshIcons();
+    return;
+  }
+
+  const selfId = centralUsersState.session?.user?.id || "";
+  table.innerHTML = centralUsersState.users
+    .map((user) => {
+      const name = user.full_name || user.email || user.id;
+      const isSelf = user.id === selfId;
+      const status = user.active ? getTranslation("users.active") : getTranslation("users.inactive");
+      const toggleIcon = user.active ? "user-x" : "user-check";
+      const toggleTitle = user.active ? getTranslation("users.deactivated") : getTranslation("users.activated");
+      return `
+        <tr>
+          <td><strong>${escapeHtml(name)}</strong><span>${escapeHtml(user.id)}</span></td>
+          <td>${escapeHtml(user.email || "")}</td>
+          <td>${escapeHtml(roleLabel(user.role))}</td>
+          <td><span class="status-pill ${user.active ? "is-active" : "is-inactive"}">${escapeHtml(status)}</span></td>
+          <td>
+            <div class="central-row-actions">
+              <button class="icon-link" type="button" title="Editar" aria-label="Editar" data-central-user-action="edit" data-id="${escapeHtml(user.id)}">
+                <i data-lucide="pencil"></i>
+              </button>
+              ${
+                isSelf
+                  ? `<span class="central-self-label">${escapeHtml(getTranslation("users.self"))}</span>`
+                  : `<button class="icon-link" type="button" title="${escapeHtml(toggleTitle)}" aria-label="${escapeHtml(toggleTitle)}" data-central-user-action="toggle" data-id="${escapeHtml(user.id)}"><i data-lucide="${toggleIcon}"></i></button>
+                     <button class="icon-link danger-link" type="button" title="Eliminar" aria-label="Eliminar" data-central-user-action="delete" data-id="${escapeHtml(user.id)}"><i data-lucide="trash-2"></i></button>`
+              }
+            </div>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+  refreshIcons();
+};
+
+const refreshCentralUsers = async () => {
+  const client = createCentralClient();
+  await requireCentralAdmin();
+  const { data, error } = await client
+    .from("app_users")
+    .select("id,email,full_name,role,active,updated_at")
+    .order("email", { ascending: true });
+  if (error) throw error;
+  centralUsersState.users = data || [];
+  renderCentralUsers();
+};
+
+const fillCentralUserForm = (user) => {
+  const elements = centralUsersElements();
+  centralUsersState.editingId = user.id;
+  elements.editId.value = user.id || "";
+  elements.editName.value = user.full_name || "";
+  elements.editEmail.value = user.email || "";
+  elements.editRole.value = user.role || "viewer";
+  elements.editActive.checked = Boolean(user.active);
+  elements.editHint.textContent = `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`;
+  showCentralFormError(elements.editError, "");
+};
+
+const validateCentralUser = ({ id, email, role, fullName, password, requirePassword = false }) => {
+  if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
+  if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Indique um email válido.";
+  if (requirePassword && (!password || password.length < 8)) return "A password deve ter pelo menos 8 caracteres.";
+  if (!["admin", "operator", "viewer"].includes(role)) return "Escolha um perfil válido.";
+  return "";
+};
+
+const handleCentralCreateUser = async (event) => {
+  event.preventDefault();
+  const elements = centralUsersElements();
+  const form = new FormData(event.currentTarget);
+  const payload = {
+    fullName: String(form.get("fullName") || "").trim(),
+    email: String(form.get("email") || "").trim().toLowerCase(),
+    password: String(form.get("password") || ""),
+    role: String(form.get("role") || "viewer"),
+  };
+  const validation = validateCentralUser({ ...payload, requirePassword: true });
+  if (validation) {
+    showCentralFormError(elements.createError, validation);
+    return;
+  }
+
+  const submit = event.currentTarget.querySelector("button[type='submit']");
+  submit.disabled = true;
+  showCentralFormError(elements.createError, "");
+
+  try {
+    await requireCentralAdmin();
+    const response = await fetch("/api/create-user", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || getTranslation("users.created"));
+    elements.createForm.reset();
+    await refreshCentralUsers();
+  } catch (error) {
+    showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+  } finally {
+    submit.disabled = false;
+  }
+};
+
+const handleCentralEditUser = async (event) => {
+  event.preventDefault();
+  const elements = centralUsersElements();
+  const client = createCentralClient();
+  const form = new FormData(event.currentTarget);
+  const payload = {
+    id: String(form.get("id") || "").trim(),
+    email: String(form.get("email") || "").trim().toLowerCase(),
+    full_name: String(form.get("fullName") || "").trim() || null,
+    role: String(form.get("role") || "viewer"),
+    active: form.get("active") === "on",
+  };
+  const validation = validateCentralUser({
+    id: payload.id,
+    email: payload.email,
+    role: payload.role,
+    fullName: payload.full_name || "",
+  });
+  if (validation) {
+    showCentralFormError(elements.editError, validation);
+    return;
+  }
+  if (payload.id === centralUsersState.session?.user?.id && !payload.active) {
+    showCentralFormError(elements.editError, "Não desative a sua própria conta.");
+    return;
+  }
+
+  try {
+    await requireCentralAdmin();
+    const { error } = await client.from("app_users").upsert(payload, { onConflict: "id" });
+    if (error) throw error;
+    resetCentralUserForms();
+    await refreshCentralUsers();
+  } catch (error) {
+    showCentralFormError(elements.editError, error.message || getTranslation("users.adminOnly"));
+  }
+};
+
+const toggleCentralUser = async (id) => {
+  if (id === centralUsersState.session?.user?.id) return;
+  const client = createCentralClient();
+  const user = centralUsersState.users.find((item) => item.id === id);
+  if (!user) return;
+  await requireCentralAdmin();
+  const { error } = await client.from("app_users").update({ active: !user.active }).eq("id", id);
+  if (error) throw error;
+  await refreshCentralUsers();
+};
+
+const deleteCentralUser = async (id) => {
+  if (id === centralUsersState.session?.user?.id) return;
+  const user = centralUsersState.users.find((item) => item.id === id);
+  if (!user) return;
+  const confirmed = window.confirm(`Eliminar o acesso de ${user.full_name || user.email}? Esta ação remove a conta de login.`);
+  if (!confirmed) return;
+  await requireCentralAdmin();
+  const response = await fetch("/api/delete-user", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || "Não foi possível eliminar o utilizador.");
+  resetCentralUserForms();
+  await refreshCentralUsers();
+};
+
+const openCentralUsersDialog = async () => {
+  const elements = centralUsersElements();
+  if (!elements.dialog) return;
+  closeToolsMenus();
+  resetCentralUserForms();
+  elements.dialog.showModal();
+  try {
+    await refreshCentralUsers();
+  } catch (error) {
+    showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+  }
+  refreshIcons();
+};
+
+const closeCentralUsersDialog = () => {
+  const { dialog } = centralUsersElements();
+  if (dialog?.open) dialog.close();
+  resetCentralUserForms();
+};
+
+const wireCentralUsersDialog = () => {
+  const elements = centralUsersElements();
+  if (!elements.dialog) return;
+  document.querySelectorAll("[data-users-toggle]").forEach((button) => {
+    button.addEventListener("click", openCentralUsersDialog);
+  });
+  elements.closeBtn?.addEventListener("click", closeCentralUsersDialog);
+  elements.refreshBtn?.addEventListener("click", async () => {
+    try {
+      await refreshCentralUsers();
+    } catch (error) {
+      showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+    }
+  });
+  elements.createForm?.addEventListener("submit", handleCentralCreateUser);
+  elements.editForm?.addEventListener("submit", handleCentralEditUser);
+  elements.clearBtn?.addEventListener("click", resetCentralUserForms);
+  elements.table?.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-central-user-action]");
+    if (!button) return;
+    const id = button.dataset.id || "";
+    const action = button.dataset.centralUserAction;
+    try {
+      if (action === "edit") {
+        const user = centralUsersState.users.find((item) => item.id === id);
+        if (user) fillCentralUserForm(user);
+      } else if (action === "toggle") {
+        await toggleCentralUser(id);
+      } else if (action === "delete") {
+        await deleteCentralUser(id);
+      }
+    } catch (error) {
+      showCentralFormError(elements.editError, error.message || getTranslation("users.adminOnly"));
+    }
+  });
+  elements.dialog.addEventListener("click", (event) => {
+    if (event.target === elements.dialog) closeCentralUsersDialog();
+  });
+};
+
 document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getTheme());
   applyLanguage(getLanguage(), { persist: true });
@@ -392,6 +808,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-language-toggle]").forEach((button) => {
     button.addEventListener("click", openLanguageDialog);
   });
+  wireCentralUsersDialog();
   document.addEventListener("click", (event) => {
     if (event.target.closest("[data-language-option]")) {
       selectLanguage(event.target.closest("[data-language-option]").dataset.languageOption === "en" ? "en" : "pt");
@@ -409,6 +826,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeLanguageDialog();
+      closeCentralUsersDialog();
       closeToolsMenus();
     }
   });

@@ -2,6 +2,8 @@
   const config = window.CENTRAL_CONFIG || {};
   const page = document.body?.dataset.centralPage || "dashboard";
   const authStorageKey = "central-mm-auth-token";
+  const rememberLoginKey = "central-remember-login";
+  const rememberEmailKey = "central-remember-email";
   const authStorage = {
     getItem: (key) => sessionStorage.getItem(key),
     setItem: (key, value) => sessionStorage.setItem(key, value),
@@ -14,6 +16,49 @@
         .forEach((key) => localStorage.removeItem(key));
     } catch (_error) {
       // Sem impacto quando o browser bloqueia localStorage.
+    }
+  };
+  const clearCentralSession = async (client) => {
+    accessPromise = null;
+    try {
+      await client.auth.signOut();
+    } catch (_error) {
+      // Continua a limpeza local mesmo se o pedido remoto falhar.
+    }
+    try {
+      sessionStorage.removeItem(authStorageKey);
+      Object.keys(sessionStorage)
+        .filter((key) => key.startsWith("central-access:"))
+        .forEach((key) => sessionStorage.removeItem(key));
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia sessionStorage.
+    }
+    clearPersistentAuth();
+  };
+  const loadRememberedLogin = () => {
+    if (page !== "login") return;
+    try {
+      const remember = localStorage.getItem(rememberLoginKey) === "true";
+      const email = remember ? localStorage.getItem(rememberEmailKey) || "" : "";
+      const emailInput = document.querySelector("#email");
+      const rememberInput = document.querySelector("#rememberCredentials");
+      if (emailInput && email) emailInput.value = email;
+      if (rememberInput) rememberInput.checked = remember;
+    } catch (_error) {
+      // O login continua normal sem esta preferência.
+    }
+  };
+  const saveRememberedLogin = (email, remember) => {
+    try {
+      if (remember) {
+        localStorage.setItem(rememberLoginKey, "true");
+        localStorage.setItem(rememberEmailKey, email);
+        return;
+      }
+      localStorage.removeItem(rememberLoginKey);
+      localStorage.removeItem(rememberEmailKey);
+    } catch (_error) {
+      // O login continua mesmo sem acesso a localStorage.
     }
   };
   const stripSensitiveLoginParams = () => {
@@ -158,27 +203,34 @@
       return;
     }
     if (page === "login") {
+      loadRememberedLogin();
       if (session) {
-        await goTo(client, nextPath()).catch((error) => {
-          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
-        });
-        return;
+        try {
+          await goTo(client, nextPath());
+          return;
+        } catch (_error) {
+          await clearCentralSession(client);
+          showError("Sessão expirada. Volte a entrar.");
+        }
       }
       document.querySelector("#centralLoginForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         const email = String(form.get("email") || "").trim();
         const password = String(form.get("password") || "");
+        const remember = form.get("rememberCredentials") === "on";
         const submit = event.currentTarget.querySelector("button[type='submit']");
         submit.disabled = true;
         showError("");
         document.querySelector("#centralAuthError").hidden = true;
+        await clearCentralSession(client);
         const { error } = await client.auth.signInWithPassword({ email, password });
         submit.disabled = false;
         if (error) {
           showError("Credenciais inválidas ou utilizador sem acesso.");
           return;
         }
+        saveRememberedLogin(email, remember);
         try {
           await goTo(client, nextPath());
         } catch (error) {

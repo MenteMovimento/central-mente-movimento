@@ -1,7 +1,8 @@
 (() => {
-  let fallbackTimer = 0;
+  let loginTimer = 0;
+  let visualTimer = 0;
   const showPage = () => {
-    window.clearTimeout(fallbackTimer);
+    window.clearTimeout(visualTimer);
     document.documentElement.removeAttribute("data-central-auth-pending");
     document.getElementById("centralAuthLoading")?.remove();
   };
@@ -27,13 +28,24 @@
   };
   const redirectToCentralLogin = () => {
     showPage();
+    window.clearTimeout(loginTimer);
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
   };
-  fallbackTimer = window.setTimeout(() => {
+  visualTimer = window.setTimeout(() => {
     if (document.documentElement.dataset.centralAuthPending === "true") {
-      redirectToCentralLogin();
+      window.CENTRAL_AUTH_VISUAL_TIMEOUT = true;
+      showPage();
     }
-  }, 8000);
+  }, 3500);
+  loginTimer = window.setTimeout(() => {
+    let hasToken = false;
+    try {
+      hasToken = Boolean(sessionStorage.getItem(authStorageKey));
+    } catch (_error) {
+      hasToken = false;
+    }
+    if (!hasToken) redirectToCentralLogin();
+  }, 9000);
   const cacheKey = (session) => `central-access:${session?.user?.id || "anon"}`;
   const hasAccessCache = (session) => {
     try {
@@ -86,7 +98,8 @@
         redirectToCentralLogin();
         return;
       }
-      await ensureAccess(session);
+      window.clearTimeout(loginTimer);
+      ensureAccess(session).catch((error) => console.warn("Preparação de acesso adiada:", error));
       showPage();
     })
     .catch(() => redirectToCentralLogin());

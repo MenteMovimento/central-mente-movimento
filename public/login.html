@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Central MenteMovimento</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260605-socios-login-logo" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260605-login-menu-socios-import" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260605-socios-login-logo" defer></script>
-    <script src="/static/app.js?v=20260605-socios-login-logo" defer></script>
-    <script src="/static/central-auth.js?v=20260605-socios-login-logo" defer></script>
+    <script src="/static/central-config.js?v=20260605-login-menu-socios-import" defer></script>
+    <script src="/static/app.js?v=20260605-login-menu-socios-import" defer></script>
+    <script src="/static/central-auth.js?v=20260605-login-menu-socios-import" defer></script>
   </head>
   <body class="login-page" data-central-page="login">
     
@@ -32,6 +32,10 @@
       <label class="field" for="password">
         <span data-i18n="login.password">Password</span>
         <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
+      </label>
+      <label class="remember-field" for="rememberCredentials">
+        <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
+        <span data-i18n="login.remember">Lembrar neste browser</span>
       </label>
       <p class="form-error" id="centralAuthError" role="alert" hidden></p>
       <button class="primary-button" type="submit">

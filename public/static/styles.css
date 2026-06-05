@@ -176,6 +176,31 @@ p {
   outline: 3px solid rgba(35, 119, 107, 0.16);
 }
 
+.field select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #ffffff;
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.remember-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.remember-field input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
+}
+
 .primary-button,
 .secondary-button,
 .session-chip,
@@ -483,6 +508,7 @@ body.dark-mode .area-nav-link,
 body.dark-mode .global-panel,
 body.dark-mode .global-item,
 body.dark-mode .tool-tile,
+body.dark-mode .central-admin-panel,
 body.dark-mode .secondary-button,
 body.dark-mode .session-chip,
 body.dark-mode .icon-link {
@@ -524,9 +550,23 @@ body.dark-mode .language-copy strong {
   color: #eaf4ff;
 }
 
+body.dark-mode .central-admin-head h2,
+body.dark-mode .form-section-title h3 {
+  color: #eaf4ff;
+}
+
 body.dark-mode .field input,
+body.dark-mode .field select,
 body.dark-mode .branch-card {
   background: #081827;
+}
+
+body.dark-mode .central-users-table th,
+body.dark-mode .central-users-table td,
+body.dark-mode .central-admin-head,
+body.dark-mode .central-admin-form + .central-admin-form,
+body.dark-mode .central-admin-forms {
+  border-color: #24445c;
 }
 
 .topnav-link svg,
@@ -570,6 +610,142 @@ body.dark-mode .branch-card {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+}
+
+.central-admin-dialog {
+  width: min(1480px, calc(100% - 40px));
+  max-height: min(880px, calc(100% - 40px));
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+}
+
+.central-admin-dialog::backdrop {
+  background: rgba(8, 22, 20, 0.52);
+}
+
+.central-admin-panel {
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(13, 34, 41, 0.22);
+}
+
+.central-admin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  padding: 24px;
+}
+
+.central-admin-head h2 {
+  margin: 0 0 6px;
+  color: var(--navy);
+  font-size: 1.45rem;
+}
+
+.central-admin-head p,
+.form-section-title p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.central-admin-actions,
+.central-user-form-actions,
+.central-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.central-admin-forms {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--line);
+}
+
+.central-admin-form {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  padding: 24px;
+}
+
+.central-admin-form + .central-admin-form {
+  border-left: 1px solid var(--line);
+}
+
+.form-section-title h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.central-users-table-wrap {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.central-users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.central-users-table th,
+.central-users-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 24px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.central-users-table th {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.central-users-table td > span,
+.central-users-table td strong + span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-weight: 850;
+}
+
+.status-pill.is-active {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.status-pill.is-inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.central-self-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.danger-link {
+  color: var(--danger);
+  border-color: #fecaca;
+  background: #fff5f5;
 }
 
 .module-card {
@@ -896,6 +1072,20 @@ body.dark-mode .branch-card {
 
   .module-grid {
     grid-template-columns: 1fr;
+  }
+
+  .central-admin-forms {
+    grid-template-columns: 1fr;
+  }
+
+  .central-admin-form + .central-admin-form {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .central-admin-head {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .area-shell {

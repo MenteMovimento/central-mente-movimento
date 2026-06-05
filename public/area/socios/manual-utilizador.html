@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Manual do Utilizador - Gestão de Sócios</title>
+    <link rel="stylesheet" href="docs/manual-pdf.css" />
+  </head>
+  <body>
+    <main class="manual">
+      <section class="cover">
+        <img class="cover-logo" src="assets/mente-movimento-logo-horizontal.png" alt="MenteMovimento Associação Pró-Saúde Mental" />
+        <p class="eyebrow">Manual do utilizador</p>
+        <h1>Gestão de Sócios</h1>
+        <p class="lead">Guia simples para usar a aplicação: entrar, consultar sócios, atualizar quotas, exportar dados e gerir acessos autorizados.</p>
+        <div class="meta">
+          <div>
+            <span>Website</span>
+            <strong>socios-mente-movimento.vercel.app</strong>
+          </div>
+          <div>
+            <span>Utilizadores</span>
+            <strong>Admin, operador e consulta</strong>
+          </div>
+          <div>
+            <span>Objetivo</span>
+            <strong>Manter dados dos sócios atualizados</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">Índice</p>
+        <h2>O que este manual explica</h2>
+        <ul class="toc">
+          <li>1. Entrar na aplicação</li>
+          <li>2. Painel principal</li>
+          <li>3. Criar e editar sócios</li>
+          <li>4. Quotas e pagamentos</li>
+          <li>5. Pesquisa, filtros e exportação</li>
+          <li>6. Gestor de administradores</li>
+          <li>7. Histórico de alterações</li>
+          <li>8. Rotina e boas práticas</li>
+        </ul>
+        <p class="callout">Este manual foi escrito para qualquer pessoa da associação conseguir trabalhar na aplicação sem precisar de saber programação.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">1. Acesso</p>
+        <h2>Entrar na aplicação</h2>
+        <div class="grid">
+          <div>
+            <ol class="steps">
+              <li>Abrir o website da aplicação.</li>
+              <li>Introduzir email e password.</li>
+              <li>Opcionalmente, ativar a opção para lembrar os dados neste dispositivo.</li>
+              <li>Clicar em <strong>Entrar</strong>.</li>
+            </ol>
+            <p class="warning">A opção de lembrar dados só deve ser usada em computadores da associação ou dispositivos pessoais protegidos por password.</p>
+          </div>
+          <figure class="screenshot">
+            <img src="docs/images/guia-01-login.svg" alt="Ecrã de login da aplicação" />
+            <figcaption class="caption">Ecrã inicial de autenticação.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">2. Painel</p>
+        <h2>Painel principal</h2>
+        <figure class="screenshot">
+          <img src="docs/images/guia-02-painel.svg" alt="Painel principal da aplicação" />
+          <figcaption class="caption">No painel principal ficam a pesquisa, filtros, lista de sócios, ações e resumo de quotas.</figcaption>
+        </figure>
+        <div class="grid three">
+          <article class="card">
+            <h3>Pesquisa</h3>
+            <p>Permite procurar por número de sócio, nome, NIF, localidade ou email.</p>
+          </article>
+          <article class="card">
+            <h3>Resumo</h3>
+            <p>Mostra quantos sócios existem e quantos têm quotas em atraso.</p>
+          </article>
+          <article class="card">
+            <h3>Ações</h3>
+            <p>Cada linha permite editar, pagar quota ou eliminar o sócio, conforme o perfil do utilizador.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">3. Sócios</p>
+        <h2>Criar ou editar um sócio</h2>
+        <p>Para criar um sócio, clicar em <strong>Novo sócio</strong>. Para alterar dados existentes, clicar no ícone de lápis na linha do sócio.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Campo</th>
+              <th>Notas de preenchimento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Nº de Sócio</td>
+              <td>Opcional. Se estiver vazio, aparece como <strong>Não atribuído</strong>.</td>
+            </tr>
+            <tr>
+              <td>Nº de Ata de Aprovação</td>
+              <td>Opcional. Se não existir, aparece como número não atribuído.</td>
+            </tr>
+            <tr>
+              <td>Data de Adesão</td>
+              <td>Escolher no calendário, quando conhecida.</td>
+            </tr>
+            <tr>
+              <td>Última quota paga</td>
+              <td>Selecionar o último ano de quota pago pelo sócio.</td>
+            </tr>
+            <tr>
+              <td>CC ou BI</td>
+              <td>Opcional. Recolher apenas quando a associação tiver necessidade real desse dado.</td>
+            </tr>
+            <tr>
+              <td>NIF, telemóvel e código postal</td>
+              <td>Devem respeitar o formato esperado para evitar erros na base de dados.</td>
+            </tr>
+            <tr>
+              <td>Categoria</td>
+              <td>Campo usado para classificar o sócio conforme a organização da associação.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">4. Quotas</p>
+        <h2>Controlar quotas</h2>
+        <div class="grid">
+          <div>
+            <p>A aplicação mostra a última quota anual paga. Se o sócio estiver atrasado, a linha fica destacada a vermelho para chamar a atenção.</p>
+            <ol class="steps">
+              <li>Confirmar que o pagamento foi recebido.</li>
+              <li>Clicar em <strong>Pagar quota</strong> na linha do sócio.</li>
+              <li>Confirmar a ação para evitar alterações por engano.</li>
+              <li>A app avança a quota um ano e regista a data do pagamento.</li>
+            </ol>
+          </div>
+          <figure class="screenshot">
+            <img src="docs/images/guia-04-quotas.svg" alt="Exemplo de gestão de quotas" />
+            <figcaption class="caption">A zona de quotas permite distinguir rapidamente sócios em dia e sócios em atraso.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">5. Consulta</p>
+        <h2>Pesquisa, filtros e exportação</h2>
+        <div class="grid">
+          <article class="card">
+            <h3>Filtros rápidos</h3>
+            <p><strong>Todos</strong> mostra todos os sócios. <strong>Quotas em atraso</strong> mostra apenas quem precisa de atenção. <strong>Em dia</strong> mostra quem tem quotas pagas.</p>
+          </article>
+          <article class="card">
+            <h3>Ordenação</h3>
+            <p>Permite organizar a lista por nome ou outro critério disponível.</p>
+          </article>
+          <article class="card">
+            <h3>Exportar</h3>
+            <p>O menu de três traços permite exportar uma folha de cálculo para backup ou trabalho externo.</p>
+          </article>
+          <article class="card">
+            <h3>Idioma e tema</h3>
+            <p>O mesmo menu permite alternar entre português/inglês e tema claro/escuro.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">6. Acessos</p>
+        <h2>Gestor de administradores</h2>
+        <p>O botão <strong>Gestor de Administradores</strong> aparece apenas a utilizadores com perfil de administrador.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Perfil</th>
+              <th>O que pode fazer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Administrador</td>
+              <td>Gerir sócios, quotas, exportações, histórico e utilizadores autorizados.</td>
+            </tr>
+            <tr>
+              <td>Operador</td>
+              <td>Gerir dados de sócios e quotas, sem controlar administradores.</td>
+            </tr>
+            <tr>
+              <td>Consulta</td>
+              <td>Consultar informação, sem alterar dados.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="warning">Ao criar ou remover administradores, confirmar sempre se a pessoa deve mesmo ter acesso aos dados dos sócios.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">7. Auditoria</p>
+        <h2>Histórico de alterações</h2>
+        <p>O histórico ajuda a perceber quem alterou dados e quando a alteração aconteceu.</p>
+        <ul class="checklist">
+          <li>Consultar o histórico quando houver dúvidas sobre uma ficha.</li>
+          <li>Rever alterações importantes após importações, limpezas ou correções em massa.</li>
+          <li>Confirmar se as alterações feitas por novos utilizadores foram corretas.</li>
+        </ul>
+        <p class="callout">O histórico não substitui backups. É uma ajuda para rastrear alterações dentro da aplicação.</p>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">8. Rotina</p>
+        <h2>Checklist de uso regular</h2>
+        <ul class="checklist">
+          <li>Confirmar se novos sócios foram inseridos com nome, NIF, contacto e localidade corretos.</li>
+          <li>Atualizar quotas logo após confirmação do pagamento.</li>
+          <li>Usar o filtro de quotas em atraso para preparar contactos ou relatórios internos.</li>
+          <li>Exportar dados regularmente para ter uma cópia de segurança adicional.</li>
+          <li>Rever a lista de administradores quando alguém entra ou sai da associação.</li>
+          <li>Não partilhar passwords por mensagens abertas.</li>
+        </ul>
+      </section>
+
+      <section class="page">
+        <p class="eyebrow">Problemas comuns</p>
+        <h2>O que fazer quando algo falha</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Problema</th>
+              <th>Primeiro passo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Email ou password inválidos</td>
+              <td>Confirmar se a conta existe, se está ativa e se a password está correta.</td>
+            </tr>
+            <tr>
+              <td>Não consigo criar ou editar</td>
+              <td>Verificar se o perfil é administrador ou operador.</td>
+            </tr>
+            <tr>
+              <td>Dados não aparecem atualizados</td>
+              <td>Atualizar a página com Ctrl + F5 e confirmar se a alteração foi guardada.</td>
+            </tr>
+            <tr>
+              <td>Erro ao exportar</td>
+              <td>Tentar novamente, confirmar ligação à internet e informar o responsável técnico.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="footer-note">Versão do manual: 22/05/2026.</p>
+      </section>
+    </main>
+  </body>
+</html>

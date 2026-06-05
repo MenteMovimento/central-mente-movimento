@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Utilizadores e permissões - Central MenteMovimento</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260605-socios-login-logo" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260605-login-menu-socios-import" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260605-socios-login-logo" defer></script>
-    <script src="/static/app.js?v=20260605-socios-login-logo" defer></script>
-    <script src="/static/central-auth.js?v=20260605-socios-login-logo" defer></script>
+    <script src="/static/central-config.js?v=20260605-login-menu-socios-import" defer></script>
+    <script src="/static/app.js?v=20260605-login-menu-socios-import" defer></script>
+    <script src="/static/central-auth.js?v=20260605-login-menu-socios-import" defer></script>
   </head>
   <body data-central-page="dashboard" data-title-key="global.users.title">
     
@@ -46,18 +46,10 @@
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
-          <a class="menu-item" href="/utilizadores" role="menuitem">
+          <button class="menu-item" type="button" data-users-toggle role="menuitem">
             <i data-lucide="users-round"></i>
             <span data-i18n="menu.users">Utilizadores</span>
-          </a>
-          <a class="menu-item" href="/historico" role="menuitem">
-            <i data-lucide="history"></i>
-            <span data-i18n="menu.history">Histórico</span>
-          </a>
-          <a class="menu-item" href="/manuais" role="menuitem">
-            <i data-lucide="book-open"></i>
-            <span data-i18n="menu.manuals">Manuais</span>
-          </a>
+          </button>
           <button class="menu-item" type="button" data-language-toggle role="menuitem">
             <i data-lucide="languages"></i>
             <span data-i18n="menu.language">Idioma</span>
@@ -97,5 +89,110 @@
     </div>
   </section>
 </main>
+
+<dialog class="central-admin-dialog" id="centralUsersDialog">
+  <section class="central-admin-panel" aria-label="Utilizadores">
+    <div class="central-admin-head">
+      <div>
+        <h2 data-i18n="users.title">Utilizadores</h2>
+        <p data-i18n="users.subtitle">Crie acessos novos e edite permissões de utilizadores existentes.</p>
+      </div>
+      <div class="central-admin-actions">
+        <button class="secondary-button" id="centralRefreshUsersBtn" type="button">
+          <i data-lucide="refresh-cw"></i>
+          <span data-i18n="users.refresh">Atualizar</span>
+        </button>
+        <button class="icon-link" id="centralCloseUsersBtn" type="button" title="Fechar" aria-label="Fechar" data-i18n-title="language.close" data-i18n-aria-label="language.close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="central-admin-forms">
+      <form class="central-admin-form" id="centralCreateUserForm">
+        <div class="form-section-title">
+          <h3 data-i18n="users.createTitle">Criar utilizador</h3>
+          <p data-i18n="users.createHint">O ID é criado automaticamente no Supabase Auth.</p>
+        </div>
+        <label class="field" for="centralCreateUserName">
+          <span data-i18n="users.name">Nome</span>
+          <input id="centralCreateUserName" name="fullName" type="text" autocomplete="name" required />
+        </label>
+        <label class="field" for="centralCreateUserEmail">
+          <span data-i18n="login.email">Email</span>
+          <input id="centralCreateUserEmail" name="email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" for="centralCreateUserPassword">
+          <span data-i18n="login.password">Password</span>
+          <input id="centralCreateUserPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        </label>
+        <label class="field" for="centralCreateUserRole">
+          <span data-i18n="users.role">Perfil</span>
+          <select id="centralCreateUserRole" name="role">
+            <option value="admin" data-i18n="users.roleAdmin">Administrador</option>
+            <option value="operator" data-i18n="users.roleOperator">Operador</option>
+            <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
+          </select>
+        </label>
+        <p class="form-error" id="centralCreateUserError" role="alert" hidden></p>
+        <button class="primary-button" type="submit">
+          <i data-lucide="user-plus"></i>
+          <span data-i18n="users.createButton">Criar utilizador</span>
+        </button>
+      </form>
+
+      <form class="central-admin-form" id="centralEditUserForm">
+        <div class="form-section-title">
+          <h3 data-i18n="users.editTitle">Editar utilizador</h3>
+          <p id="centralEditingUserHint" data-i18n="users.editHint">Escolha um utilizador na lista para editar.</p>
+        </div>
+        <input id="centralEditUserId" name="id" type="hidden" />
+        <label class="field" for="centralEditUserName">
+          <span data-i18n="users.name">Nome</span>
+          <input id="centralEditUserName" name="fullName" type="text" autocomplete="name" />
+        </label>
+        <label class="field" for="centralEditUserEmail">
+          <span data-i18n="login.email">Email</span>
+          <input id="centralEditUserEmail" name="email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" for="centralEditUserRole">
+          <span data-i18n="users.role">Perfil</span>
+          <select id="centralEditUserRole" name="role">
+            <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
+            <option value="operator" data-i18n="users.roleOperator">Operador</option>
+            <option value="admin" data-i18n="users.roleAdmin">Administrador</option>
+          </select>
+        </label>
+        <label class="remember-field" for="centralEditUserActive">
+          <input id="centralEditUserActive" name="active" type="checkbox" checked />
+          <span data-i18n="users.active">Ativo</span>
+        </label>
+        <p class="form-error" id="centralEditUserError" role="alert" hidden></p>
+        <div class="central-user-form-actions">
+          <button class="secondary-button" id="centralClearUserBtn" type="button" data-i18n="users.clear">Limpar</button>
+          <button class="primary-button" type="submit">
+            <i data-lucide="save"></i>
+            <span data-i18n="users.save">Guardar alterações</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="central-users-table-wrap">
+      <table class="central-users-table">
+        <thead>
+          <tr>
+            <th data-i18n="users.name">Nome</th>
+            <th data-i18n="login.email">Email</th>
+            <th data-i18n="users.role">Perfil</th>
+            <th data-i18n="users.status">Estado</th>
+            <th data-i18n="users.actions">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="centralUsersTable"></tbody>
+      </table>
+    </div>
+  </section>
+</dialog>
   </body>
 </html>
