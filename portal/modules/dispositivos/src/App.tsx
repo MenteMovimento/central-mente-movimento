@@ -967,7 +967,6 @@ const repairLabelTranslations: Record<AppLanguage, Record<string, string>> = {
     'chrocme': 'chrome',
     'aplica??o': 'application',
     'data copia de seguran?a': 'backup date',
-    'privilegio': 'privilege',
     'chrome': 'chrome',
     'aplicação': 'application',
     'data copia de segurança': 'backup date',
