@@ -36,6 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
+const assetVersion = '20260605-encoding-theme'
 
 const moduleCards = `
 <article class="module-card module-green" data-module-card="socios">
@@ -143,12 +144,12 @@ const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>${title}</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/styles.css?v=${assetVersion}" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js" defer></script>
-    <script src="/static/app.js" defer></script>
-    <script src="/static/central-auth.js" defer></script>
+    <script src="/static/central-config.js?v=${assetVersion}" defer></script>
+    <script src="/static/app.js?v=${assetVersion}" defer></script>
+    <script src="/static/central-auth.js?v=${assetVersion}" defer></script>
   </head>
   <body data-central-page="${page}"${titleKey ? ` data-title-key="${titleKey}"` : ''}>
     ${body}
@@ -616,7 +617,7 @@ sociosIndex = sociosIndex
   .replace('<script src="vendor/lucide.min.js" defer></script>', '<script src="/static/vendor/lucide.min.js" defer></script>')
   .replace(/\s*<script src="vendor\/xlsx\.full\.min\.js" defer><\/script>/, '')
   .replace(/\s*<script src="central-socios-client\.js" defer><\/script>/, '')
-  .replace('<script src="app.js" defer></script>', '<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js" defer></script>\n    <script src="config.js" defer></script>\n    <script src="/static/central-module-auth.js" defer></script>\n    <script src="app.js" defer></script>')
+  .replace('<script src="app.js" defer></script>', `<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js?v=${assetVersion}" defer></script>\n    <script src="config.js?v=${assetVersion}" defer></script>\n    <script src="/static/central-module-auth.js?v=${assetVersion}" defer></script>\n    <script src="app.js?v=${assetVersion}" defer></script>`)
 await writeFile(sociosIndexPath, sociosIndex)
 await rm(path.join(sociosOutput, 'central-socios-client.js'), { force: true })
 
@@ -647,7 +648,7 @@ dispositivosIndex = dispositivosIndex
   )
   .replace(
     '<script type="module"',
-    '<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js" defer></script>\n    <script src="/static/central-module-auth.js" defer></script>\n    <script type="module"',
+    `<script src="/static/vendor/supabase.js" defer></script>\n    <script src="/static/central-config.js?v=${assetVersion}" defer></script>\n    <script src="/static/central-module-auth.js?v=${assetVersion}" defer></script>\n    <script type="module"`,
   )
 await writeFile(dispositivosIndexPath, dispositivosIndex)
 
