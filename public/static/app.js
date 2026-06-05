@@ -20,7 +20,7 @@ const translations = {
   pt: {
     "app.title": "Central MenteMovimento",
     "login.title": "Entrar",
-    "login.copy": "Acesso reservado a gest\u00e3o da associa\u00e7\u00e3o.",
+    "login.copy": "Acesso reservado \u00e0 gest\u00e3o da associa\u00e7\u00e3o.",
     "login.submit": "Entrar",
     "login.email": "Email",
     "login.password": "Password",
