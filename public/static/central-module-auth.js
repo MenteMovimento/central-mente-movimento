@@ -1,5 +1,7 @@
 (() => {
+  let fallbackTimer = 0;
   const showPage = () => {
+    window.clearTimeout(fallbackTimer);
     document.documentElement.removeAttribute("data-central-auth-pending");
   };
   const authStorageKey = "central-mm-auth-token";
@@ -23,8 +25,14 @@
     return path;
   };
   const redirectToCentralLogin = () => {
+    showPage();
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
   };
+  fallbackTimer = window.setTimeout(() => {
+    if (document.documentElement.dataset.centralAuthPending === "true") {
+      redirectToCentralLogin();
+    }
+  }, 8000);
   const cacheKey = (session) => `central-access:${session?.user?.id || "anon"}`;
   const hasAccessCache = (session) => {
     try {

@@ -36,7 +36,44 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260605-encoding-theme'
+const assetVersion = '20260605-white-fix'
+
+const authPendingHead = `<script>
+      (() => {
+        document.documentElement.dataset.centralAuthPending = "true";
+      })();
+    </script>
+    <style>
+      html[data-central-auth-pending="true"] {
+        min-height: 100%;
+        background: #f4fbf8;
+      }
+
+      html[data-theme="dark"][data-central-auth-pending="true"] {
+        background: #07131f;
+      }
+
+      html[data-central-auth-pending="true"] body {
+        visibility: hidden;
+      }
+
+      html[data-central-auth-pending="true"]::before {
+        content: "A validar sessão...";
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: grid;
+        place-items: center;
+        background: #f4fbf8;
+        color: #05285a;
+        font: 700 22px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      html[data-theme="dark"][data-central-auth-pending="true"]::before {
+        background: #07131f;
+        color: #dff7f0;
+      }
+    </style>`
 
 const moduleCards = `
 <article class="module-card module-green" data-module-card="socios">
@@ -470,7 +507,9 @@ await writeFile(
 await writeFile(
   path.join(staticOutput, 'central-module-auth.js'),
   `(() => {
+  let fallbackTimer = 0;
   const showPage = () => {
+    window.clearTimeout(fallbackTimer);
     document.documentElement.removeAttribute("data-central-auth-pending");
   };
   const authStorageKey = "central-mm-auth-token";
@@ -494,8 +533,14 @@ await writeFile(
     return path;
   };
   const redirectToCentralLogin = () => {
+    showPage();
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
   };
+  fallbackTimer = window.setTimeout(() => {
+    if (document.documentElement.dataset.centralAuthPending === "true") {
+      redirectToCentralLogin();
+    }
+  }, 8000);
   const cacheKey = (session) => \`central-access:\${session?.user?.id || "anon"}\`;
   const hasAccessCache = (session) => {
     try {
@@ -612,7 +657,7 @@ let sociosIndex = await readFile(sociosIndexPath, 'utf8')
 sociosIndex = sociosIndex
   .replace(
     '</title>',
-    '</title>\n    <script>document.documentElement.dataset.centralAuthPending = "true";</script>\n    <style>html[data-central-auth-pending="true"] body{visibility:hidden}</style>',
+    `</title>\n    ${authPendingHead}`,
   )
   .replace('<script src="vendor/lucide.min.js" defer></script>', '<script src="/static/vendor/lucide.min.js" defer></script>')
   .replace(/\s*<script src="vendor\/xlsx\.full\.min\.js" defer><\/script>/, '')
@@ -644,7 +689,7 @@ let dispositivosIndex = await readFile(dispositivosIndexPath, 'utf8')
 dispositivosIndex = dispositivosIndex
   .replace(
     '</title>',
-    '</title>\n    <script>document.documentElement.dataset.centralAuthPending = "true";</script>\n    <style>html[data-central-auth-pending="true"] body{visibility:hidden}</style>',
+    `</title>\n    ${authPendingHead}`,
   )
   .replace(
     '<script type="module"',
