@@ -371,7 +371,7 @@ const manualSectionsByLanguage: Record<
     {
       title: '2. Criar um dispositivo',
       steps: [
-        'No painel Novo dispositivo, preenche pelo menos ID, Modelo e N? S?rie.',
+        'No painel Novo dispositivo, preenche pelo menos ID, Modelo e Nº Série.',
         'Usa as secoes Identificacao, Hardware e sistema, Diagnostico e reparacao, Configuracao e contas.',
         'Clica em Adicionar dispositivo para guardar na base de dados.',
       ],
@@ -389,8 +389,8 @@ const manualSectionsByLanguage: Record<
       steps: [
         'No Google Sheets, vai a Ficheiro > Transferir > Valores separados por virgulas (.csv).',
         'No site, clica em Importar CSV e escolhe o ficheiro exportado.',
-        'A importacao usa o N? S?rie para atualizar dispositivos existentes sem duplicar.',
-        'As colunas principais esperadas sao ID, Data Entrada, Marca, Modelo, N? S?rie, CPU, RAM, Disco, Estado e Observacoes.',
+        'A importação usa o Nº Série para atualizar dispositivos existentes sem duplicar.',
+        'As colunas principais esperadas são ID, Data Entrada, Marca, Modelo, Nº Série, CPU, RAM, Disco, Estado e Observações.',
       ],
     },
     {
@@ -746,9 +746,9 @@ const translations = {
     changePermissionFor: (name: string) => `Alterar permissao de ${name}`,
     csvImported: (count: number) => `${count} dispositivos importados do CSV.`,
     csvImportedUpdated: (count: number) => `${count} dispositivos importados/atualizados.`,
-    csvLineRequired: (row: number) => `Linha ${row}: ID, N? S?rie e Modelo sao obrigatorios.`,
-    duplicateSerialFound: (serial: string) => `Ja existe um dispositivo com o N? S?rie ${serial}.`,
-    duplicateSerialInCsv: (serial: string) => `O N? S?rie ${serial} aparece mais do que uma vez no CSV.`,
+    csvLineRequired: (row: number) => `Linha ${row}: ID, Nº Série e Modelo são obrigatórios.`,
+    duplicateSerialFound: (serial: string) => `Já existe um dispositivo com o Nº Série ${serial}.`,
+    duplicateSerialInCsv: (serial: string) => `O Nº Série ${serial} aparece mais do que uma vez no CSV.`,
     deleteAllConfirm: (count: number) =>
       `Vais apagar TODOS os ${count} dispositivos. Esta acao nao pode ser desfeita. Continuar?`,
     deleteOne: (name: string) => `Apagar "${name}"?`,
@@ -947,38 +947,38 @@ const repairLabelTranslations: Record<AppLanguage, Record<string, string>> = {
     'Data Entrada': 'Entry Date',
     Marca: 'Brand',
     Modelo: 'Model',
-    'N? S?rie': 'Serial No.',
+    'Nº Série': 'Serial No.',
     'RAM (GB)': 'RAM (GB)',
     Disco: 'Disk',
     'Sistema Operativo': 'Operating System',
     Liga: 'Powers On',
-    'D? Imagem': 'Has Image',
-    'Estado F?sico': 'Physical State',
+    'Dá Imagem': 'Has Image',
+    'Estado Físico': 'Physical State',
     'Necessita Limpeza': 'Needs Cleaning',
     Avaria: 'Fault',
-    Diagn?stico: 'Diagnosis',
-    'Pe?as Necess?rias': 'Parts Needed',
+    Diagnóstico: 'Diagnosis',
+    'Peças Necessárias': 'Parts Needed',
     'Custo Estimado': 'Estimated Cost',
     'Tempo Estimado (min)': 'Estimated Time (min)',
-    T?cnico: 'Technician',
+    Técnico: 'Technician',
     Estado: 'State',
     'Resultado Final': 'Final Result',
     'credencial administrador': 'administrator credential',
     privilegio: 'privilege',
     chrocme: 'chrome',
-    aplica??o: 'application',
-    'data copia de seguran?a': 'backup date',
+    aplicação: 'application',
+    'data copia de segurança': 'backup date',
     'USB bloqueada': 'USB blocked',
     'Conta GD': 'GD Account',
-    'data copia de seguran?a Google Drive': 'Google Drive backup date',
+    'data copia de segurança Google Drive': 'Google Drive backup date',
     'Rastrear todas as contas GD e gmail e verificar acessos de partilha':
       'Track all GD and Gmail accounts and sharing access',
     'Unifiormizar o desktop': 'Standardize desktop',
-    'App estimula??o cognmitiva': 'Cognitive stimulation app',
-    Observa??es: 'Notes',
+    'App estimulação cognmitiva': 'Cognitive stimulation app',
+    Observações: 'Notes',
     'Hardware e sistema': 'Hardware and system',
-    'Diagn?stico e repara??o': 'Diagnosis and repair',
-    'Configura??o e contas': 'Configuration and accounts',
+    'Diagnóstico e reparação': 'Diagnosis and repair',
+    'Configuração e contas': 'Configuration and accounts',
   },
 }
 
@@ -1266,7 +1266,7 @@ function App() {
     const result = (await response.json()) as { error?: string; profiles?: Profile[] }
 
     if (!response.ok || !result.profiles) {
-      throw new Error(result.error ?? 'Nao foi possivel carregar os utilizadores.')
+      throw new Error(result.error ?? 'Não foi possível carregar os utilizadores.')
     }
 
     setProfiles(result.profiles)
@@ -2089,7 +2089,7 @@ function App() {
       const result = (await response.json()) as { error?: string; profile?: Profile }
 
       if (!response.ok || !result.profile) {
-        throw new Error(result.error ?? 'Nao foi possivel criar o utilizador.')
+        throw new Error(result.error ?? 'Não foi possível criar o utilizador.')
       }
 
       setProfiles((currentProfiles) => [...currentProfiles, result.profile as Profile])
@@ -2143,7 +2143,7 @@ function App() {
       const result = (await response.json()) as { error?: string; profile?: Profile }
 
       if (!response.ok || !result.profile) {
-        throw new Error(result.error ?? 'Nao foi possivel atualizar a permissao.')
+        throw new Error(result.error ?? 'Não foi possível atualizar a permissão.')
       }
 
       const data = result.profile
@@ -2221,7 +2221,7 @@ function App() {
       const result = (await response.json()) as { error?: string; profile?: Profile }
 
       if (!response.ok || !result.profile) {
-        throw new Error(result.error ?? 'Nao foi possivel atualizar o nome.')
+        throw new Error(result.error ?? 'Não foi possível atualizar o nome.')
       }
 
       const data = result.profile
@@ -2284,7 +2284,7 @@ function App() {
       const result = (await response.json()) as { error?: string; ok?: boolean }
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.error ?? 'Nao foi possivel eliminar o utilizador.')
+        throw new Error(result.error ?? 'Não foi possível eliminar o utilizador.')
       }
 
       setProfiles((currentProfiles) => currentProfiles.filter((item) => item.id !== targetProfile.id))
@@ -2570,7 +2570,7 @@ function App() {
           <h1>${escapeHtml(t.appTitle)}</h1>
           <p>${escapeHtml(t.printReport)} - ${escapeHtml(generatedAt)} - ${filteredDevices.length} ${escapeHtml(t.visibleRecords)}</p>
           <table>
-            <thead><tr><th>ID</th><th>${escapeHtml(translateRepairLabel('Marca'))}</th><th>${escapeHtml(translateRepairLabel('Modelo'))}</th><th>${escapeHtml(translateRepairLabel('N? S?rie'))}</th><th>CPU</th><th>${escapeHtml(translateRepairLabel('Estado'))}</th><th>${escapeHtml(translateRepairLabel('Avaria'))}</th></tr></thead>
+            <thead><tr><th>ID</th><th>${escapeHtml(translateRepairLabel('Marca'))}</th><th>${escapeHtml(translateRepairLabel('Modelo'))}</th><th>${escapeHtml(translateRepairLabel('Nº Série'))}</th><th>CPU</th><th>${escapeHtml(translateRepairLabel('Estado'))}</th><th>${escapeHtml(translateRepairLabel('Avaria'))}</th></tr></thead>
             <tbody>${rows}</tbody>
           </table>
         </body>
@@ -2855,8 +2855,8 @@ function App() {
         </header>
         <div className="language-choice-list" role="group" aria-label={t.language}>
           {[
-            { value: 'pt' as AppLanguage, label: 'Portugues', region: 'Portugal', flag: '????' },
-            { value: 'en' as AppLanguage, label: 'English', region: 'United Kingdom', flag: '????' },
+            { value: 'pt' as AppLanguage, label: 'Português', region: 'Portugal', flag: 'PT' },
+            { value: 'en' as AppLanguage, label: 'English', region: 'United Kingdom', flag: 'EN' },
           ].map((option) => (
             <button
               key={option.value}
@@ -3278,7 +3278,7 @@ function App() {
                   </label>
 
                   <label>
-                    {translateRepairLabel('N? S?rie')}
+                    {translateRepairLabel('Nº Série')}
                     <input
                       required
                       placeholder="Ex: PF-09UN6N"
@@ -3720,7 +3720,7 @@ function App() {
           <div className="analytics-grid">
             {[
               { title: t.mostCommonBrands, items: statistics.brands },
-              { title: translateRepairLabel('T?cnico'), items: statistics.technicians },
+              { title: translateRepairLabel('Técnico'), items: statistics.technicians },
               { title: translateRepairLabel('Avaria'), items: statistics.faults },
               { title: t.finalResults, items: statistics.finalResults },
             ].map((panel) => (

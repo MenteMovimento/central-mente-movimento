@@ -39,18 +39,18 @@ SESSION_SECONDS = 12 * 60 * 60
 MODULES = [
     {
         "id": "socios",
-        "name": "Gest?o de S?cios",
-        "label": "S?cios",
+        "name": "Gestão de Sócios",
+        "label": "Sócios",
         "path": "/area/socios",
         "schema": "socios",
         "icon": "id-card",
         "accent": "green",
-        "detail": "Base de s?cios",
+        "detail": "Base de sócios",
         "table": "members",
     },
     {
         "id": "utentes",
-        "name": "Gest?o de Utentes",
+        "name": "Gestão de Utentes",
         "label": "Utentes",
         "path": "/area/utentes",
         "schema": "utentes",
@@ -61,7 +61,7 @@ MODULES = [
     },
     {
         "id": "dispositivos",
-        "name": "Gest?o de Dispositivos",
+        "name": "Gestão de Dispositivos",
         "label": "Dispositivos",
         "path": "/area/dispositivos",
         "schema": "dispositivos",
@@ -677,9 +677,9 @@ def module_nav(active_id):
 def area_panels(module):
     labels_by_module = {
         "socios": [
-            ("Gest?o de s?cios", "id-card"),
+            ("Gestão de sócios", "id-card"),
             ("Quotas", "calendar-check"),
-            ("Exporta??es", "download"),
+            ("Exportações", "download"),
         ],
         "utentes": [
             ("Fichas", "clipboard-list"),
@@ -689,9 +689,9 @@ def area_panels(module):
         ],
         "dispositivos": [
             ("Listagem", "table-2"),
-            ("Repara??es", "wrench"),
+            ("Reparações", "wrench"),
             ("Estados", "list-checks"),
-            ("Estat?sticas", "bar-chart-3"),
+            ("Estatísticas", "bar-chart-3"),
             ("Anexos", "paperclip"),
             ("CSV", "file-spreadsheet"),
         ],
@@ -715,36 +715,36 @@ def find_module(area_id):
 
 GLOBAL_PAGES = {
     "historico": {
-        "title": "Hist?rico geral",
+        "title": "Histórico geral",
         "icon": "history",
         "eyebrow": "Ferramenta global",
-        "body": "Registo comum de altera??es feitas nos ramos de s?cios, utentes e dispositivos.",
+        "body": "Registo comum de alterações feitas nos ramos de sócios, utentes e dispositivos.",
         "items": [
-            ("S?cios", "Altera??es em fichas e quotas."),
-            ("Utentes", "Altera??es em fichas, separadores e anexos."),
-            ("Dispositivos", "Altera??es em listagens, repara??es, estados, anexos e CSV."),
+            ("Sócios", "Alterações em fichas e quotas."),
+            ("Utentes", "Alterações em fichas, separadores e anexos."),
+            ("Dispositivos", "Alterações em listagens, reparações, estados, anexos e CSV."),
         ],
     },
     "utilizadores": {
-        "title": "Utilizadores e permiss?es",
+        "title": "Utilizadores e permissões",
         "icon": "users-round",
         "eyebrow": "Ferramenta global",
-        "body": "Gest?o ?nica de administradores, utilizadores e acessos a cada ramo.",
+        "body": "Gestão única de administradores, utilizadores e acessos a cada ramo.",
         "items": [
             ("Administrador", "Acesso total ? central."),
-            ("Gestor de ramo", "Acesso limitado a s?cios, utentes ou dispositivos."),
-            ("Consulta", "Acesso s? de leitura quando necess?rio."),
+            ("Gestor de ramo", "Acesso limitado a sócios, utentes ou dispositivos."),
+            ("Consulta", "Acesso só de leitura quando necessário."),
         ],
     },
     "manuais": {
         "title": "Manuais",
         "icon": "book-open",
         "eyebrow": "Ferramenta global",
-        "body": "?rea comum para consultar os manuais dos tr?s ramos e os manuais t?cnicos.",
+        "body": "Área comum para consultar os manuais dos três ramos e os manuais técnicos.",
         "items": [
-            ("Manual de s?cios", "Quotas, exporta??es e gest?o de s?cios."),
+            ("Manual de sócios", "Quotas, exportações e gestão de sócios."),
             ("Manual de utentes", "Fichas, separadores, anexos PDF, genograma e ecomapa."),
-            ("Manual de dispositivos", "Repara??es, estados, estat?sticas, anexos e CSV."),
+            ("Manual de dispositivos", "Reparações, estados, estatísticas, anexos e CSV."),
         ],
     },
 }
@@ -807,7 +807,7 @@ class PortalHandler(BaseHTTPRequestHandler):
 
         if request_path == "/api/status":
             if not self.is_authenticated():
-                self.send_json({"error": "N?o autenticado"}, status=401)
+                self.send_json({"error": "Não autenticado"}, status=401)
                 return
             statuses = []
             for module in MODULES:
@@ -879,7 +879,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             area_id = request_path.removeprefix("/area/").strip("/")
             module = find_module(area_id)
             if not module:
-                self.send_error(404, "?rea n?o encontrada")
+                self.send_error(404, "Área não encontrada")
                 return
             self.send_html(
                 render_template(
@@ -917,7 +917,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             )
             return
 
-        self.send_error(404, "P?gina n?o encontrada")
+        self.send_error(404, "Página não encontrada")
 
     def do_POST(self):
         request_path = self.path.split("?", 1)[0]
@@ -942,7 +942,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             return
 
         if request_path != "/login":
-            self.send_error(404, "P?gina n?o encontrada")
+            self.send_error(404, "Página não encontrada")
             return
 
         length = int(self.headers.get("Content-Length", "0") or "0")
@@ -957,7 +957,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_html(
                 render_template(
                     "login.html",
-                    ERROR='<p class="form-error">Credenciais inv?lidas.</p>',
+                    ERROR='<p class="form-error">Credenciais inválidas.</p>',
                     EMAIL=html.escape(email, quote=True),
                     NEXT=html.escape(next_path, quote=True),
                 ),
@@ -1113,7 +1113,7 @@ class PortalHandler(BaseHTTPRequestHandler):
                 render_template(
                     "area.html",
                     TOPBAR=topbar("utentes"),
-                    AREA_NAME="Gest?o de Utentes",
+                    AREA_NAME="Gestão de Utentes",
                     AREA_LABEL="Utentes",
                     AREA_DETAIL=html.escape(str(error)),
                     AREA_ICON="heart-handshake",
@@ -1121,7 +1121,7 @@ class PortalHandler(BaseHTTPRequestHandler):
                     AREA_SCHEMA="utentes",
                     AREA_TABLE="utentes",
                     AREA_NAV=module_nav("utentes"),
-                    AREA_PANELS='<p class="muted">A app de Utentes ainda n?o arrancou. Tenta reiniciar com .\\start-local.ps1.</p>',
+                    AREA_PANELS='<p class="muted">A app de Utentes ainda não arrancou. Tenta reiniciar com .\\start-local.ps1.</p>',
                 ),
                 status=503,
             )
@@ -1162,7 +1162,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             data = response.read()
             response_headers = response.getheaders()
         except OSError:
-            self.send_error(503, "A app local de Utentes n?o est? ligada")
+            self.send_error(503, "A app local de Utentes não está ligada")
             return
         finally:
             try:
@@ -1225,9 +1225,9 @@ class PortalHandler(BaseHTTPRequestHandler):
                 render_template(
                     "area.html",
                     TOPBAR=topbar("dispositivos"),
-                    AREA_NAME="Gest?o de Dispositivos",
+                    AREA_NAME="Gestão de Dispositivos",
                     AREA_LABEL="Dispositivos",
-                    AREA_DETAIL="O m?dulo de Dispositivos ainda n?o est? ligado. Reinicie com .\\start-local.ps1.",
+                    AREA_DETAIL="O módulo de Dispositivos ainda não está ligado. Reinicie com .\\start-local.ps1.",
                     AREA_ICON="monitor-cog",
                     AREA_ACCENT="amber",
                     AREA_SCHEMA="dispositivos",
@@ -1262,10 +1262,10 @@ class PortalHandler(BaseHTTPRequestHandler):
         requested = (STATIC_DIR / raw_path).resolve()
         static_root = STATIC_DIR.resolve()
         if static_root not in requested.parents and requested != static_root:
-            self.send_error(404, "Ficheiro n?o encontrado")
+            self.send_error(404, "Ficheiro não encontrado")
             return
         if not requested.is_file():
-            self.send_error(404, "Ficheiro n?o encontrado")
+            self.send_error(404, "Ficheiro não encontrado")
             return
         content_type = with_charset(mimetypes.guess_type(str(requested))[0] or "application/octet-stream")
         data = requested.read_bytes()
@@ -1283,10 +1283,10 @@ class PortalHandler(BaseHTTPRequestHandler):
         requested = (root / raw_path).resolve()
         module_root = root.resolve()
         if module_root not in requested.parents and requested != module_root:
-            self.send_error(404, "Ficheiro n?o encontrado")
+            self.send_error(404, "Ficheiro não encontrado")
             return
         if not requested.is_file():
-            self.send_error(404, "Ficheiro n?o encontrado")
+            self.send_error(404, "Ficheiro não encontrado")
             return
         content_type = with_charset(mimetypes.guess_type(str(requested))[0] or "application/octet-stream")
         data = requested.read_bytes()

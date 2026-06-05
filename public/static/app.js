@@ -114,7 +114,7 @@ const translations = {
     "language.portugal": "Portugal",
     "language.english": "English",
     "language.uk": "United Kingdom",
-    "language.ptLabel": "Idioma: Portugues",
+    "language.ptLabel": "Idioma: Português",
     "language.enLabel": "Language: English",
     "language.close": "Close",
     "dashboard.eyebrow": "Association management",
