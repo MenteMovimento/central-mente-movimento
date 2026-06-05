@@ -47,7 +47,7 @@
   const ensureAccess = async (session) => {
     if (hasAccessCache(session)) return;
     const token = session?.access_token || "";
-    if (!token) throw new Error("Sessao em falta.");
+    if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/ensure-access", {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` }

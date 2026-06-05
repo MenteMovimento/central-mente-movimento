@@ -4164,7 +4164,7 @@ def update_utente_core_from_shared(utente_id, post_data):
     if supabase_available():
         current = get_utente(utente_id)
         if not current:
-            raise ValueError("Utente nÃ£o encontrado.")
+            raise ValueError("Utente não encontrado.")
         nome = first_post_entry(post_data, SHARED_FIELD_ALIASES["nome"], current["nome"]) or current["nome"]
         data_nascimento = first_post_entry(
             post_data,
@@ -4182,7 +4182,7 @@ def update_utente_core_from_shared(utente_id, post_data):
             current.get("numero_utente") or "",
         )
         if not nome:
-            raise ValueError("O nome completo Ã© obrigatÃ³rio.")
+            raise ValueError("O nome completo é obrigatório.")
         table_update(
             "utentes",
             {"id": f"eq.{utente_id}"},

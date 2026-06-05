@@ -57,7 +57,7 @@
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
       sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
-      // Sessao continua valida mesmo se o browser bloquear sessionStorage.
+      // Sessão continua válida mesmo se o browser bloquear sessionStorage.
     }
   };
   const createClient = () => {
@@ -83,14 +83,14 @@
         const session = data?.session || null;
         if (hasAccessCache(session)) return { ok: true };
         const token = session?.access_token || "";
-        if (!token) throw new Error("Sessao em falta.");
+        if (!token) throw new Error("Sessão em falta.");
         const response = await fetch("/api/ensure-access", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }
         });
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.error || "Nao foi possivel preparar o acesso.");
+          throw new Error(payload.error || "Não foi possível preparar o acesso.");
         }
         const payload = await response.json().catch(() => ({ ok: true }));
         saveAccessCache(session);
@@ -107,7 +107,7 @@
   const ensureUtentesSession = async (client) => {
     const { data } = await client.auth.getSession();
     const token = data?.session?.access_token || "";
-    if (!token) throw new Error("Sessao em falta.");
+    if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/utentes-session", {
       method: "POST",
       credentials: "same-origin",
@@ -115,7 +115,7 @@
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || "Nao foi possivel iniciar Utentes.");
+      throw new Error(payload.error || "Não foi possível iniciar Utentes.");
     }
   };
   const goTo = async (client, target) => {
@@ -160,7 +160,7 @@
     if (page === "login") {
       if (session) {
         await goTo(client, nextPath()).catch((error) => {
-          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
         });
         return;
       }
@@ -176,13 +176,13 @@
         const { error } = await client.auth.signInWithPassword({ email, password });
         submit.disabled = false;
         if (error) {
-          showError("Credenciais invalidas ou utilizador sem acesso.");
+          showError("Credenciais inválidas ou utilizador sem acesso.");
           return;
         }
         try {
           await goTo(client, nextPath());
         } catch (error) {
-          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
         }
       });
       return;
@@ -194,7 +194,7 @@
     try {
       await ensureCentralAccess(client);
     } catch (error) {
-      showError(error instanceof Error ? error.message : "Nao foi possivel preparar o acesso.");
+      showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }
     setUserEmail(session);
     wireUtentesLinks(client);

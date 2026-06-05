@@ -29,14 +29,19 @@ body {
 }
 
 body.dark-mode {
-  --bg: #111917;
-  --panel: #17231f;
-  --text: #eef7f4;
-  --muted: #b2c6c0;
-  --line: #30423d;
-  --shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+  --bg: #07131f;
+  --panel: #0d1b2e;
+  --text: #eaf4ff;
+  --muted: #9fb2c6;
+  --line: #263a4f;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+  --brand: #18c996;
+  --brand-dark: #72e5bf;
+  --blue: #85b7ff;
+  --green: #18c996;
+  --danger: #ff8175;
   background:
-    linear-gradient(180deg, rgba(56, 144, 129, 0.16), transparent 280px),
+    linear-gradient(180deg, rgba(11, 57, 51, 0.78), rgba(7, 19, 31, 0) 320px),
     var(--bg);
 }
 
@@ -482,22 +487,23 @@ body.dark-mode .topnav-link:hover,
 body.dark-mode .topnav-link.active,
 body.dark-mode .area-nav-link:hover,
 body.dark-mode .area-nav-link.active {
-  background: #20342f;
-  color: #dff6f0;
+  border-color: rgba(24, 201, 150, 0.36);
+  background: #12263c;
+  color: #eaf4ff;
 }
 
 body.dark-mode .menu-item:hover {
-  background: #20342f;
+  background: #12263c;
 }
 
 body.dark-mode .language-close {
-  color: #dff6f0;
+  color: #eaf4ff;
 }
 
 body.dark-mode .language-close:hover,
 body.dark-mode .language-option:hover,
 body.dark-mode .language-option.is-active {
-  background: #20342f;
+  background: #12263c;
 }
 
 body.dark-mode .language-option.is-active {
@@ -505,16 +511,16 @@ body.dark-mode .language-option.is-active {
 }
 
 body.dark-mode .language-flag {
-  background: #101a17;
+  background: #081827;
 }
 
 body.dark-mode .language-copy strong {
-  color: #eef7f4;
+  color: #eaf4ff;
 }
 
 body.dark-mode .field input,
 body.dark-mode .branch-card {
-  background: #101a17;
+  background: #081827;
 }
 
 .topnav-link svg,

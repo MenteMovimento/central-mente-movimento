@@ -43,11 +43,11 @@ const moduleCards = `
     <span class="module-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
     <span class="status-chip status-online" data-module-status="socios" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2 data-i18n="module.socios.title">Socios</h2>
-  <p data-i18n="module.socios.detail">Base de socios</p>
+  <h2 data-i18n="module.socios.title">Sócios</h2>
+  <p data-i18n="module.socios.detail">Base de sócios</p>
   <a class="module-action" href="/area/socios/">
     <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar na area</span>
+    <span data-i18n="module.enter">Entrar na área</span>
   </a>
 </article>
 <article class="module-card module-blue" data-module-card="utentes">
@@ -59,7 +59,7 @@ const moduleCards = `
   <p data-i18n="module.utentes.detail">Base de utentes</p>
   <a class="module-action" href="/area/utentes/">
     <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar na area</span>
+    <span data-i18n="module.enter">Entrar na área</span>
   </a>
 </article>
 <article class="module-card module-amber" data-module-card="dispositivos">
@@ -71,7 +71,7 @@ const moduleCards = `
   <p data-i18n="module.dispositivos.detail">Base de dispositivos</p>
   <a class="module-action" href="/area/dispositivos/">
     <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar na area</span>
+    <span data-i18n="module.enter">Entrar na área</span>
   </a>
 </article>`
 
@@ -87,10 +87,10 @@ const topbar = (activeId = '') => `
         <p data-user-email>Administrador</p>
       </div>
     </a>
-    <nav class="topnav" aria-label="Areas principais" data-i18n-aria-label="nav.areas">
+    <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
       <a class="topnav-link${activeId === 'socios' ? ' active' : ''}" href="/area/socios/">
         <i data-lucide="id-card"></i>
-        <span data-i18n="nav.socios">Socios</span>
+        <span data-i18n="nav.socios">Sócios</span>
       </a>
       <a class="topnav-link${activeId === 'utentes' ? ' active' : ''}" href="/area/utentes/">
         <i data-lucide="heart-handshake"></i>
@@ -113,7 +113,7 @@ const topbar = (activeId = '') => `
           </a>
           <a class="menu-item" href="/historico" role="menuitem">
             <i data-lucide="history"></i>
-            <span data-i18n="menu.history">Historico</span>
+            <span data-i18n="menu.history">Histórico</span>
           </a>
           <a class="menu-item" href="/manuais" role="menuitem">
             <i data-lucide="book-open"></i>
@@ -129,7 +129,7 @@ const topbar = (activeId = '') => `
           </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+      <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
         <i data-lucide="log-out"></i>
       </a>
     </div>
@@ -166,7 +166,7 @@ const loginPage = pageShell({
       <span data-i18n="app.title">Central MenteMovimento</span>
     </div>
     <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
-    <p class="login-copy" data-i18n="login.copy">Acesso reservado a gestao da associacao.</p>
+    <p class="login-copy" data-i18n="login.copy">Acesso reservado à gestão da associação.</p>
     <form class="login-form" id="centralLoginForm">
       <label class="field" for="email">
         <span data-i18n="login.email">Email</span>
@@ -194,15 +194,15 @@ ${topbar()}
 <main class="dashboard">
   <section class="dashboard-heading" aria-labelledby="dashboardTitle">
     <div>
-      <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestao da associacao</p>
-      <h2 id="dashboardTitle" data-i18n="dashboard.title">Escolhe a area de trabalho</h2>
+      <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestão da associação</p>
+      <h2 id="dashboardTitle" data-i18n="dashboard.title">Escolhe a área de trabalho</h2>
     </div>
     <span class="session-chip">
       <i data-lucide="key-round"></i>
-      <span data-i18n="dashboard.session">Sessao unica</span>
+      <span data-i18n="dashboard.session">Sessão única</span>
     </span>
   </section>
-  <section class="module-grid" aria-label="Aplicacoes disponiveis" data-i18n-aria-label="dashboard.available">
+  <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
     ${moduleCards}
   </section>
 </main>`,
@@ -211,7 +211,7 @@ ${topbar()}
 const logoutPage = pageShell({
   title: 'A sair - Central MenteMovimento',
   page: 'logout',
-  body: '<main class="login-shell"><section class="login-panel"><h1>A terminar sessao...</h1><p class="login-copy">Aguarde um momento.</p></section></main>',
+  body: '<main class="login-shell"><section class="login-panel"><h1>A terminar sessão...</h1><p class="login-copy">Aguarde um momento.</p></section></main>',
 }).replace('<body data-central-page="logout">', '<body class="login-page" data-central-page="logout">')
 
 const globalPage = ({ file, key, title, icon, copy, items }) => ({
@@ -321,7 +321,7 @@ await writeFile(
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
       sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
-      // Sessao continua valida mesmo se o browser bloquear sessionStorage.
+      // Sessão continua válida mesmo se o browser bloquear sessionStorage.
     }
   };
   const createClient = () => {
@@ -347,14 +347,14 @@ await writeFile(
         const session = data?.session || null;
         if (hasAccessCache(session)) return { ok: true };
         const token = session?.access_token || "";
-        if (!token) throw new Error("Sessao em falta.");
+        if (!token) throw new Error("Sessão em falta.");
         const response = await fetch("/api/ensure-access", {
           method: "POST",
           headers: { Authorization: \`Bearer \${token}\` }
         });
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.error || "Nao foi possivel preparar o acesso.");
+          throw new Error(payload.error || "Não foi possível preparar o acesso.");
         }
         const payload = await response.json().catch(() => ({ ok: true }));
         saveAccessCache(session);
@@ -371,7 +371,7 @@ await writeFile(
   const ensureUtentesSession = async (client) => {
     const { data } = await client.auth.getSession();
     const token = data?.session?.access_token || "";
-    if (!token) throw new Error("Sessao em falta.");
+    if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/utentes-session", {
       method: "POST",
       credentials: "same-origin",
@@ -379,7 +379,7 @@ await writeFile(
     });
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
-      throw new Error(payload.error || "Nao foi possivel iniciar Utentes.");
+      throw new Error(payload.error || "Não foi possível iniciar Utentes.");
     }
   };
   const goTo = async (client, target) => {
@@ -424,7 +424,7 @@ await writeFile(
     if (page === "login") {
       if (session) {
         await goTo(client, nextPath()).catch((error) => {
-          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
         });
         return;
       }
@@ -440,13 +440,13 @@ await writeFile(
         const { error } = await client.auth.signInWithPassword({ email, password });
         submit.disabled = false;
         if (error) {
-          showError("Credenciais invalidas ou utilizador sem acesso.");
+          showError("Credenciais inválidas ou utilizador sem acesso.");
           return;
         }
         try {
           await goTo(client, nextPath());
         } catch (error) {
-          showError(error instanceof Error ? error.message : "Nao foi possivel iniciar Utentes.");
+          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
         }
       });
       return;
@@ -458,7 +458,7 @@ await writeFile(
     try {
       await ensureCentralAccess(client);
     } catch (error) {
-      showError(error instanceof Error ? error.message : "Nao foi possivel preparar o acesso.");
+      showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }
     setUserEmail(session);
     wireUtentesLinks(client);
@@ -517,7 +517,7 @@ await writeFile(
   const ensureAccess = async (session) => {
     if (hasAccessCache(session)) return;
     const token = session?.access_token || "";
-    if (!token) throw new Error("Sessao em falta.");
+    if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/ensure-access", {
       method: "POST",
       headers: { Authorization: \`Bearer \${token}\` }
@@ -561,25 +561,25 @@ for (const page of [
   globalPage({
     file: 'historico.html',
     key: 'global.history',
-    title: 'Historico geral',
+    title: 'Histórico geral',
     icon: 'history',
-    copy: 'Registo comum de alteracoes feitas nos ramos de socios, utentes e dispositivos.',
+    copy: 'Registo comum de alterações feitas nos ramos de sócios, utentes e dispositivos.',
     items: [
-      ['socios', 'Socios', 'Alteracoes em fichas e quotas.'],
-      ['utentes', 'Utentes', 'Alteracoes em fichas, separadores e anexos.'],
-      ['dispositivos', 'Dispositivos', 'Alteracoes em listagens, reparacoes, estados, anexos e CSV.'],
+      ['socios', 'Sócios', 'Alterações em fichas e quotas.'],
+      ['utentes', 'Utentes', 'Alterações em fichas, separadores e anexos.'],
+      ['dispositivos', 'Dispositivos', 'Alterações em listagens, reparações, estados, anexos e CSV.'],
     ],
   }),
   globalPage({
     file: 'utilizadores.html',
     key: 'global.users',
-    title: 'Utilizadores e permissoes',
+    title: 'Utilizadores e permissões',
     icon: 'users-round',
-    copy: 'Gestao unica de administradores, utilizadores e acessos a cada ramo.',
+    copy: 'Gestão única de administradores, utilizadores e acessos a cada ramo.',
     items: [
-      ['admin', 'Administrador', 'Acesso total a central.'],
-      ['manager', 'Gestor de ramo', 'Acesso limitado a socios, utentes ou dispositivos.'],
-      ['viewer', 'Consulta', 'Acesso so de leitura quando necessario.'],
+      ['admin', 'Administrador', 'Acesso total à central.'],
+      ['manager', 'Gestor de ramo', 'Acesso limitado a sócios, utentes ou dispositivos.'],
+      ['viewer', 'Consulta', 'Acesso só de leitura quando necessário.'],
     ],
   }),
   globalPage({
@@ -587,11 +587,11 @@ for (const page of [
     key: 'global.manuals',
     title: 'Manuais',
     icon: 'book-open',
-    copy: 'Area comum para consultar os manuais dos tres ramos e os manuais tecnicos.',
+    copy: 'Área comum para consultar os manuais dos três ramos e os manuais técnicos.',
     items: [
-      ['socios', 'Manual de socios', 'Quotas, exportacoes e gestao de socios.'],
+      ['socios', 'Manual de sócios', 'Quotas, exportações e gestão de sócios.'],
       ['utentes', 'Manual de utentes', 'Fichas, separadores, anexos PDF, genograma e ecomapa.'],
-      ['dispositivos', 'Manual de dispositivos', 'Reparacoes, estados, estatisticas, anexos e CSV.'],
+      ['dispositivos', 'Manual de dispositivos', 'Reparações, estados, estatísticas, anexos e CSV.'],
     ],
   }),
 ]) {
@@ -653,7 +653,7 @@ await writeFile(dispositivosIndexPath, dispositivosIndex)
 
 await writeFile(
   path.join(publicDir, '404.html'),
-  `<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pagina nao encontrada</title></head><body><main style="font-family:system-ui,sans-serif;max-width:680px;margin:80px auto;padding:24px"><h1>Pagina nao encontrada</h1><p><a href="/">Voltar a Central</a></p></main></body></html>`,
+  `<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Página não encontrada</title></head><body><main style="font-family:system-ui,sans-serif;max-width:680px;margin:80px auto;padding:24px"><h1>Página não encontrada</h1><p><a href="/">Voltar à Central</a></p></main></body></html>`,
 )
 
-console.log('Output de producao criado em public/.')
+console.log('Output de produção criado em public/.')
