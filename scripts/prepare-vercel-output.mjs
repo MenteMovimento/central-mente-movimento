@@ -36,11 +36,25 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260605-white-fix'
+const assetVersion = '20260605-socios-login-logo'
 
 const authPendingHead = `<script>
       (() => {
         document.documentElement.dataset.centralAuthPending = "true";
+        const renderLoading = () => {
+          if (document.getElementById("centralAuthLoading")) return;
+          const node = document.createElement("div");
+          node.id = "centralAuthLoading";
+          node.setAttribute("role", "status");
+          node.setAttribute("aria-live", "polite");
+          node.textContent = "A validar sessão...";
+          document.body.prepend(node);
+        };
+        if (document.body) {
+          renderLoading();
+        } else {
+          document.addEventListener("DOMContentLoaded", renderLoading, { once: true });
+        }
       })();
     </script>
     <style>
@@ -53,12 +67,7 @@ const authPendingHead = `<script>
         background: #07131f;
       }
 
-      html[data-central-auth-pending="true"] body {
-        visibility: hidden;
-      }
-
-      html[data-central-auth-pending="true"]::before {
-        content: "A validar sessão...";
+      #centralAuthLoading {
         position: fixed;
         inset: 0;
         z-index: 2147483647;
@@ -69,7 +78,7 @@ const authPendingHead = `<script>
         font: 700 22px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
-      html[data-theme="dark"][data-central-auth-pending="true"]::before {
+      html[data-theme="dark"] #centralAuthLoading {
         background: #07131f;
         color: #dff7f0;
       }
@@ -200,7 +209,9 @@ const loginPage = pageShell({
 <main class="login-shell">
   <section class="login-panel" aria-labelledby="loginTitle">
     <div class="brand-line">
-      <span class="brand-symbol" aria-hidden="true"><i data-lucide="shield-check"></i></span>
+      <span class="brand-symbol brand-logo login-brand-logo" aria-hidden="true">
+        <img src="/static/mente-movimento-logo.png" alt="" />
+      </span>
       <span data-i18n="app.title">Central MenteMovimento</span>
     </div>
     <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
@@ -511,6 +522,7 @@ await writeFile(
   const showPage = () => {
     window.clearTimeout(fallbackTimer);
     document.documentElement.removeAttribute("data-central-auth-pending");
+    document.getElementById("centralAuthLoading")?.remove();
   };
   const authStorageKey = "central-mm-auth-token";
   const authStorage = {

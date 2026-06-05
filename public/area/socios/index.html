@@ -8,6 +8,20 @@
     <script>
       (() => {
         document.documentElement.dataset.centralAuthPending = "true";
+        const renderLoading = () => {
+          if (document.getElementById("centralAuthLoading")) return;
+          const node = document.createElement("div");
+          node.id = "centralAuthLoading";
+          node.setAttribute("role", "status");
+          node.setAttribute("aria-live", "polite");
+          node.textContent = "A validar sessão...";
+          document.body.prepend(node);
+        };
+        if (document.body) {
+          renderLoading();
+        } else {
+          document.addEventListener("DOMContentLoaded", renderLoading, { once: true });
+        }
       })();
     </script>
     <style>
@@ -20,12 +34,7 @@
         background: #07131f;
       }
 
-      html[data-central-auth-pending="true"] body {
-        visibility: hidden;
-      }
-
-      html[data-central-auth-pending="true"]::before {
-        content: "A validar sessão...";
+      #centralAuthLoading {
         position: fixed;
         inset: 0;
         z-index: 2147483647;
@@ -36,7 +45,7 @@
         font: 700 22px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
-      html[data-theme="dark"][data-central-auth-pending="true"]::before {
+      html[data-theme="dark"] #centralAuthLoading {
         background: #07131f;
         color: #dff7f0;
       }
@@ -68,10 +77,10 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260605-white-fix" defer></script>
-    <script src="config.js?v=20260605-white-fix" defer></script>
-    <script src="/static/central-module-auth.js?v=20260605-white-fix" defer></script>
-    <script src="app.js?v=20260605-white-fix" defer></script>
+    <script src="/static/central-config.js?v=20260605-socios-login-logo" defer></script>
+    <script src="config.js?v=20260605-socios-login-logo" defer></script>
+    <script src="/static/central-module-auth.js?v=20260605-socios-login-logo" defer></script>
+    <script src="app.js?v=20260605-socios-login-logo" defer></script>
   </head>
   <body>
     <section class="setup-view" id="setupView" hidden>

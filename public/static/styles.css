@@ -110,6 +110,12 @@ input {
   object-fit: contain;
 }
 
+.login-brand-logo {
+  width: 62px;
+  height: 62px;
+  flex: 0 0 62px;
+}
+
 .brand-symbol svg,
 .module-icon svg,
 .primary-button svg,

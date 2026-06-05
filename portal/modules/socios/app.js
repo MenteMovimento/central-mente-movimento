@@ -48,22 +48,22 @@ const fields = [
 ];
 
 const fieldLabels = {
-  memberNumber: "N? de s?cio",
-  approvalMinuteNumber: "N? de Ata de Aprova??o",
-  admissionDate: "Data de ades?o",
-  quotaPaidUntil: "?ltima quota paga",
+  memberNumber: "Nº de sócio",
+  approvalMinuteNumber: "Nº de Ata de Aprovação",
+  admissionDate: "Data de adesão",
+  quotaPaidUntil: "Última quota paga",
   quotaPaidAt: "Data do pagamento",
   name: "Nome",
   address: "Morada",
-  postalCode: "C?digo postal",
+  postalCode: "Código postal",
   locality: "Localidade",
   idNumber: "BI ou CC",
   taxNumber: "NIF",
   profession: "Categoria",
   birthDate: "Data de nascimento",
-  phone: "Telem?vel",
+  phone: "Telemóvel",
   email: "Email",
-  notes: "Observa??es internas",
+  notes: "Observações internas",
 };
 
 const roleLabels = {
@@ -79,22 +79,22 @@ const auditActionLabels = {
 };
 
 const auditFieldLabels = {
-  member_number: "N? de s?cio",
-  approval_minute_number: "N? de Ata de Aprova??o",
-  admission_date: "Data de ades?o",
-  quota_paid_until: "?ltima quota paga",
+  member_number: "Nº de sócio",
+  approval_minute_number: "Nº de Ata de Aprovação",
+  admission_date: "Data de adesão",
+  quota_paid_until: "Última quota paga",
   quota_paid_at: "Data do pagamento",
   name: "Nome",
   address: "Morada",
-  postal_code: "C?digo postal",
+  postal_code: "Código postal",
   locality: "Localidade",
   id_number: "BI ou CC",
   tax_number: "NIF",
   profession: "Categoria",
   birth_date: "Data de nascimento",
-  phone: "Telem?vel",
+  phone: "Telemóvel",
   email: "Email",
-  notes: "Observa??es internas",
+  notes: "Observações internas",
 };
 
 const ignoredAuditFields = new Set(["id", "created_at", "updated_at", "created_by", "updated_by"]);
@@ -102,42 +102,42 @@ const ignoredAuditFields = new Set(["id", "created_at", "updated_at", "created_b
 const translations = {
   pt: {
     app: {
-      title: "Gest?o de S?cios",
-      setupTitle: "Configura??o necess?ria",
-      setupText: "Configure o Supabase em config.js antes de publicar ou usar a app em produ??o.",
-      setupLink: "Ver instru??es",
+      title: "Gestão de Sócios",
+      setupTitle: "Configuração necessária",
+      setupText: "Configure o Supabase em config.js antes de publicar ou usar a app em produção.",
+      setupLink: "Ver instruções",
       authText: "Acesso reservado a utilizadores autorizados.",
       email: "Email",
       password: "Password",
       rememberLogin: "Lembrar neste dispositivo",
       login: "Entrar",
       loginLoading: "A validar acesso...",
-      captchaRequired: "Confirme que n?o ? um rob?.",
-      captchaLoadError: "N?o foi poss?vel carregar o CAPTCHA.",
-      searchPlaceholder: "Pesquisar por n? de s?cio, nome, NIF, localidade, email...",
+      captchaRequired: "Confirme que não é um robô.",
+      captchaLoadError: "Não foi possível carregar o CAPTCHA.",
+      searchPlaceholder: "Pesquisar por nº de sócio, nome, NIF, localidade, email...",
       menu: "Abrir menu",
-      logout: "Terminar sess?o",
+      logout: "Terminar sessão",
       import: "Importar",
       export: "Exportar",
-      history: "Hist?rico",
+      history: "Histórico",
       manual: "Manuais",
       language: "Idioma",
       dark: "Tema escuro",
       light: "Tema claro",
       darkTitle: "Tema escuro",
       lightTitle: "Tema claro",
-      newMember: "Novo s?cio",
+      newMember: "Novo sócio",
       adminManager: "Utilizadores",
       refresh: "Atualizar",
       close: "Fechar",
       save: "Guardar",
-      saveChanges: "Guardar altera??es",
+      saveChanges: "Guardar alterações",
       cancel: "Cancelar",
       delete: "Apagar",
       edit: "Editar",
       clear: "Limpar",
       active: "Ativo",
-      actions: "A??es",
+      actions: "Ações",
       name: "Nome",
       profile: "Perfil",
       state: "Estado",
@@ -148,59 +148,59 @@ const translations = {
       paid: "Em dia",
     },
     metrics: {
-      members: "S?cios",
+      members: "Sócios",
       overdue: "Quotas em atraso",
       quotaState: "Estado das quotas",
       paid: "Quotas em dia",
-      paidDetail: "S?cios com pagamento dentro do prazo.",
-      latest: "?ltimo registo",
+      paidDetail: "Sócios com pagamento dentro do prazo.",
+      latest: "Último registo",
     },
     table: {
-      title: "S?cios registados",
+      title: "Sócios registados",
       resultsSingular: "resultado",
       resultsPlural: "resultados",
       order: "Ordenar",
-      number: "N?",
-      approvalMinute: "N? Ata",
+      number: "Nº",
+      approvalMinute: "Nº Ata",
       locality: "Localidade",
-      phone: "Telem?vel",
+      phone: "Telemóvel",
       quotas: "Quota anual",
-      emptyTitle: "Sem s?cios registados",
-      emptyText: "Adicione o primeiro s?cio para come?ar.",
+      emptyTitle: "Sem sócios registados",
+      emptyText: "Adicione o primeiro sócio para começar.",
       sortNameAsc: "Nome A-Z",
       sortNameDesc: "Nome Z-A",
-      sortNumber: "N? de s?cio",
+      sortNumber: "Nº de sócio",
       sortLocality: "Localidade A-Z",
       sortQuotaOldest: "Quota mais antiga",
       sortQuotaNewest: "Quota mais recente",
-      sortUpdated: "Atualiza??o recente",
+      sortUpdated: "Atualização recente",
     },
     insight: {
       baseReady: "Base pronta",
-      baseReadyDetail: "Adicione o primeiro s?cio para come?ar o hist?rico.",
+      baseReadyDetail: "Adicione o primeiro sócio para começar o histórico.",
       overdueSingular: "quota em atraso",
       overduePlural: "quotas em atraso",
-      overdueDetail: "Os s?cios em atraso aparecem destacados a vermelho na tabela.",
+      overdueDetail: "Os sócios em atraso aparecem destacados a vermelho na tabela.",
       noOverdue: "Sem quotas em atraso",
-      paidSingular: "s?cio est?",
-      paidPlural: "s?cios est?o",
+      paidSingular: "sócio está",
+      paidPlural: "sócios estão",
       paidDetail: "com quotas em dia.",
-      noPaid: "Ainda n?o h? quotas em dia registadas.",
+      noPaid: "Ainda não há quotas em dia registadas.",
       noRecords: "Sem registos",
-      waitingFirst: "Aguardando o primeiro s?cio.",
-      admission: "Ades?o",
+      waitingFirst: "Aguardando o primeiro sócio.",
+      admission: "Adesão",
       updated: "Ficha atualizada recentemente.",
       registered: "Ficha registada.",
     },
     member: {
-      editTitle: "Editar s?cio",
-      newTitle: "Novo s?cio",
+      editTitle: "Editar sócio",
+      newTitle: "Novo sócio",
       subtitle: "Ficha individual",
       noName: "Sem nome",
       birthMissing: "Nascimento por preencher",
       birth: "Nascimento",
-      notes: "Observa??es",
-      noNumber: "N?o atribu?do",
+      notes: "Observações",
+      noNumber: "Não atribuído",
       overdueSince: "{quota}",
       paidUntil: "{quota} paga",
       paidOn: "Paga em {date}",
@@ -212,29 +212,29 @@ const translations = {
       deleteConfirm: "Apagar o registo de {name}?",
     },
     fields: {
-      memberNumber: "N? de s?cio (opcional)",
-      approvalMinuteNumber: "N? de Ata de Aprova??o",
-      admissionDate: "Data de ades?o",
-      quotaPaidUntil: "?ltima quota paga",
+      memberNumber: "Nº de sócio (opcional)",
+      approvalMinuteNumber: "Nº de Ata de Aprovação",
+      admissionDate: "Data de adesão",
+      quotaPaidUntil: "Última quota paga",
       quotaPaidAt: "Data do pagamento",
       name: "Nome",
       address: "Morada",
-      postalCode: "C?digo postal",
+      postalCode: "Código postal",
       locality: "Localidade",
       idNumber: "BI ou CC (opcional)",
       taxNumber: "NIF",
       profession: "Categoria",
       birthDate: "Data de nascimento",
-      phone: "Telem?vel",
+      phone: "Telemóvel",
       email: "Email",
-      notes: "Observa??es internas",
-      notesPlaceholder: "Notas ?teis para a equipa, chamadas, situa??es pendentes...",
+      notes: "Observações internas",
+      notesPlaceholder: "Notas úteis para a equipa, chamadas, situações pendentes...",
     },
     admin: {
       title: "Utilizadores",
-      subtitle: "Crie acessos novos e edite permiss?es de utilizadores existentes.",
+      subtitle: "Crie acessos novos e edite permissões de utilizadores existentes.",
       createTitle: "Criar utilizador",
-      createHint: "O ID ? criado automaticamente no Supabase Auth.",
+      createHint: "O ID é criado automaticamente no Supabase Auth.",
       editTitle: "Editar utilizador",
       editHint: "Escolha um utilizador na lista para editar.",
       createButton: "Criar utilizador",
@@ -246,19 +246,19 @@ const translations = {
       deleteUser: "Eliminar {name}",
     },
     history: {
-      title: "Hist?rico de altera??es",
-      subtitle: "Registo das altera??es feitas ?s fichas dos s?cios.",
+      title: "Histórico de alterações",
+      subtitle: "Registo das alterações feitas às fichas dos sócios.",
       date: "Data",
-      action: "A??o",
-      member: "S?cio",
+      action: "Ação",
+      member: "Sócio",
       changedBy: "Alterado por",
       details: "Detalhes",
-      emptyTitle: "Sem altera??es registadas",
-      emptyText: "Quando forem feitas altera??es aos s?cios, elas aparecem aqui.",
+      emptyTitle: "Sem alterações registadas",
+      emptyText: "Quando forem feitas alterações aos sócios, elas aparecem aqui.",
       created: "Ficha criada.",
       deleted: "Ficha apagada.",
-      noVisibleChanges: "Sem campos vis?veis alterados.",
-      moreChanges: "+{count} altera??es",
+      noVisibleChanges: "Sem campos visíveis alterados.",
+      moreChanges: "+{count} alterações",
       emptyValue: "vazio",
       system: "Sistema",
       authorizedUser: "Utilizador autorizado",
@@ -267,19 +267,19 @@ const translations = {
       title: "Manual",
       subtitle: "Escolha o manual adequado ao que pretende consultar.",
       userTitle: "Manual do Utilizador",
-      userDescription: "Para quem usa a app no dia a dia: login, s?cios, quotas, pesquisa, exporta??o e acessos.",
+      userDescription: "Para quem usa a app no dia a dia: login, sócios, quotas, pesquisa, exportação e acessos.",
       programmerTitle: "Manual do Programador",
-      programmerDescription: "Para quem mant?m o projeto: ficheiros, GitHub, Vercel, Supabase, SQL, seguran?a e atualiza??es.",
+      programmerDescription: "Para quem mantém o projeto: ficheiros, GitHub, Vercel, Supabase, SQL, segurança e atualizações.",
     },
     language: {
       title: "Idioma",
-      subtitle: "Escolha o idioma da aplica??o neste browser.",
-      optionsLabel: "Idiomas dispon?veis",
-      portuguese: "Portugu?s",
+      subtitle: "Escolha o idioma da aplicação neste browser.",
+      optionsLabel: "Idiomas disponíveis",
+      portuguese: "Português",
       portugueseRegion: "Portugal",
       english: "English",
       englishRegion: "United Kingdom",
-      changed: "Idioma alterado para Portugu?s.",
+      changed: "Idioma alterado para Português.",
     },
     roles: {
       admin: "Administrador",
@@ -292,12 +292,12 @@ const translations = {
       delete: "Apagado",
     },
     messages: {
-      languageComing: "A mudan?a de idioma fica preparada para a pr?xima fase.",
-      noPermissionMembers: "N?o tem permiss?o para alterar s?cios.",
-      adminUsersOnly: "S? administradores podem gerir utilizadores.",
-      adminHistoryOnly: "S? administradores podem consultar o hist?rico.",
-      manualsOnly: "S? administradores e operadores podem consultar os manuais.",
-      approvalMinuteMissing: "Falta aplicar o SQL para guardar o N? de Ata de Aprova??o.",
+      languageComing: "A mudança de idioma fica preparada para a próxima fase.",
+      noPermissionMembers: "Não tem permissão para alterar sócios.",
+      adminUsersOnly: "Só administradores podem gerir utilizadores.",
+      adminHistoryOnly: "Só administradores podem consultar o histórico.",
+      manualsOnly: "Só administradores e operadores podem consultar os manuais.",
+      approvalMinuteMissing: "Falta aplicar o SQL para guardar o Nº de Ata de Aprovação.",
       quotaPaidAtMissing: "Falta aplicar o SQL para guardar a data do pagamento das quotas.",
     },
   },
@@ -476,7 +476,7 @@ const translations = {
       title: "Language",
       subtitle: "Choose the app language for this browser.",
       optionsLabel: "Available languages",
-      portuguese: "Portugu?s",
+      portuguese: "Português",
       portugueseRegion: "Portugal",
       english: "English",
       englishRegion: "United Kingdom",
@@ -780,7 +780,7 @@ function hasValidCsrfToken(formData) {
 }
 
 function setCsrfError(element) {
-  element.textContent = "Sess?o do formul?rio expirada. Recarregue a p?gina e tente novamente.";
+  element.textContent = "Sessão do formulário expirada. Recarregue a página e tente novamente.";
 }
 
 function loadLoginFailureCount() {
@@ -820,7 +820,7 @@ function storeLoginFailureCount(count) {
       }),
     );
   } catch (_error) {
-    // A prote??o continua com o contador em mem?ria mesmo que o browser bloqueie localStorage.
+    // A proteção continua com o contador em memória mesmo que o browser bloqueie localStorage.
   }
 }
 
@@ -865,7 +865,7 @@ function applyOrganizationName() {
   const normalizedConfiguredName = normalise(configuredName);
   const usesDefaultName =
     !configuredName ||
-    normalizedConfiguredName === normalise("Gest?o de S?cios") ||
+    normalizedConfiguredName === normalise("Gestão de Sócios") ||
     (normalizedConfiguredName.includes("gest") && normalizedConfiguredName.includes("socio"));
   const name = usesDefaultName ? t("app.title") : configuredName;
   document.title = name;
@@ -1290,7 +1290,7 @@ async function handleAuthState(session) {
 
     if (!state.profile?.active) {
       await supabaseClient.auth.signOut();
-      showLogin("Esta conta n?o est? autorizada.");
+      showLogin("Esta conta não está autorizada.");
       return;
     }
 
@@ -1302,7 +1302,7 @@ async function handleAuthState(session) {
     }
   } catch (error) {
     await supabaseClient.auth.signOut();
-    showLogin(error.message || "N?o foi poss?vel confirmar as permiss?es.");
+    showLogin(error.message || "Não foi possível confirmar as permissões.");
   }
 }
 
@@ -1318,7 +1318,7 @@ async function loadProfile() {
   }
 
   if (!data) {
-    throw new Error("Conta sem perfil de acesso. Pe?a ao administrador para autorizar este utilizador.");
+    throw new Error("Conta sem perfil de acesso. Peça ao administrador para autorizar este utilizador.");
   }
 
   return data;
@@ -1429,7 +1429,7 @@ async function refreshMembers() {
   const { data, error } = await supabaseClient.from("members").select("*").order("name", { ascending: true });
 
   if (error) {
-    showToast(error.message || "N?o foi poss?vel carregar os s?cios.");
+    showToast(error.message || "Não foi possível carregar os sócios.");
     return;
   }
 
@@ -1451,7 +1451,7 @@ async function refreshAppUsers() {
     .order("email", { ascending: true });
 
   if (error) {
-    showToast(error.message || "N?o foi poss?vel carregar os utilizadores.");
+    showToast(error.message || "Não foi possível carregar os utilizadores.");
     return;
   }
 
@@ -1576,7 +1576,7 @@ function renderAuditDetails(entry) {
           (change) => `
             <span class="history-change">
               <strong>${escapeHtml(change.label)}</strong>
-              ${escapeHtml(change.before)} ? ${escapeHtml(change.after)}
+              ${escapeHtml(change.before)} → ${escapeHtml(change.after)}
             </span>
           `,
         )
@@ -1654,7 +1654,7 @@ function renderAppUserRow(user) {
           <span>${escapeHtml(user.id)}</span>
         </div>
       </td>
-      <td>${escapeHtml(user.email || "?")}</td>
+      <td>${escapeHtml(user.email || "—")}</td>
       <td>${escapeHtml(role)}</td>
       <td><span class="status-pill ${statusClass}">${escapeHtml(statusText)}</span></td>
       <td class="actions-column">
@@ -1790,7 +1790,7 @@ function todayInputValue() {
 }
 
 function formatMemberAddress(member) {
-  return [member.address, member.postalCode].filter(Boolean).join(" ? ");
+  return [member.address, member.postalCode].filter(Boolean).join(" · ");
 }
 
 function getVisibleMembers() {
@@ -1964,7 +1964,7 @@ function renderMemberRow(member) {
   const admission = member.admissionDate ? `${t("insight.admission")}: ${formatDate(member.admissionDate)}` : "";
   const quotaOverdue = isQuotaOverdue(member.quotaPaidUntil);
   const notesBadge = member.notes ? `<span class="note-badge"><i data-lucide="sticky-note"></i> ${escapeHtml(t("member.notes"))}</span>` : "";
-  const detailLine = [address, admission].filter(Boolean).join(" ? ") || birthday;
+  const detailLine = [address, admission].filter(Boolean).join(" · ") || birthday;
   const actions = renderRowActions(member);
 
   return `
@@ -1977,10 +1977,10 @@ function renderMemberRow(member) {
           ${notesBadge}
         </div>
       </td>
-      <td>${escapeHtml(member.locality || "?")}</td>
-      <td>${escapeHtml(member.taxNumber || "?")}</td>
-      <td>${escapeHtml(member.phone || "?")}</td>
-      <td>${member.email ? `<a href="mailto:${escapeAttribute(member.email)}">${escapeHtml(member.email)}</a>` : "?"}</td>
+      <td>${escapeHtml(member.locality || "—")}</td>
+      <td>${escapeHtml(member.taxNumber || "—")}</td>
+      <td>${escapeHtml(member.phone || "—")}</td>
+      <td>${member.email ? `<a href="mailto:${escapeAttribute(member.email)}">${escapeHtml(member.email)}</a>` : "—"}</td>
       <td>${escapeHtml(member.approvalMinuteNumber || t("member.noNumber"))}</td>
       <td>${renderQuotaStatus(member.quotaPaidUntil, member.quotaPaidAt)}</td>
       <td class="actions-column">${actions}</td>
@@ -2035,7 +2035,7 @@ function renderQuotaStatus(value, paidAt = "") {
 
 function renderRowActions(member) {
   if (!canWrite() && !canDelete()) {
-    return `<span class="muted-cell">?</span>`;
+    return `<span class="muted-cell">—</span>`;
   }
 
   const editButton = canWrite()
@@ -2252,15 +2252,15 @@ function validateUserAccess(user) {
   }
 
   if (!user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
-    errors.push("Indique um email v?lido.");
+    errors.push("Indique um email válido.");
   }
 
   if (!["admin", "operator", "viewer"].includes(user.role)) {
-    errors.push("Escolha um perfil v?lido.");
+    errors.push("Escolha um perfil válido.");
   }
 
   if (user.id === state.user?.id && !user.active) {
-    errors.push("N?o desative a sua pr?pria conta.");
+    errors.push("Não desative a sua própria conta.");
   }
 
   return errors;
@@ -2274,7 +2274,7 @@ function validateCreateUser(user) {
   }
 
   if (!user.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
-    errors.push("Indique um email v?lido.");
+    errors.push("Indique um email válido.");
   }
 
   if (!user.password || user.password.length < 8) {
@@ -2282,7 +2282,7 @@ function validateCreateUser(user) {
   }
 
   if (!["admin", "operator", "viewer"].includes(user.role)) {
-    errors.push("Escolha um perfil v?lido.");
+    errors.push("Escolha um perfil válido.");
   }
 
   return errors;
@@ -2292,7 +2292,7 @@ async function handleCreateUserSubmit(event) {
   event.preventDefault();
 
   if (!canManageUsers()) {
-    showToast("S? administradores podem criar utilizadores.");
+    showToast("Só administradores podem criar utilizadores.");
     return;
   }
 
@@ -2333,7 +2333,7 @@ async function handleCreateUserSubmit(event) {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(result.error || "N?o foi poss?vel criar o utilizador.");
+      throw new Error(result.error || "Não foi possível criar o utilizador.");
     }
 
     clearCreateUserForm();
@@ -2350,7 +2350,7 @@ async function handleUserSubmit(event) {
   event.preventDefault();
 
   if (!canManageUsers()) {
-    showToast("S? administradores podem gerir utilizadores.");
+    showToast("Só administradores podem gerir utilizadores.");
     return;
   }
 
@@ -2397,7 +2397,7 @@ async function handleToggleUser(id) {
   }
 
   if (id === state.user?.id) {
-    showToast("N?o desative a sua pr?pria conta.");
+    showToast("Não desative a sua própria conta.");
     return;
   }
 
@@ -2418,12 +2418,12 @@ async function handleToggleUser(id) {
 
 async function handleDeleteUser(id) {
   if (!canManageUsers()) {
-    showToast("S? administradores podem eliminar utilizadores.");
+    showToast("Só administradores podem eliminar utilizadores.");
     return;
   }
 
   if (id === state.user?.id) {
-    showToast("N?o elimine a sua pr?pria conta.");
+    showToast("Não elimine a sua própria conta.");
     return;
   }
 
@@ -2432,7 +2432,7 @@ async function handleDeleteUser(id) {
     return;
   }
 
-  const confirmed = window.confirm(`Eliminar o acesso de ${user.full_name || user.email}? Esta a??o remove a conta de login.`);
+  const confirmed = window.confirm(`Eliminar o acesso de ${user.full_name || user.email}? Esta ação remove a conta de login.`);
   if (!confirmed) {
     return;
   }
@@ -2451,7 +2451,7 @@ async function handleDeleteUser(id) {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(result.error || "N?o foi poss?vel eliminar o utilizador.");
+      throw new Error(result.error || "Não foi possível eliminar o utilizador.");
     }
 
     if (state.editingUserId === id) {
@@ -2478,62 +2478,62 @@ function validateForm(member) {
   today.setHours(23, 59, 59, 999);
 
   if (!member.name.trim()) {
-    errors.push("O nome ? obrigat?rio.");
+    errors.push("O nome é obrigatório.");
   }
 
   if (
     member.memberNumber &&
     state.members.some((item) => item.id !== member.id && normalise(item.memberNumber) === normalise(member.memberNumber))
   ) {
-    errors.push("J? existe um s?cio com esse n?mero.");
+    errors.push("Já existe um sócio com esse número.");
   }
 
   if (member.taxNumber && nif.length !== 9) {
-    errors.push("O NIF deve ter 9 d?gitos.");
+    errors.push("O NIF deve ter 9 dígitos.");
   }
 
   if (postalCode && !/^\d{4}-\d{3}$/.test(postalCode)) {
-    errors.push("O c?digo postal deve usar o formato 0000-000.");
+    errors.push("O código postal deve usar o formato 0000-000.");
   }
 
   if (member.phone && (!/^[+\d\s().-]{9,24}$/.test(member.phone) || phoneDigits.length < 9 || phoneDigits.length > 15)) {
-    errors.push("O telem?vel deve ter entre 9 e 15 d?gitos.");
+    errors.push("O telemóvel deve ter entre 9 e 15 dígitos.");
   }
 
   if (birthDate && Number.isNaN(birthDate.getTime())) {
-    errors.push("A data de nascimento n?o parece v?lida.");
+    errors.push("A data de nascimento não parece válida.");
   }
 
   if (birthDate && birthDate > today) {
-    errors.push("A data de nascimento n?o pode estar no futuro.");
+    errors.push("A data de nascimento não pode estar no futuro.");
   }
 
   if (admissionDate && Number.isNaN(admissionDate.getTime())) {
-    errors.push("A data de ades?o n?o parece v?lida.");
+    errors.push("A data de adesão não parece válida.");
   }
 
   if (admissionDate && admissionDate > today) {
-    errors.push("A data de ades?o n?o pode estar no futuro.");
+    errors.push("A data de adesão não pode estar no futuro.");
   }
 
   if (quotaPaidUntil && Number.isNaN(quotaPaidUntil.getTime())) {
-    errors.push("A ?ltima quota paga n?o parece v?lida.");
+    errors.push("A última quota paga não parece válida.");
   }
 
   if (quotaPaidAt && Number.isNaN(quotaPaidAt.getTime())) {
-    errors.push("A data do pagamento da quota n?o parece v?lida.");
+    errors.push("A data do pagamento da quota não parece válida.");
   }
 
   if (quotaPaidAt && quotaPaidAt > today) {
-    errors.push("A data do pagamento da quota n?o pode estar no futuro.");
+    errors.push("A data do pagamento da quota não pode estar no futuro.");
   }
 
   if (birthDate && admissionDate && birthDate > admissionDate) {
-    errors.push("A data de nascimento n?o pode ser posterior ? data de ades?o.");
+    errors.push("A data de nascimento não pode ser posterior à data de adesão.");
   }
 
   if (admissionDate && quotaPaidUntil && quotaPaidUntil < admissionDate) {
-    errors.push("A ?ltima quota paga n?o pode ser anterior ? data de ades?o.");
+    errors.push("A última quota paga não pode ser anterior à data de adesão.");
   }
 
   return errors;
@@ -2543,7 +2543,7 @@ async function handleSubmit(event) {
   event.preventDefault();
 
   if (!canWrite()) {
-    showToast("N?o tem permiss?o para guardar altera??es.");
+    showToast("Não tem permissão para guardar alterações.");
     return;
   }
 
@@ -2583,7 +2583,7 @@ async function handleSubmit(event) {
   const wasEditing = Boolean(state.editingId);
   await refreshMembers();
   closeMemberDialog();
-  showToast(wasEditing ? "S?cio atualizado." : "S?cio adicionado.");
+  showToast(wasEditing ? "Sócio atualizado." : "Sócio adicionado.");
 }
 
 async function handlePayQuota(id) {
@@ -2631,7 +2631,7 @@ async function handlePayQuota(id) {
 
 async function handleDelete(id) {
   if (!canDelete()) {
-    showToast("S? administradores podem apagar s?cios.");
+    showToast("Só administradores podem apagar sócios.");
     return;
   }
 
@@ -2657,7 +2657,7 @@ async function handleDelete(id) {
     closeMemberDialog();
   }
 
-  showToast("S?cio apagado.");
+  showToast("Sócio apagado.");
 }
 
 function friendlyDatabaseError(error) {
@@ -2665,23 +2665,23 @@ function friendlyDatabaseError(error) {
   const lower = message.toLocaleLowerCase("pt-PT");
 
   if (message.includes("members_member_number_key")) {
-    return "J? existe um s?cio com esse n?mero.";
+    return "Já existe um sócio com esse número.";
   }
 
   if (lower.includes("cannot affect row a second time")) {
-    return "O ficheiro tem n?meros de s?cio repetidos. A app j? evita isto nos imports novos; recarregue a p?gina e tente novamente.";
+    return "O ficheiro tem números de sócio repetidos. A app já evita isto nos imports novos; recarregue a página e tente novamente.";
   }
 
   if (message.includes("members_tax_number_format")) {
-    return "O NIF deve ter 9 d?gitos.";
+    return "O NIF deve ter 9 dígitos.";
   }
 
   if (message.includes("members_postal_code_format")) {
-    return "O c?digo postal deve usar o formato 0000-000.";
+    return "O código postal deve usar o formato 0000-000.";
   }
 
   if (message.includes("members_quota_paid_at_not_future")) {
-    return "A data do pagamento da quota n?o pode estar no futuro.";
+    return "A data do pagamento da quota não pode estar no futuro.";
   }
 
   if (message.includes("approval_minute_number") && (message.includes("column") || message.includes("schema cache"))) {
@@ -2689,18 +2689,18 @@ function friendlyDatabaseError(error) {
   }
 
   if (message.includes("notes") && (message.includes("column") || message.includes("schema cache"))) {
-    return "Falta correr o SQL para adicionar as observa??es internas ? tabela de s?cios.";
+    return "Falta correr o SQL para adicionar as observações internas à tabela de sócios.";
   }
 
   if (message.includes("app_users_id_fkey")) {
-    return "Esse ID ainda n?o existe em Authentication > Users no Supabase.";
+    return "Esse ID ainda não existe em Authentication > Users no Supabase.";
   }
 
   if (message.includes("row-level security")) {
-    return "A base de dados recusou esta opera??o por falta de permiss?es.";
+    return "A base de dados recusou esta operação por falta de permissões.";
   }
 
-  return message || "N?o foi poss?vel guardar.";
+  return message || "Não foi possível guardar.";
 }
 
 function friendlyHistoryError(error) {
@@ -2708,46 +2708,46 @@ function friendlyHistoryError(error) {
   const lower = message.toLocaleLowerCase("pt-PT");
 
   if (lower.includes("member_audit_log") || lower.includes("schema cache")) {
-    return "Falta aplicar o SQL do hist?rico na base de dados.";
+    return "Falta aplicar o SQL do histórico na base de dados.";
   }
 
   if (lower.includes("row-level security") || lower.includes("permission") || lower.includes("permiss")) {
-    return "S? administradores podem consultar o hist?rico.";
+    return "Só administradores podem consultar o histórico.";
   }
 
-  return message || "N?o foi poss?vel carregar o hist?rico.";
+  return message || "Não foi possível carregar o histórico.";
 }
 
 function friendlyCreateUserError(error) {
-  return friendlyAdminActionError(error, "N?o foi poss?vel criar o utilizador.");
+  return friendlyAdminActionError(error, "Não foi possível criar o utilizador.");
 }
 
-function friendlyAdminActionError(error, fallback = "N?o foi poss?vel concluir a a??o.") {
+function friendlyAdminActionError(error, fallback = "Não foi possível concluir a ação.") {
   const message = String(error?.message || "");
   const lower = message.toLocaleLowerCase("pt-PT");
 
-  if (lower.includes("service role") || lower.includes("vari?vel segura")) {
+  if (lower.includes("service role") || lower.includes("variável segura")) {
     return "Falta configurar a chave segura SUPABASE_SERVICE_ROLE_KEY na Vercel.";
   }
 
   if (lower.includes("already") || lower.includes("registered") || lower.includes("exists")) {
-    return "J? existe uma conta com esse email.";
+    return "Já existe uma conta com esse email.";
   }
 
   if (lower.includes("password")) {
-    return "A password n?o cumpre os requisitos m?nimos.";
+    return "A password não cumpre os requisitos mínimos.";
   }
 
   if (lower.includes("autorizado") || lower.includes("permiss")) {
-    return "S? administradores ativos podem fazer esta a??o.";
+    return "Só administradores ativos podem fazer esta ação.";
   }
 
-  if (lower.includes("pr?pria conta")) {
-    return "N?o elimine a sua pr?pria conta.";
+  if (lower.includes("própria conta")) {
+    return "Não elimine a sua própria conta.";
   }
 
-  if (lower.includes("?ltimo administrador") || lower.includes("ultimo administrador")) {
-    return "N?o ? poss?vel eliminar o ?ltimo administrador ativo.";
+  if (lower.includes("último administrador") || lower.includes("ultimo administrador")) {
+    return "Não é possível eliminar o último administrador ativo.";
   }
 
   return message || fallback;
@@ -2755,7 +2755,7 @@ function friendlyAdminActionError(error, fallback = "N?o foi poss?vel concluir a
 
 function downloadFile(filename, mimeType, content) {
   if (!canExport()) {
-    showToast("N?o tem permiss?o para exportar dados.");
+    showToast("Não tem permissão para exportar dados.");
     return;
   }
 
@@ -2782,7 +2782,7 @@ function exportJson() {
   );
 
   downloadFile(`socios-${todayStamp()}.json`, "application/json", content);
-  showToast("Exporta??o JSON criada.");
+  showToast("Exportação JSON criada.");
 }
 
 function spreadsheetAvailable() {
@@ -2802,7 +2802,7 @@ function loadSpreadsheetLibrary() {
       script.src = "vendor/xlsx.full.min.js";
       script.async = true;
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error("N?o foi poss?vel carregar a biblioteca Excel."));
+      script.onerror = () => reject(new Error("Não foi possível carregar a biblioteca Excel."));
       document.head.appendChild(script);
     });
   }
@@ -2814,12 +2814,12 @@ async function exportExcel() {
   try {
     await loadSpreadsheetLibrary();
   } catch (error) {
-    showToast(error.message || "Exporta??o Excel indispon?vel.");
+    showToast(error.message || "Exportação Excel indisponível.");
     return;
   }
 
   if (!spreadsheetAvailable()) {
-    showToast("Exporta??o Excel indispon?vel. Recarregue a p?gina e tente novamente.");
+    showToast("Exportação Excel indisponível. Recarregue a página e tente novamente.");
     return;
   }
 
@@ -2837,7 +2837,7 @@ async function exportExcel() {
   }));
 
   const workbook = window.XLSX.utils.book_new();
-  window.XLSX.utils.book_append_sheet(workbook, worksheet, "S?cios");
+  window.XLSX.utils.book_append_sheet(workbook, worksheet, "Sócios");
   const content = window.XLSX.write(workbook, { bookType: "xlsx", type: "array" });
 
   downloadFile(
@@ -2845,14 +2845,14 @@ async function exportExcel() {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     content,
   );
-  showToast("Exporta??o Excel criada.");
+  showToast("Exportação Excel criada.");
 }
 
 function exportCsv() {
   const rows = [csvHeaders(), ...getVisibleMembers().map((member) => fields.map((field) => memberExportValue(member, field)))];
   const content = rows.map((row) => row.map(csvCell).join(",")).join("\n");
   downloadFile(`socios-${todayStamp()}.csv`, "text/csv;charset=utf-8", `\uFEFF${content}`);
-  showToast("Exporta??o CSV criada.");
+  showToast("Exportação CSV criada.");
 }
 
 function csvCell(value) {
@@ -2866,7 +2866,7 @@ function todayStamp() {
 
 async function importFile(file) {
   if (!canWrite()) {
-    showToast("N?o tem permiss?o para importar s?cios.");
+    showToast("Não tem permissão para importar sócios.");
     return;
   }
 
@@ -2879,7 +2879,7 @@ async function importFile(file) {
   const validMembers = prepared.filter((member) => member.name.trim());
 
   if (!validMembers.length) {
-    showToast("N?o foram encontrados s?cios v?lidos.");
+    showToast("Não foram encontrados sócios válidos.");
     return;
   }
 
@@ -2891,8 +2891,8 @@ async function importFile(file) {
   }
 
   await refreshMembers();
-  const duplicateMessage = duplicateCount ? ` ${duplicateCount} ${duplicateCount === 1 ? "n?mero repetido foi unido" : "n?meros repetidos foram unidos"}.` : "";
-  showToast(`${importableMembers.length} ${importableMembers.length === 1 ? "s?cio importado" : "s?cios importados"}.${duplicateMessage}`);
+  const duplicateMessage = duplicateCount ? ` ${duplicateCount} ${duplicateCount === 1 ? "número repetido foi unido" : "números repetidos foram unidos"}.` : "";
+  showToast(`${importableMembers.length} ${importableMembers.length === 1 ? "sócio importado" : "sócios importados"}.${duplicateMessage}`);
 }
 
 function dedupeImportedMembers(members) {
@@ -2957,19 +2957,19 @@ async function parseImportFile(file) {
     return parseJsonImport(text);
   }
 
-  throw new Error("Formato n?o reconhecido. Use Excel (.xlsx), CSV ou JSON.");
+  throw new Error("Formato não reconhecido. Use Excel (.xlsx), CSV ou JSON.");
 }
 
 function parseSpreadsheetImport(content) {
   if (!spreadsheetAvailable()) {
-    throw new Error("Importa??o Excel indispon?vel. Recarregue a p?gina e tente novamente.");
+    throw new Error("Importação Excel indisponível. Recarregue a página e tente novamente.");
   }
 
   const workbook = window.XLSX.read(content, { type: "array", cellDates: true });
   const sheetName = workbook.SheetNames[0];
 
   if (!sheetName) {
-    throw new Error("O ficheiro Excel n?o tem folhas para importar.");
+    throw new Error("O ficheiro Excel não tem folhas para importar.");
   }
 
   const worksheet = workbook.Sheets[sheetName];
@@ -2993,7 +2993,7 @@ function parseJsonImport(text) {
     return parsed.members;
   }
 
-  throw new Error("Formato JSON inv?lido.");
+  throw new Error("Formato JSON inválido.");
 }
 
 function parseCsvImport(text) {
@@ -3008,7 +3008,7 @@ function rowsToMembers(rows) {
   const headerIndex = cleanRows.findIndex((row) => row.some((header) => headerToField(normalise(header))));
 
   if (headerIndex < 0) {
-    throw new Error("N?o reconheci os nomes das colunas. Use a exporta??o Excel da app como modelo.");
+    throw new Error("Não reconheci os nomes das colunas. Use a exportação Excel da app como modelo.");
   }
 
   const headers = cleanRows[headerIndex].map((header) => normalise(header));
@@ -3054,7 +3054,7 @@ function extractQuotaYear(header) {
 
 function isPaidQuotaMarker(value) {
   const text = normalise(value);
-  return Boolean(text) && !["0", "nao", "n?o", "n", "no", "-", "false"].includes(text);
+  return Boolean(text) && !["0", "nao", "não", "n", "no", "-", "false"].includes(text);
 }
 
 function applyAddressDetails(member) {
@@ -3192,17 +3192,17 @@ function headerToField(header) {
     "n de ata": "approvalMinuteNumber",
     "n ata aprovacao": "approvalMinuteNumber",
     "n ata de aprovacao": "approvalMinuteNumber",
-    "n? ata": "approvalMinuteNumber",
-    "n? ata aprovacao": "approvalMinuteNumber",
-    "n? ata aprova??o": "approvalMinuteNumber",
-    "n? de ata": "approvalMinuteNumber",
-    "n? de ata de aprova??o": "approvalMinuteNumber",
+    "nº ata": "approvalMinuteNumber",
+    "nº ata aprovacao": "approvalMinuteNumber",
+    "nº ata aprovação": "approvalMinuteNumber",
+    "nº de ata": "approvalMinuteNumber",
+    "nº de ata de aprovação": "approvalMinuteNumber",
     "numero ata": "approvalMinuteNumber",
     "numero de ata": "approvalMinuteNumber",
     "numero de ata de aprovacao": "approvalMinuteNumber",
-    "n?mero de ata de aprova??o": "approvalMinuteNumber",
+    "número de ata de aprovação": "approvalMinuteNumber",
     "ata de aprovacao": "approvalMinuteNumber",
-    "ata de aprova??o": "approvalMinuteNumber",
+    "ata de aprovação": "approvalMinuteNumber",
     approvalminute: "approvalMinuteNumber",
     approvalminutenumber: "approvalMinuteNumber",
     "approval minute": "approvalMinuteNumber",
@@ -3216,10 +3216,10 @@ function headerToField(header) {
     "cod postal": "postalCode",
     cp: "postalCode",
     postcode: "postalCode",
-    "c?digo postal": "postalCode",
+    "código postal": "postalCode",
     "data adesao": "admissionDate",
     "data de adesao": "admissionDate",
-    "data de ades?o": "admissionDate",
+    "data de adesão": "admissionDate",
     "admission date": "admissionDate",
     "submetido em reuniao de direccao": "admissionDate",
     "submetido em reuniao de direcao": "admissionDate",
@@ -3237,16 +3237,16 @@ function headerToField(header) {
     membernumber: "memberNumber",
     "n de socio": "memberNumber",
     "n socio": "memberNumber",
-    "n? de socio": "memberNumber",
-    "n? de s?cio": "memberNumber",
+    "nº de socio": "memberNumber",
+    "nº de sócio": "memberNumber",
     "numero de socio": "memberNumber",
-    "n?mero de s?cio": "memberNumber",
+    "número de sócio": "memberNumber",
     "member no": "memberNumber",
     "member no.": "memberNumber",
     "member number": "memberNumber",
     "socio n": "memberNumber",
     "socio n.": "memberNumber",
-    "socio n.?": "memberNumber",
+    "socio n.º": "memberNumber",
     "socio n.o": "memberNumber",
     "socio numero": "memberNumber",
     admissiondate: "admissionDate",
@@ -3263,15 +3263,15 @@ function headerToField(header) {
     nota: "notes",
     notes: "notes",
     observacoes: "notes",
-    "observa??es": "notes",
+    "observações": "notes",
     "observacoes internas": "notes",
-    "observa??es internas": "notes",
+    "observações internas": "notes",
     profession: "profession",
     quota: "quotaPaidUntil",
     quotas: "quotaPaidUntil",
     "quotas pagas": "quotaPaidUntil",
     "quotas pagas ate": "quotaPaidUntil",
-    "quotas pagas at?": "quotaPaidUntil",
+    "quotas pagas até": "quotaPaidUntil",
     "data do pagamento": "quotaPaidAt",
     "data pagamento": "quotaPaidAt",
     "pagamento da quota": "quotaPaidAt",
@@ -3280,10 +3280,10 @@ function headerToField(header) {
     "fees paid until": "quotaPaidUntil",
     "paid until": "quotaPaidUntil",
     telemovel: "phone",
-    telem?vel: "phone",
+    telemóvel: "phone",
     telefone: "phone",
     "n tel": "phone",
-    "n? tel": "phone",
+    "nº tel": "phone",
     "numero tel": "phone",
     "numero telefone": "phone",
     phone: "phone",
@@ -3456,14 +3456,14 @@ function friendlyAuthError(error) {
   const message = String(error?.message || "").toLocaleLowerCase("pt-PT");
 
   if (message.includes("email not confirmed")) {
-    return "O email ainda n?o est? confirmado no Supabase.";
+    return "O email ainda não está confirmado no Supabase.";
   }
 
   if (message.includes("too many") || message.includes("rate limit")) {
     return "Demasiadas tentativas. Aguarde um pouco antes de voltar a tentar.";
   }
 
-  return "Email ou password inv?lidos.";
+  return "Email ou password inválidos.";
 }
 
 async function handleLogout() {
@@ -3538,7 +3538,7 @@ function wireEvents() {
       try {
         await importFile(elements.importFile.files[0]);
       } catch (error) {
-        showToast(error.message || "N?o foi poss?vel importar o ficheiro.");
+        showToast(error.message || "Não foi possível importar o ficheiro.");
       } finally {
         elements.importFile.value = "";
       }
@@ -3650,7 +3650,7 @@ function wireEvents() {
   });
 }
 
-async function init() {
+async function initApp() {
   applyTheme(loadStoredTheme(), false);
   applyLanguage(loadStoredLanguage(), false);
   window.addEventListener("storage", (event) => {
@@ -3679,6 +3679,19 @@ async function init() {
   supabaseClient.auth.onAuthStateChange((_event, session) => {
     handleAuthState(session);
   });
+}
+
+async function init() {
+  try {
+    await initApp();
+  } catch (error) {
+    console.error("Erro ao iniciar Sócios:", error);
+    if (elements?.authView && elements?.appShell && elements?.setupView) {
+      showLogin("Não foi possível abrir Sócios.");
+      return;
+    }
+    window.location.href = "/logout?next=/area/socios/";
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

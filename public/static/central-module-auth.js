@@ -3,6 +3,7 @@
   const showPage = () => {
     window.clearTimeout(fallbackTimer);
     document.documentElement.removeAttribute("data-central-auth-pending");
+    document.getElementById("centralAuthLoading")?.remove();
   };
   const authStorageKey = "central-mm-auth-token";
   const authStorage = {
