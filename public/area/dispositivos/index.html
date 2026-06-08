@@ -8,7 +8,12 @@
     <script>
       (() => {
         document.documentElement.dataset.centralAuthPending = "true";
+        const isStillPending = () => document.documentElement.dataset.centralAuthPending === "true";
         const renderLoading = () => {
+          if (!isStillPending()) {
+            document.getElementById("centralAuthLoading")?.remove();
+            return;
+          }
           if (document.getElementById("centralAuthLoading")) return;
           const node = document.createElement("div");
           node.id = "centralAuthLoading";
@@ -51,8 +56,8 @@
       }
     </style>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260605-login-menu-socios-import" defer></script>
-    <script src="/static/central-module-auth.js?v=20260605-login-menu-socios-import" defer></script>
+    <script src="/static/central-config.js?v=20260608-dispositivos-auth-loader" defer></script>
+    <script src="/static/central-module-auth.js?v=20260608-dispositivos-auth-loader" defer></script>
     <script type="module" crossorigin src="/area/dispositivos/assets/index-CwtWBX3S.js"></script>
     <link rel="stylesheet" crossorigin href="/area/dispositivos/assets/index-BDONd1ZN.css">
   </head>

@@ -36,12 +36,17 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260605-login-menu-socios-import'
+const assetVersion = '20260608-dispositivos-auth-loader'
 
 const authPendingHead = `<script>
       (() => {
         document.documentElement.dataset.centralAuthPending = "true";
+        const isStillPending = () => document.documentElement.dataset.centralAuthPending === "true";
         const renderLoading = () => {
+          if (!isStillPending()) {
+            document.getElementById("centralAuthLoading")?.remove();
+            return;
+          }
           if (document.getElementById("centralAuthLoading")) return;
           const node = document.createElement("div");
           node.id = "centralAuthLoading";
