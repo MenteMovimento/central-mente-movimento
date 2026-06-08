@@ -658,6 +658,9 @@ const translations = {
     manualUserTitle: 'Manual do Utilizador',
     maintenance: 'Manutencao',
     managementAreas: 'Areas de gestao',
+    navSocios: 'Socios',
+    navUtentes: 'Utentes',
+    navDispositivos: 'Dispositivos',
     name: 'Nome',
     newDevice: 'Novo dispositivo',
     noDevices: 'Nenhum dispositivo encontrado.',
@@ -665,6 +668,8 @@ const translations = {
     noHistory: 'Sem historico para este dispositivo.',
     noName: 'Sem nome',
     noUsers: 'Nenhum utilizador encontrado.',
+    openMenu: 'Abrir menu',
+    administratorLabel: 'Administrador',
     password: 'Palavra-passe',
     permission: 'Permissao',
     protectedRole: 'Protegido para manter o teu acesso.',
@@ -837,12 +842,17 @@ const translations = {
       'For daily use: devices, repairs, CSV, attachments, history and access.',
     manualUserTitle: 'User manual',
     name: 'Name',
+    navSocios: 'Members',
+    navUtentes: 'Clients',
+    navDispositivos: 'Devices',
     newDevice: 'New device',
     noDevices: 'No devices found.',
     noAttachments: 'No attachments for this device.',
     noHistory: 'No history for this device.',
     noName: 'No name',
     noUsers: 'No users found.',
+    openMenu: 'Open menu',
+    administratorLabel: 'Administrator',
     password: 'Password',
     permission: 'Permission',
     protectedRole: 'Protected to keep your access.',
@@ -3037,7 +3047,7 @@ function App() {
             </span>
             <span className="portal-brand-copy">
               <strong>Central MenteMovimento</strong>
-              <span>Administrador</span>
+              <span>{t.administratorLabel}</span>
               <b>{localizedRoleLabels[currentRole]}</b>
             </span>
           </a>
@@ -3045,15 +3055,15 @@ function App() {
           <nav className="portal-nav" aria-label={t.managementAreas}>
             <a className="portal-nav-link" href="/area/socios/">
               <IdCard aria-hidden="true" />
-              <span>Socios</span>
+              <span>{t.navSocios}</span>
             </a>
             <a className="portal-nav-link" href="/area/utentes/">
               <HeartHandshake aria-hidden="true" />
-              <span>Utentes</span>
+              <span>{t.navUtentes}</span>
             </a>
             <a className="portal-nav-link active" href="/area/dispositivos/">
               <MonitorCog aria-hidden="true" />
-              <span>Dispositivos</span>
+              <span>{t.navDispositivos}</span>
             </a>
           </nav>
 
@@ -3073,10 +3083,10 @@ function App() {
               <button
                 type="button"
                 className="icon-button portal-icon-button portal-menu-button"
-                aria-label="Abrir menu"
+                aria-label={t.openMenu}
                 aria-controls="portal-tools-menu"
                 aria-expanded={isToolsMenuOpen}
-                title="Abrir menu"
+                title={t.openMenu}
                 onClick={() => setIsToolsMenuOpen((current) => !current)}
               >
                 <Menu aria-hidden="true" />

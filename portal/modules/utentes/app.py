@@ -2281,20 +2281,23 @@ APP_SCRIPT = """
     };
     const currentLanguage = document.documentElement.lang.toLowerCase().startsWith("en") ? "en" : "pt";
     const storedLanguage = loadGlobalLanguage();
+    const writeLanguageCookie = (language) => {
+        const cookieValue = `utentes_language=${language}; Max-Age=31536000; SameSite=Lax`;
+        document.cookie = `${cookieValue}; Path=/area/utentes`;
+        document.cookie = `${cookieValue}; Path=/`;
+    };
     const syncLanguage = (language) => {
         if (!language || language === currentLanguage || window.location.pathname === "/login") {
             return;
         }
         const syncKey = "utentes-language-sync";
-        if (window.sessionStorage.getItem(syncKey) === language) {
+        const syncValue = `${currentLanguage}->${language}`;
+        if (window.sessionStorage.getItem(syncKey) === syncValue) {
             return;
         }
-        window.sessionStorage.setItem(syncKey, language);
-        const data = new FormData();
-        data.set("idioma", language);
-        fetch("/idioma", { method: "POST", body: data, credentials: "same-origin" })
-            .then(() => window.location.reload())
-            .catch(() => window.sessionStorage.removeItem(syncKey));
+        window.sessionStorage.setItem(syncKey, syncValue);
+        writeLanguageCookie(language);
+        window.location.reload();
     };
     if (storedLanguage) {
         persistGlobalLanguage(storedLanguage);
@@ -3254,6 +3257,13 @@ def get_request_language(handler):
     return normalize_language(morsel.value if morsel else "pt")
 
 
+def get_request_language_cookie(handler):
+    cookie_header = handler.headers.get("Cookie", "")
+    cookies = SimpleCookie(cookie_header)
+    morsel = cookies.get(LANGUAGE_COOKIE)
+    return normalize_language(morsel.value) if morsel else None
+
+
 def get_current_user(handler):
     token = get_request_token(handler)
     if not token:
@@ -3299,6 +3309,12 @@ TRANSLATIONS = {
         "user_manager": "Utilizadores",
         "consultation_profile": "Perfil de Consulta",
         "new_client": "+ Novo utente",
+        "nav_areas": "\u00c1reas principais",
+        "nav_socios": "S\u00f3cios",
+        "nav_utentes": "Utentes",
+        "nav_dispositivos": "Dispositivos",
+        "header_tools": "Ferramentas e a\u00e7\u00f5es",
+        "open_menu": "Abrir menu",
         "history": "Historico",
         "manual": "Manuais",
         "change_language": "Idioma",
@@ -3363,6 +3379,12 @@ TRANSLATIONS = {
         "user_manager": "Users",
         "consultation_profile": "View-only Profile",
         "new_client": "+ New client",
+        "nav_areas": "Main areas",
+        "nav_socios": "Members",
+        "nav_utentes": "Clients",
+        "nav_dispositivos": "Devices",
+        "header_tools": "Tools and actions",
+        "open_menu": "Open menu",
         "history": "History",
         "manual": "Manuals",
         "change_language": "Language",
@@ -4114,27 +4136,27 @@ def render_header(current_user):
                 </span>
             </a>
 
-            <nav class="central-nav" aria-label="Areas principais">
+            <nav class="central-nav" aria-label="{esc(tr(current_user, 'nav_areas'))}">
                 <a class="central-nav-link" href="/area/socios/">
                     {CENTRAL_SOCIOS_ICON}
-                    <span>Socios</span>
+                    <span>{esc(tr(current_user, 'nav_socios'))}</span>
                 </a>
                 <a class="central-nav-link active" href="/area/utentes/">
                     {CENTRAL_UTENTES_ICON}
-                    <span>Utentes</span>
+                    <span>{esc(tr(current_user, 'nav_utentes'))}</span>
                 </a>
                 <a class="central-nav-link" href="/area/dispositivos/">
                     {CENTRAL_DISPOSITIVOS_ICON}
-                    <span>Dispositivos</span>
+                    <span>{esc(tr(current_user, 'nav_dispositivos'))}</span>
                 </a>
             </nav>
 
-            <div class="central-actions" aria-label="Ferramentas e acoes">
+            <div class="central-actions" aria-label="{esc(tr(current_user, 'header_tools'))}">
                 {new_button}
                 <details class="central-menu-wrap">
-                    <summary class="central-icon-link central-menu-button" aria-label="Abrir menu" title="Abrir menu">
+                    <summary class="central-icon-link central-menu-button" aria-label="{esc(tr(current_user, 'open_menu'))}" title="{esc(tr(current_user, 'open_menu'))}">
                         {MENU_ICON}
-                        <span>Abrir menu</span>
+                        <span>{esc(tr(current_user, 'open_menu'))}</span>
                     </summary>
                     <div class="central-menu" role="menu">
                         {history_button}
@@ -4299,11 +4321,11 @@ PENCIL_ICON = """
 
 CENTRAL_SOCIOS_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-    <path d="M7 8h3"></path>
-    <path d="M7 12h3"></path>
-    <path d="M14 9h3"></path>
-    <path d="M14 13h3"></path>
+    <path d="M16 10h2"></path>
+    <path d="M16 14h2"></path>
+    <path d="M6.2 15a3 3 0 0 1 5.6 0"></path>
+    <circle cx="9" cy="11" r="2"></circle>
+    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
 </svg>
 """
 
@@ -4311,17 +4333,21 @@ CENTRAL_SOCIOS_ICON = """
 CENTRAL_UTENTES_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M19.5 12.6 12 20l-7.5-7.4a4.8 4.8 0 0 1 6.8-6.8l.7.7.7-.7a4.8 4.8 0 0 1 6.8 6.8Z"></path>
+    <path d="m12 6.5-2 2a2 2 0 0 0 2.8 2.8l.9-.9"></path>
+    <path d="m14.5 9.5 4 4"></path>
+    <path d="m9.5 14.5 2 2"></path>
 </svg>
 """
 
 
 CENTRAL_DISPOSITIVOS_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <rect x="4" y="5" width="16" height="11" rx="2"></rect>
+    <path d="M12 17v4"></path>
     <path d="M8 21h8"></path>
-    <path d="M12 16v5"></path>
-    <path d="M17 8v3"></path>
-    <path d="M15.5 9.5h3"></path>
+    <rect x="3" y="4" width="18" height="13" rx="2"></rect>
+    <path d="M17.5 8.5v.01"></path>
+    <path d="M19 10.6a2.6 2.6 0 1 1-2.1-4.2"></path>
+    <path d="M18.8 6.2 20 5"></path>
 </svg>
 """
 
@@ -8121,7 +8147,13 @@ def render_language_page(current_user, notice=""):
 class UtentesHandler(BaseHTTPRequestHandler):
     def current_user(self):
         if not hasattr(self, "_current_user"):
-            self._current_user = get_current_user(self)
+            user = get_current_user(self)
+            if user:
+                user = dict(user)
+                request_language = get_request_language_cookie(self)
+                if request_language:
+                    user["idioma"] = request_language
+            self._current_user = user
         return self._current_user
 
     def require_user(self):
