@@ -300,7 +300,7 @@ const centralUsersDialog = `
 </dialog>`
 
 const loginPage = pageShell({
-  title: 'Central MenteMovimento',
+  title: 'MenteMovimento',
   page: 'login',
   body: `
 <main class="login-shell">
@@ -309,7 +309,7 @@ const loginPage = pageShell({
       <span class="brand-symbol brand-logo login-brand-logo" aria-hidden="true">
         <img src="/static/mente-movimento-logo.png" alt="" />
       </span>
-      <span data-i18n="app.title">Central MenteMovimento</span>
+      <span data-i18n="app.title">MenteMovimento</span>
     </div>
     <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
     <p class="login-copy" data-i18n="login.copy">Acesso reservado à gestão da associação.</p>
