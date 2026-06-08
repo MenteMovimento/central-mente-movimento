@@ -798,7 +798,7 @@ for (const page of [
     icon: 'users-round',
     copy: 'Gestão única de administradores, utilizadores e acessos a cada ramo.',
     items: [
-      ['admin', 'Administrador', 'Acesso total à central.'],
+      ['admin', 'Administrador', 'Acesso total ao website.'],
       ['manager', 'Gestor de ramo', 'Acesso limitado a sócios, utentes ou dispositivos.'],
       ['viewer', 'Consulta', 'Acesso só de leitura quando necessário.'],
     ],
