@@ -945,31 +945,37 @@ const repairLabelTranslations: Record<AppLanguage, Record<string, string>> = {
   pt: {},
   en: {
     'Data Entrada': 'Entry Date',
-    'Marca': 'Brand',
-    'Modelo': 'Model',
-    'N? S?rie': 'Serial No.',
+    Marca: 'Brand',
+    Modelo: 'Model',
+    'Nº Série': 'Serial No.',
     'RAM (GB)': 'RAM (GB)',
-    'Disco': 'Disk',
+    Disco: 'Disk',
     'Sistema Operativo': 'Operating System',
-    'Liga': 'Powers On',
-    'D? Imagem': 'Has Image',
-    'Estado F?sico': 'Physical State',
+    Liga: 'Powers On',
+    'Dá Imagem': 'Has Image',
+    'Estado Físico': 'Physical State',
     'Necessita Limpeza': 'Needs Cleaning',
-    'Avaria': 'Fault',
-    'Diagnostico': 'Diagnosis',
-    'Pe?as Necess?rias': 'Parts Needed',
+    Avaria: 'Fault',
+    Diagnóstico: 'Diagnosis',
+    'Peças Necessárias': 'Parts Needed',
     'Custo Estimado': 'Estimated Cost',
-    'Técnico': 'Technician',
-    'Estado': 'State',
+    'Tempo Estimado (min)': 'Estimated Time (min)',
+    Técnico: 'Technician',
+    Estado: 'State',
     'Resultado Final': 'Final Result',
     'credencial administrador': 'administrator credential',
-    'privilegio': 'privilege',
-    'chrome': 'chrome',
-    'aplicação': 'application',
+    privilegio: 'privilege',
+    chrocme: 'chrome',
+    aplicação: 'application',
     'data copia de segurança': 'backup date',
+    'USB bloqueada': 'USB blocked',
+    'Conta GD': 'GD Account',
+    'data copia de segurança Google Drive': 'Google Drive backup date',
+    'Rastrear todas as contas GD e gmail e verificar acessos de partilha':
+      'Track all GD and Gmail accounts and sharing access',
     'Unifiormizar o desktop': 'Standardize desktop',
-    'App estimula??o cognmitiva': 'Cognitive stimulation app',
-    'Observa??es': 'Notes',
+    'App estimulação cognmitiva': 'Cognitive stimulation app',
+    Observações: 'Notes',
     'Hardware e sistema': 'Hardware and system',
     'Diagnóstico e reparação': 'Diagnosis and repair',
     'Configuração e contas': 'Configuration and accounts',
@@ -3081,30 +3087,6 @@ function App() {
                     type="button"
                     className="portal-menu-item"
                     onClick={() => {
-                      setActiveView('users')
-                      setIsToolsMenuOpen(false)
-                    }}
-                    role="menuitem"
-                  >
-                    <UsersRound aria-hidden="true" />
-                    <span>{t.users}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="portal-menu-item"
-                    onClick={() => {
-                      exportDevicesCsv()
-                      setIsToolsMenuOpen(false)
-                    }}
-                    role="menuitem"
-                  >
-                    <Download aria-hidden="true" />
-                    <span>{t.exportData}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="portal-menu-item"
-                    onClick={() => {
                       setIsHistoryDialogOpen(true)
                       setIsToolsMenuOpen(false)
                       void refreshGlobalHistory()
@@ -3126,30 +3108,6 @@ function App() {
                   >
                     <BookOpen aria-hidden="true" />
                     <span>{t.manual}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="portal-menu-item"
-                    onClick={() => {
-                      setIsLanguageDialogOpen(true)
-                      setIsToolsMenuOpen(false)
-                    }}
-                    role="menuitem"
-                  >
-                    <Languages aria-hidden="true" />
-                    <span>{t.language}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="portal-menu-item"
-                    onClick={() => {
-                      setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-                      setIsToolsMenuOpen(false)
-                    }}
-                    role="menuitem"
-                  >
-                    {theme === 'dark' ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-                    <span>{theme === 'dark' ? t.lightTheme : t.darkTheme}</span>
                   </button>
                 </div>
               )}

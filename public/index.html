@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Central MenteMovimento</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260608-socios-nav-i18n" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260608-module-menus-dashboard" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260608-socios-nav-i18n" defer></script>
-    <script src="/static/app.js?v=20260608-socios-nav-i18n" defer></script>
-    <script src="/static/central-auth.js?v=20260608-socios-nav-i18n" defer></script>
+    <script src="/static/central-config.js?v=20260608-module-menus-dashboard" defer></script>
+    <script src="/static/app.js?v=20260608-module-menus-dashboard" defer></script>
+    <script src="/static/central-auth.js?v=20260608-module-menus-dashboard" defer></script>
   </head>
   <body data-central-page="dashboard">
     
@@ -67,10 +67,9 @@
   </div>
 </header>
 <main class="dashboard">
-  <section class="dashboard-heading" aria-labelledby="dashboardTitle">
+  <section class="dashboard-heading" aria-label="Gestão da associação">
     <div>
       <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestão da associação</p>
-      <h2 id="dashboardTitle" data-i18n="dashboard.title">Escolhe a área de trabalho</h2>
     </div>
   </section>
   <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
@@ -78,10 +77,8 @@
 <article class="module-card module-green" data-module-card="socios">
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
-    <span class="status-chip status-online" data-module-status="socios" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2 data-i18n="module.socios.title">Sócios</h2>
-  <p data-i18n="module.socios.detail">Base de sócios</p>
+  <h2 data-i18n="module.socios.title">Gestão de Sócios</h2>
   <a class="module-action" href="/area/socios/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar na área</span>
@@ -90,10 +87,8 @@
 <article class="module-card module-blue" data-module-card="utentes">
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
-    <span class="status-chip status-online" data-module-status="utentes" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2 data-i18n="module.utentes.title">Utentes</h2>
-  <p data-i18n="module.utentes.detail">Base de utentes</p>
+  <h2 data-i18n="module.utentes.title">Gestão de Utentes</h2>
   <a class="module-action" href="/area/utentes/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar na área</span>
@@ -102,10 +97,8 @@
 <article class="module-card module-amber" data-module-card="dispositivos">
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="monitor-cog"></i></span>
-    <span class="status-chip status-online" data-module-status="dispositivos" data-status-kind="integrated">Integrado</span>
   </div>
-  <h2 data-i18n="module.dispositivos.title">Dispositivos</h2>
-  <p data-i18n="module.dispositivos.detail">Base de dispositivos</p>
+  <h2 data-i18n="module.dispositivos.title">Gestão de Dispositivos</h2>
   <a class="module-action" href="/area/dispositivos/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar na área</span>

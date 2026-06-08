@@ -4087,18 +4087,11 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
 
 
 def render_header(current_user):
-    admin_button = ""
     new_button = ""
     history_button = ""
     theme_icon = SUN_ICON if current_user.get("tema") == "escuro" else MOON_ICON
     theme_label = tr(current_user, "light") if current_user.get("tema") == "escuro" else tr(current_user, "dark")
     if is_admin(current_user):
-        admin_button = f"""
-        <button class="central-menu-item" type="button" role="menuitem" data-frame-dialog-open="/utilizadores" data-frame-dialog-title="{esc(tr(current_user, "user_manager"))}">
-            {USERS_ICON}
-            <span>{esc(tr(current_user, "user_manager"))}</span>
-        </button>
-        """
         new_button = f'<a class="central-primary-action" href="/novo"><span aria-hidden="true">+</span><span>{esc(tr(current_user, "new_client")).lstrip("+ ").strip()}</span></a>'
         history_button = f"""
         <button class="central-menu-item" type="button" role="menuitem" data-frame-dialog-open="/historico" data-frame-dialog-title="{esc(tr(current_user, "history"))}">
@@ -4144,20 +4137,10 @@ def render_header(current_user):
                         <span>Abrir menu</span>
                     </summary>
                     <div class="central-menu" role="menu">
-                        {admin_button}
                         {history_button}
                         <button class="central-menu-item" type="button" role="menuitem" data-manual-dialog-open>
                             {BOOK_ICON}
                             <span>{esc(tr(current_user, "manual"))}</span>
-                        </button>
-                        <button class="central-menu-item" type="button" role="menuitem" data-frame-dialog-open="/idioma" data-frame-dialog-title="{esc(tr(current_user, "change_language"))}">
-                            {LANGUAGE_ICON}
-                            <span>{esc(tr(current_user, "change_language"))}</span>
-                        </button>
-                        <button class="central-menu-item" type="button" role="menuitem" data-global-theme-toggle>
-                            <span data-theme-dark-icon>{MOON_ICON}</span>
-                            <span data-theme-light-icon hidden>{SUN_ICON}</span>
-                            <span data-global-theme-label>{esc(theme_label)}</span>
                         </button>
                     </div>
                 </details>

@@ -1426,7 +1426,9 @@ function applyPermissions() {
   const manualsAllowed = canViewManuals();
 
   elements.newMemberBtn.hidden = !writeAllowed;
-  elements.adminManagerBtn.hidden = !manageUsersAllowed;
+  if (elements.adminManagerBtn) {
+    elements.adminManagerBtn.hidden = !manageUsersAllowed;
+  }
   if (elements.importBtn) {
     elements.importBtn.hidden = true;
   }
@@ -3569,7 +3571,7 @@ function wireEvents() {
   elements.toolsMenuBtn.addEventListener("click", toggleToolsMenu);
   elements.historyBtn.addEventListener("click", openHistoryDialog);
   elements.manualBtn.addEventListener("click", openManualDialog);
-  elements.languageBtn.addEventListener("click", openLanguageDialog);
+  elements.languageBtn?.addEventListener("click", openLanguageDialog);
   elements.closeManualDialogBtn.addEventListener("click", closeManualDialog);
   elements.closeLanguageDialogBtn.addEventListener("click", closeLanguageDialog);
   elements.languageOptions.forEach((button) => {
@@ -3577,7 +3579,7 @@ function wireEvents() {
   });
   elements.logoutBtn.addEventListener("click", handleLogout);
   elements.newMemberBtn.addEventListener("click", () => openMemberDialog());
-  elements.adminManagerBtn.addEventListener("click", openAdminDialog);
+  elements.adminManagerBtn?.addEventListener("click", openAdminDialog);
   elements.cancelBtn.addEventListener("click", closeMemberDialog);
   elements.closeDialogBtn.addEventListener("click", closeMemberDialog);
   elements.closeAdminDialogBtn.addEventListener("click", closeAdminDialog);

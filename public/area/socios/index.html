@@ -82,10 +82,10 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260608-socios-nav-i18n" defer></script>
-    <script src="config.js?v=20260608-socios-nav-i18n" defer></script>
-    <script src="/static/central-module-auth.js?v=20260608-socios-nav-i18n" defer></script>
-    <script src="app.js?v=20260608-socios-nav-i18n" defer></script>
+    <script src="/static/central-config.js?v=20260608-module-menus-dashboard" defer></script>
+    <script src="config.js?v=20260608-module-menus-dashboard" defer></script>
+    <script src="/static/central-module-auth.js?v=20260608-module-menus-dashboard" defer></script>
+    <script src="app.js?v=20260608-module-menus-dashboard" defer></script>
   </head>
   <body>
     <section class="setup-view" id="setupView" hidden>
@@ -194,10 +194,6 @@
               <i data-lucide="menu"></i>
             </button>
             <div class="tools-menu" id="toolsMenu" role="menu" hidden>
-              <button class="menu-item topbar-admin-action" id="adminManagerBtn" type="button" role="menuitem" hidden>
-                <i data-lucide="users-round"></i>
-                <span data-i18n="menu.users">Utilizadores</span>
-              </button>
               <button class="menu-item" id="exportJsonBtn" type="button" role="menuitem" hidden>
                 <i data-lucide="download"></i>
                 <span>Exportar</span>
@@ -209,14 +205,6 @@
               <button class="menu-item" id="manualBtn" type="button" role="menuitem" hidden>
                 <i data-lucide="book-open"></i>
                 <span>Manuais</span>
-              </button>
-              <button class="menu-item" id="languageBtn" type="button" role="menuitem">
-                <i data-lucide="languages"></i>
-                <span data-i18n="menu.language">Idioma</span>
-              </button>
-              <button class="menu-item theme-action" id="themeToggleBtn" type="button" role="menuitem" data-theme-toggle title="Mudar para tema escuro" aria-label="Mudar para tema escuro">
-                <i data-lucide="moon"></i>
-                <span>Tema escuro</span>
               </button>
             </div>
           </div>
