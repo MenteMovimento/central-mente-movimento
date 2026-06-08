@@ -18,7 +18,7 @@ const languageStorageKeys = [
 
 const translations = {
   pt: {
-    "app.title": "Central MenteMovimento",
+    "app.title": "MenteMovimento",
     "login.title": "Entrar",
     "login.copy": "Acesso reservado \u00e0 gest\u00e3o da associa\u00e7\u00e3o.",
     "login.submit": "Entrar",
@@ -116,7 +116,7 @@ const translations = {
     "users.deactivated": "Utilizador desativado.",
   },
   en: {
-    "app.title": "Central MenteMovimento",
+    "app.title": "MenteMovimento",
     "login.title": "Sign in",
     "login.copy": "Restricted access for association management.",
     "login.submit": "Sign in",
