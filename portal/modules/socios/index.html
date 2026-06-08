@@ -113,18 +113,18 @@
           </div>
           </a>
 
-        <nav class="topnav" aria-label="Areas principais">
+        <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
           <a class="topnav-link active" href="/area/socios/">
             <i data-lucide="id-card"></i>
-            <span>Socios</span>
+            <span data-i18n="nav.socios">Sócios</span>
           </a>
           <a class="topnav-link" href="/area/utentes/">
             <i data-lucide="heart-handshake"></i>
-            <span>Utentes</span>
+            <span data-i18n="nav.utentes">Utentes</span>
           </a>
           <a class="topnav-link" href="/area/dispositivos/">
             <i data-lucide="monitor-cog"></i>
-            <span>Dispositivos</span>
+            <span data-i18n="nav.dispositivos">Dispositivos</span>
           </a>
         </nav>
 
@@ -132,19 +132,19 @@
           <img src="assets/mente-movimento-logo-horizontal.png" alt="Mente Movimento Associação Pró-Saúde Mental" />
         </div>
 
-        <div class="topbar-actions" aria-label="Ações principais">
+        <div class="topbar-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
           <button class="primary-button new-member-action topbar-new-member" id="newMemberBtn" type="button">
             <i data-lucide="plus"></i>
-            <span>Novo socio</span>
+            <span>Novo sócio</span>
           </button>
           <div class="tools-menu-wrap">
-            <button class="icon-link menu-trigger" id="toolsMenuBtn" type="button" title="Abrir menu" aria-label="Abrir menu" aria-haspopup="menu" aria-expanded="false" aria-controls="toolsMenu">
+            <button class="icon-link menu-trigger" id="toolsMenuBtn" type="button" title="Abrir menu" aria-label="Abrir menu" aria-haspopup="menu" aria-expanded="false" aria-controls="toolsMenu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
               <i data-lucide="menu"></i>
             </button>
             <div class="tools-menu" id="toolsMenu" role="menu" hidden>
               <button class="menu-item topbar-admin-action" id="adminManagerBtn" type="button" role="menuitem" hidden>
                 <i data-lucide="users-round"></i>
-                <span>Utilizadores</span>
+                <span data-i18n="menu.users">Utilizadores</span>
               </button>
               <button class="menu-item" id="exportJsonBtn" type="button" role="menuitem" hidden>
                 <i data-lucide="download"></i>
@@ -160,7 +160,7 @@
               </button>
               <button class="menu-item" id="languageBtn" type="button" role="menuitem">
                 <i data-lucide="languages"></i>
-                <span>Idioma</span>
+                <span data-i18n="menu.language">Idioma</span>
               </button>
               <button class="menu-item theme-action" id="themeToggleBtn" type="button" role="menuitem" data-theme-toggle title="Mudar para tema escuro" aria-label="Mudar para tema escuro">
                 <i data-lucide="moon"></i>
@@ -168,9 +168,9 @@
               </button>
             </div>
           </div>
-          <button class="icon-link" id="logoutBtn" type="button" title="Terminar sessao" aria-label="Terminar sessao">
+          <button class="icon-link" id="logoutBtn" type="button" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
             <i data-lucide="log-out"></i>
-            <span class="icon-label">Terminar sessao</span>
+            <span class="icon-label">Terminar sessão</span>
           </button>
           <div class="action-stack topbar-legacy-actions" aria-hidden="true">
             <div class="action-row">

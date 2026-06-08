@@ -101,6 +101,21 @@ const ignoredAuditFields = new Set(["id", "created_at", "updated_at", "created_b
 
 const translations = {
   pt: {
+    nav: {
+      areas: "Áreas principais",
+      tools: "Ferramentas globais",
+      openMenu: "Abrir menu",
+      logout: "Terminar sessão",
+      socios: "Sócios",
+      utentes: "Utentes",
+      dispositivos: "Dispositivos",
+    },
+    menu: {
+      users: "Utilizadores",
+      language: "Idioma",
+      dark: "Tema escuro",
+      light: "Tema claro",
+    },
     app: {
       title: "Gestão de Sócios",
       setupTitle: "Configuração necessária",
@@ -302,6 +317,21 @@ const translations = {
     },
   },
   en: {
+    nav: {
+      areas: "Main areas",
+      tools: "Global tools",
+      openMenu: "Open menu",
+      logout: "Sign out",
+      socios: "Members",
+      utentes: "Clients",
+      dispositivos: "Devices",
+    },
+    menu: {
+      users: "Users",
+      language: "Language",
+      dark: "Dark mode",
+      light: "Light mode",
+    },
     app: {
       title: "Member Management",
       setupTitle: "Setup required",
@@ -997,7 +1027,38 @@ function setSelectOption(selectSelector, value, key) {
   }
 }
 
+function applyDataI18nText() {
+  const setFromDataset = (selector, datasetKey, apply) => {
+    document.querySelectorAll(selector).forEach((element) => {
+      const key = element.dataset[datasetKey];
+      if (!key) return;
+      const translated = t(key);
+      if (translated !== key) {
+        apply(element, translated);
+      }
+    });
+  };
+
+  setFromDataset("[data-i18n]", "i18n", (element, translated) => {
+    element.textContent = translated;
+  });
+  setFromDataset("[data-i18n-title]", "i18nTitle", (element, translated) => {
+    element.setAttribute("title", translated);
+  });
+  setFromDataset("[data-i18n-aria-label]", "i18nAriaLabel", (element, translated) => {
+    element.setAttribute("aria-label", translated);
+  });
+}
+
 function updateStaticLanguageText() {
+  applyDataI18nText();
+
+  setAttributeText(".topnav", "aria-label", "nav.areas");
+  setText('.topnav a[href="/area/socios/"] span', "nav.socios");
+  setText('.topnav a[href="/area/utentes/"] span', "nav.utentes");
+  setText('.topnav a[href="/area/dispositivos/"] span', "nav.dispositivos");
+  setAttributeText(".topbar-actions", "aria-label", "nav.tools");
+
   setText(".setup-panel h1", "app.setupTitle");
   setHtml(".setup-panel p", `${t("app.setupText").replace("config.js", "<code>config.js</code>")}`);
   setText(".setup-panel .secondary-button span", "app.setupLink");
