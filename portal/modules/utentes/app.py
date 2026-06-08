@@ -57,6 +57,7 @@ USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_SECRET_KEY)
 
 TAB_SECTIONS = [
     ("referenciacao", "Formulário de Referenciação"),
+    ("pagamentos", "Pagamentos e Mensalidades"),
     ("emergencia", "Informações em Caso de Emergência"),
     ("inscricao", "Ficha de Inscrição e Avaliação Inicial de Requisitos"),
     ("diagnostica", "Avaliação Diagnóstica Multidisciplinar"),
@@ -1127,6 +1128,21 @@ textarea {
     border-color: #ea8f80;
 }
 
+.button.toggle.icon-button {
+    border-color: #d4b56d;
+    color: #916000;
+}
+
+.button.toggle.icon-button:hover {
+    background: #fff8e5;
+    border-color: #bd8f27;
+}
+
+.dark-theme .button.toggle.icon-button {
+    border-color: #b8862c;
+    color: #ffd487;
+}
+
 .dark-theme .icon-button {
     background: #081827;
 }
@@ -1144,6 +1160,15 @@ textarea {
 .dark-theme .button.danger.icon-button {
     border-color: #a84d43;
     color: #ff8c82;
+}
+
+.button svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2.35;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .table-wrap {
@@ -1182,6 +1207,67 @@ tr:last-child td {
 
 .name {
     font-weight: 800;
+}
+
+.stats-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.stat-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+}
+
+.stat-card span {
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.stat-card strong {
+    color: var(--navy);
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.section-heading {
+    padding: 18px 18px 0;
+}
+
+.section-heading h3 {
+    margin: 0;
+}
+
+.percentage-cell {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 62px minmax(120px, 1fr);
+}
+
+.percentage-bar {
+    background: #e9f3f0;
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.percentage-bar span {
+    background: var(--brand);
+    display: block;
+    height: 100%;
+}
+
+.dark-theme .percentage-bar {
+    background: #102335;
 }
 
 .muted {
@@ -1851,6 +1937,10 @@ tr:last-child td {
     }
 
     .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
         grid-template-columns: 1fr;
     }
 
@@ -3329,6 +3419,10 @@ TRANSLATIONS = {
         "view": "Ver",
         "edit": "Editar",
         "delete": "Eliminar",
+        "statistics": "Estatísticas",
+        "toggle_active": "Alterar estado",
+        "activate_client": "Ativar utente",
+        "deactivate_client": "Inativar utente",
         "search_by_name": "Pesquisar por nome",
         "search": "Pesquisar",
         "clear": "Limpar",
@@ -3373,6 +3467,8 @@ TRANSLATIONS = {
         "no_history": "Ainda não existem alterações registadas.",
         "manual_text": "O manual de utilização será acrescentado numa fase seguinte.",
         "placeholder_text": "Esta área já está preparada no menu, mas ainda não tem funcionalidades ativas.",
+        "average_stay": "Permanência média",
+        "municipality_percentage": "Percentagem por concelho",
     },
     "en": {
         "app_title": "Client Management",
@@ -3399,6 +3495,10 @@ TRANSLATIONS = {
         "view": "View",
         "edit": "Edit",
         "delete": "Delete",
+        "statistics": "Statistics",
+        "toggle_active": "Change status",
+        "activate_client": "Activate client",
+        "deactivate_client": "Deactivate client",
         "search_by_name": "Search by name",
         "search": "Search",
         "clear": "Clear",
@@ -3443,6 +3543,8 @@ TRANSLATIONS = {
         "no_history": "There are no recorded changes yet.",
         "manual_text": "The user manual will be added later.",
         "placeholder_text": "This area is already available in the menu, but does not have active features yet.",
+        "average_stay": "Average stay",
+        "municipality_percentage": "Percentage by municipality",
     },
 }
 
@@ -3450,6 +3552,8 @@ TRANSLATIONS = {
 EN_STATIC_TRANSLATIONS = {
     "Formulário de Referenciação - Unidade Sócio-Ocupacional": "Referral Form - Socio-Occupational Unit",
     "Formulário de Referenciação": "Referral Form",
+    "Pagamentos e Mensalidades": "Payments and Monthly Fees",
+    "Registo de Pagamentos e Mensalidades": "Payments and Monthly Fees Record",
     "Informações em Caso de Emergência": "Emergency Information",
     "Ficha de Inscrição e Avaliação Inicial de Requisitos": "Registration Form and Initial Requirements Assessment",
     "Avaliação Diagnóstica Multidisciplinar": "Multidisciplinary Diagnostic Assessment",
@@ -3508,6 +3612,22 @@ EN_STATIC_TRANSLATIONS = {
     "Ações": "Actions",
     "Editar": "Edit",
     "Eliminar": "Delete",
+    "Estatísticas": "Statistics",
+    "Estatísticas de utentes": "Client statistics",
+    "Permanência média": "Average stay",
+    "Percentagem por concelho": "Percentage by municipality",
+    "Distribuição por concelho": "Distribution by municipality",
+    "Utentes considerados": "Clients included",
+    "Sem concelho preenchido": "No municipality filled in",
+    "Sem dados suficientes": "Not enough data",
+    "Ativar utente": "Activate client",
+    "Inativar utente": "Deactivate client",
+    "Utente ativado com sucesso": "Client activated successfully",
+    "Utente inativado com sucesso": "Client deactivated successfully",
+    "Ativar este utente?": "Activate this client?",
+    "Inativar este utente?": "Deactivate this client?",
+    "Ativo": "Active",
+    "Inativo": "Inactive",
     "Ver": "View",
     "Eliminar este utente?": "Delete this client?",
     "Áreas do utente": "Client areas",
@@ -3611,6 +3731,23 @@ EN_STATIC_TRANSLATIONS = {
     "Jantar": "Dinner",
     "Deitar": "Bedtime",
     "Observações": "Notes",
+    "Estado do pagamento": "Payment status",
+    "Pago": "Paid",
+    "Em aberto": "Open",
+    "Parcial": "Partial",
+    "Isento": "Exempt",
+    "Mensalidade paga até": "Monthly fee paid until",
+    "Dia do pagamento": "Payment date",
+    "Forma de pagamento": "Payment method",
+    "Selecionar": "Select",
+    "Transferência bancária": "Bank transfer",
+    "Dinheiro": "Cash",
+    "MB Way": "MB Way",
+    "Multibanco": "ATM payment",
+    "Cheque": "Cheque",
+    "Valor pago (€)": "Amount paid (€)",
+    "N.º recibo / referência": "Receipt / reference no.",
+    "Observações de pagamento": "Payment notes",
 
     "Identificação": "Identification",
     "Em caso de urgência contactar": "In case of emergency contact",
@@ -3904,6 +4041,7 @@ EN_STATIC_TRANSLATIONS = {
     "Guardou utente": "Saved client",
     "Guardou aba": "Saved tab",
     "Eliminou utente": "Deleted client",
+    "Alterou estado de utente": "Changed client status",
     "Criou utilizador": "Created user",
     "Editou utilizador": "Edited user",
     "Eliminou utilizador": "Deleted user",
@@ -4436,6 +4574,17 @@ EYE_ICON = """
 """
 
 
+STATS_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M4 19V5"></path>
+    <path d="M4 19h16"></path>
+    <rect x="7" y="11" width="3" height="5"></rect>
+    <rect x="12" y="7" width="3" height="9"></rect>
+    <rect x="17" y="9" width="3" height="7"></rect>
+</svg>
+"""
+
+
 SHIELD_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 3 6 5.5v5.2c0 3.7 2.4 7.2 6 8.8 3.6-1.6 6-5.1 6-8.8V5.5Z"></path>
@@ -4631,6 +4780,33 @@ MEDICATION_COLUMNS = [
 ]
 
 MEDICATION_ROWS = 8
+
+PAGAMENTO_TEXT_FIELDS = [
+    "pag_estado",
+    "pag_mensalidade_ate",
+    "pag_data",
+    "pag_forma",
+    "pag_valor",
+    "pag_referencia",
+    "pag_observacoes",
+]
+
+PAGAMENTO_ESTADOS = [
+    ("pago", "Pago"),
+    ("em_aberto", "Em aberto"),
+    ("parcial", "Parcial"),
+    ("isento", "Isento"),
+]
+
+PAGAMENTO_FORMAS = [
+    ("", "Selecionar"),
+    ("transferencia", "Transferência bancária"),
+    ("dinheiro", "Dinheiro"),
+    ("mbway", "MB Way"),
+    ("multibanco", "Multibanco"),
+    ("cheque", "Cheque"),
+    ("outro", "Outro"),
+]
 
 
 EMERGENCIA_TEXT_FIELDS = [
@@ -5005,6 +5181,32 @@ def referenciacao_from_post(post_data):
 
 def serialize_referenciacao(post_data):
     return json.dumps(referenciacao_from_post(post_data), ensure_ascii=False)
+
+
+def default_pagamentos_data():
+    return {key: "" for key in PAGAMENTO_TEXT_FIELDS}
+
+
+def load_pagamentos_data(utente_id):
+    raw = get_tab_content(utente_id, "pagamentos")
+    data = default_pagamentos_data()
+    if raw:
+        try:
+            stored = json.loads(raw)
+        except json.JSONDecodeError:
+            stored = {"pag_observacoes": raw}
+        if isinstance(stored, dict):
+            for key in data:
+                if key in stored:
+                    data[key] = str(stored.get(key) or "")
+    return data
+
+
+def pagamentos_from_post(post_data):
+    data = default_pagamentos_data()
+    for key in PAGAMENTO_TEXT_FIELDS:
+        data[key] = field_value(post_data, key)
+    return data
 
 
 def default_emergencia_data():
@@ -5505,6 +5707,23 @@ def render_choice_group(data, key, label, options, span="span-4", readonly=False
     """
 
 
+def render_select_input(data, key, label, options, span="span-4", readonly=False):
+    disabled = "disabled" if readonly else ""
+    value = data.get(key) or ""
+    options_html = ""
+    for option_value, option_label in options:
+        selected = "selected" if value == option_value else ""
+        options_html += f'<option value="{esc(option_value)}" {selected}>{esc(option_label)}</option>'
+    return f"""
+    <div class="field {span}">
+        <label for="{key}">{esc(label)}</label>
+        <select id="{key}" name="{key}" {disabled}>
+            {options_html}
+        </select>
+    </div>
+    """
+
+
 def render_checkbox_groups(data, readonly=False):
     groups_html = ""
     disabled = "disabled" if readonly else ""
@@ -5623,6 +5842,26 @@ def render_referenciacao_form(data, readonly=False):
         {render_checkbox_groups(data, readonly)}
 
         {render_medication_table(data, readonly)}
+    </div>
+    """
+
+
+def render_pagamentos_form(data, readonly=False):
+    readonly_class = " readonly-section" if readonly else ""
+    return f"""
+    <div class="pagamentos-form{readonly_class}">
+        <section class="form-section">
+            <h4 class="section-title">Registo de Pagamentos e Mensalidades</h4>
+            <div class="form-grid">
+                {render_choice_group(data, "pag_estado", "Estado do pagamento", PAGAMENTO_ESTADOS, "span-12", readonly)}
+                {render_text_input(data, "pag_mensalidade_ate", "Mensalidade paga até", "span-4", "month", readonly)}
+                {render_text_input(data, "pag_data", "Dia do pagamento", "span-4", "date", readonly)}
+                {render_select_input(data, "pag_forma", "Forma de pagamento", PAGAMENTO_FORMAS, "span-4", readonly)}
+                {render_text_input(data, "pag_valor", "Valor pago (€)", "span-4", "number", readonly)}
+                {render_text_input(data, "pag_referencia", "N.º recibo / referência", "span-8", readonly=readonly)}
+                {render_textarea_input(data, "pag_observacoes", "Observações de pagamento", "span-12", readonly=readonly)}
+            </div>
+        </section>
     </div>
     """
 
@@ -6456,6 +6695,9 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
         tab_body = render_referenciacao_form(ref_data, readonly=False)
+    elif active_tab == "pagamentos":
+        pag_data = load_pagamentos_data(utente["id"])
+        tab_body = render_pagamentos_form(pag_data, readonly=False)
     elif active_tab == "emergencia":
         em_data["em_nome"] = em_data.get("em_nome") or utente.get("nome") or ""
         tab_body = render_emergencia_form(em_data, readonly=False)
@@ -6549,6 +6791,9 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
         tab_body = render_referenciacao_form(ref_data, readonly=True)
+    elif active_tab == "pagamentos":
+        pag_data = load_pagamentos_data(utente["id"])
+        tab_body = render_pagamentos_form(pag_data, readonly=True)
     elif active_tab == "emergencia":
         em_data["em_nome"] = em_data.get("em_nome") or utente.get("nome") or ""
         tab_body = render_emergencia_form(em_data, readonly=True)
@@ -6590,39 +6835,59 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
     return render_page("Ver utente", content, notice=notice, current_user=current_user)
 
 
-def render_list(query="", notice="", current_user=None):
+def fetch_utentes(query=""):
     if supabase_available():
         params = {"select": "*", "order": "nome.asc"}
         if query:
             params["nome"] = f"ilike.*{query}*"
-        rows = table_select("utentes", params)
-    else:
-        params = []
-        where = ""
-        if query:
-            where = "WHERE nome LIKE ?"
-            like = f"%{query}%"
-            params = [like]
+        return table_select("utentes", params)
 
-        with get_connection() as conn:
-            rows = conn.execute(
-                f"""
-                SELECT *
-                FROM utentes
-                {where}
-                ORDER BY nome COLLATE NOCASE
-                """,
-                params,
-            ).fetchall()
+    params = []
+    where = ""
+    if query:
+        where = "WHERE nome LIKE ?"
+        like = f"%{query}%"
+        params = [like]
+
+    with get_connection() as conn:
+        return conn.execute(
+            f"""
+            SELECT *
+            FROM utentes
+            {where}
+            ORDER BY nome COLLATE NOCASE
+            """,
+            params,
+        ).fetchall()
+
+
+def render_list(query="", notice="", current_user=None):
+    rows = fetch_utentes(query)
 
     rows_html = ""
     admin = is_admin(current_user)
     view_label = tr(current_user, "view")
     edit_label = tr(current_user, "edit")
     delete_label = tr(current_user, "delete")
+    toggle_label = tr(current_user, "toggle_active")
     for row in rows:
         edit_delete_html = ""
+        toggle_html = ""
+        is_active = (row["estado"] or "Ativo") == "Ativo"
+        status_key = "active" if is_active else "inactive"
+        status_class = "active" if is_active else "blocked"
+        toggle_action_label = tr(current_user, "deactivate_client" if is_active else "activate_client")
+        toggle_confirm = "Inativar este utente?" if is_active else "Ativar este utente?"
+        toggle_icon = USER_X_ICON if is_active else USER_CHECK_ICON
         if admin:
+            toggle_html = f"""
+                    <form method="post" action="/estado" onsubmit="return confirm('{esc(toggle_confirm)}');">
+                        <input type="hidden" name="id" value="{row["id"]}">
+                        <button class="button toggle icon-button" type="submit" aria-label="{esc(toggle_action_label)}" title="{esc(toggle_action_label)}">
+                            {toggle_icon}
+                        </button>
+                    </form>
+            """
             edit_delete_html = f"""
                     <a class="button secondary icon-button" href="/editar?id={row["id"]}" aria-label="{esc(edit_label)}" title="{esc(edit_label)}">
                         {PENCIL_ICON}
@@ -6639,8 +6904,10 @@ def render_list(query="", notice="", current_user=None):
             <td>
                 <div class="name">{esc(row["nome"])}</div>
             </td>
+            <td><span class="status {status_class}">{esc(tr(current_user, status_key))}</span></td>
             <td class="actions-cell">
                 <div class="row-actions">
+                    {toggle_html}
                     <a class="button view icon-button" href="/ver?id={row["id"]}" aria-label="{esc(view_label)}" title="{esc(view_label)}">
                         {EYE_ICON}
                     </a>
@@ -6653,7 +6920,7 @@ def render_list(query="", notice="", current_user=None):
     if not rows:
         rows_html = f"""
         <tr>
-            <td colspan="2">
+            <td colspan="3">
                 <div class="empty">
                     <h2>{esc(tr(current_user, "no_clients"))}</h2>
                     <p class="muted">{esc(tr(current_user, "no_clients_help"))}</p>
@@ -6668,6 +6935,7 @@ def render_list(query="", notice="", current_user=None):
         <input name="q" value="{esc(query)}" placeholder="{esc(tr(current_user, "search_by_name"))}">
         <button class="button secondary" type="submit">{esc(tr(current_user, "search"))}</button>
         {f"<a class='button secondary' href='/'>{esc(tr(current_user, 'clear'))}</a>" if query else ""}
+        <a class="button secondary" href="/estatisticas">{STATS_ICON}{esc(tr(current_user, "statistics"))}</a>
     </form>
 </div>
 <section class="panel table-wrap">
@@ -6675,6 +6943,7 @@ def render_list(query="", notice="", current_user=None):
         <thead>
             <tr>
                 <th>{esc(tr(current_user, "name"))}</th>
+                <th>{esc(tr(current_user, "status"))}</th>
                 <th class="actions-cell">{esc(tr(current_user, "actions"))}</th>
             </tr>
         </thead>
@@ -6683,6 +6952,162 @@ def render_list(query="", notice="", current_user=None):
 </section>
 """
     return render_page(tr(current_user, "client_list"), content, notice=notice, current_user=current_user)
+
+
+def parse_stored_date(value):
+    value = str(value or "").strip()
+    if not value:
+        return None
+    for candidate in (value, value[:10]):
+        for fmt in ("%Y-%m-%d", "%Y-%m-%d %H:%M:%S", "%d/%m/%Y", "%d-%m-%Y"):
+            try:
+                return datetime.strptime(candidate, fmt).date()
+            except ValueError:
+                continue
+    return None
+
+
+def format_duration(days, current_user=None):
+    if days is None:
+        return "Sem dados suficientes" if user_language(current_user) == "pt" else "Not enough data"
+    if days < 31:
+        unit = "dias" if user_language(current_user) == "pt" else "days"
+        return f"{days} {unit}"
+    months = round(days / 30.44, 1)
+    if months < 12:
+        unit = "meses" if user_language(current_user) == "pt" else "months"
+        return f"{months:g} {unit}"
+    years = round(days / 365.25, 1)
+    unit = "anos" if user_language(current_user) == "pt" else "years"
+    return f"{years:g} {unit}"
+
+
+def utente_start_date(utente, ref_data, ins_data):
+    candidates = [
+        ref_data.get("data_rececao"),
+        ins_data.get("ins_data"),
+        utente["created_at"],
+    ]
+    for value in candidates:
+        parsed = parse_stored_date(value)
+        if parsed:
+            return parsed
+    return None
+
+
+def calculate_utentes_statistics():
+    rows = fetch_utentes()
+    today = datetime.now().date()
+    permanence_days = []
+    municipality_counts = {}
+    active_count = 0
+    inactive_count = 0
+
+    for row in rows:
+        is_active = (row["estado"] or "Ativo") == "Ativo"
+        active_count += 1 if is_active else 0
+        inactive_count += 0 if is_active else 1
+        ref_data = load_referenciacao_data(row["id"])
+        ins_data = load_inscricao_data(row["id"])
+        start_date = utente_start_date(row, ref_data, ins_data)
+        if start_date:
+            end_date = today if is_active else (parse_stored_date(row["updated_at"]) or today)
+            permanence_days.append(max((end_date - start_date).days, 0))
+        municipality = (ref_data.get("concelho") or "").strip()
+        if not municipality:
+            municipality = "Sem concelho preenchido"
+        municipality_counts[municipality] = municipality_counts.get(municipality, 0) + 1
+
+    total = len(rows)
+    average_days = round(sum(permanence_days) / len(permanence_days)) if permanence_days else None
+    municipalities = sorted(
+        [
+            {
+                "name": name,
+                "count": count,
+                "percentage": round((count / total) * 100, 1) if total else 0,
+            }
+            for name, count in municipality_counts.items()
+        ],
+        key=lambda item: (-item["count"], item["name"].lower()),
+    )
+    return {
+        "total": total,
+        "active": active_count,
+        "inactive": inactive_count,
+        "average_days": average_days,
+        "municipalities": municipalities,
+    }
+
+
+def render_statistics_page(current_user):
+    stats = calculate_utentes_statistics()
+    municipality_rows = ""
+    for item in stats["municipalities"]:
+        municipality_rows += f"""
+        <tr>
+            <td>{esc(item["name"])}</td>
+            <td>{item["count"]}</td>
+            <td>
+                <div class="percentage-cell">
+                    <span>{item["percentage"]:g}%</span>
+                    <span class="percentage-bar"><span style="width: {item["percentage"]:g}%"></span></span>
+                </div>
+            </td>
+        </tr>
+        """
+    if not municipality_rows:
+        municipality_rows = """
+        <tr>
+            <td colspan="3">Sem dados suficientes</td>
+        </tr>
+        """
+    content = f"""
+<div class="edit-layout">
+    <div class="edit-title">
+        <div>
+            <h2>Estatísticas de utentes</h2>
+        </div>
+        <div class="title-actions">
+            <a class="button secondary" href="/">Voltar</a>
+        </div>
+    </div>
+    <section class="stats-grid">
+        <article class="stat-card">
+            <span>{esc(tr(current_user, "average_stay"))}</span>
+            <strong>{esc(format_duration(stats["average_days"], current_user))}</strong>
+        </article>
+        <article class="stat-card">
+            <span>Utentes considerados</span>
+            <strong>{stats["total"]}</strong>
+        </article>
+        <article class="stat-card">
+            <span>Ativos</span>
+            <strong>{stats["active"]}</strong>
+        </article>
+        <article class="stat-card">
+            <span>Inativos</span>
+            <strong>{stats["inactive"]}</strong>
+        </article>
+    </section>
+    <section class="panel table-wrap">
+        <div class="section-heading">
+            <h3>Distribuição por concelho</h3>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Concelho</th>
+                    <th>Total</th>
+                    <th>Percentagem</th>
+                </tr>
+            </thead>
+            <tbody>{municipality_rows}</tbody>
+        </table>
+    </section>
+</div>
+"""
+    return render_page("Estatísticas de utentes", content, current_user=current_user)
 
 
 def get_utente(utente_id):
@@ -7019,6 +7444,24 @@ def save_utente(data, utente_id=None):
                 """,
                 {**values, "created_at": now()},
             )
+
+
+def toggle_utente_status(utente_id):
+    utente = get_utente(utente_id)
+    if not utente:
+        return None, None
+    current_status = utente["estado"] or "Ativo"
+    next_status = "Inativo" if current_status == "Ativo" else "Ativo"
+    timestamp = now()
+    if supabase_available():
+        table_update("utentes", {"id": f"eq.{utente_id}"}, {"estado": next_status, "updated_at": timestamp})
+    else:
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE utentes SET estado = ?, updated_at = ? WHERE id = ?",
+                (next_status, timestamp, utente_id),
+            )
+    return utente, next_status
 
 
 def normalize_perfil(perfil):
@@ -8224,6 +8667,10 @@ class UtentesHandler(BaseHTTPRequestHandler):
             self.send_html(render_list(search, notice, current_user=user))
             return
 
+        if parsed.path == "/estatisticas":
+            self.send_html(render_statistics_page(user))
+            return
+
         if parsed.path == "/novo":
             if not is_admin(user):
                 self.redirect(f"/?msg={quote('Sem permissão para criar utentes')}")
@@ -8377,6 +8824,8 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 if active_tab == "referenciacao":
                     active_data = referenciacao_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
+                elif active_tab == "pagamentos":
+                    save_tab_content(int(utente_id), active_tab, json.dumps(pagamentos_from_post(data), ensure_ascii=False))
                 elif active_tab == "emergencia":
                     active_data = emergencia_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
@@ -8418,6 +8867,8 @@ class UtentesHandler(BaseHTTPRequestHandler):
                     update_utente_core_from_shared(int(utente_id), data)
                     active_data = referenciacao_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
+                elif active_tab == "pagamentos":
+                    save_tab_content(int(utente_id), active_tab, json.dumps(pagamentos_from_post(data), ensure_ascii=False))
                 elif active_tab == "emergencia":
                     update_utente_core_from_shared(int(utente_id), data)
                     active_data = emergencia_from_post(data)
@@ -8460,6 +8911,23 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 utente = delete_utente_record(int(utente_id))
                 log_action(admin, "Eliminou utente", "Utente", int(utente_id), utente["nome"] if utente else "")
             self.redirect(f"/?msg={quote('Utente eliminado com sucesso')}")
+            return
+
+        if parsed.path == "/estado":
+            admin = self.require_admin()
+            if not admin:
+                return
+            utente_id = field_value(data, "id")
+            if not utente_id.isdigit():
+                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                return
+            utente, next_status = toggle_utente_status(int(utente_id))
+            if not utente:
+                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                return
+            log_action(admin, "Alterou estado de utente", "Utente", int(utente_id), f"{utente['nome']} - {next_status}")
+            message = "Utente ativado com sucesso" if next_status == "Ativo" else "Utente inativado com sucesso"
+            self.redirect(f"/?msg={quote(message)}")
             return
 
         if parsed.path == "/utilizadores/criar":

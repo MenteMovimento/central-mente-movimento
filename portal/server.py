@@ -22,6 +22,7 @@ from datetime import datetime, timedelta, timezone
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
 STATIC_DIR = BASE_DIR / "static"
+PUBLIC_STATIC_DIR = ROOT_DIR / "public" / "static"
 TEMPLATE_DIR = BASE_DIR / "templates"
 MODULES_DIR = BASE_DIR / "modules"
 SOCIOS_MODULE_DIR = MODULES_DIR / "socios"
@@ -555,7 +556,8 @@ def rewrite_utentes_html(text):
     output = output.replace('href="/area/utentes/area/socios"', 'href="/area/socios"')
     output = output.replace('href="/area/utentes/area/utentes/"', 'href="/area/utentes/"')
     output = output.replace('href="/area/utentes/area/dispositivos"', 'href="/area/dispositivos"')
-    output = output.replace('src="/area/utentes/static/mente-movimento-logo.png"', 'src="/static/mente-movimento-logo.png"')
+    output = output.replace('src="/area/utentes/static/', 'src="/static/')
+    output = output.replace('href="/area/utentes/static/', 'href="/static/')
     return output
 
 
@@ -1259,12 +1261,16 @@ class PortalHandler(BaseHTTPRequestHandler):
 
     def send_static(self):
         raw_path = self.path.split("?", 1)[0].removeprefix("/static/")
-        requested = (STATIC_DIR / raw_path).resolve()
-        static_root = STATIC_DIR.resolve()
-        if static_root not in requested.parents and requested != static_root:
-            self.send_error(404, "Ficheiro não encontrado")
-            return
-        if not requested.is_file():
+        requested = None
+        for root in (STATIC_DIR, PUBLIC_STATIC_DIR):
+            static_root = root.resolve()
+            candidate = (root / raw_path).resolve()
+            if static_root not in candidate.parents and candidate != static_root:
+                continue
+            if candidate.is_file():
+                requested = candidate
+                break
+        if requested is None:
             self.send_error(404, "Ficheiro não encontrado")
             return
         content_type = with_charset(mimetypes.guess_type(str(requested))[0] or "application/octet-stream")
