@@ -129,7 +129,7 @@ const topbar = (activeId = '') => `
         <img src="/static/mente-movimento-logo.png" alt="" />
       </span>
       <div>
-        <h1>Central MenteMovimento</h1>
+        <h1>MenteMovimento</h1>
         <p data-user-email>Administrador</p>
       </div>
     </a>
