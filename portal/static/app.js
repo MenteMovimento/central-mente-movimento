@@ -18,7 +18,7 @@ const languageStorageKeys = [
 
 const translations = {
   pt: {
-    "app.title": "Central MenteMovimento",
+    "app.title": "MenteMovimento",
     "login.title": "Entrar",
     "login.copy": "Acesso reservado \u00e0 gest\u00e3o da associa\u00e7\u00e3o.",
     "login.submit": "Entrar",
@@ -74,7 +74,7 @@ const translations = {
     "global.users.title": "Utilizadores e permiss\u00f5es",
     "global.users.copy": "Gest\u00e3o \u00fanica de administradores, utilizadores e acessos a cada ramo.",
     "global.users.admin.title": "Administrador",
-    "global.users.admin.copy": "Acesso total \u00e0 central.",
+    "global.users.admin.copy": "Acesso total ao website.",
     "global.users.manager.title": "Gestor de ramo",
     "global.users.manager.copy": "Acesso limitado a s\u00f3cios, utentes ou dispositivos.",
     "global.users.viewer.title": "Consulta",
@@ -116,7 +116,7 @@ const translations = {
     "users.deactivated": "Utilizador desativado.",
   },
   en: {
-    "app.title": "Central MenteMovimento",
+    "app.title": "MenteMovimento",
     "login.title": "Sign in",
     "login.copy": "Restricted access for association management.",
     "login.submit": "Sign in",
@@ -172,7 +172,7 @@ const translations = {
     "global.users.title": "Users and permissions",
     "global.users.copy": "Single management area for administrators, users and access to each branch.",
     "global.users.admin.title": "Administrator",
-    "global.users.admin.copy": "Full access to the central app.",
+    "global.users.admin.copy": "Full access to the website.",
     "global.users.manager.title": "Branch manager",
     "global.users.manager.copy": "Limited access to members, clients or devices.",
     "global.users.viewer.title": "Viewer",

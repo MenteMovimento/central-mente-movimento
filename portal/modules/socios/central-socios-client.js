@@ -28,7 +28,7 @@
     if (!response.ok) {
       return {
         data: data.data ?? null,
-        error: data.error || { message: data.error || "Pedido recusado pela Central." },
+        error: data.error || { message: data.error || "Pedido recusado pelo website." },
       };
     }
     return { data, error: null };
