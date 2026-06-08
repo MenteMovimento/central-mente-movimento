@@ -337,7 +337,7 @@ const loginPage = pageShell({
 }).replace('<body data-central-page="login">', '<body class="login-page" data-central-page="login">')
 
 const dashboardPage = pageShell({
-  title: 'Central MenteMovimento',
+  title: 'MenteMovimento',
   page: 'dashboard',
   body: `
 ${topbar()}
@@ -355,7 +355,7 @@ ${centralUsersDialog}`,
 })
 
 const logoutPage = pageShell({
-  title: 'A sair - Central MenteMovimento',
+  title: 'A sair - MenteMovimento',
   page: 'logout',
   body: '<main class="login-shell"><section class="login-panel"><h1>A terminar sessão...</h1><p class="login-copy">Aguarde um momento.</p></section></main>',
 }).replace('<body data-central-page="logout">', '<body class="login-page" data-central-page="logout">')
@@ -363,7 +363,7 @@ const logoutPage = pageShell({
 const globalPage = ({ file, key, title, icon, copy, items }) => ({
   file,
   html: pageShell({
-    title: `${title} - Central MenteMovimento`,
+    title: `${title} - MenteMovimento`,
     page: 'dashboard',
     titleKey: `${key}.title`,
     body: `
@@ -848,7 +848,7 @@ await writeFile(
   supabaseAnonKey: ${jsString(supabaseAnonKey)},
   captchaProvider: "",
   captchaSiteKey: "",
-  organizationName: "Central MenteMovimento",
+  organizationName: "MenteMovimento",
 };
 `,
 )
@@ -874,7 +874,7 @@ await writeFile(dispositivosIndexPath, dispositivosIndex)
 
 await writeFile(
   path.join(publicDir, '404.html'),
-  `<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Página não encontrada</title></head><body><main style="font-family:system-ui,sans-serif;max-width:680px;margin:80px auto;padding:24px"><h1>Página não encontrada</h1><p><a href="/">Voltar à Central</a></p></main></body></html>`,
+  `<!doctype html><html lang="pt"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Página não encontrada</title></head><body><main style="font-family:system-ui,sans-serif;max-width:680px;margin:80px auto;padding:24px"><h1>Página não encontrada</h1><p><a href="/">Voltar ao website</a></p></main></body></html>`,
 )
 
 console.log('Output de produção criado em public/.')
