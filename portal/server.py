@@ -617,7 +617,7 @@ def topbar(active_id=""):
             <img src="/static/mente-movimento-logo.png" alt="" />
           </span>
           <div>
-            <h1>Central MenteMovimento</h1>
+            <h1>MenteMovimento</h1>
             <p>{html.escape(CENTRAL_EMAIL)}</p>
           </div>
         </a>
@@ -1359,7 +1359,7 @@ def run():
     init_database()
     port = int(os.environ.get("CENTRAL_PORT") or os.environ.get("PORT") or "8090")
     server = ThreadingHTTPServer(("127.0.0.1", port), PortalHandler)
-    print(f"Central MenteMovimento: http://127.0.0.1:{port}")
+    print(f"MenteMovimento: http://127.0.0.1:{port}")
     print(f"Login local: {CENTRAL_EMAIL}")
     server.serve_forever()
 
