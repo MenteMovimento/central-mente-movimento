@@ -97,7 +97,7 @@ const moduleCards = `
   <h2 data-i18n="module.socios.title">Gestão de Sócios</h2>
   <a class="module-action" href="/area/socios/">
     <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar na área</span>
+    <span data-i18n="module.enter">Entrar</span>
   </a>
 </article>
 <article class="module-card module-blue" data-module-card="utentes">
@@ -107,7 +107,7 @@ const moduleCards = `
   <h2 data-i18n="module.utentes.title">Gestão de Utentes</h2>
   <a class="module-action" href="/area/utentes/">
     <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar na área</span>
+    <span data-i18n="module.enter">Entrar</span>
   </a>
 </article>
 <article class="module-card module-amber" data-module-card="dispositivos">
@@ -117,7 +117,7 @@ const moduleCards = `
   <h2 data-i18n="module.dispositivos.title">Gestão de Dispositivos</h2>
   <a class="module-action" href="/area/dispositivos/">
     <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar na área</span>
+    <span data-i18n="module.enter">Entrar</span>
   </a>
 </article>`
 
