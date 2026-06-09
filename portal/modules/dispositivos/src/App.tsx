@@ -3046,7 +3046,7 @@ function App() {
               <img src="/static/mente-movimento-logo.png" alt="" />
             </span>
             <span className="portal-brand-copy">
-              <strong>Central MenteMovimento</strong>
+              <strong>MenteMovimento</strong>
               <span>{t.administratorLabel}</span>
               <b>{localizedRoleLabels[currentRole]}</b>
             </span>
