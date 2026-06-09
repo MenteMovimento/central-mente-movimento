@@ -588,7 +588,7 @@ def module_cards():
               <p data-i18n="module.{html.escape(module["id"])}.detail">{html.escape(module["detail"])}</p>
               <a class="module-action" href="{path}">
                 <i data-lucide="arrow-right"></i>
-                <span data-i18n="module.enter">Entrar na area</span>
+                <span data-i18n="module.enter">Entrar</span>
               </a>
             </article>
             """
