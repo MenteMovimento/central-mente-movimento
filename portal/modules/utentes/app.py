@@ -4268,7 +4268,7 @@ def render_header(current_user):
                     <img src="/static/mente-movimento-logo.png" alt="">
                 </span>
                 <span class="central-brand-copy">
-                    <strong>Central MenteMovimento</strong>
+                    <strong>MenteMovimento</strong>
                     <span>{esc(current_user.get("nome"))}</span>
                     <b>{esc(profile_label(current_user.get("perfil"), current_user))}</b>
                 </span>
