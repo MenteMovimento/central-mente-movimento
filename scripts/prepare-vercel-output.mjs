@@ -227,7 +227,7 @@ const centralUsersDialog = `
           <input id="centralCreateUserEmail" name="email" type="email" autocomplete="email" required />
         </label>
         <label class="field" for="userPassword" style="margin-bottom: 16px;">
-          <span data-i18n="users.password">Password</span>
+          <span data-i18n="Password">Password</span>
           <div style="position: relative; width: 100%; display: flex; align-items: center;">
             <input id="userPassword" name="password" type="password" required style="width: 100%; padding-right: 42px;" />
             <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
