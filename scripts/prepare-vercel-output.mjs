@@ -318,9 +318,14 @@ const loginPage = pageShell({
         <span data-i18n="login.email">Email</span>
         <input id="email" name="email" type="email" autocomplete="email" required />
       </label>
-      <label class="field" for="password">
+      <label class="field" for="password" style="margin-bottom: 6px;">
         <span data-i18n="login.password">Password</span>
-        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus />
+        <div style="position: relative; width: 100%; display: flex; align-items: center;">
+          <input id="password" name="password" type="password" autocomplete="current-password" required autofocus style="width: 100%; padding-right: 42px;" />
+          <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
+            <i data-lucide="eye">👁️</i>
+          </button>
+        </div>
       </label>
       <label class="remember-field" for="rememberCredentials">
         <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
