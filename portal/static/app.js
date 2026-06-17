@@ -747,6 +747,24 @@ const closeCentralUsersDialog = () => {
   resetCentralUserForms();
 };
 
+const wirePasswordToggle = () => {
+  document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = button.parentElement.querySelector("input");
+      if (!input) return;
+
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+
+      const icon = button.querySelector("i");
+      if (icon) {
+        icon.setAttribute("data-lucide", isPassword ? "eye-off" : "eye");
+      }
+      refreshIcons();
+    });
+  });
+};
+
 const wireCentralUsersDialog = () => {
   const elements = centralUsersElements();
   if (!elements.dialog) return;
@@ -790,6 +808,7 @@ const wireCentralUsersDialog = () => {
 document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getTheme());
   applyLanguage(getLanguage(), { persist: true });
+  wirePasswordToggle();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {
     refreshStatus();
