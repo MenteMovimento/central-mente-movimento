@@ -226,9 +226,14 @@ const centralUsersDialog = `
           <span data-i18n="login.email">Email</span>
           <input id="centralCreateUserEmail" name="email" type="email" autocomplete="email" required />
         </label>
-        <label class="field" for="centralCreateUserPassword">
-          <span data-i18n="login.password">Password</span>
-          <input id="centralCreateUserPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <label class="field" for="userPassword" style="margin-bottom: 16px;">
+          <span data-i18n="users.password">Password</span>
+          <div style="position: relative; width: 100%; display: flex; align-items: center;">
+            <input id="userPassword" name="password" type="password" required style="width: 100%; padding-right: 42px;" />
+            <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
+              <i data-lucide="eye">👁️</i>
+            </button>
+          </div>
         </label>
         <label class="field" for="centralCreateUserRole">
           <span data-i18n="users.role">Perfil</span>
