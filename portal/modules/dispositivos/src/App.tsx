@@ -3068,17 +3068,6 @@ function App() {
           </nav>
 
           <div className="portal-actions">
-            <button
-              type="button"
-              className="primary-action portal-primary-action"
-              onClick={() => {
-                navigateToView('devices')
-                cancelEditing()
-              }}
-            >
-              <Plus aria-hidden="true" />
-              {t.addDevice}
-            </button>
             <div className="portal-menu-wrap" ref={toolsMenuRef}>
               <button
                 type="button"
