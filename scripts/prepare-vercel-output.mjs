@@ -181,7 +181,7 @@ const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>${title}</title>
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/static/favicon.ico?v=1" type="image/x-icon" />
     <link rel="stylesheet" href="/static/styles.css?v=${assetVersion}" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
