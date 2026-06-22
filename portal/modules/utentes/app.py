@@ -1336,7 +1336,7 @@ tr:last-child td {
 
 .auth-logo {
     display: block;
-    width: 160px;
+    width: 190px;
     margin: 0 auto 20px;
     border-radius: 10px;
     background: #ffffff;
@@ -2031,11 +2031,11 @@ header.central-header {
 
 .central-topbar {
     display: grid;
-    grid-template-columns: minmax(230px, auto) minmax(300px, 1fr) auto;
+    grid-template-columns: minmax(270px, auto) minmax(300px, 1fr) auto;
     align-items: center;
     gap: 18px;
     width: min(1560px, calc(100% - 32px));
-    min-height: 82px;
+    min-height: 96px;
     margin: 0 auto;
 }
 
@@ -2049,16 +2049,16 @@ header.central-header {
 }
 
 .central-brand {
-    gap: 12px;
+    gap: 14px;
     min-width: 0;
     color: var(--text);
 }
 
 .central-brand-symbol {
     display: grid;
-    width: 58px;
-    height: 58px;
-    flex: 0 0 58px;
+    width: 74px;
+    height: 74px;
+    flex: 0 0 74px;
     place-items: center;
 }
 
@@ -2077,7 +2077,7 @@ header.central-header {
 
 .central-brand-copy strong {
     color: #071b4d;
-    font-size: 1.2rem;
+    font-size: 1.34rem;
     font-weight: 850;
 }
 
@@ -2088,12 +2088,12 @@ header.central-header {
 .central-brand-copy span {
     margin-top: 4px;
     color: var(--muted);
-    font-size: 0.88rem;
+    font-size: 0.96rem;
 }
 
 .central-brand-copy b {
     color: #071b4d;
-    font-size: 0.84rem;
+    font-size: 0.9rem;
 }
 
 .dark-theme .central-brand-copy b {
