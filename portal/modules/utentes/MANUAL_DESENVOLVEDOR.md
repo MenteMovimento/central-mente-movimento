@@ -25,7 +25,7 @@ O codigo foi mantido simples: a aplicacao principal esta concentrada em `app.py`
 Repositorio GitHub atual:
 
 ```text
-https://github.com/jf77ps/Utentes_MenteMovimento
+https://github.com/MenteMovimento/central-mente-movimento
 ```
 
 Branch principal:
@@ -230,7 +230,7 @@ O projeto esta ligado ao GitHub Desktop como repositorio local.
 Para publicar uma alteracao:
 
 1. Abrir GitHub Desktop.
-2. Escolher o repositorio `Utentes_MenteMovimento`.
+2. Escolher o repositorio `central-mente-movimento`.
 3. Confirmar a lista de ficheiros alterados.
 4. Garantir que nao aparecem ficheiros sensiveis como `.env`, `utentes.db` ou `anexos/`.
 5. Escrever uma mensagem curta em `Summary`.
@@ -262,7 +262,7 @@ final
 Na Vercel:
 
 1. Criar novo projeto.
-2. Importar o repositorio `jf77ps/Utentes_MenteMovimento`.
+2. Importar o repositorio `MenteMovimento/central-mente-movimento`.
 3. Manter `Root Directory` como:
 
 ```text

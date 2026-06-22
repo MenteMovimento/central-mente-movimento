@@ -164,7 +164,7 @@ SUPABASE_SERVICE_ROLE_KEY
 Cria um repositorio vazio no GitHub e depois corre:
 
 ```bash
-git remote add origin https://github.com/TEU_UTILIZADOR/gestor-de-dispositivos-mentemovimento.git
+git remote add origin https://github.com/MenteMovimento/central-mente-movimento.git
 git branch -M main
 git push -u origin main
 ```

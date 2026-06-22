@@ -93,7 +93,7 @@ vercel.json       Rewrites para encaminhar o site para a funcao Python
 Na Vercel:
 
 1. Crie um novo projeto a partir do repositorio GitHub.
-2. Escolha `jf77ps/Utentes_MenteMovimento`.
+2. Escolha `MenteMovimento/central-mente-movimento`.
 3. Em Environment Variables, adicione para Production, Preview e Development:
 
 ```text
@@ -137,8 +137,8 @@ supabase_schema.sql   Tabelas e bucket para Supabase
 
 ## Repositorio
 
-Repositorio pretendido:
+Repositorio atual da aplicacao central:
 
 ```text
-https://github.com/jf77ps/Utentes_MenteMovimento
+https://github.com/MenteMovimento/central-mente-movimento
 ```

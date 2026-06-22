@@ -112,5 +112,5 @@ supabase_schema.sql   Tabelas e bucket para Supabase
 Repositorio pretendido:
 
 ```text
-https://github.com/Elvee24/Utentes-MenteMovimento
+https://github.com/MenteMovimento/central-mente-movimento
 ```
