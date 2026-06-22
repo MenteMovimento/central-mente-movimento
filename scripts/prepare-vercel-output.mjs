@@ -296,6 +296,8 @@ const centralUsersDialog = `
             <th data-i18n="login.email">Email</th>
             <th data-i18n="users.role">Perfil</th>
             <th data-i18n="users.status">Estado</th>
+            <th data-i18n="users.entryDate">Entrada</th>
+            <th data-i18n="users.exitDate">Saida</th>
             <th data-i18n="users.actions">Ações</th>
           </tr>
         </thead>

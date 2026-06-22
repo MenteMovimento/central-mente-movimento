@@ -717,6 +717,12 @@ body.dark-mode .central-admin-forms {
   font-size: 0.82rem;
 }
 
+.central-date-cell {
+  white-space: nowrap;
+  color: var(--muted);
+  font-weight: 750;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;

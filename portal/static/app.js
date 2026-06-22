@@ -103,6 +103,8 @@ const translations = {
     "users.active": "Ativo",
     "users.inactive": "Inativo",
     "users.status": "Estado",
+    "users.entryDate": "Entrada",
+    "users.exitDate": "Sa\u00edda",
     "users.actions": "A\u00e7\u00f5es",
     "users.clear": "Limpar",
     "users.save": "Guardar altera\u00e7\u00f5es",
@@ -201,6 +203,8 @@ const translations = {
     "users.active": "Active",
     "users.inactive": "Inactive",
     "users.status": "Status",
+    "users.entryDate": "Entry",
+    "users.exitDate": "Exit",
     "users.actions": "Actions",
     "users.clear": "Clear",
     "users.save": "Save changes",
@@ -539,12 +543,23 @@ const resetCentralUserForms = () => {
   showCentralFormError(elements.editError, "");
 };
 
+const formatUserDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return new Intl.DateTimeFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
+
 const renderCentralUsers = () => {
   const { table } = centralUsersElements();
   if (!table) return;
 
   if (!centralUsersState.users.length) {
-    table.innerHTML = `<tr><td colspan="5">${escapeHtml(getTranslation("users.empty"))}</td></tr>`;
+    table.innerHTML = `<tr><td colspan="7">${escapeHtml(getTranslation("users.empty"))}</td></tr>`;
     refreshIcons();
     return;
   }
@@ -557,12 +572,16 @@ const renderCentralUsers = () => {
       const status = user.active ? getTranslation("users.active") : getTranslation("users.inactive");
       const toggleIcon = user.active ? "user-x" : "user-check";
       const toggleTitle = user.active ? getTranslation("users.deactivated") : getTranslation("users.activated");
+      const entryDate = formatUserDate(user.created_at);
+      const exitDate = user.active ? "-" : formatUserDate(user.updated_at);
       return `
         <tr>
           <td><strong>${escapeHtml(name)}</strong><span>${escapeHtml(user.id)}</span></td>
           <td>${escapeHtml(user.email || "")}</td>
           <td>${escapeHtml(roleLabel(user.role))}</td>
           <td><span class="status-pill ${user.active ? "is-active" : "is-inactive"}">${escapeHtml(status)}</span></td>
+          <td class="central-date-cell">${escapeHtml(entryDate)}</td>
+          <td class="central-date-cell">${escapeHtml(exitDate)}</td>
           <td>
             <div class="central-row-actions">
               <button class="icon-link" type="button" title="Editar" aria-label="Editar" data-central-user-action="edit" data-id="${escapeHtml(user.id)}">
@@ -588,7 +607,7 @@ const refreshCentralUsers = async () => {
   await requireCentralAdmin();
   const { data, error } = await client
     .from("app_users")
-    .select("id,email,full_name,role,active,updated_at")
+    .select("id,email,full_name,role,active,created_at,updated_at")
     .order("email", { ascending: true });
   if (error) throw error;
   centralUsersState.users = data || [];
@@ -668,6 +687,7 @@ const handleCentralEditUser = async (event) => {
     full_name: String(form.get("fullName") || "").trim() || null,
     role: String(form.get("role") || "viewer"),
     active: form.get("active") === "on",
+    updated_at: new Date().toISOString(),
   };
   const validation = validateCentralUser({
     id: payload.id,
@@ -701,7 +721,10 @@ const toggleCentralUser = async (id) => {
   const user = centralUsersState.users.find((item) => item.id === id);
   if (!user) return;
   await requireCentralAdmin();
-  const { error } = await client.from("app_users").update({ active: !user.active }).eq("id", id);
+  const { error } = await client
+    .from("app_users")
+    .update({ active: !user.active, updated_at: new Date().toISOString() })
+    .eq("id", id);
   if (error) throw error;
   await refreshCentralUsers();
 };
