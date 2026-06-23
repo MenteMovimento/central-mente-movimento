@@ -681,6 +681,66 @@ main {
     accent-color: var(--brand);
 }
 
+.payment-form-actions {
+    align-items: flex-end;
+}
+
+.payment-form-actions .button {
+    width: min(100%, 260px);
+}
+
+.payment-history-section {
+    margin-top: 24px;
+}
+
+.payment-history-wrap {
+    overflow-x: auto;
+}
+
+.payment-history-table {
+    min-width: 980px;
+}
+
+.payment-history-table th,
+.payment-history-table td {
+    vertical-align: top;
+}
+
+.compact-empty {
+    min-height: 84px;
+    padding: 22px;
+}
+
+.quick-payment-dialog {
+    width: min(520px, calc(100vw - 28px));
+}
+
+.quick-payment-form {
+    display: grid;
+    gap: 14px;
+}
+
+.quick-payment-summary {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--focus);
+    color: var(--text);
+}
+
+.quick-payment-summary strong {
+    color: var(--brand-dark);
+}
+
+.quick-payment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .scoring-table {
     min-width: 900px;
 }
@@ -1138,6 +1198,16 @@ textarea {
     border-color: #bd8f27;
 }
 
+.button.payment.icon-button {
+    border-color: #8ed8c0;
+    color: #08734f;
+}
+
+.button.payment.icon-button:hover {
+    background: #e8f8f1;
+    border-color: #4fb98f;
+}
+
 .dark-theme .button.toggle.icon-button {
     border-color: #b8862c;
     color: #ffd487;
@@ -1160,6 +1230,11 @@ textarea {
 .dark-theme .button.danger.icon-button {
     border-color: #a84d43;
     color: #ff8c82;
+}
+
+.dark-theme .button.payment.icon-button {
+    border-color: #38b889;
+    color: #8df0c3;
 }
 
 .button svg {
@@ -2493,6 +2568,50 @@ APP_SCRIPT = """
         closeFrameDialogButton.addEventListener("click", closeFrameDialog);
     }
 
+    const quickPaymentDialog = document.getElementById("quickPaymentDialog");
+    const quickPaymentId = document.getElementById("quickPaymentId");
+    const quickPaymentName = document.getElementById("quickPaymentName");
+    const quickPaymentMonth = document.getElementById("quickPaymentMonth");
+    const closeQuickPaymentDialog = () => {
+        if (!quickPaymentDialog) {
+            return;
+        }
+        if (quickPaymentDialog.open && typeof quickPaymentDialog.close === "function") {
+            quickPaymentDialog.close();
+        } else {
+            quickPaymentDialog.removeAttribute("open");
+        }
+    };
+    document.querySelectorAll("[data-quick-payment-open]").forEach((button) => {
+        button.addEventListener("click", () => {
+            if (!quickPaymentDialog || !quickPaymentId) {
+                return;
+            }
+            quickPaymentId.value = button.getAttribute("data-client-id") || "";
+            if (quickPaymentName) {
+                quickPaymentName.textContent = button.getAttribute("data-client-name") || "";
+            }
+            if (quickPaymentMonth) {
+                quickPaymentMonth.textContent = button.getAttribute("data-payment-month") || "";
+            }
+            if (typeof quickPaymentDialog.showModal === "function") {
+                quickPaymentDialog.showModal();
+            } else {
+                quickPaymentDialog.setAttribute("open", "");
+            }
+        });
+    });
+    document.querySelectorAll("[data-quick-payment-close]").forEach((button) => {
+        button.addEventListener("click", closeQuickPaymentDialog);
+    });
+    if (quickPaymentDialog) {
+        quickPaymentDialog.addEventListener("click", (event) => {
+            if (event.target === quickPaymentDialog) {
+                closeQuickPaymentDialog();
+            }
+        });
+    }
+
     const form = document.getElementById("edit-utente-form");
     if (!form) {
         return;
@@ -3458,6 +3577,11 @@ TRANSLATIONS = {
         "status": "Estado",
         "active": "Ativo",
         "inactive": "Inativo",
+        "monthly_fee": "Mensalidade",
+        "paid_until": "Pago até",
+        "no_monthly_fee": "Sem mensalidade",
+        "pay_fee": "Pagar quota",
+        "quick_payment": "Pagamento rápido",
         "history_help": "Veja quem fez alterações, o que fez e quando fez.",
         "when": "Quando",
         "who": "Quem",
@@ -3534,6 +3658,11 @@ TRANSLATIONS = {
         "status": "Status",
         "active": "Active",
         "inactive": "Inactive",
+        "monthly_fee": "Monthly fee",
+        "paid_until": "Paid until",
+        "no_monthly_fee": "No monthly fee",
+        "pay_fee": "Pay fee",
+        "quick_payment": "Quick payment",
         "history_help": "See who changed what, and when.",
         "when": "When",
         "who": "Who",
@@ -3748,6 +3877,18 @@ EN_STATIC_TRANSLATIONS = {
     "Valor pago (€)": "Amount paid (€)",
     "N.º recibo / referência": "Receipt / reference no.",
     "Observações de pagamento": "Payment notes",
+    "Mensalidade": "Monthly fee",
+    "Nova mensalidade": "New monthly fee",
+    "Registar pagamento": "Register payment",
+    "Histórico de pagamentos": "Payment history",
+    "Mensalidade / quota": "Monthly fee",
+    "Método": "Method",
+    "Valor": "Amount",
+    "Recibo / referência": "Receipt / reference",
+    "Sem pagamentos registados.": "No payments recorded.",
+    "Escolha a mensalidade e a forma de pagamento antes de registar.": "Choose the monthly fee and payment method before registering.",
+    "Mensalidade registada com sucesso": "Monthly fee registered successfully",
+    "Pagamento rápido registado com sucesso": "Quick payment registered successfully",
 
     "Identificação": "Identification",
     "Em caso de urgência contactar": "In case of emergency contact",
@@ -4557,6 +4698,16 @@ USER_X_ICON = """
 """
 
 
+MONEY_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="3" y="6" width="18" height="12" rx="2"></rect>
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M6 9h.01"></path>
+    <path d="M18 15h.01"></path>
+</svg>
+"""
+
+
 CODE_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="m16 18 6-6-6-6"></path>
@@ -4789,6 +4940,36 @@ PAGAMENTO_TEXT_FIELDS = [
     "pag_valor",
     "pag_referencia",
     "pag_observacoes",
+]
+
+MONTH_NAMES_PT = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+]
+
+MONTH_NAMES_EN = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
 ]
 
 PAGAMENTO_ESTADOS = [
@@ -5184,7 +5365,9 @@ def serialize_referenciacao(post_data):
 
 
 def default_pagamentos_data():
-    return {key: "" for key in PAGAMENTO_TEXT_FIELDS}
+    data = {key: "" for key in PAGAMENTO_TEXT_FIELDS}
+    data["pag_historico"] = []
+    return data
 
 
 def load_pagamentos_data(utente_id):
@@ -5197,16 +5380,211 @@ def load_pagamentos_data(utente_id):
             stored = {"pag_observacoes": raw}
         if isinstance(stored, dict):
             for key in data:
+                if key == "pag_historico":
+                    continue
                 if key in stored:
                     data[key] = str(stored.get(key) or "")
+            data["pag_historico"] = normalize_pagamento_history(stored.get("pag_historico"))
+    if not data.get("pag_mensalidade_ate"):
+        data["pag_mensalidade_ate"] = next_payment_month(data)
     return data
 
 
-def pagamentos_from_post(post_data):
+def normalize_month_value(value):
+    value = str(value or "").strip()
+    match = re.search(r"(\d{4})-(\d{2})", value)
+    if not match:
+        return ""
+    year = int(match.group(1))
+    month = int(match.group(2))
+    if month < 1 or month > 12:
+        return ""
+    return f"{year:04d}-{month:02d}"
+
+
+def add_months(month_value, months=1):
+    month_value = normalize_month_value(month_value)
+    if not month_value:
+        today = datetime.now().date()
+        return f"{today.year:04d}-{today.month:02d}"
+    year, month = [int(part) for part in month_value.split("-")]
+    month += months
+    while month > 12:
+        month -= 12
+        year += 1
+    while month < 1:
+        month += 12
+        year -= 1
+    return f"{year:04d}-{month:02d}"
+
+
+def month_label(month_value, language="pt"):
+    month_value = normalize_month_value(month_value)
+    if not month_value:
+        return ""
+    year, month = [int(part) for part in month_value.split("-")]
+    names = MONTH_NAMES_EN if normalize_language(language) == "en" else MONTH_NAMES_PT
+    return f"{names[month - 1]} {year}"
+
+
+def month_options(selected=""):
+    selected = normalize_month_value(selected)
+    current_year = datetime.now().year
+    options = [("", "Selecionar mensalidade")]
+    for year in range(current_year - 2, current_year + 4):
+        for month in range(1, 13):
+            value = f"{year:04d}-{month:02d}"
+            options.append((value, month_label(value)))
+    if selected and all(value != selected for value, _label in options):
+        options.insert(1, (selected, month_label(selected)))
+    return options
+
+
+def payment_method_label(value):
+    value = str(value or "").strip()
+    for option_value, option_label in PAGAMENTO_FORMAS:
+        if value == option_value:
+            return option_label
+    return value
+
+
+def payment_status_label(value):
+    value = str(value or "").strip()
+    for option_value, option_label in PAGAMENTO_ESTADOS:
+        if value == option_value:
+            return option_label
+    return value or "Pago"
+
+
+def normalize_pagamento_history(raw_history):
+    if not isinstance(raw_history, list):
+        return []
+    history = []
+    for item in raw_history:
+        if not isinstance(item, dict):
+            continue
+        month_value = normalize_month_value(item.get("mensalidade"))
+        if not month_value:
+            continue
+        history.append(
+            {
+                "id": str(item.get("id") or f"pag-{len(history) + 1}"),
+                "mensalidade": month_value,
+                "estado": str(item.get("estado") or "pago"),
+                "data": str(item.get("data") or ""),
+                "forma": str(item.get("forma") or ""),
+                "valor": str(item.get("valor") or ""),
+                "referencia": str(item.get("referencia") or ""),
+                "observacoes": str(item.get("observacoes") or ""),
+                "registado_em": str(item.get("registado_em") or ""),
+            }
+        )
+    return sorted(history, key=lambda row: (row["mensalidade"], row.get("data") or "", row.get("registado_em") or ""), reverse=True)
+
+
+def latest_pagamento_record(data):
+    history = normalize_pagamento_history(data.get("pag_historico"))
+    return history[0] if history else None
+
+
+def next_payment_month(data):
+    latest = latest_pagamento_record(data)
+    if latest:
+        return add_months(latest["mensalidade"], 1)
+    current_month = normalize_month_value(data.get("pag_mensalidade_ate"))
+    if current_month:
+        if data.get("pag_data") or data.get("pag_estado") == "pago":
+            return add_months(current_month, 1)
+        return current_month
+    today = datetime.now().date()
+    return f"{today.year:04d}-{today.month:02d}"
+
+
+def append_payment_record(data, month_value, method, payment_date="", status="pago", amount="", reference="", notes=""):
+    month_value = normalize_month_value(month_value)
+    method = str(method or "").strip()
+    if not month_value or not method:
+        raise ValueError("Escolha a mensalidade e a forma de pagamento antes de registar.")
+    payment_date = str(payment_date or "").strip() or datetime.now().date().isoformat()
+    history = normalize_pagamento_history(data.get("pag_historico"))
+    history.append(
+        {
+            "id": f"pag-{datetime.now().strftime('%Y%m%d%H%M%S')}-{len(history) + 1}",
+            "mensalidade": month_value,
+            "estado": status or "pago",
+            "data": payment_date,
+            "forma": method,
+            "valor": str(amount or "").strip(),
+            "referencia": str(reference or "").strip(),
+            "observacoes": str(notes or "").strip(),
+            "registado_em": now(),
+        }
+    )
+    data["pag_historico"] = normalize_pagamento_history(history)
+    return data
+
+
+def pagamentos_from_post(post_data, existing_data=None):
     data = default_pagamentos_data()
+    existing_data = existing_data or {}
+    data["pag_historico"] = normalize_pagamento_history(existing_data.get("pag_historico"))
     for key in PAGAMENTO_TEXT_FIELDS:
         data[key] = field_value(post_data, key)
+    data["pag_mensalidade_ate"] = normalize_month_value(data.get("pag_mensalidade_ate"))
+    if field_value(post_data, "pag_action") == "add":
+        append_payment_record(
+            data,
+            data.get("pag_mensalidade_ate"),
+            data.get("pag_forma"),
+            data.get("pag_data"),
+            data.get("pag_estado") or "pago",
+            data.get("pag_valor"),
+            data.get("pag_referencia"),
+            data.get("pag_observacoes"),
+        )
+        data["pag_mensalidade_ate"] = next_payment_month(data)
+        data["pag_estado"] = "pago"
+        data["pag_data"] = ""
+        data["pag_forma"] = ""
+        data["pag_valor"] = ""
+        data["pag_referencia"] = ""
+        data["pag_observacoes"] = ""
     return data
+
+
+def register_quick_payment(utente_id, method, payment_date=""):
+    data = load_pagamentos_data(utente_id)
+    month_value = next_payment_month(data)
+    append_payment_record(data, month_value, method, payment_date or datetime.now().date().isoformat(), "pago")
+    data["pag_mensalidade_ate"] = next_payment_month(data)
+    data["pag_estado"] = "pago"
+    data["pag_data"] = ""
+    data["pag_forma"] = ""
+    data["pag_valor"] = ""
+    data["pag_referencia"] = ""
+    data["pag_observacoes"] = ""
+    save_tab_content(utente_id, "pagamentos", json.dumps(data, ensure_ascii=False))
+    return month_value
+
+
+def payment_summary(data, current_user=None):
+    latest = latest_pagamento_record(data)
+    language = user_language(current_user)
+    if latest:
+        status = latest.get("estado") or "pago"
+        label = f"{tr(current_user, 'paid_until')} {month_label(latest.get('mensalidade'), language)}"
+        if status not in ("pago", "isento"):
+            label = f"{payment_status_label(status)}: {month_label(latest.get('mensalidade'), language)}"
+        css_class = "active" if status in ("pago", "isento") else "blocked"
+        return {"label": label, "class": css_class, "next_month": next_payment_month(data)}
+    old_month = normalize_month_value(data.get("pag_mensalidade_ate"))
+    if old_month and data.get("pag_data"):
+        return {
+            "label": f"{tr(current_user, 'paid_until')} {month_label(old_month, language)}",
+            "class": "active",
+            "next_month": add_months(old_month, 1),
+        }
+    return {"label": tr(current_user, "no_monthly_fee"), "class": "blocked", "next_month": next_payment_month(data)}
 
 
 def default_emergencia_data():
@@ -5724,6 +6102,138 @@ def render_select_input(data, key, label, options, span="span-4", readonly=False
     """
 
 
+def render_month_select(data, key, label, span="span-4", readonly=False):
+    disabled = "disabled" if readonly else ""
+    value = normalize_month_value(data.get(key))
+    options_html = ""
+    for option_value, option_label in month_options(value):
+        selected = "selected" if value == option_value else ""
+        options_html += f'<option value="{esc(option_value)}" {selected}>{esc(option_label)}</option>'
+    return f"""
+    <div class="field {span}">
+        <label for="{key}">{esc(label)}</label>
+        <select id="{key}" name="{key}" {disabled}>
+            {options_html}
+        </select>
+    </div>
+    """
+
+
+def render_pagamentos_history(history):
+    history = normalize_pagamento_history(history)
+    if not history:
+        rows = """
+        <tr>
+            <td colspan="7">
+                <div class="empty compact-empty">Sem pagamentos registados.</div>
+            </td>
+        </tr>
+        """
+    else:
+        rows = ""
+        for item in history:
+            rows += f"""
+            <tr>
+                <td>{esc(month_label(item.get("mensalidade")))}</td>
+                <td>{esc(payment_status_label(item.get("estado")))}</td>
+                <td>{esc(item.get("data"))}</td>
+                <td>{esc(payment_method_label(item.get("forma")))}</td>
+                <td>{esc(item.get("valor"))}</td>
+                <td>{esc(item.get("referencia"))}</td>
+                <td>{esc(item.get("observacoes"))}</td>
+            </tr>
+            """
+    return f"""
+    <section class="form-section payment-history-section">
+        <h4 class="section-title">Histórico de pagamentos</h4>
+        <div class="payment-history-wrap">
+            <table class="sheet-table payment-history-table">
+                <thead>
+                    <tr>
+                        <th>Mensalidade / quota</th>
+                        <th>Estado</th>
+                        <th>Data</th>
+                        <th>Método</th>
+                        <th>Valor</th>
+                        <th>Recibo / referência</th>
+                        <th>Observações</th>
+                    </tr>
+                </thead>
+                <tbody>{rows}</tbody>
+            </table>
+        </div>
+    </section>
+    """
+
+
+def render_quick_payment_dialog(current_user=None):
+    language = user_language(current_user)
+    if language == "en":
+        title = "Pay monthly fee"
+        subtitle = "Confirm the monthly fee, payment date and method."
+        client_label = "Client"
+        month_label_text = "Monthly fee"
+        date_label = "Payment day"
+        method_label = "Payment method"
+        cancel_label = "Cancel"
+        submit_label = "Register payment"
+        close_label = "Close"
+    else:
+        title = "Pagar mensalidade"
+        subtitle = "Confirme a mensalidade, o dia e a forma de pagamento."
+        client_label = "Utente"
+        month_label_text = "Mensalidade"
+        date_label = "Dia do pagamento"
+        method_label = "Forma de pagamento"
+        cancel_label = "Cancelar"
+        submit_label = "Registar pagamento"
+        close_label = "Fechar"
+    options_html = ""
+    for option_value, option_label in PAGAMENTO_FORMAS:
+        options_html += f'<option value="{esc(option_value)}">{esc(option_label)}</option>'
+    today = datetime.now().date().isoformat()
+    return f"""
+    <dialog class="manual-dialog quick-payment-dialog" id="quickPaymentDialog">
+        <section class="manual-dialog-panel" aria-label="{esc(title)}">
+            <div class="manual-dialog-head">
+                <div>
+                    <h2>{esc(title)}</h2>
+                    <p>{esc(subtitle)}</p>
+                </div>
+                <button class="central-icon-link" type="button" data-quick-payment-close title="{esc(close_label)}" aria-label="{esc(close_label)}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                    </svg>
+                    <span>{esc(close_label)}</span>
+                </button>
+            </div>
+            <form class="quick-payment-form" method="post" action="/pagamentos/rapido">
+                <input type="hidden" id="quickPaymentId" name="id" value="">
+                <div class="quick-payment-summary">
+                    <span>{esc(client_label)}: <strong id="quickPaymentName"></strong></span>
+                    <span>{esc(month_label_text)}: <strong id="quickPaymentMonth"></strong></span>
+                </div>
+                <div class="field">
+                    <label for="quickPaymentDate">{esc(date_label)}</label>
+                    <input id="quickPaymentDate" type="date" name="pag_data" value="{esc(today)}" required>
+                </div>
+                <div class="field">
+                    <label for="quickPaymentMethod">{esc(method_label)}</label>
+                    <select id="quickPaymentMethod" name="pag_forma" required>
+                        {options_html}
+                    </select>
+                </div>
+                <div class="quick-payment-actions">
+                    <button class="button secondary" type="button" data-quick-payment-close>{esc(cancel_label)}</button>
+                    <button class="button" type="submit">{esc(submit_label)}</button>
+                </div>
+            </form>
+        </section>
+    </dialog>
+    """
+
+
 def render_checkbox_groups(data, readonly=False):
     groups_html = ""
     disabled = "disabled" if readonly else ""
@@ -5848,20 +6358,27 @@ def render_referenciacao_form(data, readonly=False):
 
 def render_pagamentos_form(data, readonly=False):
     readonly_class = " readonly-section" if readonly else ""
+    register_button = "" if readonly else """
+                <div class="field span-12 payment-form-actions">
+                    <button class="button" type="submit" name="pag_action" value="add">Registar pagamento</button>
+                </div>
+    """
     return f"""
     <div class="pagamentos-form{readonly_class}">
         <section class="form-section">
             <h4 class="section-title">Registo de Pagamentos e Mensalidades</h4>
             <div class="form-grid">
                 {render_choice_group(data, "pag_estado", "Estado do pagamento", PAGAMENTO_ESTADOS, "span-12", readonly)}
-                {render_text_input(data, "pag_mensalidade_ate", "Mensalidade paga até", "span-4", "month", readonly)}
+                {render_month_select(data, "pag_mensalidade_ate", "Nova mensalidade", "span-4", readonly)}
                 {render_text_input(data, "pag_data", "Dia do pagamento", "span-4", "date", readonly)}
                 {render_select_input(data, "pag_forma", "Forma de pagamento", PAGAMENTO_FORMAS, "span-4", readonly)}
                 {render_text_input(data, "pag_valor", "Valor pago (€)", "span-4", "number", readonly)}
                 {render_text_input(data, "pag_referencia", "N.º recibo / referência", "span-8", readonly=readonly)}
                 {render_textarea_input(data, "pag_observacoes", "Observações de pagamento", "span-12", readonly=readonly)}
+                {register_button}
             </div>
         </section>
+        {render_pagamentos_history(data.get("pag_historico"))}
     </div>
     """
 
@@ -6870,16 +7387,26 @@ def render_list(query="", notice="", current_user=None):
     edit_label = tr(current_user, "edit")
     delete_label = tr(current_user, "delete")
     toggle_label = tr(current_user, "toggle_active")
+    pay_label = tr(current_user, "pay_fee")
     for row in rows:
         edit_delete_html = ""
         toggle_html = ""
+        payment_html = ""
         is_active = (row["estado"] or "Ativo") == "Ativo"
         status_key = "active" if is_active else "inactive"
         status_class = "active" if is_active else "blocked"
+        pagamentos_data = load_pagamentos_data(row["id"])
+        payment_info = payment_summary(pagamentos_data, current_user)
+        next_payment_label = month_label(payment_info["next_month"], user_language(current_user))
         toggle_action_label = tr(current_user, "deactivate_client" if is_active else "activate_client")
         toggle_confirm = "Inativar este utente?" if is_active else "Ativar este utente?"
         toggle_icon = USER_X_ICON if is_active else USER_CHECK_ICON
         if admin:
+            payment_html = f"""
+                    <button class="button payment icon-button" type="button" data-quick-payment-open data-client-id="{row["id"]}" data-client-name="{esc(row["nome"])}" data-payment-month="{esc(next_payment_label)}" aria-label="{esc(pay_label)}" title="{esc(pay_label)}">
+                        {MONEY_ICON}
+                    </button>
+            """
             toggle_html = f"""
                     <form method="post" action="/estado" onsubmit="return confirm('{esc(toggle_confirm)}');">
                         <input type="hidden" name="id" value="{row["id"]}">
@@ -6905,8 +7432,10 @@ def render_list(query="", notice="", current_user=None):
                 <div class="name">{esc(row["nome"])}</div>
             </td>
             <td><span class="status {status_class}">{esc(tr(current_user, status_key))}</span></td>
+            <td><span class="status {esc(payment_info["class"])}">{esc(payment_info["label"])}</span></td>
             <td class="actions-cell">
                 <div class="row-actions">
+                    {payment_html}
                     {toggle_html}
                     <a class="button view icon-button" href="/ver?id={row["id"]}" aria-label="{esc(view_label)}" title="{esc(view_label)}">
                         {EYE_ICON}
@@ -6920,7 +7449,7 @@ def render_list(query="", notice="", current_user=None):
     if not rows:
         rows_html = f"""
         <tr>
-            <td colspan="3">
+            <td colspan="4">
                 <div class="empty">
                     <h2>{esc(tr(current_user, "no_clients"))}</h2>
                     <p class="muted">{esc(tr(current_user, "no_clients_help"))}</p>
@@ -6944,12 +7473,14 @@ def render_list(query="", notice="", current_user=None):
             <tr>
                 <th>{esc(tr(current_user, "name"))}</th>
                 <th>{esc(tr(current_user, "status"))}</th>
+                <th>{esc(tr(current_user, "monthly_fee"))}</th>
                 <th class="actions-cell">{esc(tr(current_user, "actions"))}</th>
             </tr>
         </thead>
         <tbody>{rows_html}</tbody>
     </table>
 </section>
+{render_quick_payment_dialog(current_user) if admin else ""}
 """
     return render_page(tr(current_user, "client_list"), content, notice=notice, current_user=current_user)
 
@@ -8825,7 +9356,12 @@ class UtentesHandler(BaseHTTPRequestHandler):
                     active_data = referenciacao_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
                 elif active_tab == "pagamentos":
-                    save_tab_content(int(utente_id), active_tab, json.dumps(pagamentos_from_post(data), ensure_ascii=False))
+                    existing_pagamentos = load_pagamentos_data(int(utente_id))
+                    save_tab_content(
+                        int(utente_id),
+                        active_tab,
+                        json.dumps(pagamentos_from_post(data, existing_pagamentos), ensure_ascii=False),
+                    )
                 elif active_tab == "emergencia":
                     active_data = emergencia_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
@@ -8844,6 +9380,10 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 form_data = form_to_dict(data)
                 form_data["id"] = utente_id
                 self.send_html(render_edit_page(form_data, active_tab, str(exc), current_user=admin), status=400)
+                return
+            if active_tab == "pagamentos" and field_value(data, "pag_action") == "add":
+                log_action(admin, "Registou pagamento", "Utente", int(utente_id), field_value(data, "pag_mensalidade_ate"))
+                self.redirect(f"/editar?id={utente_id}&tab=pagamentos&msg={quote('Mensalidade registada com sucesso')}")
                 return
             log_action(admin, "Guardou utente", "Utente", int(utente_id), f"{field_value(data, 'nome')} - {get_tab_title(active_tab)}")
             self.redirect(f"/?msg={quote('Dados guardados com sucesso')}")
@@ -8868,7 +9408,12 @@ class UtentesHandler(BaseHTTPRequestHandler):
                     active_data = referenciacao_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
                 elif active_tab == "pagamentos":
-                    save_tab_content(int(utente_id), active_tab, json.dumps(pagamentos_from_post(data), ensure_ascii=False))
+                    existing_pagamentos = load_pagamentos_data(int(utente_id))
+                    save_tab_content(
+                        int(utente_id),
+                        active_tab,
+                        json.dumps(pagamentos_from_post(data, existing_pagamentos), ensure_ascii=False),
+                    )
                 elif active_tab == "emergencia":
                     update_utente_core_from_shared(int(utente_id), data)
                     active_data = emergencia_from_post(data)
@@ -8928,6 +9473,27 @@ class UtentesHandler(BaseHTTPRequestHandler):
             log_action(admin, "Alterou estado de utente", "Utente", int(utente_id), f"{utente['nome']} - {next_status}")
             message = "Utente ativado com sucesso" if next_status == "Ativo" else "Utente inativado com sucesso"
             self.redirect(f"/?msg={quote(message)}")
+            return
+
+        if parsed.path == "/pagamentos/rapido":
+            admin = self.require_admin()
+            if not admin:
+                return
+            utente_id = field_value(data, "id")
+            method = field_value(data, "pag_forma")
+            payment_date = field_value(data, "pag_data")
+            if not utente_id.isdigit() or not get_utente(int(utente_id)):
+                self.redirect(f"/?msg={quote('Utente não encontrado')}")
+                return
+            try:
+                paid_month = register_quick_payment(int(utente_id), method, payment_date)
+            except ValueError as exc:
+                self.redirect(f"/?msg={quote(str(exc))}")
+                return
+            utente = get_utente(int(utente_id))
+            details = f"{utente['nome'] if utente else utente_id} - {month_label(paid_month)} - {method}"
+            log_action(admin, "Registou pagamento rápido", "Utente", int(utente_id), details)
+            self.redirect(f"/?msg={quote('Pagamento rápido registado com sucesso')}")
             return
 
         if parsed.path == "/utilizadores/criar":
