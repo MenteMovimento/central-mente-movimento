@@ -7385,6 +7385,7 @@ def render_list(query="", notice="", current_user=None):
     admin = is_admin(current_user)
     view_label = tr(current_user, "view")
     edit_label = tr(current_user, "edit")
+    delete_label = tr(current_user, "delete")
     toggle_label = tr(current_user, "toggle_active")
     pay_label = tr(current_user, "pay_fee")
     for row in rows:
@@ -7415,6 +7416,12 @@ def render_list(query="", notice="", current_user=None):
                     </form>
             """
             edit_delete_html = f"""
+                    <form method="post" action="/eliminar" onsubmit="return confirm('Eliminar este utente?');">
+                        <input type="hidden" name="id" value="{row["id"]}">
+                        <button class="button danger icon-button" type="submit" aria-label="{esc(delete_label)}" title="{esc(delete_label)}">
+                            {TRASH_ICON}
+                        </button>
+                    </form>
                     <a class="button secondary icon-button" href="/editar?id={row["id"]}" aria-label="{esc(edit_label)}" title="{esc(edit_label)}">
                         {PENCIL_ICON}
                     </a>
