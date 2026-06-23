@@ -3588,6 +3588,9 @@ TRANSLATIONS = {
         "no_monthly_fee": "Sem mensalidade",
         "pay_fee": "Pagar quota",
         "quick_payment": "Pagamento rápido",
+        "cancel_payment": "Cancelar pagamento",
+        "cancel_payment_confirm": "Cancelar este pagamento?",
+        "payment_cancelled": "Pagamento cancelado com sucesso",
         "fees_current": "Quotas em dia",
         "fees_overdue": "Quotas em atraso",
         "average_fee_delay": "Atraso médio",
@@ -3678,6 +3681,9 @@ TRANSLATIONS = {
         "no_monthly_fee": "No monthly fee",
         "pay_fee": "Pay fee",
         "quick_payment": "Quick payment",
+        "cancel_payment": "Cancel payment",
+        "cancel_payment_confirm": "Cancel this payment?",
+        "payment_cancelled": "Payment cancelled successfully",
         "fees_current": "Fees up to date",
         "fees_overdue": "Overdue fees",
         "average_fee_delay": "Average delay",
@@ -5603,14 +5609,59 @@ def append_payment_record(data, month_value, method, payment_date="", status="pa
     return data
 
 
-def pagamentos_from_post(post_data, existing_data=None):
-    data = default_pagamentos_data()
+def payment_data_from_existing(existing_data=None):
     existing_data = existing_data or {}
+    data = default_pagamentos_data()
     data["pag_historico"] = normalize_pagamento_history(existing_data.get("pag_historico"))
+    for key in PAGAMENTO_TEXT_FIELDS:
+        data[key] = str(existing_data.get(key) or "")
+    data["pag_mensalidade_ate"] = normalize_month_value(data.get("pag_mensalidade_ate"))
+    return data
+
+
+def find_payment_record(data, payment_id):
+    payment_id = str(payment_id or "").strip()
+    for item in normalize_pagamento_history(data.get("pag_historico")):
+        if item.get("id") == payment_id:
+            return item
+    return None
+
+
+def cancel_payment_record(data, payment_id):
+    payment_id = str(payment_id or "").strip()
+    history = normalize_pagamento_history(data.get("pag_historico"))
+    removed = None
+    remaining = []
+    for item in history:
+        if item.get("id") == payment_id and removed is None:
+            removed = item
+        else:
+            remaining.append(item)
+    if removed is None:
+        raise ValueError("Pagamento não encontrado.")
+    data["pag_historico"] = normalize_pagamento_history(remaining)
+    data["pag_mensalidade_ate"] = next_payment_month(data)
+    data["pag_estado"] = "pago"
+    data["pag_data"] = ""
+    data["pag_forma"] = ""
+    data["pag_valor"] = ""
+    data["pag_referencia"] = ""
+    data["pag_observacoes"] = ""
+    return removed
+
+
+def pagamentos_from_post(post_data, existing_data=None):
+    action = field_value(post_data, "pag_action")
+    if action.startswith("cancel:"):
+        data = payment_data_from_existing(existing_data)
+        cancel_payment_record(data, action.split(":", 1)[1])
+        return data
+
+    data = payment_data_from_existing(existing_data)
     for key in PAGAMENTO_TEXT_FIELDS:
         data[key] = field_value(post_data, key)
     data["pag_mensalidade_ate"] = normalize_month_value(data.get("pag_mensalidade_ate"))
-    if field_value(post_data, "pag_action") == "add":
+    if action == "add":
         append_payment_record(
             data,
             data.get("pag_mensalidade_ate"),
@@ -6203,12 +6254,14 @@ def render_month_select(data, key, label, span="span-4", readonly=False):
     """
 
 
-def render_pagamentos_history(history):
+def render_pagamentos_history(history, readonly=False, current_user=None):
     history = normalize_pagamento_history(history)
+    actions_header = "" if readonly else f"<th>{esc(tr(current_user, 'actions'))}</th>"
+    actions_colspan = 7 if readonly else 8
     if not history:
-        rows = """
+        rows = f"""
         <tr>
-            <td colspan="7">
+            <td colspan="{actions_colspan}">
                 <div class="empty compact-empty">Sem pagamentos registados.</div>
             </td>
         </tr>
@@ -6216,6 +6269,18 @@ def render_pagamentos_history(history):
     else:
         rows = ""
         for item in history:
+            cancel_action = ""
+            if not readonly:
+                payment_id = esc(item.get("id"))
+                cancel_label = esc(tr(current_user, "cancel_payment"))
+                cancel_confirm = esc(tr(current_user, "cancel_payment_confirm"))
+                cancel_action = f"""
+                <td class="actions-cell">
+                    <button class="button danger icon-button" type="submit" name="pag_action" value="cancel:{payment_id}" onclick="return confirm('{cancel_confirm}');" aria-label="{cancel_label}" title="{cancel_label}">
+                        {TRASH_ICON}
+                    </button>
+                </td>
+                """
             rows += f"""
             <tr>
                 <td>{esc(month_label(item.get("mensalidade")))}</td>
@@ -6225,6 +6290,7 @@ def render_pagamentos_history(history):
                 <td>{esc(item.get("valor"))}</td>
                 <td>{esc(item.get("referencia"))}</td>
                 <td>{esc(item.get("observacoes"))}</td>
+                {cancel_action}
             </tr>
             """
     return f"""
@@ -6241,6 +6307,7 @@ def render_pagamentos_history(history):
                         <th>Valor</th>
                         <th>Recibo / referência</th>
                         <th>Observações</th>
+                        {actions_header}
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>
@@ -6440,7 +6507,7 @@ def render_referenciacao_form(data, readonly=False):
     """
 
 
-def render_pagamentos_form(data, readonly=False):
+def render_pagamentos_form(data, readonly=False, current_user=None):
     readonly_class = " readonly-section" if readonly else ""
     register_button = "" if readonly else """
                 <div class="field span-12 payment-form-actions">
@@ -6462,7 +6529,7 @@ def render_pagamentos_form(data, readonly=False):
                 {register_button}
             </div>
         </section>
-        {render_pagamentos_history(data.get("pag_historico"))}
+        {render_pagamentos_history(data.get("pag_historico"), readonly=readonly, current_user=current_user)}
     </div>
     """
 
@@ -7298,7 +7365,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         tab_body = render_referenciacao_form(ref_data, readonly=False)
     elif active_tab == "pagamentos":
         pag_data = load_pagamentos_data(utente["id"])
-        tab_body = render_pagamentos_form(pag_data, readonly=False)
+        tab_body = render_pagamentos_form(pag_data, readonly=False, current_user=current_user)
     elif active_tab == "emergencia":
         em_data["em_nome"] = em_data.get("em_nome") or utente.get("nome") or ""
         tab_body = render_emergencia_form(em_data, readonly=False)
@@ -7394,7 +7461,7 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
         tab_body = render_referenciacao_form(ref_data, readonly=True)
     elif active_tab == "pagamentos":
         pag_data = load_pagamentos_data(utente["id"])
-        tab_body = render_pagamentos_form(pag_data, readonly=True)
+        tab_body = render_pagamentos_form(pag_data, readonly=True, current_user=current_user)
     elif active_tab == "emergencia":
         em_data["em_nome"] = em_data.get("em_nome") or utente.get("nome") or ""
         tab_body = render_emergencia_form(em_data, readonly=True)
@@ -9475,6 +9542,8 @@ class UtentesHandler(BaseHTTPRequestHandler):
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
                 self.redirect(f"/?msg={quote('Utente não encontrado')}")
                 return
+            payment_action = field_value(data, "pag_action")
+            canceled_payment = None
             try:
                 update_utente_core_from_shared(int(utente_id), data)
                 if active_tab == "referenciacao":
@@ -9482,6 +9551,8 @@ class UtentesHandler(BaseHTTPRequestHandler):
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
                 elif active_tab == "pagamentos":
                     existing_pagamentos = load_pagamentos_data(int(utente_id))
+                    if payment_action.startswith("cancel:"):
+                        canceled_payment = find_payment_record(existing_pagamentos, payment_action.split(":", 1)[1])
                     save_tab_content(
                         int(utente_id),
                         active_tab,
@@ -9506,7 +9577,12 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 form_data["id"] = utente_id
                 self.send_html(render_edit_page(form_data, active_tab, str(exc), current_user=admin), status=400)
                 return
-            if active_tab == "pagamentos" and field_value(data, "pag_action") == "add":
+            if active_tab == "pagamentos" and payment_action.startswith("cancel:"):
+                details = month_label(canceled_payment.get("mensalidade")) if canceled_payment else ""
+                log_action(admin, "Cancelou pagamento", "Utente", int(utente_id), details)
+                self.redirect(f"/editar?id={utente_id}&tab=pagamentos&msg={quote(tr(admin, 'payment_cancelled'))}")
+                return
+            if active_tab == "pagamentos" and payment_action == "add":
                 log_action(admin, "Registou pagamento", "Utente", int(utente_id), field_value(data, "pag_mensalidade_ate"))
                 self.redirect(f"/editar?id={utente_id}&tab=pagamentos&msg={quote('Mensalidade registada com sucesso')}")
                 return
