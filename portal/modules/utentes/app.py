@@ -4354,6 +4354,8 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{esc(title)} - Utentes MenteMovimento</title>
+    <link rel="icon" href="/static/favicon.png?v=1" type="image/png">
+    <link rel="shortcut icon" href="/static/favicon.png?v=1" type="image/png">
     <script>document.documentElement.dataset.centralAuthPending = "true";</script>
     <style>html[data-central-auth-pending="true"] body{{visibility:hidden}}</style>
     <script src="/static/vendor/supabase.js" defer></script>
@@ -4563,6 +4565,8 @@ def render_login_page(error="", language="pt"):
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Entrar - Utentes MenteMovimento</title>
+    <link rel="icon" href="/static/favicon.png?v=1" type="image/png">
+    <link rel="shortcut icon" href="/static/favicon.png?v=1" type="image/png">
     <style>{STYLE}</style>
 </head>
 <body class="dark-theme">
@@ -7389,7 +7393,8 @@ def render_list(query="", notice="", current_user=None):
     toggle_label = tr(current_user, "toggle_active")
     pay_label = tr(current_user, "pay_fee")
     for row in rows:
-        edit_delete_html = ""
+        edit_html = ""
+        delete_html = ""
         toggle_html = ""
         payment_html = ""
         is_active = (row["estado"] or "Ativo") == "Ativo"
@@ -7415,16 +7420,18 @@ def render_list(query="", notice="", current_user=None):
                         </button>
                     </form>
             """
-            edit_delete_html = f"""
+            edit_html = f"""
+                    <a class="button secondary icon-button" href="/editar?id={row["id"]}" aria-label="{esc(edit_label)}" title="{esc(edit_label)}">
+                        {PENCIL_ICON}
+                    </a>
+            """
+            delete_html = f"""
                     <form method="post" action="/eliminar" onsubmit="return confirm('Eliminar este utente?');">
                         <input type="hidden" name="id" value="{row["id"]}">
                         <button class="button danger icon-button" type="submit" aria-label="{esc(delete_label)}" title="{esc(delete_label)}">
                             {TRASH_ICON}
                         </button>
                     </form>
-                    <a class="button secondary icon-button" href="/editar?id={row["id"]}" aria-label="{esc(edit_label)}" title="{esc(edit_label)}">
-                        {PENCIL_ICON}
-                    </a>
             """
         rows_html += f"""
         <tr>
@@ -7436,11 +7443,12 @@ def render_list(query="", notice="", current_user=None):
             <td class="actions-cell">
                 <div class="row-actions">
                     {payment_html}
-                    {toggle_html}
                     <a class="button view icon-button" href="/ver?id={row["id"]}" aria-label="{esc(view_label)}" title="{esc(view_label)}">
                         {EYE_ICON}
                     </a>
-                    {edit_delete_html}
+                    {edit_html}
+                    {toggle_html}
+                    {delete_html}
                 </div>
             </td>
         </tr>
