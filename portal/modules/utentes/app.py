@@ -4989,8 +4989,6 @@ PAGAMENTO_FORMAS = [
     ("dinheiro", "Dinheiro"),
     ("mbway", "MB Way"),
     ("multibanco", "Multibanco"),
-    ("cheque", "Cheque"),
-    ("outro", "Outro"),
 ]
 
 
