@@ -1313,6 +1313,12 @@ tr:last-child td {
     line-height: 1;
 }
 
+.stat-card small {
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
 .section-heading {
     padding: 18px 18px 0;
 }
@@ -3582,6 +3588,15 @@ TRANSLATIONS = {
         "no_monthly_fee": "Sem mensalidade",
         "pay_fee": "Pagar quota",
         "quick_payment": "Pagamento rápido",
+        "fees_current": "Quotas em dia",
+        "fees_overdue": "Quotas em atraso",
+        "average_fee_delay": "Atraso médio",
+        "active_clients_scope": "utentes ativos",
+        "pending_fee_singular": "1 pendente",
+        "pending_fee_plural": "{count} pendentes",
+        "monthly_delay_singular": "1 mensalidade",
+        "monthly_delay_plural": "{count} mensalidades",
+        "not_enough_data": "Sem dados suficientes",
         "history_help": "Veja quem fez alterações, o que fez e quando fez.",
         "when": "Quando",
         "who": "Quem",
@@ -3663,6 +3678,15 @@ TRANSLATIONS = {
         "no_monthly_fee": "No monthly fee",
         "pay_fee": "Pay fee",
         "quick_payment": "Quick payment",
+        "fees_current": "Fees up to date",
+        "fees_overdue": "Overdue fees",
+        "average_fee_delay": "Average delay",
+        "active_clients_scope": "active clients",
+        "pending_fee_singular": "1 pending",
+        "pending_fee_plural": "{count} pending",
+        "monthly_delay_singular": "1 monthly fee",
+        "monthly_delay_plural": "{count} monthly fees",
+        "not_enough_data": "Not enough data",
         "history_help": "See who changed what, and when.",
         "when": "When",
         "who": "Who",
@@ -5429,6 +5453,49 @@ def month_label(month_value, language="pt"):
     return f"{names[month - 1]} {year}"
 
 
+def current_month_value(reference_date=None):
+    reference_date = reference_date or datetime.now().date()
+    return f"{reference_date.year:04d}-{reference_date.month:02d}"
+
+
+def month_index(month_value):
+    month_value = normalize_month_value(month_value)
+    if not month_value:
+        return None
+    year, month = [int(part) for part in month_value.split("-")]
+    return (year * 12) + month
+
+
+def pending_count_for_payment(month_value, status="pago", reference_date=None):
+    payment_index = month_index(month_value)
+    current_index = month_index(current_month_value(reference_date))
+    if payment_index is None or current_index is None:
+        return 1
+    status = str(status or "pago").strip()
+    if status in ("pago", "isento"):
+        return max(current_index - payment_index, 0)
+    if payment_index <= current_index:
+        return max((current_index - payment_index) + 1, 1)
+    return 0
+
+
+def format_pending_count(count, current_user=None):
+    count = int(count or 0)
+    if count == 1:
+        return tr(current_user, "pending_fee_singular")
+    return tr(current_user, "pending_fee_plural").format(count=count)
+
+
+def format_delay_months(value, current_user=None):
+    if value is None:
+        return tr(current_user, "not_enough_data")
+    value = round(float(value), 1)
+    if value == 1:
+        return tr(current_user, "monthly_delay_singular")
+    number = f"{value:g}"
+    return tr(current_user, "monthly_delay_plural").format(count=number)
+
+
 def month_options(selected=""):
     selected = normalize_month_value(selected)
     current_year = datetime.now().year
@@ -5487,6 +5554,16 @@ def normalize_pagamento_history(raw_history):
 def latest_pagamento_record(data):
     history = normalize_pagamento_history(data.get("pag_historico"))
     return history[0] if history else None
+
+
+def payment_pending_count(data, reference_date=None):
+    latest = latest_pagamento_record(data)
+    if latest:
+        return pending_count_for_payment(latest.get("mensalidade"), latest.get("estado"), reference_date)
+    old_month = normalize_month_value(data.get("pag_mensalidade_ate"))
+    if old_month and data.get("pag_data"):
+        return pending_count_for_payment(old_month, data.get("pag_estado") or "pago", reference_date)
+    return 1
 
 
 def next_payment_month(data):
@@ -5574,16 +5651,21 @@ def payment_summary(data, current_user=None):
     language = user_language(current_user)
     if latest:
         status = latest.get("estado") or "pago"
+        pending_count = payment_pending_count(data)
+        pending_suffix = f" ({format_pending_count(pending_count, current_user)})" if pending_count else ""
         label = f"{tr(current_user, 'paid_until')} {month_label(latest.get('mensalidade'), language)}"
         if status not in ("pago", "isento"):
             label = f"{payment_status_label(status)}: {month_label(latest.get('mensalidade'), language)}"
-        css_class = "active" if status in ("pago", "isento") else "blocked"
+        label = f"{label}{pending_suffix}"
+        css_class = "active" if status in ("pago", "isento") and pending_count == 0 else "blocked"
         return {"label": label, "class": css_class, "next_month": next_payment_month(data)}
     old_month = normalize_month_value(data.get("pag_mensalidade_ate"))
     if old_month and data.get("pag_data"):
+        pending_count = payment_pending_count(data)
+        pending_suffix = f" ({format_pending_count(pending_count, current_user)})" if pending_count else ""
         return {
-            "label": f"{tr(current_user, 'paid_until')} {month_label(old_month, language)}",
-            "class": "active",
+            "label": f"{tr(current_user, 'paid_until')} {month_label(old_month, language)}{pending_suffix}",
+            "class": "active" if pending_count == 0 else "blocked",
             "next_month": add_months(old_month, 1),
         }
     return {"label": tr(current_user, "no_monthly_fee"), "class": "blocked", "next_month": next_payment_month(data)}
@@ -7539,11 +7621,24 @@ def calculate_utentes_statistics():
     municipality_counts = {}
     active_count = 0
     inactive_count = 0
+    payment_scope_count = 0
+    paid_count = 0
+    overdue_count = 0
+    overdue_months = []
 
     for row in rows:
         is_active = (row["estado"] or "Ativo") == "Ativo"
         active_count += 1 if is_active else 0
         inactive_count += 0 if is_active else 1
+        if is_active:
+            payment_scope_count += 1
+            pagamentos_data = load_pagamentos_data(row["id"])
+            pending_count = payment_pending_count(pagamentos_data, today)
+            if pending_count:
+                overdue_count += 1
+                overdue_months.append(pending_count)
+            else:
+                paid_count += 1
         ref_data = load_referenciacao_data(row["id"])
         ins_data = load_inscricao_data(row["id"])
         start_date = utente_start_date(row, ref_data, ins_data)
@@ -7557,6 +7652,9 @@ def calculate_utentes_statistics():
 
     total = len(rows)
     average_days = round(sum(permanence_days) / len(permanence_days)) if permanence_days else None
+    paid_percentage = round((paid_count / payment_scope_count) * 100, 1) if payment_scope_count else 0
+    overdue_percentage = round((overdue_count / payment_scope_count) * 100, 1) if payment_scope_count else 0
+    average_payment_delay = round(sum(overdue_months) / len(overdue_months), 1) if overdue_months else 0
     municipalities = sorted(
         [
             {
@@ -7573,6 +7671,12 @@ def calculate_utentes_statistics():
         "active": active_count,
         "inactive": inactive_count,
         "average_days": average_days,
+        "payment_scope": payment_scope_count,
+        "paid_count": paid_count,
+        "overdue_count": overdue_count,
+        "paid_percentage": paid_percentage,
+        "overdue_percentage": overdue_percentage,
+        "average_payment_delay": average_payment_delay,
         "municipalities": municipalities,
     }
 
@@ -7625,6 +7729,21 @@ def render_statistics_page(current_user):
         <article class="stat-card">
             <span>Inativos</span>
             <strong>{stats["inactive"]}</strong>
+        </article>
+        <article class="stat-card">
+            <span>{esc(tr(current_user, "fees_current"))}</span>
+            <strong>{stats["paid_percentage"]:g}%</strong>
+            <small>{stats["paid_count"]}/{stats["payment_scope"]} {esc(tr(current_user, "active_clients_scope"))}</small>
+        </article>
+        <article class="stat-card">
+            <span>{esc(tr(current_user, "fees_overdue"))}</span>
+            <strong>{stats["overdue_percentage"]:g}%</strong>
+            <small>{stats["overdue_count"]}/{stats["payment_scope"]} {esc(tr(current_user, "active_clients_scope"))}</small>
+        </article>
+        <article class="stat-card">
+            <span>{esc(tr(current_user, "average_fee_delay"))}</span>
+            <strong>{esc(format_delay_months(stats["average_payment_delay"], current_user))}</strong>
+            <small>{esc(tr(current_user, "fees_overdue"))}</small>
         </article>
     </section>
     <section class="panel table-wrap">
