@@ -8,15 +8,18 @@ from urllib.request import Request, urlopen
 from email.parser import BytesParser
 from email import policy
 from html.parser import HTMLParser
+import csv
 import hashlib
 import hmac
 import html
+import io
 import json
 import os
 import re
 import secrets
 import shutil
 import sqlite3
+import zipfile
 from datetime import datetime, timedelta
 
 
@@ -403,9 +406,14 @@ main {
 
 .search-form {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     flex: 1;
-    max-width: 620px;
+    max-width: 100%;
+}
+
+.search-form input[name="q"] {
+    min-width: min(460px, 100%);
 }
 
 .panel {
@@ -3545,6 +3553,8 @@ TRANSLATIONS = {
         "edit": "Editar",
         "delete": "Eliminar",
         "statistics": "Estatísticas",
+        "export_backup": "Exportar backup de utentes",
+        "backup_error": "Não foi possível gerar o backup",
         "toggle_active": "Alterar estado",
         "activate_client": "Ativar utente",
         "deactivate_client": "Inativar utente",
@@ -3638,6 +3648,8 @@ TRANSLATIONS = {
         "edit": "Edit",
         "delete": "Delete",
         "statistics": "Statistics",
+        "export_backup": "Export clients backup",
+        "backup_error": "Could not generate backup",
         "toggle_active": "Change status",
         "activate_client": "Activate client",
         "deactivate_client": "Deactivate client",
@@ -4766,6 +4778,15 @@ STATS_ICON = """
     <rect x="7" y="11" width="3" height="5"></rect>
     <rect x="12" y="7" width="3" height="9"></rect>
     <rect x="17" y="9" width="3" height="7"></rect>
+</svg>
+"""
+
+
+DOWNLOAD_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <path d="M7 10l5 5 5-5"></path>
+    <path d="M12 15V3"></path>
 </svg>
 """
 
@@ -7534,6 +7555,9 @@ def render_list(query="", notice="", current_user=None):
 
     rows_html = ""
     admin = is_admin(current_user)
+    backup_button = ""
+    if admin:
+        backup_button = f'<a class="button secondary" href="/backup/utentes">{DOWNLOAD_ICON}{esc(tr(current_user, "export_backup"))}</a>'
     view_label = tr(current_user, "view")
     edit_label = tr(current_user, "edit")
     delete_label = tr(current_user, "delete")
@@ -7620,6 +7644,7 @@ def render_list(query="", notice="", current_user=None):
         <button class="button secondary" type="submit">{esc(tr(current_user, "search"))}</button>
         {f"<a class='button secondary' href='/'>{esc(tr(current_user, 'clear'))}</a>" if query else ""}
         <a class="button secondary" href="/estatisticas">{STATS_ICON}{esc(tr(current_user, "statistics"))}</a>
+        {backup_button}
     </form>
 </div>
 <section class="panel table-wrap">
@@ -7847,6 +7872,10 @@ def get_tab_title(tab_key):
     return TAB_SECTIONS[0][1]
 
 
+def row_dict(row):
+    return dict(row) if hasattr(row, "keys") else dict(row or {})
+
+
 def normalize_tab_key(tab_key):
     valid_keys = {key for key, _title in TAB_SECTIONS}
     return tab_key if tab_key in valid_keys else TAB_SECTIONS[0][0]
@@ -8053,6 +8082,283 @@ def delete_utente_record(utente_id):
     if os.path.isdir(attachment_dir(utente_id)):
         shutil.rmtree(attachment_dir(utente_id))
     return utente
+
+
+def safe_zip_segment(value, fallback="ficheiro"):
+    value = str(value or "").strip()
+    cleaned = "".join(ch if ch.isalnum() or ch in " ._-()" else "_" for ch in value).strip(" ._")
+    return cleaned[:90] or fallback
+
+
+def csv_bytes(headers, rows):
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, delimiter=";")
+    writer.writerow(headers)
+    for row in rows:
+        writer.writerow(row)
+    return buffer.getvalue().encode("utf-8-sig")
+
+
+def parse_backup_tab_content(raw):
+    raw = str(raw or "")
+    if not raw:
+        return ""
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        return raw
+
+
+def fetch_utente_history(utente_id):
+    if supabase_available():
+        return [
+            row_dict(row)
+            for row in table_select(
+                "historico",
+                {
+                    "select": "*",
+                    "alvo_tipo": "eq.Utente",
+                    "alvo_id": f"eq.{utente_id}",
+                    "order": "created_at.desc,id.desc",
+                },
+            )
+        ]
+    with get_connection() as conn:
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM historico
+            WHERE alvo_tipo = 'Utente' AND alvo_id = ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (utente_id,),
+        ).fetchall()
+    return [row_dict(row) for row in rows]
+
+
+def read_pdf_attachment_bytes(attachment):
+    if supabase_available():
+        try:
+            return supabase_download_pdf(attachment)
+        except SupabaseError as exc:
+            raise ValueError(f"Falha ao descarregar anexo {attachment['original_name']}: {exc}") from exc
+    path = attachment_path(attachment)
+    if not os.path.exists(path):
+        raise ValueError(f"Anexo em falta: {attachment['original_name']}")
+    with open(path, "rb") as file:
+        return file.read()
+
+
+def build_utente_backup_payload(utente):
+    utente_id = int(utente["id"])
+    tab_items = []
+    for tab_key, tab_title in TAB_SECTIONS:
+        raw = get_tab_content(utente_id, tab_key)
+        tab_items.append(
+            {
+                "key": tab_key,
+                "title": tab_title,
+                "raw": raw,
+                "data": parse_backup_tab_content(raw),
+            }
+        )
+    pagamentos_data = load_pagamentos_data(utente_id)
+    pagamentos = normalize_pagamento_history(pagamentos_data.get("pag_historico"))
+    anexos = [row_dict(row) for row in list_pdf_attachments(utente_id)]
+    historico = fetch_utente_history(utente_id)
+    return {
+        "exportado_em": now(),
+        "utente": row_dict(utente),
+        "separadores": tab_items,
+        "pagamentos": pagamentos,
+        "historico": historico,
+        "anexos": anexos,
+    }
+
+
+def render_backup_value(value):
+    if isinstance(value, dict):
+        if not value:
+            return "<p class='muted'>Sem dados registados.</p>"
+        rows = ""
+        for key, item in value.items():
+            rows += f"""
+            <tr>
+                <th>{esc(str(key))}</th>
+                <td>{render_backup_value(item)}</td>
+            </tr>
+            """
+        return f"<table class='kv-table'><tbody>{rows}</tbody></table>"
+    if isinstance(value, list):
+        if not value:
+            return "<p class='muted'>Sem registos.</p>"
+        if all(isinstance(item, dict) for item in value):
+            keys = []
+            for item in value:
+                for key in item:
+                    if key not in keys:
+                        keys.append(key)
+            header = "".join(f"<th>{esc(str(key))}</th>" for key in keys)
+            rows = ""
+            for item in value:
+                cells = "".join(f"<td>{render_backup_value(item.get(key, ''))}</td>" for key in keys)
+                rows += f"<tr>{cells}</tr>"
+            return f"<table class='data-table'><thead><tr>{header}</tr></thead><tbody>{rows}</tbody></table>"
+        items = "".join(f"<li>{render_backup_value(item)}</li>" for item in value)
+        return f"<ul>{items}</ul>"
+    text = str(value or "").strip()
+    if not text:
+        return "<span class='muted'>-</span>"
+    return esc(text).replace("\n", "<br>")
+
+
+def render_utente_backup_html(payload):
+    utente = payload["utente"]
+    tab_sections = ""
+    for tab in payload["separadores"]:
+        tab_sections += f"""
+        <section>
+            <h2>{esc(tab["title"])}</h2>
+            {render_backup_value(tab["data"])}
+        </section>
+        """
+    content = f"""<!doctype html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8">
+    <title>Ficha completa - {esc(utente.get("nome"))}</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; color: #10231f; margin: 32px; line-height: 1.45; }}
+        h1 {{ margin-bottom: 4px; }}
+        h2 {{ border-bottom: 2px solid #2f7d73; padding-bottom: 6px; margin-top: 28px; }}
+        table {{ width: 100%; border-collapse: collapse; margin: 12px 0; }}
+        th, td {{ border: 1px solid #c8d8d3; padding: 8px; vertical-align: top; text-align: left; }}
+        th {{ background: #edf7f4; width: 28%; }}
+        .data-table th {{ width: auto; }}
+        .muted {{ color: #66736f; }}
+        .meta {{ color: #66736f; margin-top: 0; }}
+    </style>
+</head>
+<body>
+    <h1>{esc(utente.get("nome") or "Utente")}</h1>
+    <p class="meta">Backup exportado em {esc(payload["exportado_em"])}</p>
+    <section>
+        <h2>Dados gerais</h2>
+        {render_backup_value(utente)}
+    </section>
+    {tab_sections}
+    <section>
+        <h2>Pagamentos</h2>
+        {render_backup_value(payload["pagamentos"])}
+    </section>
+    <section>
+        <h2>Histórico</h2>
+        {render_backup_value(payload["historico"])}
+    </section>
+    <section>
+        <h2>Anexos</h2>
+        {render_backup_value(payload["anexos"])}
+    </section>
+</body>
+</html>"""
+    return content.encode("utf-8")
+
+
+def pagamentos_csv_bytes(pagamentos):
+    return csv_bytes(
+        ["mensalidade", "estado", "data", "forma", "valor", "referencia", "observacoes", "registado_em"],
+        [
+            [
+                month_label(row.get("mensalidade")),
+                payment_status_label(row.get("estado")),
+                row.get("data", ""),
+                payment_method_label(row.get("forma")),
+                row.get("valor", ""),
+                row.get("referencia", ""),
+                row.get("observacoes", ""),
+                row.get("registado_em", ""),
+            ]
+            for row in pagamentos
+        ],
+    )
+
+
+def historico_csv_bytes(historico):
+    return csv_bytes(
+        ["data", "utilizador", "acao", "area", "alvo_id", "detalhes"],
+        [
+            [
+                row.get("created_at", ""),
+                row.get("utilizador_nome", ""),
+                row.get("acao", ""),
+                row.get("alvo_tipo", ""),
+                row.get("alvo_id", ""),
+                row.get("detalhes", ""),
+            ]
+            for row in historico
+        ],
+    )
+
+
+def indice_csv_bytes(rows):
+    return csv_bytes(
+        ["id", "nome", "estado", "telefone", "email", "created_at", "updated_at"],
+        [
+            [
+                row.get("id", ""),
+                row.get("nome", ""),
+                row.get("estado", ""),
+                row.get("telefone", ""),
+                row.get("email", ""),
+                row.get("created_at", ""),
+                row.get("updated_at", ""),
+            ]
+            for row in rows
+        ],
+    )
+
+
+def build_utentes_backup_zip():
+    rows = [row_dict(row) for row in fetch_utentes()]
+    exported_at = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            "README.txt",
+            (
+                "Backup de utentes MenteMovimento\n"
+                f"Exportado em: {now()}\n\n"
+                "Cada pasta contem dados-gerais.json, ficha-completa.html, pagamentos.csv, historico.csv e anexos/.\n"
+                "Este ficheiro contem dados pessoais e deve ser guardado apenas em local privado e protegido.\n"
+            ),
+        )
+        archive.writestr("indice.csv", indice_csv_bytes(rows))
+        used_folders = set()
+        for utente in rows:
+            base_folder = f"{int(utente['id']):04d}_{safe_zip_segment(utente.get('nome'), 'utente')}"
+            folder = base_folder
+            counter = 2
+            while folder in used_folders:
+                folder = f"{base_folder}_{counter}"
+                counter += 1
+            used_folders.add(folder)
+
+            payload = build_utente_backup_payload(utente)
+            archive.writestr(
+                f"{folder}/dados-gerais.json",
+                json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8"),
+            )
+            archive.writestr(f"{folder}/ficha-completa.html", render_utente_backup_html(payload))
+            archive.writestr(f"{folder}/pagamentos.csv", pagamentos_csv_bytes(payload["pagamentos"]))
+            archive.writestr(f"{folder}/historico.csv", historico_csv_bytes(payload["historico"]))
+            archive.writestr(f"{folder}/anexos/.keep", b"")
+
+            for attachment in payload["anexos"]:
+                pdf_data = read_pdf_attachment_bytes(attachment)
+                filename = safe_filename(attachment.get("original_name") or attachment.get("stored_name") or "anexo.pdf")
+                archive.writestr(f"{folder}/anexos/{attachment.get('id')}_{filename}", pdf_data)
+    buffer.seek(0)
+    return f"backup-utentes-{exported_at}.zip", buffer.getvalue()
 
 
 def read_post(handler):
@@ -9394,6 +9700,19 @@ class UtentesHandler(BaseHTTPRequestHandler):
             self.send_html(render_statistics_page(user))
             return
 
+        if parsed.path == "/backup/utentes":
+            admin = self.require_admin()
+            if not admin:
+                return
+            try:
+                filename, data = build_utentes_backup_zip()
+            except (ValueError, SupabaseError, OSError) as exc:
+                self.send_error(500, f"{tr(admin, 'backup_error')}: {exc}")
+                return
+            log_action(admin, "Exportou backup de utentes", "Utente", None, filename)
+            self.send_zip(filename, data)
+            return
+
         if parsed.path == "/novo":
             if not is_admin(user):
                 self.redirect(f"/?msg={quote('Sem permissão para criar utentes')}")
@@ -9831,6 +10150,16 @@ class UtentesHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
+
+    def send_zip(self, filename, data):
+        safe_name = safe_filename(filename).replace('"', "")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/zip")
+        self.send_header("Content-Disposition", f"attachment; filename=\"{safe_name}\"; filename*=UTF-8''{quote(safe_name)}")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
 
     def send_html(self, body, status=200):
         encoded = body.encode("utf-8")
