@@ -2189,6 +2189,67 @@ header.central-header {
     color: var(--text);
 }
 
+.central-loading-indicator {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.86);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.central-loading-indicator.is-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.central-loading-dot,
+.central-auth-loading span {
+    width: 22px;
+    height: 22px;
+    border: 3px solid rgba(47, 125, 115, 0.2);
+    border-top-color: var(--brand);
+    border-radius: 999px;
+    animation: central-loading-spin 0.75s linear infinite;
+}
+
+.dark-theme .central-loading-dot,
+.dark-theme .central-auth-loading span {
+    border-color: rgba(24, 201, 150, 0.2);
+    border-top-color: var(--brand);
+}
+
+.central-auth-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    background: var(--bg);
+}
+
+html:not([data-central-auth-pending="true"]) .central-auth-loading {
+    display: none;
+}
+
+@keyframes central-loading-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .central-loading-dot,
+    .central-auth-loading span {
+        animation-duration: 1.6s;
+    }
+}
+
 .central-nav,
 .central-actions {
     display: flex;
@@ -2488,6 +2549,100 @@ APP_SCRIPT = """
         if (globalLanguageKeys.includes(event.key)) {
             syncLanguage(loadGlobalLanguage());
         }
+    });
+
+    const loadingIndicator = document.querySelector("[data-loading-indicator]");
+    let loadingDelayTimer = 0;
+    let loadingHideTimer = 0;
+    let pendingLoads = 0;
+    const revealLoading = () => {
+        if (!loadingIndicator) {
+            return;
+        }
+        window.clearTimeout(loadingHideTimer);
+        window.clearTimeout(loadingDelayTimer);
+        loadingDelayTimer = window.setTimeout(() => {
+            loadingIndicator.classList.add("is-visible");
+        }, 120);
+    };
+    const concealLoading = () => {
+        if (!loadingIndicator) {
+            return;
+        }
+        window.clearTimeout(loadingDelayTimer);
+        window.clearTimeout(loadingHideTimer);
+        loadingHideTimer = window.setTimeout(() => {
+            loadingIndicator.classList.remove("is-visible");
+        }, 80);
+    };
+    const beginLoading = () => {
+        pendingLoads += 1;
+        revealLoading();
+    };
+    const endLoading = () => {
+        pendingLoads = Math.max(0, pendingLoads - 1);
+        if (pendingLoads === 0) {
+            concealLoading();
+        }
+    };
+    const showTemporaryLoading = (duration = 8000) => {
+        beginLoading();
+        window.setTimeout(endLoading, duration);
+    };
+    window.addEventListener("pageshow", () => {
+        pendingLoads = 0;
+        concealLoading();
+    });
+    window.addEventListener("load", () => {
+        pendingLoads = 0;
+        concealLoading();
+    });
+    window.addEventListener("beforeunload", beginLoading);
+    if (typeof window.fetch === "function") {
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = (...args) => {
+            beginLoading();
+            return nativeFetch(...args).finally(endLoading);
+        };
+    }
+    document.addEventListener("submit", (event) => {
+        if (!event.defaultPrevented) {
+            beginLoading();
+        }
+    });
+    document.addEventListener("click", (event) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        const link = event.target.closest("a[href]");
+        if (!link) {
+            return;
+        }
+        const target = (link.getAttribute("target") || "").toLowerCase();
+        if (target && target !== "_self") {
+            return;
+        }
+        const rawHref = link.getAttribute("href") || "";
+        if (!rawHref || rawHref.startsWith("#") || rawHref.toLowerCase().startsWith("javascript:")) {
+            return;
+        }
+        let url;
+        try {
+            url = new URL(link.href, window.location.href);
+        } catch (_error) {
+            return;
+        }
+        if (url.origin !== window.location.origin) {
+            return;
+        }
+        if (link.hasAttribute("download") || url.pathname.startsWith("/backup/")) {
+            showTemporaryLoading();
+            return;
+        }
+        if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) {
+            return;
+        }
+        beginLoading();
     });
 
     const manualDialog = document.getElementById("manualChoiceDialog");
@@ -3555,6 +3710,7 @@ TRANSLATIONS = {
         "statistics": "Estatísticas",
         "export_backup": "Exportar backup de utentes",
         "backup_error": "Não foi possível gerar o backup",
+        "loading": "A carregar",
         "toggle_active": "Alterar estado",
         "activate_client": "Ativar utente",
         "deactivate_client": "Inativar utente",
@@ -3650,6 +3806,7 @@ TRANSLATIONS = {
         "statistics": "Statistics",
         "export_backup": "Export clients backup",
         "backup_error": "Could not generate backup",
+        "loading": "Loading",
         "toggle_active": "Change status",
         "activate_client": "Activate client",
         "deactivate_client": "Deactivate client",
@@ -4388,6 +4545,8 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     page_language = user_language(current_user)
     app_script = translate_static_fragment(APP_SCRIPT) if page_language == "en" else APP_SCRIPT
     default_theme = "dark" if current_user and current_user.get("tema") == "escuro" else "light"
+    loading_label = tr(current_user, "loading") if current_user else "A carregar"
+    auth_loading_html = f'<div id="centralAuthLoading" class="central-auth-loading" role="status" aria-label="{esc(loading_label)}"><span aria-hidden="true"></span></div>' if current_user else ""
     manual_dialog_html = render_manual_choice_dialog(current_user) if current_user and not embedded else ""
     frame_dialog_html = render_common_frame_dialog(current_user) if current_user and not embedded else ""
     page = f"""<!doctype html>
@@ -4399,7 +4558,7 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png">
     <link rel="shortcut icon" href="/static/favicon.png?v=1" type="image/png">
     <script>document.documentElement.dataset.centralAuthPending = "true";</script>
-    <style>html[data-central-auth-pending="true"] body{{visibility:hidden}}</style>
+    <style>html[data-central-auth-pending="true"] body > :not(#centralAuthLoading){{visibility:hidden}}</style>
     <script src="/static/vendor/supabase.js" defer></script>
     <script src="/static/central-config.js" defer></script>
     <script src="/static/central-module-auth.js" defer></script>
@@ -4418,6 +4577,7 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     <style>{STYLE}</style>
 </head>
 <body class="{body_class}">
+    {auth_loading_html}
     {header_html}
     <main>
         {notice_html}
@@ -4456,6 +4616,9 @@ def render_header(current_user):
                     <strong>MenteMovimento</strong>
                     <span>{esc(current_user.get("nome"))}</span>
                     <b>{esc(profile_label(current_user.get("perfil"), current_user))}</b>
+                </span>
+                <span class="central-loading-indicator" data-loading-indicator role="status" aria-label="{esc(tr(current_user, "loading"))}" title="{esc(tr(current_user, "loading"))}">
+                    <span class="central-loading-dot" aria-hidden="true"></span>
                 </span>
             </a>
 
