@@ -71,7 +71,9 @@ const createAdminClient = (response) => {
   })
 }
 
-const requireUser = async (request, response, adminClient) => {
+const roleCanWrite = (role) => role === 'admin' || role === 'operator'
+
+const requireCentralUser = async (request, response, adminClient, minimumRole = 'viewer') => {
   const authHeader = request.headers.authorization ?? ''
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
 
@@ -90,7 +92,33 @@ const requireUser = async (request, response, adminClient) => {
     return null
   }
 
-  return user
+  const { data: appUser, error: appUserError } = await adminClient
+    .from('app_users')
+    .select('role, active, full_name, email')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (appUserError || !appUser?.active) {
+    sendJson(response, 403, { error: 'Utilizador sem permissao na Central.' })
+    return null
+  }
+
+  if (minimumRole === 'admin' && appUser.role !== 'admin') {
+    sendJson(response, 403, { error: 'Apenas administradores podem eliminar utentes.' })
+    return null
+  }
+
+  if (minimumRole === 'write' && !roleCanWrite(appUser.role)) {
+    sendJson(response, 403, { error: 'Sem permissao para alterar utentes.' })
+    return null
+  }
+
+  return {
+    id: user.id,
+    email: user.email ?? appUser.email ?? null,
+    full_name: appUser.full_name ?? user.user_metadata?.full_name ?? null,
+    role: appUser.role,
+  }
 }
 
 const optionalText = (value) => {
@@ -152,7 +180,8 @@ export default async function handler(request, response) {
   const adminClient = createAdminClient(response)
   if (!adminClient) return
 
-  const user = await requireUser(request, response, adminClient)
+  const minimumRole = request.method === 'DELETE' ? 'admin' : request.method === 'GET' ? 'viewer' : 'write'
+  const user = await requireCentralUser(request, response, adminClient, minimumRole)
   if (!user) return
 
   try {

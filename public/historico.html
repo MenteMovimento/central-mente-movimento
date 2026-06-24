@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
     <title>Histórico geral - MenteMovimento</title>
+    <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
     <link rel="stylesheet" href="/static/styles.css?v=20260608-header-i18n-icons" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
@@ -122,9 +123,14 @@
           <span data-i18n="login.email">Email</span>
           <input id="centralCreateUserEmail" name="email" type="email" autocomplete="email" required />
         </label>
-        <label class="field" for="centralCreateUserPassword">
-          <span data-i18n="login.password">Password</span>
-          <input id="centralCreateUserPassword" name="password" type="password" autocomplete="new-password" minlength="8" required />
+        <label class="field" for="userPassword" style="margin-bottom: 16px;">
+          <span>Password</span>
+          <div style="position: relative; width: 100%; display: flex; align-items: center;">
+            <input id="userPassword" name="password" type="password" required style="width: 100%; padding-right: 42px;" />
+            <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
+              <i data-lucide="eye">👁️</i>
+            </button>
+          </div>
         </label>
         <label class="field" for="centralCreateUserRole">
           <span data-i18n="users.role">Perfil</span>
@@ -186,6 +192,8 @@
             <th data-i18n="login.email">Email</th>
             <th data-i18n="users.role">Perfil</th>
             <th data-i18n="users.status">Estado</th>
+            <th data-i18n="users.entryDate">Entrada</th>
+            <th data-i18n="users.exitDate">Saida</th>
             <th data-i18n="users.actions">Ações</th>
           </tr>
         </thead>

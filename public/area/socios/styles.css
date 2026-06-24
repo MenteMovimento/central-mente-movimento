@@ -162,7 +162,7 @@ button:disabled {
 
 .auth-logo img {
   display: block;
-  width: min(360px, 100%);
+  width: min(430px, 100%);
   height: auto;
   object-fit: contain;
 }
@@ -1893,11 +1893,11 @@ svg {
 
 .topbar-inner {
   display: grid;
-  grid-template-columns: minmax(230px, auto) minmax(300px, 1fr) auto;
+  grid-template-columns: minmax(270px, auto) minmax(300px, 1fr) auto;
   align-items: center;
   gap: 18px;
   width: min(1560px, calc(100% - 32px));
-  min-height: 82px;
+  min-height: 96px;
   margin: 0 auto;
 }
 
@@ -1911,7 +1911,7 @@ svg {
 }
 
 .brand-block {
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
   color: var(--ink);
 }
@@ -1922,9 +1922,9 @@ svg {
 
 .brand-symbol {
   display: grid;
-  width: 58px;
-  height: 58px;
-  flex: 0 0 58px;
+  width: 74px;
+  height: 74px;
+  flex: 0 0 74px;
   place-items: center;
   border-radius: 6px;
   background: transparent;
@@ -1948,7 +1948,7 @@ svg {
 .brand-block h1 {
   margin: 0;
   color: var(--navy);
-  font-size: 1.2rem;
+  font-size: 1.34rem;
   line-height: 1.2;
   letter-spacing: 0;
 }
@@ -1965,13 +1965,13 @@ svg {
   max-width: 260px;
   margin-top: 4px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   line-height: 1.2;
 }
 
 .topbar .user-chip strong {
   color: var(--ink);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
 }
 
 .topnav,

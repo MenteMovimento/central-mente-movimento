@@ -74,8 +74,8 @@ export default async function handler(request, response) {
       },
     })
 
-    const { data: profile, error } = await adminClient
-      .from('profiles')
+    const { data: appUser, error } = await adminClient
+      .from('app_users')
       .select('id')
       .eq('email', email)
       .maybeSingle()
@@ -90,7 +90,7 @@ export default async function handler(request, response) {
 
     sendJson(response, 200, {
       canCheck: true,
-      exists: Boolean(profile) || (await authUserExists(adminClient, email)),
+      exists: Boolean(appUser) || (await authUserExists(adminClient, email)),
     })
   } catch {
     sendJson(response, 200, { canCheck: false, exists: false })

@@ -3,5 +3,5 @@ window.SOCIOS_CONFIG = {
   supabaseAnonKey: "",
   captchaProvider: "",
   captchaSiteKey: "",
-  organizationName: "Central MenteMovimento",
+  organizationName: "MenteMovimento",
 };

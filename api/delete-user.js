@@ -103,11 +103,28 @@ export default async function handler(request, response) {
       return
     }
 
-    const { data: profile } = await adminClient
+    const { data: profile, error: profileError } = await adminClient
       .from('app_users')
-      .select('email')
+      .select('email, role, active')
       .eq('id', id)
       .maybeSingle()
+
+    if (profileError) throw profileError
+
+    if (profile?.role === 'admin' && profile.active !== false) {
+      const { count, error: countError } = await adminClient
+        .from('app_users')
+        .select('id', { count: 'exact', head: true })
+        .eq('role', 'admin')
+        .eq('active', true)
+
+      if (countError) throw countError
+
+      if ((count ?? 0) <= 1) {
+        sendJson(response, 400, { error: 'Nao pode eliminar o ultimo administrador ativo.' })
+        return
+      }
+    }
 
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(id)
     if (deleteUserError) throw deleteUserError

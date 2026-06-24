@@ -73,7 +73,7 @@ input {
 .brand-block {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .brand-link {
@@ -98,8 +98,8 @@ input {
 }
 
 .brand-logo {
-  width: 58px;
-  height: 58px;
+  width: 74px;
+  height: 74px;
   background: transparent;
 }
 
@@ -111,9 +111,9 @@ input {
 }
 
 .login-brand-logo {
-  width: 62px;
-  height: 62px;
-  flex: 0 0 62px;
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
 }
 
 .brand-symbol svg,
@@ -263,17 +263,17 @@ p {
 
 .topbar-inner {
   display: grid;
-  grid-template-columns: minmax(230px, auto) minmax(300px, 1fr) auto;
+  grid-template-columns: minmax(270px, auto) minmax(300px, 1fr) auto;
   align-items: center;
   gap: 18px;
   width: min(1180px, calc(100% - 32px));
-  min-height: 82px;
+  min-height: 96px;
   margin: 0 auto;
 }
 
 .brand-block h1 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.34rem;
   line-height: 1.2;
   letter-spacing: 0;
 }
@@ -281,7 +281,7 @@ p {
 .brand-block p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.96rem;
 }
 
 .icon-link {
@@ -715,6 +715,12 @@ body.dark-mode .central-admin-forms {
   margin-top: 4px;
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+.central-date-cell {
+  white-space: nowrap;
+  color: var(--muted);
+  font-weight: 750;
 }
 
 .status-pill {

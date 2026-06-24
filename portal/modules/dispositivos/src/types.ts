@@ -1,12 +1,13 @@
 export type DeviceStatus = 'active' | 'maintenance' | 'retired'
 
-export type MemberRole = 'admin' | 'manager' | 'member'
+export type MemberRole = 'admin' | 'operator' | 'viewer'
 
 export type Profile = {
   id: string
   email?: string | null
   full_name: string | null
   role: MemberRole
+  active?: boolean
   created_at?: string
   updated_at?: string
 }

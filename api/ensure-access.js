@@ -67,35 +67,24 @@ const getDisplayName = (user) => {
   return metadataName || emailName || 'Administrador'
 }
 
-const getExistingRow = async (adminClient, table, userId) => {
-  const { data, error } = await adminClient.from(table).select('*').eq('id', userId).maybeSingle()
-  if (error) return null
-  return data ?? null
+const centralRoleToDeviceRole = (role) => {
+  if (role === 'admin') return 'admin'
+  if (role === 'operator') return 'manager'
+  return 'member'
 }
 
-const ensureAppUser = async (adminClient, user) => {
-  const existing = await getExistingRow(adminClient, 'app_users', user.id)
+const syncDeviceProfile = async (adminClient, user, appUser) => {
+  const { data: existing } = await adminClient
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
   const row = {
     id: user.id,
-    email: user.email ?? existing?.email ?? null,
-    full_name: existing?.full_name ?? getDisplayName(user),
-    role: existing?.role ?? 'admin',
-    active: true,
-  }
-
-  const { error } = await adminClient.from('app_users').upsert(row, { onConflict: 'id' })
-  if (error) throw error
-
-  return row
-}
-
-const ensureProfile = async (adminClient, user) => {
-  const existing = await getExistingRow(adminClient, 'profiles', user.id)
-  const row = {
-    id: user.id,
-    email: user.email ?? existing?.email ?? null,
-    full_name: existing?.full_name ?? getDisplayName(user),
-    role: existing?.role ?? 'admin',
+    email: user.email ?? appUser.email ?? null,
+    full_name: existing?.full_name ?? appUser.full_name ?? getDisplayName(user),
+    role: centralRoleToDeviceRole(appUser.role),
   }
 
   const { error } = await adminClient.from('profiles').upsert(row, { onConflict: 'id' })
@@ -122,7 +111,7 @@ const ensureExistingAccess = async (userClient, user) => {
     throw new Error('Utilizador sem acesso ativo.')
   }
   if (!appUser) {
-    throw new Error('Utilizador ainda nao preparado.')
+    throw new Error('Utilizador sem acesso configurado.')
   }
 
   return { appUser, profile: null }
@@ -158,6 +147,10 @@ export default async function handler(request, response) {
 
     try {
       const { appUser, profile } = await ensureExistingAccess(userClient, user)
+      const adminClient = createAdminClient()
+      if (adminClient) {
+        await syncDeviceProfile(adminClient, user, appUser).catch(() => null)
+      }
       sendJson(response, 200, { ok: true, appUser, profile })
       return
     } catch (accessError) {
@@ -165,27 +158,14 @@ export default async function handler(request, response) {
         sendJson(response, 403, { error: 'Utilizador sem acesso ativo.' })
         return
       }
-    }
-
-    const adminClient = createAdminClient()
-    if (adminClient) {
-      try {
-        const [appUser, profile] = await Promise.all([
-          ensureAppUser(adminClient, user),
-          ensureProfile(adminClient, user),
-        ])
-
-        sendJson(response, 200, { ok: true, appUser, profile })
+      if (errorMessage(accessError) === 'Utilizador sem acesso configurado.') {
+        sendJson(response, 403, {
+          error: 'Utilizador sem acesso configurado. Peça a um administrador para criar o acesso.',
+        })
         return
-      } catch (_adminError) {
-        // Se a chave service_role estiver ausente ou errada na Vercel, ainda
-        // deixamos entrar utilizadores que ja estejam autorizados nas tabelas.
       }
     }
-
-    const { appUser, profile } = await ensureExistingAccess(userClient, user)
-
-    sendJson(response, 200, { ok: true, appUser, profile })
+    sendJson(response, 403, { error: 'Nao foi possivel validar o acesso.' })
   } catch (error) {
     sendJson(response, 400, {
       error: errorMessage(error),

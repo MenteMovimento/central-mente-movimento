@@ -71,7 +71,7 @@ const UtentesPanel = lazy(() =>
 )
 
 const deviceStatuses: DeviceStatus[] = ['active', 'maintenance', 'retired']
-const memberRoles: Profile['role'][] = ['admin', 'manager', 'member']
+const memberRoles: Profile['role'][] = ['admin', 'operator', 'viewer']
 type AppLanguage = 'pt' | 'en'
 type AppTheme = 'light' | 'dark'
 type AppView = 'devices' | 'utentes' | 'stats' | 'users'
@@ -110,13 +110,13 @@ const statusLabels: Record<AppLanguage, Record<DeviceStatus, string>> = {
 const roleLabels: Record<AppLanguage, Record<Profile['role'], string>> = {
   pt: {
     admin: 'Administrador',
-    manager: 'Gestor',
-    member: 'Membro',
+    operator: 'Operador',
+    viewer: 'Consulta',
   },
   en: {
     admin: 'Administrator',
-    manager: 'Manager',
-    member: 'Member',
+    operator: 'Operator',
+    viewer: 'Viewer',
   },
 }
 
@@ -1046,7 +1046,7 @@ const initialDemoProfiles: Profile[] = [
     id: 'demo-manager',
     email: 'gestor.demo@mentemovimento.pt',
     full_name: 'Gestor demo',
-    role: 'manager',
+    role: 'operator',
     created_at: '2026-05-22T09:20:00.000Z',
     updated_at: '2026-05-22T09:20:00.000Z',
   },
@@ -1054,7 +1054,7 @@ const initialDemoProfiles: Profile[] = [
     id: 'demo-member',
     email: 'membro.demo@mentemovimento.pt',
     full_name: 'Membro demo',
-    role: 'member',
+    role: 'viewer',
     created_at: '2026-05-22T09:40:00.000Z',
     updated_at: '2026-05-22T09:40:00.000Z',
   },
@@ -1179,11 +1179,11 @@ function App() {
   const toolsMenuRef = useRef<HTMLDivElement | null>(null)
 
   const isDemoMode = !isSupabaseConfigured
-  const currentRole: Profile['role'] = isDemoMode ? 'admin' : (profile?.role ?? 'member')
+  const currentRole: Profile['role'] = isDemoMode ? 'admin' : (profile?.role ?? 'viewer')
   const currentProfileId = isDemoMode ? 'demo-admin' : profile?.id
   const isAuthenticated = isDemoMode || Boolean(session)
-  const canManageDevices = isAuthenticated
-  const canManageUsers = isAuthenticated
+  const canManageDevices = isAuthenticated && (currentRole === 'admin' || currentRole === 'operator')
+  const canManageUsers = isAuthenticated && currentRole === 'admin'
   const selectedView = canManageUsers ? activeView : 'devices'
   const currentAuthEmail = normalizeEmail(authForm.email)
   const signupCooldownRemaining = getRemainingSeconds(signupCooldownUntil, authClock)
@@ -1204,48 +1204,22 @@ function App() {
   const loadProfile = useCallback(async (userId: string, userEmail?: string | null) => {
     if (!supabase) return
 
-    const fallbackProfile: Profile = {
-      id: userId,
-      email: userEmail ?? null,
-      full_name: null,
-      role: 'admin',
-    }
-
     const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, role')
+      .from('app_users')
+      .select('id, email, full_name, role, active')
       .eq('id', userId)
       .maybeSingle()
 
-    if (error && isMissingEmailColumnError(error)) {
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('profiles')
-        .select('id, full_name, role')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (fallbackError) {
-        setProfile(fallbackProfile)
-        return
-      }
-
-      setProfile(
-        fallbackData
-          ? ({
-              ...(fallbackData as Omit<Profile, 'email'>),
-              email: userEmail ?? null,
-            } as Profile)
-          : fallbackProfile,
-      )
+    if (error || !data?.active) {
+      setProfile(null)
       return
     }
 
-    if (error) {
-      setProfile(fallbackProfile)
-      return
-    }
-
-    setProfile((data as Profile | null) ?? fallbackProfile)
+    setProfile({
+      ...(data as Profile),
+      email: data.email ?? userEmail ?? null,
+      role: data.role as Profile['role'],
+    })
   }, [])
 
   const loadDevices = useCallback(async () => {
@@ -2073,7 +2047,7 @@ function App() {
           id: createDemoId(),
           email: payload.email,
           full_name: payload.fullName,
-          role: 'admin',
+          role: 'viewer',
           created_at: now,
           updated_at: now,
         }
@@ -3825,7 +3799,7 @@ function App() {
               <label>
                 {t.permission}
                 <select
-                  value={selectedProfileForEdit?.role ?? 'member'}
+                  value={selectedProfileForEdit?.role ?? 'viewer'}
                   disabled={!selectedProfileForEdit || selectedProfileForEdit.id === currentProfileId}
                   onChange={(event) => {
                     if (selectedProfileForEdit) {

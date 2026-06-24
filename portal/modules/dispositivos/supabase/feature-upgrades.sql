@@ -39,31 +39,31 @@ create policy "Authenticated members can read device history"
 on public.device_history
 for select
 to authenticated
-using (true);
+using (public.current_member_role() in ('admin', 'manager', 'member'));
 
 create policy "Authenticated members can create device history"
 on public.device_history
 for insert
 to authenticated
-with check (true);
+with check (public.current_member_role() in ('admin', 'manager'));
 
 create policy "Authenticated members can read device attachments"
 on public.device_attachments
 for select
 to authenticated
-using (true);
+using (public.current_member_role() in ('admin', 'manager', 'member'));
 
 create policy "Authenticated members can create device attachments"
 on public.device_attachments
 for insert
 to authenticated
-with check (true);
+with check (public.current_member_role() in ('admin', 'manager'));
 
 create policy "Authenticated members can delete device attachments"
 on public.device_attachments
 for delete
 to authenticated
-using (true);
+using (public.current_member_role() in ('admin', 'manager'));
 
 insert into storage.buckets (id, name, public)
 values ('device-attachments', 'device-attachments', false)
@@ -77,18 +77,18 @@ create policy "Authenticated members can read device attachment files"
 on storage.objects
 for select
 to authenticated
-using (bucket_id = 'device-attachments');
+using (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager', 'member'));
 
 create policy "Authenticated members can create device attachment files"
 on storage.objects
 for insert
 to authenticated
-with check (bucket_id = 'device-attachments');
+with check (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager'));
 
 create policy "Authenticated members can delete device attachment files"
 on storage.objects
 for delete
 to authenticated
-using (bucket_id = 'device-attachments');
+using (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager'));
 
 notify pgrst, 'reload schema';
