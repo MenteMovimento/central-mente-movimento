@@ -236,14 +236,6 @@ const centralUsersDialog = `
             </button>
           </div>
         </label>
-        <label class="field" for="centralCreateUserRole">
-          <span data-i18n="users.role">Perfil</span>
-          <select id="centralCreateUserRole" name="role">
-            <option value="admin" data-i18n="users.roleAdmin">Administrador</option>
-            <option value="operator" data-i18n="users.roleOperator">Operador</option>
-            <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
-          </select>
-        </label>
         <div class="permission-editor" data-permission-grid="create"></div>
         <p class="form-error" id="centralCreateUserError" role="alert" hidden></p>
         <button class="primary-button" type="submit">
@@ -265,14 +257,6 @@ const centralUsersDialog = `
         <label class="field" for="centralEditUserEmail">
           <span data-i18n="login.email">Email</span>
           <input id="centralEditUserEmail" name="email" type="email" autocomplete="email" required />
-        </label>
-        <label class="field" for="centralEditUserRole">
-          <span data-i18n="users.role">Perfil</span>
-          <select id="centralEditUserRole" name="role">
-            <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
-            <option value="operator" data-i18n="users.roleOperator">Operador</option>
-            <option value="admin" data-i18n="users.roleAdmin">Administrador</option>
-          </select>
         </label>
         <label class="remember-field" for="centralEditUserActive">
           <input id="centralEditUserActive" name="active" type="checkbox" checked />
@@ -296,7 +280,6 @@ const centralUsersDialog = `
           <tr>
             <th data-i18n="users.name">Nome</th>
             <th data-i18n="login.email">Email</th>
-            <th data-i18n="users.role">Perfil</th>
             <th data-i18n="users.status">Estado</th>
             <th data-i18n="users.entryDate">Entrada</th>
             <th data-i18n="users.exitDate">Saida</th>

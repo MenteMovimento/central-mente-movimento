@@ -599,15 +599,6 @@ const escapeHtml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-const roleLabel = (role) => {
-  const map = {
-    admin: getTranslation("users.roleAdmin"),
-    operator: getTranslation("users.roleOperator"),
-    viewer: getTranslation("users.roleViewer"),
-  };
-  return map[role] || role || getTranslation("users.roleViewer");
-};
-
 const centralUsersElements = () => ({
   dialog: document.querySelector("#centralUsersDialog"),
   closeBtn: document.querySelector("#centralCloseUsersBtn"),
@@ -621,7 +612,6 @@ const centralUsersElements = () => ({
   editId: document.querySelector("#centralEditUserId"),
   editName: document.querySelector("#centralEditUserName"),
   editEmail: document.querySelector("#centralEditUserEmail"),
-  editRole: document.querySelector("#centralEditUserRole"),
   editActive: document.querySelector("#centralEditUserActive"),
   createPermissions: document.querySelector('[data-permission-grid="create"]'),
   editPermissions: document.querySelector('[data-permission-grid="edit"]'),
@@ -708,6 +698,27 @@ const permissionActionKey = (action) => ({
   delete: "delete",
 }[action] || action);
 
+const roleFromPermissions = (permissions) => {
+  const normalized = normalizeCentralPermissions(permissions, "viewer");
+  const areas = ["socios", "utentes", "dispositivos"];
+  if (normalized.central?.manage_users || areas.some((area) => normalized[area]?.delete)) return "admin";
+  if (
+    normalized.central?.view_history ||
+    areas.some((area) => {
+      const areaPermissions = normalized[area] || {};
+      return Boolean(
+        areaPermissions.edit ||
+          areaPermissions.view_sensitive ||
+          areaPermissions.edit_sensitive ||
+          areaPermissions.export,
+      );
+    })
+  ) {
+    return "operator";
+  }
+  return "viewer";
+};
+
 const collectPermissionGrid = (scope, role) => {
   const permissions = defaultCentralPermissionsForRole(role);
   document.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
@@ -727,14 +738,12 @@ const collectPermissionGrid = (scope, role) => {
 
 const refreshPermissionGrids = () => {
   const elements = centralUsersElements();
-  const createRole = elements.createForm?.querySelector('[name="role"]')?.value || "viewer";
-  const editRole = elements.editRole?.value || "viewer";
-  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole(createRole));
+  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole("viewer"));
   const editingUser = centralUsersState.users.find((item) => item.id === centralUsersState.editingId);
   renderPermissionGrid(
     elements.editPermissions,
     "edit",
-    normalizeCentralPermissions(editingUser?.permissions, editingUser?.role || editRole),
+    normalizeCentralPermissions(editingUser?.permissions, editingUser?.role || "viewer"),
   );
 };
 
@@ -768,13 +777,23 @@ const requireCentralAdmin = async () => {
   const session = await getCentralSession();
   if (!session?.user?.id) throw new Error("Sessão em falta.");
 
-  const { data, error } = await client
+  let { data, error } = await client
     .from("app_users")
     .select("id,email,full_name,role,active,permissions")
     .eq("id", session.user.id)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    const message = String(error.message || error.details || error.hint || error).toLowerCase();
+    if (!message.includes("permissions")) throw error;
+    const fallback = await client
+      .from("app_users")
+      .select("id,email,full_name,role,active")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    if (fallback.error) throw fallback.error;
+    data = fallback.data ? { ...fallback.data, permissions: null } : null;
+  }
   if (!data) throw new Error(getTranslation("users.adminOnly"));
   data.permissions = normalizeCentralPermissions(data.permissions, data.role);
   if (!data?.active || !centralCanManageUsers(data)) throw new Error(getTranslation("users.adminOnly"));
@@ -789,10 +808,9 @@ const resetCentralUserForms = () => {
   elements.editForm?.reset();
   centralUsersState.editingId = "";
   if (elements.editId) elements.editId.value = "";
-  if (elements.editRole) elements.editRole.value = "viewer";
   if (elements.editActive) elements.editActive.checked = true;
   if (elements.editHint) elements.editHint.textContent = getTranslation("users.editHint");
-  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole(elements.createForm?.querySelector('[name="role"]')?.value || "viewer"));
+  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole("viewer"));
   renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole("viewer"));
   showCentralFormError(elements.createError, "");
   showCentralFormError(elements.editError, "");
@@ -814,7 +832,7 @@ const renderCentralUsers = () => {
   if (!table) return;
 
   if (!centralUsersState.users.length) {
-    table.innerHTML = `<tr><td colspan="7">${escapeHtml(getTranslation("users.empty"))}</td></tr>`;
+    table.innerHTML = `<tr><td colspan="6">${escapeHtml(getTranslation("users.empty"))}</td></tr>`;
     refreshIcons();
     return;
   }
@@ -833,7 +851,6 @@ const renderCentralUsers = () => {
         <tr>
           <td><strong>${escapeHtml(name)}</strong><span>${escapeHtml(user.id)}</span></td>
           <td>${escapeHtml(user.email || "")}</td>
-          <td>${escapeHtml(roleLabel(user.role))}</td>
           <td><span class="status-pill ${user.active ? "is-active" : "is-inactive"}">${escapeHtml(status)}</span></td>
           <td class="central-date-cell">${escapeHtml(entryDate)}</td>
           <td class="central-date-cell">${escapeHtml(exitDate)}</td>
@@ -879,19 +896,17 @@ const fillCentralUserForm = (user) => {
   elements.editId.value = user.id || "";
   elements.editName.value = user.full_name || "";
   elements.editEmail.value = user.email || "";
-  elements.editRole.value = user.role || "viewer";
   elements.editActive.checked = Boolean(user.active);
   renderPermissionGrid(elements.editPermissions, "edit", normalizeCentralPermissions(user.permissions, user.role));
   elements.editHint.textContent = `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`;
   showCentralFormError(elements.editError, "");
 };
 
-const validateCentralUser = ({ id, email, role, fullName, password, requirePassword = false }) => {
+const validateCentralUser = ({ id, email, fullName, password, requirePassword = false }) => {
   if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
   if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Indique um email válido.";
   if (requirePassword && (!password || password.length < 8)) return "A password deve ter pelo menos 8 caracteres.";
-  if (!["admin", "operator", "viewer"].includes(role)) return "Escolha um perfil válido.";
   return "";
 };
 
@@ -903,9 +918,9 @@ const handleCentralCreateUser = async (event) => {
     fullName: String(form.get("fullName") || "").trim(),
     email: String(form.get("email") || "").trim().toLowerCase(),
     password: String(form.get("password") || ""),
-    role: String(form.get("role") || "viewer"),
   };
-  payload.permissions = collectPermissionGrid("create", payload.role);
+  payload.permissions = collectPermissionGrid("create", "viewer");
+  payload.role = roleFromPermissions(payload.permissions);
   const validation = validateCentralUser({ ...payload, requirePassword: true });
   if (validation) {
     showCentralFormError(elements.createError, validation);
@@ -945,14 +960,13 @@ const handleCentralEditUser = async (event) => {
     id: String(form.get("id") || "").trim(),
     email: String(form.get("email") || "").trim().toLowerCase(),
     fullName: String(form.get("fullName") || "").trim(),
-    role: String(form.get("role") || "viewer"),
     active: form.get("active") === "on",
   };
-  payload.permissions = collectPermissionGrid("edit", payload.role);
+  payload.permissions = collectPermissionGrid("edit", "viewer");
+  payload.role = roleFromPermissions(payload.permissions);
   const validation = validateCentralUser({
     id: payload.id,
     email: payload.email,
-    role: payload.role,
     fullName: payload.fullName || "",
   });
   if (validation) {
@@ -998,9 +1012,9 @@ const toggleCentralUser = async (id) => {
       id,
       email: user.email,
       fullName: user.full_name || user.email || "Utilizador",
-      role: user.role || "viewer",
       active: !user.active,
       permissions: normalizeCentralPermissions(user.permissions, user.role),
+      role: roleFromPermissions(normalizeCentralPermissions(user.permissions, user.role)),
     }),
   });
   const result = await response.json().catch(() => ({}));
@@ -1083,10 +1097,6 @@ const wireCentralUsersDialog = () => {
   });
   elements.createForm?.addEventListener("submit", handleCentralCreateUser);
   elements.editForm?.addEventListener("submit", handleCentralEditUser);
-  elements.createForm?.querySelector('[name="role"]')?.addEventListener("change", refreshPermissionGrids);
-  elements.editRole?.addEventListener("change", () => {
-    renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole(elements.editRole.value || "viewer"));
-  });
   elements.clearBtn?.addEventListener("click", resetCentralUserForms);
   elements.table?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-central-user-action]");

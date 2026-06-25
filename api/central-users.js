@@ -33,6 +33,15 @@ const getErrorMessage = (error) => {
   return String(error)
 }
 
+const isMissingPermissionsColumnError = (error) => {
+  const message = getErrorMessage(error).toLowerCase()
+  return (
+    message.includes('app_users.permissions') ||
+    (message.includes('permissions') && message.includes('column')) ||
+    (message.includes('permissions') && message.includes('schema cache'))
+  )
+}
+
 const createAdminClient = (response) => {
   const supabaseUrl =
     process.env.SUPABASE_URL ??
@@ -63,8 +72,7 @@ const selectAppUsers = async (adminClient) => {
 
   if (!error) return data ?? []
 
-  const message = getErrorMessage(error).toLowerCase()
-  if (!message.includes('permissions')) throw error
+  if (!isMissingPermissionsColumnError(error)) throw error
 
   const { data: fallbackData, error: fallbackError } = await adminClient
     .from('app_users')
@@ -87,8 +95,7 @@ const getAppUser = async (adminClient, id) => {
 
   if (!error) return data
 
-  const message = getErrorMessage(error).toLowerCase()
-  if (!message.includes('permissions')) throw error
+  if (!isMissingPermissionsColumnError(error)) throw error
 
   const { data: fallbackData, error: fallbackError } = await adminClient
     .from('app_users')
@@ -146,8 +153,34 @@ const syncDeviceProfile = async (adminClient, user) => {
   await adminClient.from('profiles').upsert(profile, { onConflict: 'id' })
 }
 
+const inferRoleFromPermissions = (permissions) => {
+  const normalized = normalizePermissions(permissions, 'viewer')
+  const areas = ['socios', 'utentes', 'dispositivos']
+
+  if (normalized.central?.manage_users || areas.some((area) => normalized[area]?.delete)) {
+    return 'admin'
+  }
+
+  if (
+    normalized.central?.view_history ||
+    areas.some((area) => {
+      const areaPermissions = normalized[area] || {}
+      return Boolean(
+        areaPermissions.edit ||
+          areaPermissions.view_sensitive ||
+          areaPermissions.edit_sensitive ||
+          areaPermissions.export,
+      )
+    })
+  ) {
+    return 'operator'
+  }
+
+  return 'viewer'
+}
+
 const sanitizePayload = (body, { existingRole = 'viewer' } = {}) => {
-  const role = String(body.role ?? existingRole ?? 'viewer')
+  const role = String(body.role ?? inferRoleFromPermissions(body.permissions) ?? existingRole ?? 'viewer')
   if (!allowedRoles.has(role)) {
     throw new Error('Perfil invalido.')
   }
@@ -156,6 +189,53 @@ const sanitizePayload = (body, { existingRole = 'viewer' } = {}) => {
     role,
     permissions: normalizePermissions(body.permissions, role),
   }
+}
+
+const withFallbackPermissions = (user) =>
+  user ? { ...user, permissions: normalizePermissions(user.permissions, user.role) } : user
+
+const upsertAppUser = async (adminClient, record) => {
+  const { data, error } = await adminClient
+    .from('app_users')
+    .upsert(record, { onConflict: 'id' })
+    .select('id,email,full_name,role,active,permissions,created_at,updated_at')
+    .single()
+
+  if (!error) return data
+  if (!isMissingPermissionsColumnError(error)) throw error
+
+  const { permissions: _permissions, ...fallbackRecord } = record
+  const { data: fallbackData, error: fallbackError } = await adminClient
+    .from('app_users')
+    .upsert(fallbackRecord, { onConflict: 'id' })
+    .select('id,email,full_name,role,active,created_at,updated_at')
+    .single()
+
+  if (fallbackError) throw fallbackError
+  return withFallbackPermissions(fallbackData)
+}
+
+const updateAppUser = async (adminClient, id, patch) => {
+  const { data, error } = await adminClient
+    .from('app_users')
+    .update(patch)
+    .eq('id', id)
+    .select('id,email,full_name,role,active,permissions,created_at,updated_at')
+    .single()
+
+  if (!error) return data
+  if (!isMissingPermissionsColumnError(error)) throw error
+
+  const { permissions: _permissions, ...fallbackPatch } = patch
+  const { data: fallbackData, error: fallbackError } = await adminClient
+    .from('app_users')
+    .update(fallbackPatch)
+    .eq('id', id)
+    .select('id,email,full_name,role,active,created_at,updated_at')
+    .single()
+
+  if (fallbackError) throw fallbackError
+  return withFallbackPermissions(fallbackData)
 }
 
 export default async function handler(request, response) {
@@ -218,13 +298,7 @@ export default async function handler(request, response) {
         active: true,
       }
 
-      const { data: created, error: profileError } = await adminClient
-        .from('app_users')
-        .upsert(record, { onConflict: 'id' })
-        .select('id,email,full_name,role,active,permissions,created_at,updated_at')
-        .single()
-
-      if (profileError) throw profileError
+      const created = await upsertAppUser(adminClient, record)
       await syncDeviceProfile(adminClient, created)
       sendJson(response, 200, { user: created })
       return
@@ -270,9 +344,7 @@ export default async function handler(request, response) {
       })
       if (authError) throw authError
 
-      const { data: updated, error: updateError } = await adminClient
-        .from('app_users')
-        .update({
+      const updated = await updateAppUser(adminClient, id, {
           email,
           full_name: fullName,
           role,
@@ -280,11 +352,6 @@ export default async function handler(request, response) {
           permissions,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', id)
-        .select('id,email,full_name,role,active,permissions,created_at,updated_at')
-        .single()
-
-      if (updateError) throw updateError
       await syncDeviceProfile(adminClient, updated)
       sendJson(response, 200, { user: updated })
       return
