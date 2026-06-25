@@ -679,6 +679,119 @@ body.dark-mode .central-admin-forms {
   border-left: 1px solid var(--line);
 }
 
+.permission-editor {
+  display: grid;
+  gap: 12px;
+}
+
+.permission-matrix-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.permission-matrix {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+}
+
+.permission-matrix th,
+.permission-matrix td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.permission-matrix tr:last-child th,
+.permission-matrix tr:last-child td {
+  border-bottom: 0;
+}
+
+.permission-matrix th {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.permission-matrix th:first-child,
+.permission-matrix td:first-child {
+  text-align: left;
+}
+
+.permission-check {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.permission-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.permission-check span {
+  width: 19px;
+  height: 19px;
+  border: 2px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.permission-check input:checked + span {
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: inset 0 0 0 4px var(--panel);
+}
+
+.permission-check input:focus-visible + span {
+  outline: 3px solid rgba(18, 184, 134, 0.22);
+  outline-offset: 2px;
+}
+
+.permission-na {
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.central-permission-fieldset {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.central-permission-fieldset legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.central-permission-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 750;
+}
+
+.central-permission-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+}
+
 .form-section-title h3 {
   margin: 0 0 6px;
   font-size: 1rem;

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { canViewArea, normalizePermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -67,24 +68,19 @@ const getDisplayName = (user) => {
   return metadataName || emailName || 'Administrador'
 }
 
-const centralRoleToDeviceRole = (role) => {
-  if (role === 'admin') return 'admin'
-  if (role === 'operator') return 'manager'
-  return 'member'
+const getExistingRow = async (adminClient, table, userId) => {
+  const { data, error } = await adminClient.from(table).select('*').eq('id', userId).maybeSingle()
+  if (error) return null
+  return data ?? null
 }
 
-const syncDeviceProfile = async (adminClient, user, appUser) => {
-  const { data: existing } = await adminClient
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .maybeSingle()
-
+const ensureProfile = async (adminClient, user) => {
+  const existing = await getExistingRow(adminClient, 'profiles', user.id)
   const row = {
     id: user.id,
-    email: user.email ?? appUser.email ?? null,
-    full_name: existing?.full_name ?? appUser.full_name ?? getDisplayName(user),
-    role: centralRoleToDeviceRole(appUser.role),
+    email: user.email ?? existing?.email ?? null,
+    full_name: existing?.full_name ?? getDisplayName(user),
+    role: existing?.role ?? 'admin',
   }
 
   const { error } = await adminClient.from('profiles').upsert(row, { onConflict: 'id' })
@@ -102,19 +98,63 @@ const syncDeviceProfile = async (adminClient, user, appUser) => {
 const ensureExistingAccess = async (userClient, user) => {
   const { data: appUser, error: appUserError } = await userClient
     .from('app_users')
-    .select('id, email, full_name, role, active')
+    .select('id, email, full_name, role, active, permissions')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (appUserError) throw appUserError
+  if (appUserError) {
+    const message = errorMessage(appUserError).toLowerCase()
+    if (!message.includes('permissions')) throw appUserError
+
+    const { data: fallbackUser, error: fallbackError } = await userClient
+      .from('app_users')
+      .select('id, email, full_name, role, active')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (fallbackError) throw fallbackError
+    if (fallbackUser) {
+      fallbackUser.permissions = normalizePermissions(null, fallbackUser.role)
+      return ensureAuthorizedProfile(fallbackUser)
+    }
+  }
+
+  if (appUser) {
+    appUser.permissions = normalizePermissions(appUser.permissions, appUser.role)
+  }
+
+  return ensureAuthorizedProfile(appUser)
+}
+
+const ensureAuthorizedProfile = (appUser) => {
   if (appUser?.active === false) {
     throw new Error('Utilizador sem acesso ativo.')
   }
   if (!appUser) {
-    throw new Error('Utilizador sem acesso configurado.')
+    throw new Error('Utilizador ainda nao preparado.')
   }
 
   return { appUser, profile: null }
+}
+
+const readBody = async (request) => {
+  if (request.body && typeof request.body === 'object') return request.body
+  if (typeof request.body === 'string') return request.body ? JSON.parse(request.body) : {}
+  const chunks = []
+  for await (const chunk of request) chunks.push(chunk)
+  const rawBody = Buffer.concat(chunks).toString('utf8')
+  return rawBody ? JSON.parse(rawBody) : {}
+}
+
+const requestedArea = (body) => {
+  const area = String(body?.area ?? '').trim()
+  return ['socios', 'utentes', 'dispositivos'].includes(area) ? area : ''
+}
+
+const enforceAreaAccess = (appUser, area) => {
+  if (area && !canViewArea(appUser, area)) {
+    throw new Error(`Sem permissao para aceder a ${area}.`)
+  }
 }
 
 export default async function handler(request, response) {
@@ -126,6 +166,8 @@ export default async function handler(request, response) {
 
   try {
     const token = getBearerToken(request)
+    const body = await readBody(request).catch(() => ({}))
+    const area = requestedArea(body)
 
     if (!token) {
       sendJson(response, 401, { error: 'Sessao em falta.' })
@@ -147,25 +189,13 @@ export default async function handler(request, response) {
 
     try {
       const { appUser, profile } = await ensureExistingAccess(userClient, user)
-      const adminClient = createAdminClient()
-      if (adminClient) {
-        await syncDeviceProfile(adminClient, user, appUser).catch(() => null)
-      }
+      enforceAreaAccess(appUser, area)
       sendJson(response, 200, { ok: true, appUser, profile })
       return
     } catch (accessError) {
-      if (errorMessage(accessError) === 'Utilizador sem acesso ativo.') {
-        sendJson(response, 403, { error: 'Utilizador sem acesso ativo.' })
-        return
-      }
-      if (errorMessage(accessError) === 'Utilizador sem acesso configurado.') {
-        sendJson(response, 403, {
-          error: 'Utilizador sem acesso configurado. Peça a um administrador para criar o acesso.',
-        })
-        return
-      }
+      sendJson(response, 403, { error: errorMessage(accessError) })
+      return
     }
-    sendJson(response, 403, { error: 'Nao foi possivel validar o acesso.' })
   } catch (error) {
     sendJson(response, 400, {
       error: errorMessage(error),

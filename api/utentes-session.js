@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'node:crypto'
+import { canViewArea, hasPermission, normalizePermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -104,29 +105,49 @@ const requireCentralUser = async (response, userClient, adminClient, token) => {
     return null
   }
 
-  const { data: profile } = await adminClient
+  let { data: profile, error: profileError } = await adminClient
     .from('app_users')
-    .select('role, active, full_name')
+    .select('role, active, full_name, permissions')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (!profile) {
-    sendJson(response, 403, {
-      error: 'Utilizador sem acesso configurado. Peça a um administrador para criar o acesso.',
-    })
+  if (profileError && getErrorMessage(profileError).toLowerCase().includes('permissions')) {
+    const fallback = await adminClient
+      .from('app_users')
+      .select('role, active, full_name')
+      .eq('id', user.id)
+      .maybeSingle()
+    profile = fallback.data
+    profileError = fallback.error
+  }
+
+  if (profileError) throw profileError
+
+  const effectiveProfile = profile
+  if (!effectiveProfile) {
+    sendJson(response, 403, { error: 'Utilizador ainda nao preparado na Central.' })
     return null
   }
 
-  if (!profile.active) {
+  if (!effectiveProfile.active) {
     sendJson(response, 403, { error: 'Utilizador sem permissao na Central.' })
+    return null
+  }
+
+  effectiveProfile.permissions = normalizePermissions(effectiveProfile.permissions, effectiveProfile.role)
+
+  if (!canViewArea(effectiveProfile, 'utentes')) {
+    sendJson(response, 403, { error: 'Sem permissao para aceder a Utentes.' })
     return null
   }
 
   return {
     id: user.id,
     email: user.email,
-    fullName: profile.full_name || user.user_metadata?.full_name || user.email.split('@')[0],
-    isAdmin: profile.role === 'admin' || profile.role === 'operator',
+    fullName: effectiveProfile.full_name || user.user_metadata?.full_name || 'Administrador',
+    isAdmin: hasPermission(effectiveProfile, 'utentes', 'edit'),
+    canViewSensitive: hasPermission(effectiveProfile, 'utentes', 'view_sensitive'),
+    canEditSensitive: hasPermission(effectiveProfile, 'utentes', 'edit_sensitive'),
   }
 }
 

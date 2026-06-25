@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { canManageUsers, normalizePermissions } from './_permissions.js'
 
 const allowedRoles = new Set(['admin', 'operator', 'viewer'])
 
@@ -64,13 +65,23 @@ const requireSociosAdmin = async (request, response, adminClient) => {
     return null
   }
 
-  const { data: profile, error: profileError } = await adminClient
+  let { data: profile, error: profileError } = await adminClient
     .from('app_users')
-    .select('role, active')
+    .select('role, active, permissions')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profileError || !profile?.active || profile.role !== 'admin') {
+  if (profileError && getErrorMessage(profileError).toLowerCase().includes('permissions')) {
+    const fallback = await adminClient
+      .from('app_users')
+      .select('role, active')
+      .eq('id', user.id)
+      .maybeSingle()
+    profile = fallback.data ? { ...fallback.data, permissions: normalizePermissions(null, fallback.data.role) } : null
+    profileError = fallback.error
+  }
+
+  if (profileError || !profile?.active || !canManageUsers(profile)) {
     sendJson(response, 403, { error: 'Apenas administradores podem gerir utilizadores.' })
     return null
   }
@@ -97,6 +108,7 @@ export default async function handler(request, response) {
     const password = String(body.password ?? '')
     const fullName = String(body.fullName ?? '').trim()
     const role = String(body.role ?? 'viewer')
+    const permissions = normalizePermissions(body.permissions, role)
 
     if (!email || !password || !fullName) {
       sendJson(response, 400, { error: 'Nome, email e password sao obrigatorios.' })
@@ -131,11 +143,12 @@ export default async function handler(request, response) {
       full_name: fullName,
       role,
       active: true,
+      permissions,
     })
 
     if (profileError) throw profileError
 
-    sendJson(response, 200, { id: data.user.id, email, full_name: fullName, role, active: true })
+    sendJson(response, 200, { id: data.user.id, email, full_name: fullName, role, active: true, permissions })
   } catch (error) {
     sendJson(response, 400, { error: getErrorMessage(error) || 'Pedido invalido.' })
   }

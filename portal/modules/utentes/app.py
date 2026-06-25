@@ -68,6 +68,11 @@ TAB_SECTIONS = [
     ("protecao_dados", "Proteção de dados e Termos de Responsabilidade"),
 ]
 
+UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia"}
+UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "protecao_dados"}
+CENTRAL_AREA_KEYS = ("socios", "utentes", "dispositivos")
+CENTRAL_AREA_ACTIONS = ("view", "edit", "view_sensitive", "edit_sensitive", "export", "delete")
+
 PERFIL_ADMIN = "Administrador"
 PERFIL_UTILIZADOR = "Utilizador"
 DEFAULT_ADMIN_EMAIL = "admin@mentemovimento.local"
@@ -3570,6 +3575,205 @@ def is_admin(user):
     return bool(user and user.get("perfil") == PERFIL_ADMIN)
 
 
+def default_central_permissions_for_role(role):
+    role = role if role in ("admin", "operator", "viewer") else "viewer"
+    editable = role in ("admin", "operator")
+    removable = role == "admin"
+    exportable = role in ("admin", "operator")
+    return {
+        "socios": {
+            "view": True,
+            "edit": editable,
+            "view_sensitive": False,
+            "edit_sensitive": False,
+            "export": exportable,
+            "delete": removable,
+        },
+        "utentes": {
+            "view": True,
+            "edit": editable,
+            "view_sensitive": role != "viewer",
+            "edit_sensitive": editable,
+            "export": exportable,
+            "delete": removable,
+        },
+        "dispositivos": {
+            "view": True,
+            "edit": editable,
+            "view_sensitive": False,
+            "edit_sensitive": False,
+            "export": exportable,
+            "delete": removable,
+        },
+        "central": {
+            "manage_users": role == "admin",
+            "view_history": role == "admin",
+        },
+    }
+
+
+def normalize_central_permissions(raw_permissions, role):
+    if isinstance(raw_permissions, str):
+        try:
+            raw_permissions = json.loads(raw_permissions)
+        except (TypeError, ValueError):
+            raw_permissions = {}
+    if not isinstance(raw_permissions, dict):
+        raw_permissions = {}
+
+    permissions = default_central_permissions_for_role(role)
+    for area in CENTRAL_AREA_KEYS:
+        source = raw_permissions.get(area)
+        if not isinstance(source, dict):
+            continue
+        for action in CENTRAL_AREA_ACTIONS:
+            if isinstance(source.get(action), bool):
+                permissions[area][action] = source[action]
+
+    central_source = raw_permissions.get("central")
+    if isinstance(central_source, dict):
+        if isinstance(central_source.get("manage_users"), bool):
+            permissions["central"]["manage_users"] = central_source["manage_users"]
+        if isinstance(central_source.get("view_history"), bool):
+            permissions["central"]["view_history"] = central_source["view_history"]
+
+    for area in CENTRAL_AREA_KEYS:
+        area_permissions = permissions[area]
+        if area_permissions["delete"]:
+            area_permissions["edit"] = True
+            area_permissions["view"] = True
+        if area_permissions["edit"]:
+            area_permissions["view"] = True
+        if area_permissions["export"]:
+            area_permissions["view"] = True
+        if area_permissions["edit_sensitive"]:
+            area_permissions["view_sensitive"] = True
+            area_permissions["edit"] = True
+            area_permissions["view"] = True
+        if area_permissions["view_sensitive"]:
+            area_permissions["view"] = True
+        if area != "utentes":
+            area_permissions["view_sensitive"] = False
+            area_permissions["edit_sensitive"] = False
+    return permissions
+
+
+def central_profile_for_user(user):
+    if not user:
+        return None
+    if user.get("_central_profile_loaded"):
+        return user.get("_central_profile")
+
+    role = "admin" if is_admin(user) else "viewer"
+    fallback = {
+        "role": role,
+        "active": bool(user.get("ativo", 1)),
+        "permissions": default_central_permissions_for_role(role),
+    }
+    profile = fallback
+    email = str(user.get("email") or "").strip().lower()
+
+    if supabase_available() and email:
+        try:
+            row = table_first(
+                "app_users",
+                {
+                    "select": "id,email,full_name,role,active,permissions",
+                    "email": f"ilike.{email}",
+                },
+            )
+        except SupabaseError:
+            try:
+                row = table_first(
+                    "app_users",
+                    {
+                        "select": "id,email,full_name,role,active",
+                        "email": f"ilike.{email}",
+                    },
+                )
+            except SupabaseError:
+                row = None
+        if row:
+            central_role = row.get("role") or role
+            profile = {
+                **row,
+                "role": central_role,
+                "active": bool(row.get("active", True)),
+                "permissions": normalize_central_permissions(row.get("permissions"), central_role),
+            }
+
+    user["_central_profile_loaded"] = True
+    user["_central_profile"] = profile
+    return profile
+
+
+def central_has_permission(user, area, action):
+    profile = central_profile_for_user(user)
+    if not profile or not profile.get("active"):
+        return False
+    permissions = profile.get("permissions") or default_central_permissions_for_role(profile.get("role"))
+    if area == "central":
+        return bool((permissions.get("central") or {}).get(action))
+    return bool((permissions.get(area) or {}).get(action))
+
+
+def can_view_utentes(user):
+    return central_has_permission(user, "utentes", "view")
+
+
+def can_edit_utentes(user):
+    return central_has_permission(user, "utentes", "edit")
+
+
+def can_view_sensitive_utentes(user):
+    return central_has_permission(user, "utentes", "view_sensitive")
+
+
+def can_edit_sensitive_utentes(user):
+    return central_has_permission(user, "utentes", "edit_sensitive")
+
+
+def can_export_utentes(user):
+    return central_has_permission(user, "utentes", "export")
+
+
+def can_delete_utentes(user):
+    return central_has_permission(user, "utentes", "delete")
+
+
+def can_view_history(user):
+    return central_has_permission(user, "central", "view_history")
+
+
+def can_manage_central_users(user):
+    return central_has_permission(user, "central", "manage_users")
+
+
+def is_sensitive_tab(tab_key):
+    return tab_key in UTENTES_SENSITIVE_TABS
+
+
+def can_view_tab(user, tab_key):
+    if tab_key in UTENTES_SENSITIVE_TABS:
+        return can_view_sensitive_utentes(user)
+    return can_view_utentes(user)
+
+
+def can_edit_tab(user, tab_key):
+    if tab_key in UTENTES_SENSITIVE_TABS:
+        return can_edit_sensitive_utentes(user)
+    return can_edit_utentes(user)
+
+
+def allowed_tab_sections(user):
+    return [(key, label) for key, label in TAB_SECTIONS if can_view_tab(user, key)]
+
+
+def first_allowed_tab(user):
+    sections = allowed_tab_sections(user)
+    return sections[0][0] if sections else TAB_SECTIONS[0][0]
+
+
 def get_user_by_email(email):
     if supabase_available():
         row = table_first(
@@ -4596,8 +4800,9 @@ def render_header(current_user):
     history_button = ""
     theme_icon = SUN_ICON if current_user.get("tema") == "escuro" else MOON_ICON
     theme_label = tr(current_user, "light") if current_user.get("tema") == "escuro" else tr(current_user, "dark")
-    if is_admin(current_user):
+    if can_edit_utentes(current_user):
         new_button = f'<a class="central-primary-action" href="/novo"><span aria-hidden="true">+</span><span>{esc(tr(current_user, "new_client")).lstrip("+ ").strip()}</span></a>'
+    if can_view_history(current_user):
         history_button = f"""
         <button class="central-menu-item" type="button" role="menuitem" data-frame-dialog-open="/historico" data-frame-dialog-title="{esc(tr(current_user, "history"))}">
             {HISTORY_ICON}
@@ -7533,8 +7738,13 @@ def render_protecao_dados_form(utente_id, readonly=False):
 
 def render_edit_page(utente, active_tab=None, error="", notice="", current_user=None):
     active_tab = normalize_tab_key(active_tab)
+    if not can_view_tab(current_user, active_tab):
+        active_tab = first_allowed_tab(current_user)
+    tab_sections = allowed_tab_sections(current_user)
+    readonly = not can_edit_tab(current_user, active_tab)
+    save_button = "" if readonly else '<button class="button" type="submit" form="edit-utente-form">Guardar</button>'
     tab_links = ""
-    for key, label in TAB_SECTIONS:
+    for key, label in tab_sections:
         active_class = " active" if key == active_tab else ""
         tab_links += (
             f'<a class="tab-link{active_class}" href="/editar?id={utente["id"]}&tab={key}" '
@@ -7546,24 +7756,24 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     ref_data, em_data, ins_data, diag_data, atend_data = load_structured_tab_data(utente["id"])
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
-        tab_body = render_referenciacao_form(ref_data, readonly=False)
+        tab_body = render_referenciacao_form(ref_data, readonly=readonly)
     elif active_tab == "pagamentos":
         pag_data = load_pagamentos_data(utente["id"])
-        tab_body = render_pagamentos_form(pag_data, readonly=False, current_user=current_user)
+        tab_body = render_pagamentos_form(pag_data, readonly=readonly, current_user=current_user)
     elif active_tab == "emergencia":
         em_data["em_nome"] = em_data.get("em_nome") or utente.get("nome") or ""
-        tab_body = render_emergencia_form(em_data, readonly=False)
+        tab_body = render_emergencia_form(em_data, readonly=readonly)
     elif active_tab == "inscricao":
         ins_data["ins_nome"] = ins_data.get("ins_nome") or utente.get("nome") or ""
-        tab_body = render_inscricao_form(ins_data, readonly=False)
+        tab_body = render_inscricao_form(ins_data, readonly=readonly)
     elif active_tab == "diagnostica":
         diag_data["diag_nome"] = diag_data.get("diag_nome") or utente.get("nome") or ""
-        tab_body = render_diagnostica_form(diag_data, readonly=False)
+        tab_body = render_diagnostica_form(diag_data, readonly=readonly)
     elif active_tab == "atendimentos":
         atend_data["atend_nome"] = atend_data.get("atend_nome") or utente.get("nome") or ""
-        tab_body = render_atendimentos_form(atend_data, readonly=False)
+        tab_body = render_atendimentos_form(atend_data, readonly=readonly)
     elif active_tab == "protecao_dados":
-        tab_body = render_protecao_dados_form(utente["id"], readonly=False)
+        tab_body = render_protecao_dados_form(utente["id"], readonly=readonly)
     else:
         tab_body = f"""
                 <div class="field full">
@@ -7580,7 +7790,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         <div class="title-actions">
             <span class="autosave-status" data-autosave-status aria-live="polite"></span>
             <a class="button secondary" href="/">Voltar</a>
-            <button class="button" type="submit" form="edit-utente-form">Guardar</button>
+            {save_button}
         </div>
     </div>
     {error_html}
@@ -7606,7 +7816,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         <div class="title-actions">
             <span class="autosave-status" data-autosave-status aria-live="polite"></span>
             <a class="button secondary" href="/">Voltar</a>
-            <button class="button" type="submit" form="edit-utente-form">Guardar</button>
+            {save_button}
         </div>
     </div>
     {error_html}
@@ -7629,8 +7839,11 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
 
 def render_view_page(utente, active_tab=None, notice="", current_user=None):
     active_tab = normalize_tab_key(active_tab)
+    if not can_view_tab(current_user, active_tab):
+        active_tab = first_allowed_tab(current_user)
+    tab_sections = allowed_tab_sections(current_user)
     tab_links = ""
-    for key, label in TAB_SECTIONS:
+    for key, label in tab_sections:
         active_class = " active" if key == active_tab else ""
         tab_links += (
             f'<a class="tab-link{active_class}" href="/ver?id={utente["id"]}&tab={key}" '
@@ -7717,9 +7930,11 @@ def render_list(query="", notice="", current_user=None):
     rows = fetch_utentes(query)
 
     rows_html = ""
-    admin = is_admin(current_user)
+    can_edit = can_edit_utentes(current_user)
+    can_delete = can_delete_utentes(current_user)
+    can_export = can_export_utentes(current_user) and can_view_sensitive_utentes(current_user)
     backup_button = ""
-    if admin:
+    if can_export:
         backup_button = f'<a class="button secondary" href="/backup/utentes">{DOWNLOAD_ICON}{esc(tr(current_user, "export_backup"))}</a>'
     view_label = tr(current_user, "view")
     edit_label = tr(current_user, "edit")
@@ -7740,7 +7955,7 @@ def render_list(query="", notice="", current_user=None):
         toggle_action_label = tr(current_user, "deactivate_client" if is_active else "activate_client")
         toggle_confirm = "Inativar este utente?" if is_active else "Ativar este utente?"
         toggle_icon = USER_X_ICON if is_active else USER_CHECK_ICON
-        if admin:
+        if can_edit:
             payment_html = f"""
                     <button class="button payment icon-button" type="button" data-quick-payment-open data-client-id="{row["id"]}" data-client-name="{esc(row["nome"])}" data-payment-month="{esc(next_payment_label)}" aria-label="{esc(pay_label)}" title="{esc(pay_label)}">
                         {MONEY_ICON}
@@ -7759,6 +7974,7 @@ def render_list(query="", notice="", current_user=None):
                         {PENCIL_ICON}
                     </a>
             """
+        if can_delete:
             delete_html = f"""
                     <form method="post" action="/eliminar" onsubmit="return confirm('Eliminar este utente?');">
                         <input type="hidden" name="id" value="{row["id"]}">
@@ -7823,7 +8039,7 @@ def render_list(query="", notice="", current_user=None):
         <tbody>{rows_html}</tbody>
     </table>
 </section>
-{render_quick_payment_dialog(current_user) if admin else ""}
+{render_quick_payment_dialog(current_user) if can_edit else ""}
 """
     return render_page(tr(current_user, "client_list"), content, notice=notice, current_user=current_user)
 
@@ -9796,13 +10012,16 @@ class UtentesHandler(BaseHTTPRequestHandler):
         if not user:
             self.redirect("/login")
             return None
+        if not can_view_utentes(user):
+            self.send_html(render_login_page("Sem permissao para aceder a Utentes.", language=get_request_language(self)), status=403)
+            return None
         return user
 
     def require_admin(self):
         user = self.require_user()
         if not user:
             return None
-        if not is_admin(user):
+        if not can_edit_utentes(user):
             self.redirect(f"/?msg={quote('Sem permissão para essa ação')}")
             return None
         return user
@@ -9832,6 +10051,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/anexo":
+            if not can_view_tab(user, "protecao_dados"):
+                self.send_error(403, "Sem permissao para abrir anexos")
+                return
             attachment_id = query_params.get("id", [""])[0]
             if not attachment_id.isdigit():
                 self.send_error(404, "PDF não encontrado")
@@ -9864,27 +10086,27 @@ class UtentesHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/backup/utentes":
-            admin = self.require_admin()
-            if not admin:
+            if not can_export_utentes(user) or not can_view_sensitive_utentes(user):
+                self.send_error(403, "Sem permissao para exportar backup")
                 return
             try:
                 filename, data = build_utentes_backup_zip()
             except (ValueError, SupabaseError, OSError) as exc:
-                self.send_error(500, f"{tr(admin, 'backup_error')}: {exc}")
+                self.send_error(500, f"{tr(user, 'backup_error')}: {exc}")
                 return
-            log_action(admin, "Exportou backup de utentes", "Utente", None, filename)
+            log_action(user, "Exportou backup de utentes", "Utente", None, filename)
             self.send_zip(filename, data)
             return
 
         if parsed.path == "/novo":
-            if not is_admin(user):
+            if not can_edit_utentes(user):
                 self.redirect(f"/?msg={quote('Sem permissão para criar utentes')}")
                 return
             self.send_html(render_form("/adicionar", "Novo utente", current_user=user))
             return
 
         if parsed.path == "/editar":
-            if not is_admin(user):
+            if not can_edit_utentes(user):
                 utente_id = query_params.get("id", [""])[0]
                 self.redirect(f"/ver?id={utente_id}")
                 return
@@ -9916,19 +10138,19 @@ class UtentesHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/utilizadores":
-            admin = self.require_admin()
-            if not admin:
+            if not can_manage_central_users(user):
+                self.redirect(f"/?msg={quote('Sem permissao para gerir utilizadores')}")
                 return
             edit_user_id = query_params.get("edit_user_id", [""])[0]
             notice = query_params.get("msg", [""])[0].strip()
-            self.send_html(render_user_manager(admin, edit_user_id, notice=notice))
+            self.send_html(render_user_manager(user, edit_user_id, notice=notice))
             return
 
         if parsed.path == "/historico":
-            admin = self.require_admin()
-            if not admin:
+            if not can_view_history(user):
+                self.redirect(f"/?msg={quote('Sem permissao para ver historico')}")
                 return
-            self.send_html(render_history_page(admin))
+            self.send_html(render_history_page(user))
             return
 
         if parsed.path == "/manual":
@@ -9988,6 +10210,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             admin = self.require_admin()
             if not admin:
                 return
+            if not can_edit_tab(admin, "protecao_dados"):
+                self.redirect(f"/?msg={quote('Sem permissao para editar anexos')}")
+                return
             attachment_id = field_value(data, "id")
             utente_id = field_value(data, "utente_id")
             if attachment_id.isdigit():
@@ -10021,6 +10246,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 return
             utente_id = field_value(data, "id")
             active_tab = normalize_tab_key(field_value(data, "tab"))
+            if not can_edit_tab(admin, active_tab):
+                self.redirect(f"/ver?id={utente_id}&tab={active_tab}&msg={quote('Sem permissao para editar este separador')}")
+                return
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
                 self.redirect(f"/?msg={quote('Utente não encontrado')}")
                 return
@@ -10079,6 +10307,12 @@ class UtentesHandler(BaseHTTPRequestHandler):
             background_save = self.headers.get("X-Background-Save") == "1"
             utente_id = field_value(data, "id")
             active_tab = normalize_tab_key(field_value(data, "tab"))
+            if not can_edit_tab(admin, active_tab):
+                if background_save:
+                    self.send_json({"ok": False, "error": "Sem permissao para editar este separador."}, status=403)
+                    return
+                self.redirect(f"/ver?id={utente_id}&tab={active_tab}&msg={quote('Sem permissao para editar este separador')}")
+                return
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
                 if background_save:
                     self.send_json({"ok": False, "error": "Utente não encontrado."}, status=404)
@@ -10134,6 +10368,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             admin = self.require_admin()
             if not admin:
                 return
+            if not can_delete_utentes(admin):
+                self.redirect(f"/?msg={quote('Sem permissao para eliminar utentes')}")
+                return
             utente_id = field_value(data, "id")
             if utente_id.isdigit():
                 utente = delete_utente_record(int(utente_id))
@@ -10162,6 +10399,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             admin = self.require_admin()
             if not admin:
                 return
+            if not can_edit_tab(admin, "pagamentos"):
+                self.redirect(f"/?msg={quote('Sem permissao para registar pagamentos')}")
+                return
             utente_id = field_value(data, "id")
             method = field_value(data, "pag_forma")
             payment_date = field_value(data, "pag_data")
@@ -10183,6 +10423,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             admin = self.require_admin()
             if not admin:
                 return
+            if not can_manage_central_users(admin):
+                self.redirect(f"/?msg={quote('Sem permissao para gerir utilizadores')}")
+                return
             try:
                 user_id = create_user(data)
             except ValueError as exc:
@@ -10195,6 +10438,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
         if parsed.path == "/utilizadores/editar":
             admin = self.require_admin()
             if not admin:
+                return
+            if not can_manage_central_users(admin):
+                self.redirect(f"/?msg={quote('Sem permissao para gerir utilizadores')}")
                 return
             edit_id = field_value(data, "id")
             try:
@@ -10209,6 +10455,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
         if parsed.path == "/utilizadores/alternar":
             admin = self.require_admin()
             if not admin:
+                return
+            if not can_manage_central_users(admin):
+                self.redirect(f"/?msg={quote('Sem permissao para gerir utilizadores')}")
                 return
             user_id = field_value(data, "id")
             if user_id.isdigit():
@@ -10225,6 +10474,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
         if parsed.path == "/utilizadores/eliminar":
             admin = self.require_admin()
             if not admin:
+                return
+            if not can_manage_central_users(admin):
+                self.redirect(f"/?msg={quote('Sem permissao para gerir utilizadores')}")
                 return
             user_id = field_value(data, "id")
             if user_id.isdigit():
@@ -10243,6 +10495,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
     def handle_pdf_upload(self):
         admin = self.require_admin()
         if not admin:
+            return
+        if not can_edit_tab(admin, "protecao_dados"):
+            self.redirect(f"/?msg={quote('Sem permissao para anexar PDFs')}")
             return
         utente_id = ""
         try:

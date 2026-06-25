@@ -116,6 +116,20 @@ const translations = {
     "users.deleted": "Utilizador eliminado.",
     "users.activated": "Utilizador ativado.",
     "users.deactivated": "Utilizador desativado.",
+    "permissions.area": "\u00c1rea",
+    "permissions.view": "Ver",
+    "permissions.edit": "Editar",
+    "permissions.viewSensitive": "Ver dados sens\u00edveis",
+    "permissions.editSensitive": "Editar dados sens\u00edveis",
+    "permissions.export": "Exportar",
+    "permissions.delete": "Apagar",
+    "permissions.central": "Permiss\u00f5es gerais",
+    "permissions.manageUsers": "Gerir utilizadores",
+    "permissions.viewHistory": "Ver hist\u00f3rico geral",
+    "permissions.socios": "S\u00f3cios",
+    "permissions.utentes": "Utentes",
+    "permissions.dispositivos": "Dispositivos",
+    "permissions.notApplicable": "-",
   },
   en: {
     "app.title": "MenteMovimento",
@@ -216,6 +230,20 @@ const translations = {
     "users.deleted": "User deleted.",
     "users.activated": "User activated.",
     "users.deactivated": "User deactivated.",
+    "permissions.area": "Area",
+    "permissions.view": "View",
+    "permissions.edit": "Edit",
+    "permissions.viewSensitive": "View sensitive data",
+    "permissions.editSensitive": "Edit sensitive data",
+    "permissions.export": "Export",
+    "permissions.delete": "Delete",
+    "permissions.central": "General permissions",
+    "permissions.manageUsers": "Manage users",
+    "permissions.viewHistory": "View global history",
+    "permissions.socios": "Members",
+    "permissions.utentes": "Clients",
+    "permissions.dispositivos": "Devices",
+    "permissions.notApplicable": "-",
   },
 };
 
@@ -313,6 +341,9 @@ const applyLanguage = (language, { persist = false } = {}) => {
   });
   applyTheme(getTheme());
   refreshLanguageDialog(language);
+  if (document.querySelector("#centralUsersDialog")?.open) {
+    refreshPermissionGrids();
+  }
 };
 
 const languageOptionMarkup = (value, flag, titleKey, regionKey, activeLanguage) => `
@@ -431,6 +462,120 @@ const refreshStatus = async () => {
   }
 };
 
+const centralAreaIds = ["socios", "utentes", "dispositivos"];
+const centralAreaActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
+
+const emptyAreaPermissions = () => ({
+  view: false,
+  edit: false,
+  view_sensitive: false,
+  edit_sensitive: false,
+  export: false,
+  delete: false,
+});
+
+const defaultCentralPermissionsForRole = (role = "viewer") => {
+  const all = (sensitive = true, deleteAllowed = true) => ({
+    view: true,
+    edit: true,
+    view_sensitive: Boolean(sensitive),
+    edit_sensitive: Boolean(sensitive),
+    export: true,
+    delete: Boolean(deleteAllowed),
+  });
+  const defaults = {
+    admin: {
+      central: { manage_users: true, view_history: true },
+      socios: all(false, true),
+      utentes: all(true, true),
+      dispositivos: all(false, true),
+    },
+    operator: {
+      central: { manage_users: false, view_history: true },
+      socios: all(false, false),
+      utentes: all(true, false),
+      dispositivos: all(false, false),
+    },
+    viewer: {
+      central: { manage_users: false, view_history: false },
+      socios: { ...emptyAreaPermissions(), view: true },
+      utentes: { ...emptyAreaPermissions(), view: true },
+      dispositivos: { ...emptyAreaPermissions(), view: true },
+    },
+  };
+  return JSON.parse(JSON.stringify(defaults[role] || defaults.viewer));
+};
+
+const boolPermission = (value) => value === true || value === "true" || value === 1 || value === "1";
+
+const normalizeCentralPermissions = (input, role = "viewer") => {
+  const normalized = defaultCentralPermissionsForRole(role);
+  const source = input && typeof input === "object" ? input : {};
+  normalized.central = {
+    manage_users: boolPermission(source.central?.manage_users ?? normalized.central.manage_users),
+    view_history: boolPermission(source.central?.view_history ?? normalized.central.view_history),
+  };
+  centralAreaIds.forEach((area) => {
+    const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
+    const nextArea = { ...normalized[area] };
+    centralAreaActions.forEach((action) => {
+      if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+        nextArea[action] = boolPermission(sourceArea[action]);
+      }
+    });
+    if (nextArea.edit) nextArea.view = true;
+    if (nextArea.export) nextArea.view = true;
+    if (nextArea.delete) {
+      nextArea.view = true;
+      nextArea.edit = true;
+    }
+    if (nextArea.view_sensitive) nextArea.view = true;
+    if (nextArea.edit_sensitive) {
+      nextArea.view = true;
+      nextArea.edit = true;
+      nextArea.view_sensitive = true;
+    }
+    if (area !== "utentes") {
+      nextArea.view_sensitive = false;
+      nextArea.edit_sensitive = false;
+    }
+    normalized[area] = nextArea;
+  });
+  return normalized;
+};
+
+const centralHasPermission = (profile, area, action) => {
+  const permissions = normalizeCentralPermissions(profile?.permissions, profile?.role);
+  if (area === "central") return Boolean(permissions.central?.[action]);
+  return Boolean(permissions[area]?.[action]);
+};
+
+const centralCanManageUsers = (profile) => centralHasPermission(profile, "central", "manage_users");
+
+const applyCentralPermissionsToPage = (profile) => {
+  const permissions = normalizeCentralPermissions(profile?.permissions, profile?.role);
+  centralAreaIds.forEach((area) => {
+    const canView = Boolean(permissions[area]?.view);
+    document.querySelectorAll(`[data-module-card="${area}"]`).forEach((node) => {
+      node.hidden = !canView;
+    });
+    document.querySelectorAll(`a[href^="/area/${area}"]`).forEach((node) => {
+      node.hidden = !canView;
+      node.setAttribute("aria-disabled", String(!canView));
+    });
+  });
+  document.querySelectorAll("[data-users-toggle]").forEach((node) => {
+    node.hidden = !centralCanManageUsers({ ...profile, permissions });
+  });
+};
+
+window.CENTRAL_PERMISSIONS = {
+  normalize: normalizeCentralPermissions,
+  has: centralHasPermission,
+  canManageUsers: centralCanManageUsers,
+  applyToPage: applyCentralPermissionsToPage,
+};
+
 const centralUsersState = {
   client: null,
   session: null,
@@ -478,6 +623,8 @@ const centralUsersElements = () => ({
   editEmail: document.querySelector("#centralEditUserEmail"),
   editRole: document.querySelector("#centralEditUserRole"),
   editActive: document.querySelector("#centralEditUserActive"),
+  createPermissions: document.querySelector('[data-permission-grid="create"]'),
+  editPermissions: document.querySelector('[data-permission-grid="edit"]'),
   clearBtn: document.querySelector("#centralClearUserBtn"),
 });
 
@@ -485,6 +632,110 @@ const showCentralFormError = (node, message) => {
   if (!node) return;
   node.textContent = message || "";
   node.hidden = !message;
+};
+
+const permissionInputName = (scope, area, action) => `${scope}_${area}_${action}`;
+
+const renderPermissionGrid = (container, scope, permissions) => {
+  if (!container) return;
+  const language = getLanguage();
+  const rows = centralAreaIds
+    .map((area) => {
+      const areaPermissions = permissions[area] || emptyAreaPermissions();
+      const cells = centralAreaActions
+        .map((action) => {
+          const isSensitive = action === "view_sensitive" || action === "edit_sensitive";
+          if (isSensitive && area !== "utentes") {
+            return `<td class="permission-na">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
+          }
+          const name = permissionInputName(scope, area, action);
+          return `
+            <td>
+              <label class="permission-check" title="${escapeHtml(getTranslation(`permissions.${permissionActionKey(action)}`, language))}">
+                <input type="checkbox" name="${escapeHtml(name)}" data-permission-input="${escapeHtml(scope)}" data-area="${escapeHtml(area)}" data-action="${escapeHtml(action)}" ${areaPermissions[action] ? "checked" : ""}>
+                <span></span>
+              </label>
+            </td>
+          `;
+        })
+        .join("");
+      return `
+        <tr>
+          <th scope="row">${escapeHtml(getTranslation(`permissions.${area}`, language))}</th>
+          ${cells}
+        </tr>
+      `;
+    })
+    .join("");
+
+  container.innerHTML = `
+    <div class="permission-matrix-wrap">
+      <table class="permission-matrix">
+        <thead>
+          <tr>
+            <th>${escapeHtml(getTranslation("permissions.area", language))}</th>
+            <th>${escapeHtml(getTranslation("permissions.view", language))}</th>
+            <th>${escapeHtml(getTranslation("permissions.edit", language))}</th>
+            <th>${escapeHtml(getTranslation("permissions.viewSensitive", language))}</th>
+            <th>${escapeHtml(getTranslation("permissions.editSensitive", language))}</th>
+            <th>${escapeHtml(getTranslation("permissions.export", language))}</th>
+            <th>${escapeHtml(getTranslation("permissions.delete", language))}</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <fieldset class="central-permission-fieldset">
+      <legend>${escapeHtml(getTranslation("permissions.central", language))}</legend>
+      <label class="remember-field">
+        <input type="checkbox" name="${escapeHtml(permissionInputName(scope, "central", "manage_users"))}" data-permission-input="${escapeHtml(scope)}" data-area="central" data-action="manage_users" ${permissions.central?.manage_users ? "checked" : ""}>
+        <span>${escapeHtml(getTranslation("permissions.manageUsers", language))}</span>
+      </label>
+      <label class="remember-field">
+        <input type="checkbox" name="${escapeHtml(permissionInputName(scope, "central", "view_history"))}" data-permission-input="${escapeHtml(scope)}" data-area="central" data-action="view_history" ${permissions.central?.view_history ? "checked" : ""}>
+        <span>${escapeHtml(getTranslation("permissions.viewHistory", language))}</span>
+      </label>
+    </fieldset>
+  `;
+};
+
+const permissionActionKey = (action) => ({
+  view: "view",
+  edit: "edit",
+  view_sensitive: "viewSensitive",
+  edit_sensitive: "editSensitive",
+  export: "export",
+  delete: "delete",
+}[action] || action);
+
+const collectPermissionGrid = (scope, role) => {
+  const permissions = defaultCentralPermissionsForRole(role);
+  document.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
+    const area = input.dataset.area;
+    const action = input.dataset.action;
+    if (!area || !action) return;
+    if (area === "central") {
+      permissions.central[action] = input.checked;
+      return;
+    }
+    if (permissions[area]) {
+      permissions[area][action] = input.checked;
+    }
+  });
+  return normalizeCentralPermissions(permissions, role);
+};
+
+const refreshPermissionGrids = () => {
+  const elements = centralUsersElements();
+  const createRole = elements.createForm?.querySelector('[name="role"]')?.value || "viewer";
+  const editRole = elements.editRole?.value || "viewer";
+  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole(createRole));
+  const editingUser = centralUsersState.users.find((item) => item.id === centralUsersState.editingId);
+  renderPermissionGrid(
+    elements.editPermissions,
+    "edit",
+    normalizeCentralPermissions(editingUser?.permissions, editingUser?.role || editRole),
+  );
 };
 
 const createCentralClient = () => {
@@ -519,12 +770,14 @@ const requireCentralAdmin = async () => {
 
   const { data, error } = await client
     .from("app_users")
-    .select("id,email,full_name,role,active")
+    .select("id,email,full_name,role,active,permissions")
     .eq("id", session.user.id)
     .maybeSingle();
 
   if (error) throw error;
-  if (!data?.active || data.role !== "admin") throw new Error(getTranslation("users.adminOnly"));
+  if (!data) throw new Error(getTranslation("users.adminOnly"));
+  data.permissions = normalizeCentralPermissions(data.permissions, data.role);
+  if (!data?.active || !centralCanManageUsers(data)) throw new Error(getTranslation("users.adminOnly"));
 
   centralUsersState.profile = data;
   return data;
@@ -539,6 +792,8 @@ const resetCentralUserForms = () => {
   if (elements.editRole) elements.editRole.value = "viewer";
   if (elements.editActive) elements.editActive.checked = true;
   if (elements.editHint) elements.editHint.textContent = getTranslation("users.editHint");
+  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole(elements.createForm?.querySelector('[name="role"]')?.value || "viewer"));
+  renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole("viewer"));
   showCentralFormError(elements.createError, "");
   showCentralFormError(elements.editError, "");
 };
@@ -603,14 +858,18 @@ const renderCentralUsers = () => {
 };
 
 const refreshCentralUsers = async () => {
-  const client = createCentralClient();
   await requireCentralAdmin();
-  const { data, error } = await client
-    .from("app_users")
-    .select("id,email,full_name,role,active,created_at,updated_at")
-    .order("email", { ascending: true });
-  if (error) throw error;
-  centralUsersState.users = data || [];
+  const response = await fetch("/api/central-users", {
+    headers: {
+      Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
+    },
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || getTranslation("users.adminOnly"));
+  centralUsersState.users = (result.users || []).map((user) => ({
+    ...user,
+    permissions: normalizeCentralPermissions(user.permissions, user.role),
+  }));
   renderCentralUsers();
 };
 
@@ -622,6 +881,7 @@ const fillCentralUserForm = (user) => {
   elements.editEmail.value = user.email || "";
   elements.editRole.value = user.role || "viewer";
   elements.editActive.checked = Boolean(user.active);
+  renderPermissionGrid(elements.editPermissions, "edit", normalizeCentralPermissions(user.permissions, user.role));
   elements.editHint.textContent = `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`;
   showCentralFormError(elements.editError, "");
 };
@@ -645,6 +905,7 @@ const handleCentralCreateUser = async (event) => {
     password: String(form.get("password") || ""),
     role: String(form.get("role") || "viewer"),
   };
+  payload.permissions = collectPermissionGrid("create", payload.role);
   const validation = validateCentralUser({ ...payload, requirePassword: true });
   if (validation) {
     showCentralFormError(elements.createError, validation);
@@ -657,7 +918,7 @@ const handleCentralCreateUser = async (event) => {
 
   try {
     await requireCentralAdmin();
-    const response = await fetch("/api/create-user", {
+    const response = await fetch("/api/central-users", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
@@ -679,21 +940,20 @@ const handleCentralCreateUser = async (event) => {
 const handleCentralEditUser = async (event) => {
   event.preventDefault();
   const elements = centralUsersElements();
-  const client = createCentralClient();
   const form = new FormData(event.currentTarget);
   const payload = {
     id: String(form.get("id") || "").trim(),
     email: String(form.get("email") || "").trim().toLowerCase(),
-    full_name: String(form.get("fullName") || "").trim() || null,
+    fullName: String(form.get("fullName") || "").trim(),
     role: String(form.get("role") || "viewer"),
     active: form.get("active") === "on",
-    updated_at: new Date().toISOString(),
   };
+  payload.permissions = collectPermissionGrid("edit", payload.role);
   const validation = validateCentralUser({
     id: payload.id,
     email: payload.email,
     role: payload.role,
-    fullName: payload.full_name || "",
+    fullName: payload.fullName || "",
   });
   if (validation) {
     showCentralFormError(elements.editError, validation);
@@ -706,8 +966,16 @@ const handleCentralEditUser = async (event) => {
 
   try {
     await requireCentralAdmin();
-    const { error } = await client.from("app_users").upsert(payload, { onConflict: "id" });
-    if (error) throw error;
+    const response = await fetch("/api/central-users", {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || getTranslation("users.adminOnly"));
     resetCentralUserForms();
     await refreshCentralUsers();
   } catch (error) {
@@ -717,15 +985,26 @@ const handleCentralEditUser = async (event) => {
 
 const toggleCentralUser = async (id) => {
   if (id === centralUsersState.session?.user?.id) return;
-  const client = createCentralClient();
   const user = centralUsersState.users.find((item) => item.id === id);
   if (!user) return;
   await requireCentralAdmin();
-  const { error } = await client
-    .from("app_users")
-    .update({ active: !user.active, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) throw error;
+  const response = await fetch("/api/central-users", {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id,
+      email: user.email,
+      fullName: user.full_name || user.email || "Utilizador",
+      role: user.role || "viewer",
+      active: !user.active,
+      permissions: normalizeCentralPermissions(user.permissions, user.role),
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || getTranslation("users.adminOnly"));
   await refreshCentralUsers();
 };
 
@@ -736,8 +1015,8 @@ const deleteCentralUser = async (id) => {
   const confirmed = window.confirm(`Eliminar o acesso de ${user.full_name || user.email}? Esta ação remove a conta de login.`);
   if (!confirmed) return;
   await requireCentralAdmin();
-  const response = await fetch("/api/delete-user", {
-    method: "POST",
+  const response = await fetch("/api/central-users", {
+    method: "DELETE",
     headers: {
       Authorization: `Bearer ${centralUsersState.session?.access_token || ""}`,
       "Content-Type": "application/json",
@@ -804,6 +1083,10 @@ const wireCentralUsersDialog = () => {
   });
   elements.createForm?.addEventListener("submit", handleCentralCreateUser);
   elements.editForm?.addEventListener("submit", handleCentralEditUser);
+  elements.createForm?.querySelector('[name="role"]')?.addEventListener("change", refreshPermissionGrids);
+  elements.editRole?.addEventListener("change", () => {
+    renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole(elements.editRole.value || "viewer"));
+  });
   elements.clearBtn?.addEventListener("click", resetCentralUserForms);
   elements.table?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-central-user-action]");

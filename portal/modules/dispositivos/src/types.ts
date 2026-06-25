@@ -1,6 +1,25 @@
 export type DeviceStatus = 'active' | 'maintenance' | 'retired'
 
-export type MemberRole = 'admin' | 'operator' | 'viewer'
+export type MemberRole = 'admin' | 'manager' | 'member'
+
+export type CentralAreaPermission = {
+  view: boolean
+  edit: boolean
+  view_sensitive: boolean
+  edit_sensitive: boolean
+  export: boolean
+  delete: boolean
+}
+
+export type CentralPermissions = {
+  socios?: Partial<CentralAreaPermission>
+  utentes?: Partial<CentralAreaPermission>
+  dispositivos?: Partial<CentralAreaPermission>
+  central?: {
+    manage_users?: boolean
+    view_history?: boolean
+  }
+}
 
 export type Profile = {
   id: string
@@ -8,6 +27,7 @@ export type Profile = {
   full_name: string | null
   role: MemberRole
   active?: boolean
+  permissions?: CentralPermissions | null
   created_at?: string
   updated_at?: string
 }

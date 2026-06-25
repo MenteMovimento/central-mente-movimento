@@ -1,8 +1,6 @@
 import {
   type ChangeEvent,
   type FormEvent,
-  lazy,
-  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -63,25 +61,28 @@ import {
   repairFormSections,
   repairTableColumns,
 } from './repairInventory'
-import type { Device, DeviceForm, DeviceStatus, RepairColumnKey, Profile } from './types'
+import type {
+  CentralAreaPermission,
+  CentralPermissions,
+  Device,
+  DeviceForm,
+  DeviceStatus,
+  Profile,
+  RepairColumnKey,
+} from './types'
 import type { DeviceAttachment, DeviceHistoryEntry } from './types'
 
-const UtentesPanel = lazy(() =>
-  import('./components/UtentesPanel').then((module) => ({ default: module.UtentesPanel })),
-)
-
 const deviceStatuses: DeviceStatus[] = ['active', 'maintenance', 'retired']
-const memberRoles: Profile['role'][] = ['admin', 'operator', 'viewer']
+const memberRoles: Profile['role'][] = ['admin', 'manager', 'member']
 type AppLanguage = 'pt' | 'en'
 type AppTheme = 'light' | 'dark'
-type AppView = 'devices' | 'utentes' | 'stats' | 'users'
+type AppView = 'devices' | 'stats' | 'users'
 type ManualMode = 'choice' | 'user' | 'developer'
 type SortColumnKey = (typeof repairTableColumns)[number]['key']
 type SortDirection = 'asc' | 'desc'
 
 const viewHashes: Record<AppView, string> = {
   devices: '#dispositivos',
-  utentes: '#utentes',
   stats: '#estatisticas',
   users: '#utilizadores',
 }
@@ -90,7 +91,6 @@ const getViewFromHash = (): AppView => {
   const hash = window.location.hash.replace(/^#/, '').toLowerCase()
 
   if (hash === 'estatisticas' || hash === 'stats') return 'stats'
-  if (hash === 'utilizadores' || hash === 'users') return 'users'
   return 'devices'
 }
 
@@ -110,14 +110,131 @@ const statusLabels: Record<AppLanguage, Record<DeviceStatus, string>> = {
 const roleLabels: Record<AppLanguage, Record<Profile['role'], string>> = {
   pt: {
     admin: 'Administrador',
-    operator: 'Operador',
-    viewer: 'Consulta',
+    manager: 'Gestor',
+    member: 'Membro',
   },
   en: {
     admin: 'Administrator',
-    operator: 'Operator',
-    viewer: 'Viewer',
+    manager: 'Manager',
+    member: 'Member',
   },
+}
+
+type CentralAreaId = 'socios' | 'utentes' | 'dispositivos'
+type CentralPermissionAction = keyof CentralAreaPermission
+
+const centralAreas: CentralAreaId[] = ['socios', 'utentes', 'dispositivos']
+const centralAreaActions: CentralPermissionAction[] = [
+  'view',
+  'edit',
+  'view_sensitive',
+  'edit_sensitive',
+  'export',
+  'delete',
+]
+
+const defaultCentralPermissionsForRole = (role?: string | null): Required<CentralPermissions> => {
+  const normalizedRole = role === 'admin' ? 'admin' : role === 'operator' || role === 'manager' ? 'manager' : 'member'
+  const editable = normalizedRole === 'admin' || normalizedRole === 'manager'
+  const canDelete = normalizedRole === 'admin'
+  const canExport = normalizedRole === 'admin' || normalizedRole === 'manager'
+
+  return {
+    socios: {
+      view: true,
+      edit: editable,
+      view_sensitive: false,
+      edit_sensitive: false,
+      export: canExport,
+      delete: canDelete,
+    },
+    utentes: {
+      view: true,
+      edit: editable,
+      view_sensitive: normalizedRole !== 'member',
+      edit_sensitive: editable,
+      export: canExport,
+      delete: canDelete,
+    },
+    dispositivos: {
+      view: true,
+      edit: editable,
+      view_sensitive: false,
+      edit_sensitive: false,
+      export: canExport,
+      delete: canDelete,
+    },
+    central: {
+      manage_users: normalizedRole === 'admin',
+      view_history: normalizedRole === 'admin',
+    },
+  }
+}
+
+const normalizeCentralPermissions = (
+  permissions?: CentralPermissions | null,
+  role?: string | null,
+): Required<CentralPermissions> => {
+  const normalized = defaultCentralPermissionsForRole(role)
+
+  if (permissions && typeof permissions === 'object') {
+    centralAreas.forEach((area) => {
+      centralAreaActions.forEach((action) => {
+        const value = permissions[area]?.[action]
+        if (typeof value === 'boolean') {
+          normalized[area][action] = value
+        }
+      })
+    })
+
+    if (typeof permissions.central?.manage_users === 'boolean') {
+      normalized.central.manage_users = permissions.central.manage_users
+    }
+
+    if (typeof permissions.central?.view_history === 'boolean') {
+      normalized.central.view_history = permissions.central.view_history
+    }
+  }
+
+  centralAreas.forEach((area) => {
+    const areaPermissions = normalized[area]
+    if (areaPermissions.delete) {
+      areaPermissions.edit = true
+      areaPermissions.view = true
+    }
+    if (areaPermissions.edit) areaPermissions.view = true
+    if (areaPermissions.export) areaPermissions.view = true
+    if (areaPermissions.edit_sensitive) {
+      areaPermissions.view_sensitive = true
+      areaPermissions.edit = true
+      areaPermissions.view = true
+    }
+    if (areaPermissions.view_sensitive) areaPermissions.view = true
+    if (area !== 'utentes') {
+      areaPermissions.view_sensitive = false
+      areaPermissions.edit_sensitive = false
+    }
+  })
+
+  return normalized
+}
+
+const hasCentralPermission = (
+  profile: Profile | null,
+  area: CentralAreaId | 'central',
+  action: CentralPermissionAction | 'manage_users' | 'view_history',
+) => {
+  const permissions = normalizeCentralPermissions(profile?.permissions, profile?.role)
+  if (area === 'central') {
+    return Boolean(permissions.central[action as 'manage_users' | 'view_history'])
+  }
+  return Boolean(permissions[area][action as CentralPermissionAction])
+}
+
+const mapCentralRoleToDeviceRole = (role?: string | null): Profile['role'] => {
+  if (role === 'admin') return 'admin'
+  if (role === 'operator' || role === 'manager') return 'manager'
+  return 'member'
 }
 
 const authEmailCooldownSeconds = 60
@@ -1046,7 +1163,7 @@ const initialDemoProfiles: Profile[] = [
     id: 'demo-manager',
     email: 'gestor.demo@mentemovimento.pt',
     full_name: 'Gestor demo',
-    role: 'operator',
+    role: 'manager',
     created_at: '2026-05-22T09:20:00.000Z',
     updated_at: '2026-05-22T09:20:00.000Z',
   },
@@ -1054,7 +1171,7 @@ const initialDemoProfiles: Profile[] = [
     id: 'demo-member',
     email: 'membro.demo@mentemovimento.pt',
     full_name: 'Membro demo',
-    role: 'viewer',
+    role: 'member',
     created_at: '2026-05-22T09:40:00.000Z',
     updated_at: '2026-05-22T09:40:00.000Z',
   },
@@ -1179,12 +1296,25 @@ function App() {
   const toolsMenuRef = useRef<HTMLDivElement | null>(null)
 
   const isDemoMode = !isSupabaseConfigured
-  const currentRole: Profile['role'] = isDemoMode ? 'admin' : (profile?.role ?? 'viewer')
+  const effectiveProfile: Profile | null = isDemoMode
+    ? {
+        id: 'demo-admin',
+        email: 'demo@mentemovimento.local',
+        full_name: 'Administrador',
+        role: 'admin',
+        active: true,
+        permissions: normalizeCentralPermissions(null, 'admin'),
+      }
+    : profile
+  const currentRole: Profile['role'] = effectiveProfile?.role ?? 'member'
   const currentProfileId = isDemoMode ? 'demo-admin' : profile?.id
   const isAuthenticated = isDemoMode || Boolean(session)
-  const canManageDevices = isAuthenticated && (currentRole === 'admin' || currentRole === 'operator')
-  const canManageUsers = isAuthenticated && currentRole === 'admin'
-  const selectedView = canManageUsers ? activeView : 'devices'
+  const canManageDevices = isAuthenticated && hasCentralPermission(effectiveProfile, 'dispositivos', 'edit')
+  const canExportDevices = isAuthenticated && hasCentralPermission(effectiveProfile, 'dispositivos', 'export')
+  const canDeleteDevices = isAuthenticated && hasCentralPermission(effectiveProfile, 'dispositivos', 'delete')
+  const canViewGlobalHistory = isAuthenticated && hasCentralPermission(effectiveProfile, 'central', 'view_history')
+  const canManageUsers = isAuthenticated && hasCentralPermission(effectiveProfile, 'central', 'manage_users')
+  const selectedView = (activeView === 'stats' ? 'stats' : 'devices') as AppView
   const currentAuthEmail = normalizeEmail(authForm.email)
   const signupCooldownRemaining = getRemainingSeconds(signupCooldownUntil, authClock)
   const resendCooldownRemaining = getRemainingSeconds(resendCooldownUntil, authClock)
@@ -1204,22 +1334,78 @@ function App() {
   const loadProfile = useCallback(async (userId: string, userEmail?: string | null) => {
     if (!supabase) return
 
-    const { data, error } = await supabase
+    const fallbackProfile: Profile = {
+      id: userId,
+      email: userEmail ?? null,
+      full_name: null,
+      role: 'admin',
+      active: true,
+      permissions: normalizeCentralPermissions(null, 'admin'),
+    }
+
+    const { data: appUser, error: appUserError } = await supabase
       .from('app_users')
-      .select('id, email, full_name, role, active')
+      .select('id, email, full_name, role, active, permissions')
       .eq('id', userId)
       .maybeSingle()
 
-    if (error || !data?.active) {
-      setProfile(null)
+    if (!appUserError && appUser) {
+      const centralRole = String(appUser.role ?? 'viewer')
+      setProfile({
+        id: appUser.id,
+        email: appUser.email ?? userEmail ?? null,
+        full_name: appUser.full_name ?? null,
+        role: mapCentralRoleToDeviceRole(centralRole),
+        active: Boolean(appUser.active),
+        permissions: normalizeCentralPermissions(appUser.permissions as CentralPermissions | null, centralRole),
+      })
       return
     }
 
-    setProfile({
-      ...(data as Profile),
-      email: data.email ?? userEmail ?? null,
-      role: data.role as Profile['role'],
-    })
+    if (
+      appUserError &&
+      !getErrorMessage(appUserError).toLowerCase().includes('permissions') &&
+      !getErrorMessage(appUserError).toLowerCase().includes('app_users')
+    ) {
+      setProfile(fallbackProfile)
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (error && isMissingEmailColumnError(error)) {
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('profiles')
+        .select('id, full_name, role')
+        .eq('id', userId)
+        .maybeSingle()
+
+      if (fallbackError) {
+        setProfile(fallbackProfile)
+        return
+      }
+
+      setProfile(
+        fallbackData
+          ? ({
+              ...(fallbackData as Omit<Profile, 'email'>),
+              email: userEmail ?? null,
+            } as Profile)
+          : fallbackProfile,
+      )
+      return
+    }
+
+    if (error) {
+      setProfile(fallbackProfile)
+      return
+    }
+
+    setProfile((data as Profile | null) ?? fallbackProfile)
   }, [])
 
   const loadDevices = useCallback(async () => {
@@ -1925,7 +2111,7 @@ function App() {
   }
 
   const deleteDevice = async (device: Device) => {
-    if (!canManageDevices) return
+    if (!canDeleteDevices) return
 
     const confirmed = window.confirm(t.deleteOne(device.name))
     if (!confirmed) return
@@ -1966,7 +2152,7 @@ function App() {
   }
 
   const deleteAllDevices = async () => {
-    if (!canManageDevices) return
+    if (!canDeleteDevices) return
 
     if (devices.length === 0) {
       setNotice(t.noDevicesToDelete)
@@ -2047,7 +2233,7 @@ function App() {
           id: createDemoId(),
           email: payload.email,
           full_name: payload.fullName,
-          role: 'viewer',
+          role: 'admin',
           created_at: now,
           updated_at: now,
         }
@@ -2282,6 +2468,8 @@ function App() {
   }
 
   const exportDevicesCsv = () => {
+    if (!canExportDevices) return
+
     if (filteredDevices.length === 0) {
       setNotice(t.noExportVisible)
       return
@@ -3056,19 +3244,21 @@ function App() {
               </button>
               {isToolsMenuOpen && (
                 <div className="portal-menu" id="portal-tools-menu" role="menu">
-                  <button
-                    type="button"
-                    className="portal-menu-item"
-                    onClick={() => {
-                      setIsHistoryDialogOpen(true)
-                      setIsToolsMenuOpen(false)
-                      void refreshGlobalHistory()
-                    }}
-                    role="menuitem"
-                  >
-                    <History aria-hidden="true" />
-                    <span>{t.history}</span>
-                  </button>
+                  {canViewGlobalHistory && (
+                    <button
+                      type="button"
+                      className="portal-menu-item"
+                      onClick={() => {
+                        setIsHistoryDialogOpen(true)
+                        setIsToolsMenuOpen(false)
+                        void refreshGlobalHistory()
+                      }}
+                      role="menuitem"
+                    >
+                      <History aria-hidden="true" />
+                      <span>{t.history}</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="portal-menu-item"
@@ -3370,14 +3560,18 @@ function App() {
                 accept=".csv,text/csv"
                 onChange={importDevicesCsv}
               />
-              <button type="button" className="ghost-action" onClick={exportDevicesCsv}>
-                <Download aria-hidden="true" />
-                {t.exportCsv}
-              </button>
-              <button type="button" className="ghost-action" onClick={printDevicesReport}>
-                <Printer aria-hidden="true" />
-                {t.printReport}
-              </button>
+              {canExportDevices && (
+                <>
+                  <button type="button" className="ghost-action" onClick={exportDevicesCsv}>
+                    <Download aria-hidden="true" />
+                    {t.exportCsv}
+                  </button>
+                  <button type="button" className="ghost-action" onClick={printDevicesReport}>
+                    <Printer aria-hidden="true" />
+                    {t.printReport}
+                  </button>
+                </>
+              )}
               {canManageDevices && (
                 <button
                   type="button"
@@ -3393,7 +3587,7 @@ function App() {
                   {t.importCsv}
                 </button>
               )}
-              {canManageDevices && (
+              {canDeleteDevices && (
                 <button
                   type="button"
                   className="danger-action"
@@ -3495,12 +3689,12 @@ function App() {
             </div>
           ) : (
             <div className="table-wrap">
-              <table className={`repair-table ${canManageDevices ? 'has-actions' : ''}`}>
+              <table className={`repair-table ${canManageDevices || canDeleteDevices ? 'has-actions' : ''}`}>
                 <colgroup>
                   {repairTableColumns.map((column) => (
                     <col key={column.key} style={{ width: column.width }} />
                   ))}
-                  {canManageDevices && <col className="col-actions" />}
+                  {(canManageDevices || canDeleteDevices) && <col className="col-actions" />}
                 </colgroup>
                 <thead>
                   <tr>
@@ -3540,7 +3734,7 @@ function App() {
                         </th>
                       )
                     })}
-                    {canManageDevices && <th aria-label={t.actions} />}
+                    {(canManageDevices || canDeleteDevices) && <th aria-label={t.actions} />}
                   </tr>
                 </thead>
                 <tbody>
@@ -3562,27 +3756,31 @@ function App() {
                           </td>
                         )
                       })}
-                      {canManageDevices && (
+                      {(canManageDevices || canDeleteDevices) && (
                         <td>
                           <div className="row-actions">
-                            <button
-                              type="button"
-                              className="icon-button"
-                              onClick={() => startEditing(device)}
-                              title={t.edit}
-                              aria-label={t.edit}
-                            >
-                              <Edit3 aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-button danger"
-                              onClick={() => void deleteDevice(device)}
-                              title={t.delete}
-                              aria-label={t.delete}
-                            >
-                              <Trash2 aria-hidden="true" />
-                            </button>
+                            {canManageDevices && (
+                              <button
+                                type="button"
+                                className="icon-button"
+                                onClick={() => startEditing(device)}
+                                title={t.edit}
+                                aria-label={t.edit}
+                              >
+                                <Edit3 aria-hidden="true" />
+                              </button>
+                            )}
+                            {canDeleteDevices && (
+                              <button
+                                type="button"
+                                className="icon-button danger"
+                                onClick={() => void deleteDevice(device)}
+                                title={t.delete}
+                                aria-label={t.delete}
+                              >
+                                <Trash2 aria-hidden="true" />
+                              </button>
+                            )}
                           </div>
                         </td>
                       )}
@@ -3595,19 +3793,6 @@ function App() {
         </section>
       </div>
         </>
-      ) : selectedView === 'utentes' ? (
-        <Suspense
-          fallback={
-            <section className="utentes-page">
-              <div className="loading-state">
-                <Loader2 className="spin" aria-hidden="true" />
-                {t.loading}
-              </div>
-            </section>
-          }
-        >
-          <UtentesPanel session={session} isDemoMode={isDemoMode} language={language} />
-        </Suspense>
       ) : selectedView === 'stats' ? (
         <section className="stats-page" aria-labelledby="stats-title">
           <div className="section-heading">
@@ -3617,10 +3802,12 @@ function App() {
                 {devices.length} {t.visibleRecords}
               </p>
             </div>
-            <button type="button" className="ghost-action" onClick={printDevicesReport}>
-              <FileText aria-hidden="true" />
-              {t.printReport}
-            </button>
+            {canExportDevices && (
+              <button type="button" className="ghost-action" onClick={printDevicesReport}>
+                <FileText aria-hidden="true" />
+                {t.printReport}
+              </button>
+            )}
           </div>
 
           <section className="stats-grid" aria-label={t.devicesSummary}>
@@ -3799,7 +3986,7 @@ function App() {
               <label>
                 {t.permission}
                 <select
-                  value={selectedProfileForEdit?.role ?? 'viewer'}
+                  value={selectedProfileForEdit?.role ?? 'member'}
                   disabled={!selectedProfileForEdit || selectedProfileForEdit.id === currentProfileId}
                   onChange={(event) => {
                     if (selectedProfileForEdit) {

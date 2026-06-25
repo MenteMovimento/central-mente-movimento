@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { canManageUsers, normalizePermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -62,13 +63,23 @@ const requireSociosAdmin = async (request, response, adminClient) => {
     return null
   }
 
-  const { data: profile, error: profileError } = await adminClient
+  let { data: profile, error: profileError } = await adminClient
     .from('app_users')
-    .select('role, active')
+    .select('role, active, permissions')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profileError || !profile?.active || profile.role !== 'admin') {
+  if (profileError && getErrorMessage(profileError).toLowerCase().includes('permissions')) {
+    const fallback = await adminClient
+      .from('app_users')
+      .select('role, active')
+      .eq('id', user.id)
+      .maybeSingle()
+    profile = fallback.data ? { ...fallback.data, permissions: normalizePermissions(null, fallback.data.role) } : null
+    profileError = fallback.error
+  }
+
+  if (profileError || !profile?.active || !canManageUsers(profile)) {
     sendJson(response, 403, { error: 'Apenas administradores podem gerir utilizadores.' })
     return null
   }
@@ -103,28 +114,11 @@ export default async function handler(request, response) {
       return
     }
 
-    const { data: profile, error: profileError } = await adminClient
+    const { data: profile } = await adminClient
       .from('app_users')
-      .select('email, role, active')
+      .select('email')
       .eq('id', id)
       .maybeSingle()
-
-    if (profileError) throw profileError
-
-    if (profile?.role === 'admin' && profile.active !== false) {
-      const { count, error: countError } = await adminClient
-        .from('app_users')
-        .select('id', { count: 'exact', head: true })
-        .eq('role', 'admin')
-        .eq('active', true)
-
-      if (countError) throw countError
-
-      if ((count ?? 0) <= 1) {
-        sendJson(response, 400, { error: 'Nao pode eliminar o ultimo administrador ativo.' })
-        return
-      }
-    }
 
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(id)
     if (deleteUserError) throw deleteUserError

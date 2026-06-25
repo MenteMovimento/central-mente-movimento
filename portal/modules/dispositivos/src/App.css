@@ -864,12 +864,12 @@ textarea:focus {
   background: var(--brand-cyan-soft);
 }
 
-.role-badge.role-operator {
+.role-badge.role-manager {
   color: var(--success);
   background: var(--success-soft);
 }
 
-.role-badge.role-viewer {
+.role-badge.role-member {
   color: #526473;
   background: #edf3f6;
 }
@@ -2186,7 +2186,7 @@ tbody tr:last-child td {
   background: var(--brand-cyan-pale);
 }
 
-:root[data-theme='dark'] .role-badge.role-viewer,
+:root[data-theme='dark'] .role-badge.role-member,
 :root[data-theme='dark'] .status-pill.retired {
   color: var(--muted);
   background: rgba(158, 179, 189, 0.14);

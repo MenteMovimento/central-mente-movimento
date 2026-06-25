@@ -244,6 +244,7 @@ const centralUsersDialog = `
             <option value="viewer" data-i18n="users.roleViewer">Consulta</option>
           </select>
         </label>
+        <div class="permission-editor" data-permission-grid="create"></div>
         <p class="form-error" id="centralCreateUserError" role="alert" hidden></p>
         <button class="primary-button" type="submit">
           <i data-lucide="user-plus"></i>
@@ -277,6 +278,7 @@ const centralUsersDialog = `
           <input id="centralEditUserActive" name="active" type="checkbox" checked />
           <span data-i18n="users.active">Ativo</span>
         </label>
+        <div class="permission-editor" data-permission-grid="edit"></div>
         <p class="form-error" id="centralEditUserError" role="alert" hidden></p>
         <div class="central-user-form-actions">
           <button class="secondary-button" id="centralClearUserBtn" type="button" data-i18n="users.clear">Limpar</button>
@@ -443,7 +445,7 @@ await writeFile(
     }
   };
   const clearCentralSession = async (client) => {
-    accessPromise = null;
+    accessPromises.clear();
     try {
       await client.auth.signOut();
     } catch (_error) {
@@ -498,6 +500,12 @@ await writeFile(
     if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\\\")) return fallback;
     return value;
   };
+  const areaFromPath = (path) => {
+    if (path.startsWith("/area/socios")) return "socios";
+    if (path.startsWith("/area/utentes")) return "utentes";
+    if (path.startsWith("/area/dispositivos")) return "dispositivos";
+    return "";
+  };
   const nextPath = () => safePath(new URLSearchParams(window.location.search).get("next"), "/dashboard");
   const showError = (message) => {
     const error = document.querySelector("#centralAuthError");
@@ -510,21 +518,21 @@ await writeFile(
       node.textContent = session?.user?.user_metadata?.full_name || session?.user?.email || "Administrador";
     });
   };
-  const cacheKey = (session) => \`central-access:\${session?.user?.id || "anon"}\`;
-  const hasAccessCache = (session) => {
+  const cacheKey = (session, area = "") => \`central-access:\${session?.user?.id || "anon"}:\${area || "dashboard"}\`;
+  const hasAccessCache = (session, area = "") => {
     try {
-      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session)) || "{}");
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session, area)) || "{}");
       return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
     } catch (_error) {
       return false;
     }
   };
-  const saveAccessCache = (session) => {
+  const saveAccessCache = (session, area = "") => {
     try {
       const authExpiresAt = Number(session?.expires_at || 0) * 1000;
       const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
-      sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+      sessionStorage.setItem(cacheKey(session, area), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
       // Sessão continua válida mesmo se o browser bloquear sessionStorage.
     }
@@ -544,32 +552,38 @@ await writeFile(
       }
     });
   };
-  let accessPromise = null;
-  const ensureCentralAccess = async (client) => {
-    if (!accessPromise) {
-      accessPromise = (async () => {
+  const accessPromises = new Map();
+  const ensureCentralAccess = async (client, area = "") => {
+    const cacheArea = area || "dashboard";
+    if (!accessPromises.has(cacheArea)) {
+      accessPromises.set(cacheArea, (async () => {
         const { data } = await client.auth.getSession();
         const session = data?.session || null;
-        if (hasAccessCache(session)) return { ok: true };
+        if (hasAccessCache(session, cacheArea)) return { ok: true };
         const token = session?.access_token || "";
         if (!token) throw new Error("Sessão em falta.");
         const response = await fetch("/api/ensure-access", {
           method: "POST",
-          headers: { Authorization: \`Bearer \${token}\` }
+          headers: {
+            Authorization: \`Bearer \${token}\`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ area })
         });
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
           throw new Error(payload.error || "Não foi possível preparar o acesso.");
         }
         const payload = await response.json().catch(() => ({ ok: true }));
-        saveAccessCache(session);
+        saveAccessCache(session, cacheArea);
+        window.CENTRAL_PERMISSIONS?.applyToPage?.(payload.appUser);
         return payload;
-      })();
+      })());
     }
     try {
-      return await accessPromise;
+      return await accessPromises.get(cacheArea);
     } catch (error) {
-      accessPromise = null;
+      accessPromises.delete(cacheArea);
       throw error;
     }
   };
@@ -589,7 +603,7 @@ await writeFile(
   };
   const goTo = async (client, target) => {
     const path = safePath(target, "/dashboard");
-    await ensureCentralAccess(client);
+    await ensureCentralAccess(client, areaFromPath(path));
     if (path.startsWith("/area/utentes")) {
       await ensureUtentesSession(client);
     }
@@ -602,7 +616,8 @@ await writeFile(
         try {
           await goTo(client, link.getAttribute("href") || "/area/utentes/");
         } catch (error) {
-          window.location.href = "/login?next=" + encodeURIComponent(link.getAttribute("href") || "/area/utentes/");
+          window.alert(error instanceof Error ? error.message : "Sem acesso a esta area.");
+          window.location.href = "/dashboard";
         }
       });
     });
@@ -668,7 +683,7 @@ await writeFile(
       return;
     }
     try {
-      await ensureCentralAccess(client);
+      await ensureCentralAccess(client, areaFromPath(window.location.pathname));
     } catch (error) {
       showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }
@@ -708,10 +723,21 @@ await writeFile(
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\\\")) return "/dashboard";
     return path;
   };
+  const areaFromPath = (path) => {
+    if (path.startsWith("/area/socios")) return "socios";
+    if (path.startsWith("/area/utentes")) return "utentes";
+    if (path.startsWith("/area/dispositivos")) return "dispositivos";
+    return "";
+  };
   const redirectToCentralLogin = () => {
     showPage();
     window.clearTimeout(loginTimer);
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
+  };
+  const redirectToDashboard = () => {
+    showPage();
+    window.clearTimeout(loginTimer);
+    window.location.replace("/dashboard");
   };
   visualTimer = window.setTimeout(() => {
     if (document.documentElement.dataset.centralAuthPending === "true") {
@@ -728,35 +754,42 @@ await writeFile(
     }
     if (!hasToken) redirectToCentralLogin();
   }, 9000);
-  const cacheKey = (session) => \`central-access:\${session?.user?.id || "anon"}\`;
-  const hasAccessCache = (session) => {
+  const cacheKey = (session, area = "") => \`central-access:\${session?.user?.id || "anon"}:\${area || "dashboard"}\`;
+  const hasAccessCache = (session, area = "") => {
     try {
-      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session)) || "{}");
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session, area)) || "{}");
       return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
     } catch (_error) {
       return false;
     }
   };
-  const saveAccessCache = (session) => {
+  const saveAccessCache = (session, area = "") => {
     try {
       const authExpiresAt = Number(session?.expires_at || 0) * 1000;
       const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
-      sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+      sessionStorage.setItem(cacheKey(session, area), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
       // Continua sem cache se o browser bloquear sessionStorage.
     }
   };
-  const ensureAccess = async (session) => {
-    if (hasAccessCache(session)) return;
+  const ensureAccess = async (session, area = "") => {
+    const cacheArea = area || "dashboard";
+    if (hasAccessCache(session, cacheArea)) return;
     const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/ensure-access", {
       method: "POST",
-      headers: { Authorization: \`Bearer \${token}\` }
+      headers: {
+        Authorization: \`Bearer \${token}\`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ area })
     });
     if (!response.ok) throw new Error("Sem acesso preparado.");
-    saveAccessCache(session);
+    const payload = await response.json().catch(() => ({}));
+    saveAccessCache(session, cacheArea);
+    window.CENTRAL_PERMISSIONS?.applyToPage?.(payload.appUser);
   };
   const config = window.CENTRAL_CONFIG || {};
   if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
@@ -780,11 +813,11 @@ await writeFile(
         redirectToCentralLogin();
         return;
       }
+      await ensureAccess(session, areaFromPath(window.location.pathname));
       window.clearTimeout(loginTimer);
-      ensureAccess(session).catch((error) => console.warn("Preparação de acesso adiada:", error));
       showPage();
     })
-    .catch(() => redirectToCentralLogin());
+    .catch(() => redirectToDashboard());
 })();`,
 )
 

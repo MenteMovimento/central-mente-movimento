@@ -1368,11 +1368,21 @@ async function handleAuthState(session) {
 }
 
 async function loadProfile() {
-  const { data, error } = await supabaseClient
+  let { data, error } = await supabaseClient
     .from("app_users")
-    .select("id,email,full_name,role,active")
+    .select("id,email,full_name,role,active,permissions")
     .eq("id", state.user.id)
     .maybeSingle();
+
+  if (error && String(error.message || "").toLowerCase().includes("permissions")) {
+    const fallback = await supabaseClient
+      .from("app_users")
+      .select("id,email,full_name,role,active")
+      .eq("id", state.user.id)
+      .maybeSingle();
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     throw error;
@@ -1423,28 +1433,29 @@ function applyPermissions() {
   const writeAllowed = canWrite();
   const exportAllowed = canExport();
   const manageUsersAllowed = canManageUsers();
+  const historyAllowed = canViewHistory();
   const manualsAllowed = canViewManuals();
 
   elements.newMemberBtn.hidden = !writeAllowed;
   if (elements.adminManagerBtn) {
-    elements.adminManagerBtn.hidden = !manageUsersAllowed;
+    elements.adminManagerBtn.hidden = true;
   }
   if (elements.importBtn) {
     elements.importBtn.hidden = true;
   }
   elements.exportJsonBtn.hidden = true;
   elements.exportCsvBtn.hidden = !exportAllowed;
-  elements.historyBtn.hidden = !manageUsersAllowed;
+  elements.historyBtn.hidden = !historyAllowed;
   elements.manualBtn.hidden = !manualsAllowed;
   elements.notesField.hidden = !state.supportsNotes;
   elements.quotaPaidAtField.hidden = !state.supportsQuotaPaidAt;
   elements.approvalMinuteNumberField.hidden = !state.supportsApprovalMinuteNumber;
 
-  if (!manageUsersAllowed && elements.adminDialog.open) {
+  if (elements.adminDialog.open) {
     closeAdminDialog();
   }
 
-  if (!manageUsersAllowed && elements.historyDialog.open) {
+  if (!historyAllowed && elements.historyDialog.open) {
     closeHistoryDialog();
   }
 
@@ -1454,23 +1465,35 @@ function applyPermissions() {
 }
 
 function canWrite() {
-  return ["admin", "operator"].includes(state.profile?.role);
+  return hasCentralPermission("socios", "edit", ["admin", "operator"].includes(state.profile?.role));
 }
 
 function canDelete() {
-  return state.profile?.role === "admin";
+  return hasCentralPermission("socios", "delete", state.profile?.role === "admin");
 }
 
 function canExport() {
-  return ["admin", "operator"].includes(state.profile?.role);
+  return hasCentralPermission("socios", "export", ["admin", "operator"].includes(state.profile?.role));
 }
 
 function canManageUsers() {
-  return state.profile?.role === "admin";
+  return hasCentralPermission("central", "manage_users", state.profile?.role === "admin");
+}
+
+function canViewHistory() {
+  return hasCentralPermission("central", "view_history", state.profile?.role === "admin");
 }
 
 function canViewManuals() {
-  return ["admin", "operator"].includes(state.profile?.role);
+  return hasCentralPermission("socios", "view", ["admin", "operator", "viewer"].includes(state.profile?.role));
+}
+
+function hasCentralPermission(area, action, fallback = false) {
+  const centralPermissions = window.CENTRAL_PERMISSIONS;
+  if (centralPermissions?.has) {
+    return centralPermissions.has(state.profile, area, action);
+  }
+  return fallback;
 }
 
 async function detectOptionalFeatures() {
@@ -1510,7 +1533,7 @@ async function refreshAppUsers() {
 
   const { data, error } = await supabaseClient
     .from("app_users")
-    .select("id,email,full_name,role,active,updated_at")
+    .select("id,email,full_name,role,active,permissions,updated_at")
     .order("email", { ascending: true });
 
   if (error) {
@@ -1523,7 +1546,7 @@ async function refreshAppUsers() {
 }
 
 async function refreshHistory() {
-  if (!canManageUsers()) {
+  if (!canViewHistory()) {
     state.auditLogs = [];
     renderHistory();
     return;
@@ -2176,17 +2199,8 @@ function closeMemberDialog() {
 }
 
 async function openAdminDialog() {
-  if (!canManageUsers()) {
-    showToast(t("messages.adminUsersOnly"));
-    return;
-  }
-
   closeToolsMenu();
-  clearUserForm();
-  clearCreateUserForm();
-  elements.adminDialog.showModal();
-  await refreshAppUsers();
-  renderIcons();
+  showToast(t("messages.adminUsersOnly"));
 }
 
 function closeAdminDialog() {
@@ -2198,7 +2212,7 @@ function closeAdminDialog() {
 }
 
 async function openHistoryDialog() {
-  if (!canManageUsers()) {
+  if (!canViewHistory()) {
     showToast(t("messages.adminHistoryOnly"));
     return;
   }

@@ -26,10 +26,21 @@
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) return "/dashboard";
     return path;
   };
+  const areaFromPath = (path) => {
+    if (path.startsWith("/area/socios")) return "socios";
+    if (path.startsWith("/area/utentes")) return "utentes";
+    if (path.startsWith("/area/dispositivos")) return "dispositivos";
+    return "";
+  };
   const redirectToCentralLogin = () => {
     showPage();
     window.clearTimeout(loginTimer);
     window.location.replace("/login?next=" + encodeURIComponent(safePath()));
+  };
+  const redirectToDashboard = () => {
+    showPage();
+    window.clearTimeout(loginTimer);
+    window.location.replace("/dashboard");
   };
   visualTimer = window.setTimeout(() => {
     if (document.documentElement.dataset.centralAuthPending === "true") {
@@ -46,35 +57,42 @@
     }
     if (!hasToken) redirectToCentralLogin();
   }, 9000);
-  const cacheKey = (session) => `central-access:${session?.user?.id || "anon"}`;
-  const hasAccessCache = (session) => {
+  const cacheKey = (session, area = "") => `central-access:${session?.user?.id || "anon"}:${area || "dashboard"}`;
+  const hasAccessCache = (session, area = "") => {
     try {
-      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session)) || "{}");
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey(session, area)) || "{}");
       return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
     } catch (_error) {
       return false;
     }
   };
-  const saveAccessCache = (session) => {
+  const saveAccessCache = (session, area = "") => {
     try {
       const authExpiresAt = Number(session?.expires_at || 0) * 1000;
       const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
       const expiresAt = authExpiresAt > 0 ? Math.min(authExpiresAt, shortCacheExpiresAt) : shortCacheExpiresAt;
-      sessionStorage.setItem(cacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+      sessionStorage.setItem(cacheKey(session, area), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
       // Continua sem cache se o browser bloquear sessionStorage.
     }
   };
-  const ensureAccess = async (session) => {
-    if (hasAccessCache(session)) return;
+  const ensureAccess = async (session, area = "") => {
+    const cacheArea = area || "dashboard";
+    if (hasAccessCache(session, cacheArea)) return;
     const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/ensure-access", {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ area })
     });
     if (!response.ok) throw new Error("Sem acesso preparado.");
-    saveAccessCache(session);
+    const payload = await response.json().catch(() => ({}));
+    saveAccessCache(session, cacheArea);
+    window.CENTRAL_PERMISSIONS?.applyToPage?.(payload.appUser);
   };
   const config = window.CENTRAL_CONFIG || {};
   if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
@@ -98,9 +116,9 @@
         redirectToCentralLogin();
         return;
       }
+      await ensureAccess(session, areaFromPath(window.location.pathname));
       window.clearTimeout(loginTimer);
-      ensureAccess(session).catch((error) => console.warn("Preparação de acesso adiada:", error));
       showPage();
     })
-    .catch(() => redirectToCentralLogin());
+    .catch(() => redirectToDashboard());
 })();
