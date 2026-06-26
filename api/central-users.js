@@ -69,7 +69,7 @@ const getBearerToken = (request) => {
 const selectAppUsers = async (adminClient) => {
   const { data, error } = await adminClient
     .from('app_users')
-    .select('id,email,full_name,role,active,permissions,created_at,updated_at')
+    .select('id,email,full_name,active,permissions,created_at,updated_at')
     .order('email', { ascending: true })
 
   if (!error) return data ?? []
@@ -78,7 +78,7 @@ const selectAppUsers = async (adminClient) => {
 
   const { data: fallbackData, error: fallbackError } = await adminClient
     .from('app_users')
-    .select('id,email,full_name,role,active,created_at,updated_at')
+    .select('id,email,full_name,active,created_at,updated_at')
     .order('email', { ascending: true })
 
   if (fallbackError) throw fallbackError
@@ -91,7 +91,7 @@ const selectAppUsers = async (adminClient) => {
 const getAppUser = async (adminClient, id) => {
   const { data, error } = await adminClient
     .from('app_users')
-    .select('id,email,full_name,role,active,permissions,created_at,updated_at')
+    .select('id,email,full_name,active,permissions,created_at,updated_at')
     .eq('id', id)
     .maybeSingle()
 
@@ -101,7 +101,7 @@ const getAppUser = async (adminClient, id) => {
 
   const { data: fallbackData, error: fallbackError } = await adminClient
     .from('app_users')
-    .select('id,email,full_name,role,active,created_at,updated_at')
+    .select('id,email,full_name,active,created_at,updated_at')
     .eq('id', id)
     .maybeSingle()
 
@@ -169,7 +169,7 @@ const upsertAppUser = async (adminClient, record) => {
   const { data, error } = await adminClient
     .from('app_users')
     .upsert(record, { onConflict: 'id' })
-    .select('id,email,full_name,role,active,permissions,created_at,updated_at')
+    .select('id,email,full_name,active,permissions,created_at,updated_at')
     .single()
 
   if (!error) return data
@@ -179,7 +179,7 @@ const upsertAppUser = async (adminClient, record) => {
   const { data: fallbackData, error: fallbackError } = await adminClient
     .from('app_users')
     .upsert(fallbackRecord, { onConflict: 'id' })
-    .select('id,email,full_name,role,active,created_at,updated_at')
+    .select('id,email,full_name,active,created_at,updated_at')
     .single()
 
   if (fallbackError) throw fallbackError
@@ -191,7 +191,7 @@ const updateAppUser = async (adminClient, id, patch) => {
     .from('app_users')
     .update(patch)
     .eq('id', id)
-    .select('id,email,full_name,role,active,permissions,created_at,updated_at')
+    .select('id,email,full_name,active,permissions,created_at,updated_at')
     .single()
 
   if (!error) return data
@@ -202,7 +202,7 @@ const updateAppUser = async (adminClient, id, patch) => {
     .from('app_users')
     .update(fallbackPatch)
     .eq('id', id)
-    .select('id,email,full_name,role,active,created_at,updated_at')
+    .select('id,email,full_name,active,created_at,updated_at')
     .single()
 
   if (fallbackError) throw fallbackError
