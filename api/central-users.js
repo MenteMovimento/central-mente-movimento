@@ -154,40 +154,30 @@ const syncDeviceProfile = async (adminClient, user) => {
 }
 
 const inferRoleFromPermissions = (permissions) => {
-  const normalized = normalizePermissions(permissions, 'viewer')
-  const areas = ['socios', 'utentes', 'dispositivos']
-
-  if (normalized.central?.manage_users || areas.some((area) => normalized[area]?.delete)) {
-    return 'admin'
-  }
-
-  if (
-    normalized.central?.view_history ||
-    areas.some((area) => {
-      const areaPermissions = normalized[area] || {}
-      return Boolean(
-        areaPermissions.edit ||
-          areaPermissions.view_sensitive ||
-          areaPermissions.edit_sensitive ||
-          areaPermissions.export,
-      )
-    })
-  ) {
-    return 'operator'
-  }
-
-  return 'viewer'
+  // If no permissions matrix exists yet (legacy profile conversion), guess the role
+  if (!permissions || Object.keys(permissions).length === 0) return 'viewer';
+  
+  // Custom matrix accounts can just use a 'custom' role classification, 
+  // or fall back cleanly to 'viewer' without overriding data lines
+  if (permissions.central?.manage_users) return 'admin';
+  return 'viewer';
 }
 
 const sanitizePayload = (body, { existingRole = 'viewer' } = {}) => {
+  // 1. Check if they are passing actual custom matrix permissions
+  const hasMatrixData = body.permissions && Object.keys(body.permissions).length > 0;
+
+  // 2. Determine role label cleanly
   const role = String(body.role ?? inferRoleFromPermissions(body.permissions) ?? existingRole ?? 'viewer')
-  if (!allowedRoles.has(role)) {
+  if (!allowedRoles.has(role) && role !== 'custom') {
     throw new Error('Perfil invalido.')
   }
 
   return {
     role,
-    permissions: normalizePermissions(body.permissions, role),
+    // 3. FIX: If matrix data exists, we normalize with 'custom' so it bypasses
+    // the hardcoded admin/operator/viewer defaults completely!
+    permissions: normalizePermissions(body.permissions, hasMatrixData ? 'custom' : role),
   }
 }
 
