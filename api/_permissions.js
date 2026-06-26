@@ -44,8 +44,14 @@ export const fullPermissions = () => ({
 const toBoolean = (value) => value === true || value === 'true' || value === 1 || value === '1'
 
 export const normalizePermissions = (input) => {
-  const normalized = emptyPermissions()
   const source = input && typeof input === 'object' ? input : {}
+  const hasStoredMatrix =
+    Object.keys(source.central ?? {}).length > 0 ||
+    AREA_IDS.some((area) => Object.keys(source[area] ?? {}).length > 0)
+
+  // `{}` is the old pre-migration value. Treat it as the agreed initial full-access
+  // matrix, while an explicit matrix (including unchecked boxes) remains authoritative.
+  const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions()
 
   normalized.central = {
     ...normalized.central,
