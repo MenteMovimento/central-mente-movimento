@@ -474,7 +474,8 @@ const emptyAreaPermissions = () => ({
   delete: false,
 });
 
-const defaultCentralPermissionsForRole = (role = "viewer") => {
+// Permissions are the single source of truth. Legacy roles are intentionally ignored.
+const defaultCentralPermissionsForRole = () => {
   const all = (sensitive = true, deleteAllowed = true) => ({
     view: true,
     edit: true,
@@ -484,32 +485,18 @@ const defaultCentralPermissionsForRole = (role = "viewer") => {
     delete: Boolean(deleteAllowed),
   });
   const defaults = {
-    admin: {
-      central: { manage_users: true, view_history: true },
-      socios: all(false, true),
-      utentes: all(true, true),
-      dispositivos: all(false, true),
-    },
-    operator: {
-      central: { manage_users: false, view_history: true },
-      socios: all(false, false),
-      utentes: all(true, false),
-      dispositivos: all(false, false),
-    },
-    viewer: {
-      central: { manage_users: false, view_history: false },
-      socios: { ...emptyAreaPermissions(), view: true },
-      utentes: { ...emptyAreaPermissions(), view: true },
-      dispositivos: { ...emptyAreaPermissions(), view: true },
-    },
+    central: { manage_users: true, view_history: true },
+    socios: all(false, true),
+    utentes: all(true, true),
+    dispositivos: all(false, true),
   };
-  return JSON.parse(JSON.stringify(defaults[role] || defaults.viewer));
+  return JSON.parse(JSON.stringify(defaults));
 };
 
 const boolPermission = (value) => value === true || value === "true" || value === 1 || value === "1";
 
-const normalizeCentralPermissions = (input, role = "viewer") => {
-  const normalized = defaultCentralPermissionsForRole(role);
+const normalizeCentralPermissions = (input) => {
+  const normalized = defaultCentralPermissionsForRole();
   const source = input && typeof input === "object" ? input : {};
   normalized.central = {
     manage_users: boolPermission(source.central?.manage_users ?? normalized.central.manage_users),
@@ -545,7 +532,7 @@ const normalizeCentralPermissions = (input, role = "viewer") => {
 };
 
 const centralHasPermission = (profile, area, action) => {
-  const permissions = normalizeCentralPermissions(profile?.permissions, profile?.role);
+  const permissions = normalizeCentralPermissions(profile?.permissions);
   if (area === "central") return Boolean(permissions.central?.[action]);
   return Boolean(permissions[area]?.[action]);
 };
@@ -553,7 +540,7 @@ const centralHasPermission = (profile, area, action) => {
 const centralCanManageUsers = (profile) => centralHasPermission(profile, "central", "manage_users");
 
 const applyCentralPermissionsToPage = (profile) => {
-  const permissions = normalizeCentralPermissions(profile?.permissions, profile?.role);
+  const permissions = normalizeCentralPermissions(profile?.permissions);
   centralAreaIds.forEach((area) => {
     const canView = Boolean(permissions[area]?.view);
     document.querySelectorAll(`[data-module-card="${area}"]`).forEach((node) => {
@@ -698,29 +685,8 @@ const permissionActionKey = (action) => ({
   delete: "delete",
 }[action] || action);
 
-const roleFromPermissions = (permissions) => {
-  const normalized = normalizeCentralPermissions(permissions, "viewer");
-  const areas = ["socios", "utentes", "dispositivos"];
-  if (normalized.central?.manage_users || areas.some((area) => normalized[area]?.delete)) return "admin";
-  if (
-    normalized.central?.view_history ||
-    areas.some((area) => {
-      const areaPermissions = normalized[area] || {};
-      return Boolean(
-        areaPermissions.edit ||
-          areaPermissions.view_sensitive ||
-          areaPermissions.edit_sensitive ||
-          areaPermissions.export,
-      );
-    })
-  ) {
-    return "operator";
-  }
-  return "viewer";
-};
-
-const collectPermissionGrid = (scope, role) => {
-  const permissions = defaultCentralPermissionsForRole(role);
+const collectPermissionGrid = (scope) => {
+  const permissions = defaultCentralPermissionsForRole();
   document.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
     const area = input.dataset.area;
     const action = input.dataset.action;
@@ -733,17 +699,17 @@ const collectPermissionGrid = (scope, role) => {
       permissions[area][action] = input.checked;
     }
   });
-  return normalizeCentralPermissions(permissions, role);
+  return normalizeCentralPermissions(permissions);
 };
 
 const refreshPermissionGrids = () => {
   const elements = centralUsersElements();
-  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole("viewer"));
+  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole());
   const editingUser = centralUsersState.users.find((item) => item.id === centralUsersState.editingId);
   renderPermissionGrid(
     elements.editPermissions,
     "edit",
-    normalizeCentralPermissions(editingUser?.permissions, editingUser?.role || "viewer"),
+    normalizeCentralPermissions(editingUser?.permissions),
   );
 };
 
@@ -779,7 +745,7 @@ const requireCentralAdmin = async () => {
 
   let { data, error } = await client
     .from("app_users")
-    .select("id,email,full_name,role,active,permissions")
+    .select("id,email,full_name,active,permissions")
     .eq("id", session.user.id)
     .maybeSingle();
 
@@ -788,14 +754,14 @@ const requireCentralAdmin = async () => {
     if (!message.includes("permissions")) throw error;
     const fallback = await client
       .from("app_users")
-      .select("id,email,full_name,role,active")
+      .select("id,email,full_name,active")
       .eq("id", session.user.id)
       .maybeSingle();
     if (fallback.error) throw fallback.error;
     data = fallback.data ? { ...fallback.data, permissions: null } : null;
   }
   if (!data) throw new Error(getTranslation("users.adminOnly"));
-  data.permissions = normalizeCentralPermissions(data.permissions, data.role);
+  data.permissions = normalizeCentralPermissions(data.permissions);
   if (!data?.active || !centralCanManageUsers(data)) throw new Error(getTranslation("users.adminOnly"));
 
   centralUsersState.profile = data;
@@ -810,8 +776,8 @@ const resetCentralUserForms = () => {
   if (elements.editId) elements.editId.value = "";
   if (elements.editActive) elements.editActive.checked = true;
   if (elements.editHint) elements.editHint.textContent = getTranslation("users.editHint");
-  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole("viewer"));
-  renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole("viewer"));
+  renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole());
+  renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole());
   showCentralFormError(elements.createError, "");
   showCentralFormError(elements.editError, "");
 };
@@ -885,7 +851,7 @@ const refreshCentralUsers = async () => {
   if (!response.ok) throw new Error(result.error || getTranslation("users.adminOnly"));
   centralUsersState.users = (result.users || []).map((user) => ({
     ...user,
-    permissions: normalizeCentralPermissions(user.permissions, user.role),
+    permissions: normalizeCentralPermissions(user.permissions),
   }));
   renderCentralUsers();
 };
@@ -897,7 +863,7 @@ const fillCentralUserForm = (user) => {
   elements.editName.value = user.full_name || "";
   elements.editEmail.value = user.email || "";
   elements.editActive.checked = Boolean(user.active);
-  renderPermissionGrid(elements.editPermissions, "edit", normalizeCentralPermissions(user.permissions, user.role));
+  renderPermissionGrid(elements.editPermissions, "edit", normalizeCentralPermissions(user.permissions));
   elements.editHint.textContent = `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`;
   showCentralFormError(elements.editError, "");
 };
@@ -919,8 +885,7 @@ const handleCentralCreateUser = async (event) => {
     email: String(form.get("email") || "").trim().toLowerCase(),
     password: String(form.get("password") || ""),
   };
-  payload.permissions = collectPermissionGrid("create", "viewer");
-  payload.role = roleFromPermissions(payload.permissions);
+  payload.permissions = collectPermissionGrid("create");
   const validation = validateCentralUser({ ...payload, requirePassword: true });
   if (validation) {
     showCentralFormError(elements.createError, validation);
@@ -962,8 +927,7 @@ const handleCentralEditUser = async (event) => {
     fullName: String(form.get("fullName") || "").trim(),
     active: form.get("active") === "on",
   };
-  payload.permissions = collectPermissionGrid("edit", "viewer");
-  payload.role = roleFromPermissions(payload.permissions);
+  payload.permissions = collectPermissionGrid("edit");
   const validation = validateCentralUser({
     id: payload.id,
     email: payload.email,
@@ -1013,8 +977,7 @@ const toggleCentralUser = async (id) => {
       email: user.email,
       fullName: user.full_name || user.email || "Utilizador",
       active: !user.active,
-      permissions: normalizeCentralPermissions(user.permissions, user.role),
-      role: roleFromPermissions(normalizeCentralPermissions(user.permissions, user.role)),
+      permissions: normalizeCentralPermissions(user.permissions),
     }),
   });
   const result = await response.json().catch(() => ({}));

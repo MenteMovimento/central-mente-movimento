@@ -1,11 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import {
   canManageUsers,
-  mapCentralRoleToDeviceRole,
+  fullPermissions,
+  mapCentralPermissionsToDeviceRole,
   normalizePermissions,
 } from './_permissions.js'
 
-const allowedRoles = new Set(['admin', 'operator', 'viewer'])
+// The database still requires this enum for legacy integrations. Access is decided only by permissions.
+const LEGACY_ROLE = 'viewer'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -82,7 +84,7 @@ const selectAppUsers = async (adminClient) => {
   if (fallbackError) throw fallbackError
   return (fallbackData ?? []).map((user) => ({
     ...user,
-    permissions: normalizePermissions(null, user.role),
+    permissions: fullPermissions(),
   }))
 }
 
@@ -104,7 +106,7 @@ const getAppUser = async (adminClient, id) => {
     .maybeSingle()
 
   if (fallbackError) throw fallbackError
-  return fallbackData ? { ...fallbackData, permissions: normalizePermissions(null, fallbackData.role) } : null
+  return fallbackData ? { ...fallbackData, permissions: fullPermissions() } : null
 }
 
 const requireManager = async (request, response, adminClient) => {
@@ -147,42 +149,21 @@ const syncDeviceProfile = async (adminClient, user) => {
     id: user.id,
     email: user.email ?? null,
     full_name: user.full_name ?? null,
-    role: mapCentralRoleToDeviceRole(user.role),
+    role: mapCentralPermissionsToDeviceRole(user.permissions),
   }
 
   await adminClient.from('profiles').upsert(profile, { onConflict: 'id' })
 }
 
-const inferRoleFromPermissions = (permissions) => {
-  // If no permissions matrix exists yet (legacy profile conversion), guess the role
-  if (!permissions || Object.keys(permissions).length === 0) return 'viewer';
-  
-  // Custom matrix accounts can just use a 'custom' role classification, 
-  // or fall back cleanly to 'viewer' without overriding data lines
-  if (permissions.central?.manage_users) return 'admin';
-  return 'viewer';
-}
-
-const sanitizePayload = (body, { existingRole = 'viewer' } = {}) => {
-  // 1. Check if they are passing actual custom matrix permissions
-  const hasMatrixData = body.permissions && Object.keys(body.permissions).length > 0;
-
-  // 2. Determine role label cleanly
-  const role = String(body.role ?? inferRoleFromPermissions(body.permissions) ?? existingRole ?? 'viewer')
-  if (!allowedRoles.has(role) && role !== 'custom') {
-    throw new Error('Perfil invalido.')
-  }
-
+const sanitizePayload = (body) => {
   return {
-    role,
-    // 3. FIX: If matrix data exists, we normalize with 'custom' so it bypasses
-    // the hardcoded admin/operator/viewer defaults completely!
-    permissions: normalizePermissions(body.permissions, hasMatrixData ? 'custom' : role),
+    role: LEGACY_ROLE,
+    permissions: normalizePermissions(body.permissions),
   }
 }
 
 const withFallbackPermissions = (user) =>
-  user ? { ...user, permissions: normalizePermissions(user.permissions, user.role) } : user
+  user ? { ...user, permissions: normalizePermissions(user.permissions) } : user
 
 const upsertAppUser = async (adminClient, record) => {
   const { data, error } = await adminClient
@@ -310,7 +291,7 @@ export default async function handler(request, response) {
       const fullName = String(body.fullName ?? body.full_name ?? current.full_name ?? '').trim()
       const email = String(body.email ?? current.email ?? '').trim().toLowerCase()
       const active = body.active === undefined ? Boolean(current.active) : Boolean(body.active)
-      const { role, permissions } = sanitizePayload(body, { existingRole: current.role })
+      const { role, permissions } = sanitizePayload(body)
 
       if (!fullName || !email) {
         sendJson(response, 400, { error: 'Nome e email sao obrigatorios.' })

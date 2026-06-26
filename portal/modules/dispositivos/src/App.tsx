@@ -133,49 +133,45 @@ const centralAreaActions: CentralPermissionAction[] = [
   'delete',
 ]
 
-const defaultCentralPermissionsForRole = (role?: string | null): Required<CentralPermissions> => {
-  const normalizedRole = role === 'admin' ? 'admin' : role === 'operator' || role === 'manager' ? 'manager' : 'member'
-  const editable = normalizedRole === 'admin' || normalizedRole === 'manager'
-  const canDelete = normalizedRole === 'admin'
-  const canExport = normalizedRole === 'admin' || normalizedRole === 'manager'
-
+// The Central permissions matrix is the single source of truth. The legacy role is ignored.
+const defaultCentralPermissionsForRole = (_legacyRole?: string | null): Required<CentralPermissions> => {
   return {
     socios: {
       view: true,
-      edit: editable,
+      edit: true,
       view_sensitive: false,
       edit_sensitive: false,
-      export: canExport,
-      delete: canDelete,
+      export: true,
+      delete: true,
     },
     utentes: {
       view: true,
-      edit: editable,
-      view_sensitive: normalizedRole !== 'member',
-      edit_sensitive: editable,
-      export: canExport,
-      delete: canDelete,
+      edit: true,
+      view_sensitive: true,
+      edit_sensitive: true,
+      export: true,
+      delete: true,
     },
     dispositivos: {
       view: true,
-      edit: editable,
+      edit: true,
       view_sensitive: false,
       edit_sensitive: false,
-      export: canExport,
-      delete: canDelete,
+      export: true,
+      delete: true,
     },
     central: {
-      manage_users: normalizedRole === 'admin',
-      view_history: normalizedRole === 'admin',
+      manage_users: true,
+      view_history: true,
     },
   }
 }
 
 const normalizeCentralPermissions = (
   permissions?: CentralPermissions | null,
-  role?: string | null,
+  _legacyRole?: string | null,
 ): Required<CentralPermissions> => {
-  const normalized = defaultCentralPermissionsForRole(role)
+  const normalized = defaultCentralPermissionsForRole()
 
   if (permissions && typeof permissions === 'object') {
     centralAreas.forEach((area) => {
@@ -224,16 +220,17 @@ const hasCentralPermission = (
   area: CentralAreaId | 'central',
   action: CentralPermissionAction | 'manage_users' | 'view_history',
 ) => {
-  const permissions = normalizeCentralPermissions(profile?.permissions, profile?.role)
+  const permissions = normalizeCentralPermissions(profile?.permissions)
   if (area === 'central') {
     return Boolean(permissions.central[action as 'manage_users' | 'view_history'])
   }
   return Boolean(permissions[area][action as CentralPermissionAction])
 }
 
-const mapCentralRoleToDeviceRole = (role?: string | null): Profile['role'] => {
-  if (role === 'admin') return 'admin'
-  if (role === 'operator' || role === 'manager') return 'manager'
+const mapCentralPermissionsToDeviceRole = (permissions?: CentralPermissions | null): Profile['role'] => {
+  const normalized = normalizeCentralPermissions(permissions)
+  if (normalized.central.manage_users || normalized.dispositivos.delete) return 'admin'
+  if (normalized.dispositivos.edit || normalized.dispositivos.export) return 'manager'
   return 'member'
 }
 
@@ -1301,9 +1298,9 @@ function App() {
         id: 'demo-admin',
         email: 'demo@mentemovimento.local',
         full_name: 'Administrador',
-        role: 'admin',
+        role: 'member',
         active: true,
-        permissions: normalizeCentralPermissions(null, 'admin'),
+        permissions: normalizeCentralPermissions(null),
       }
     : profile
   const currentRole: Profile['role'] = effectiveProfile?.role ?? 'member'
@@ -1338,9 +1335,9 @@ function App() {
       id: userId,
       email: userEmail ?? null,
       full_name: null,
-      role: 'admin',
+      role: 'member',
       active: true,
-      permissions: normalizeCentralPermissions(null, 'admin'),
+      permissions: normalizeCentralPermissions(null),
     }
 
     const { data: appUser, error: appUserError } = await supabase
@@ -1350,16 +1347,36 @@ function App() {
       .maybeSingle()
 
     if (!appUserError && appUser) {
-      const centralRole = String(appUser.role ?? 'viewer')
       setProfile({
         id: appUser.id,
         email: appUser.email ?? userEmail ?? null,
         full_name: appUser.full_name ?? null,
-        role: mapCentralRoleToDeviceRole(centralRole),
+        role: mapCentralPermissionsToDeviceRole(appUser.permissions as CentralPermissions | null),
         active: Boolean(appUser.active),
-        permissions: normalizeCentralPermissions(appUser.permissions as CentralPermissions | null, centralRole),
+        permissions: normalizeCentralPermissions(appUser.permissions as CentralPermissions | null),
       })
       return
+    }
+
+    if (appUserError && getErrorMessage(appUserError).toLowerCase().includes('permissions')) {
+      const { data: fallbackAppUser, error: fallbackAppUserError } = await supabase
+        .from('app_users')
+        .select('id, email, full_name, active')
+        .eq('id', userId)
+        .maybeSingle()
+
+      if (!fallbackAppUserError && fallbackAppUser) {
+        const permissions = normalizeCentralPermissions(null)
+        setProfile({
+          id: fallbackAppUser.id,
+          email: fallbackAppUser.email ?? userEmail ?? null,
+          full_name: fallbackAppUser.full_name ?? null,
+          role: mapCentralPermissionsToDeviceRole(permissions),
+          active: Boolean(fallbackAppUser.active),
+          permissions,
+        })
+        return
+      }
     }
 
     if (
@@ -1371,32 +1388,14 @@ function App() {
       return
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('profiles')
       .select('id, email, full_name, role')
       .eq('id', userId)
       .maybeSingle()
 
     if (error && isMissingEmailColumnError(error)) {
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('profiles')
-        .select('id, full_name, role')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (fallbackError) {
-        setProfile(fallbackProfile)
-        return
-      }
-
-      setProfile(
-        fallbackData
-          ? ({
-              ...(fallbackData as Omit<Profile, 'email'>),
-              email: userEmail ?? null,
-            } as Profile)
-          : fallbackProfile,
-      )
+      setProfile(fallbackProfile)
       return
     }
 
@@ -1405,7 +1404,7 @@ function App() {
       return
     }
 
-    setProfile((data as Profile | null) ?? fallbackProfile)
+    setProfile(fallbackProfile)
   }, [])
 
   const loadDevices = useCallback(async () => {

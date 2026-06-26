@@ -1,5 +1,6 @@
 -- Central MenteMovimento - matriz flexivel de permissoes
--- Executar uma vez no SQL Editor do Supabase do projeto de producao.
+-- Executar no SQL Editor do Supabase do projeto de producao.
+-- A matriz permissions e a unica fonte de verdade. Os cargos antigos deixam de decidir acessos.
 
 alter table public.app_users
 add column if not exists permissions jsonb not null default '{}'::jsonb;
@@ -16,21 +17,7 @@ as $$
   end
 $$;
 
-create or replace function private.default_app_permission(role public.app_role, area text, action text)
-returns boolean
-language sql
-immutable
-as $$
-  select case
-    when area = 'central' and action = 'manage_users' then role = 'admin'
-    when area = 'central' and action = 'view_history' then role in ('admin', 'operator')
-    when area in ('socios', 'utentes', 'dispositivos') and action = 'view' then role in ('admin', 'operator', 'viewer')
-    when area in ('socios', 'utentes', 'dispositivos') and action in ('edit', 'export') then role in ('admin', 'operator')
-    when area in ('socios', 'utentes', 'dispositivos') and action = 'delete' then role = 'admin'
-    when area = 'utentes' and action in ('view_sensitive', 'edit_sensitive') then role in ('admin', 'operator')
-    else false
-  end
-$$;
+drop function if exists private.default_app_permission(public.app_role, text, text);
 
 create or replace function private.current_app_permission(area text, action text)
 returns boolean
@@ -41,7 +28,6 @@ stable
 as $$
   select coalesce(
     private.jsonb_bool(app_users.permissions, array[area, action]),
-    private.default_app_permission(app_users.role, area, action),
     false
   )
   from public.app_users
@@ -52,28 +38,17 @@ $$;
 
 grant execute on function private.current_app_permission(text, text) to authenticated;
 
+-- Converte todas as contas existentes para a nova matriz, com acesso total inicial.
+-- A partir daqui cada conta pode ser ajustada individualmente na grelha de permissoes.
 update public.app_users
-set permissions = case role
-  when 'admin' then jsonb_build_object(
+set
+  role = 'viewer',
+  permissions = jsonb_build_object(
     'central', jsonb_build_object('manage_users', true, 'view_history', true),
     'socios', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
     'utentes', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', true, 'edit_sensitive', true, 'export', true, 'delete', true),
     'dispositivos', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true)
-  )
-  when 'operator' then jsonb_build_object(
-    'central', jsonb_build_object('manage_users', false, 'view_history', true),
-    'socios', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', false),
-    'utentes', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', true, 'edit_sensitive', true, 'export', true, 'delete', false),
-    'dispositivos', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', false)
-  )
-  else jsonb_build_object(
-    'central', jsonb_build_object('manage_users', false, 'view_history', false),
-    'socios', jsonb_build_object('view', true, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false),
-    'utentes', jsonb_build_object('view', true, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false),
-    'dispositivos', jsonb_build_object('view', true, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false)
-  )
-end
-where permissions = '{}'::jsonb or permissions is null;
+  );
 
 drop policy if exists "active users read own profile" on public.app_users;
 create policy "active users read own profile"
@@ -102,7 +77,7 @@ with check (
   private.current_app_permission('central', 'manage_users')
   and (
     id <> auth.uid()
-    or (role = 'admin' and active = true)
+    or active = true
   )
 );
 

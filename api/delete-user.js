@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { canManageUsers, normalizePermissions } from './_permissions.js'
+import { canManageUsers, fullPermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -75,7 +75,7 @@ const requireSociosAdmin = async (request, response, adminClient) => {
       .select('role, active')
       .eq('id', user.id)
       .maybeSingle()
-    profile = fallback.data ? { ...fallback.data, permissions: normalizePermissions(null, fallback.data.role) } : null
+    profile = fallback.data ? { ...fallback.data, permissions: fullPermissions() } : null
     profileError = fallback.error
   }
 

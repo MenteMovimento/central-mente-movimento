@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { canManageUsers, normalizePermissions } from './_permissions.js'
-
-const allowedRoles = new Set(['admin', 'operator', 'viewer'])
+import { canManageUsers, fullPermissions, normalizePermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -77,7 +75,7 @@ const requireSociosAdmin = async (request, response, adminClient) => {
       .select('role, active')
       .eq('id', user.id)
       .maybeSingle()
-    profile = fallback.data ? { ...fallback.data, permissions: normalizePermissions(null, fallback.data.role) } : null
+    profile = fallback.data ? { ...fallback.data, permissions: fullPermissions() } : null
     profileError = fallback.error
   }
 
@@ -107,8 +105,8 @@ export default async function handler(request, response) {
     const email = String(body.email ?? '').trim().toLowerCase()
     const password = String(body.password ?? '')
     const fullName = String(body.fullName ?? '').trim()
-    const role = String(body.role ?? 'viewer')
-    const permissions = normalizePermissions(body.permissions, role)
+    const role = 'viewer'
+    const permissions = body.permissions ? normalizePermissions(body.permissions) : fullPermissions()
 
     if (!email || !password || !fullName) {
       sendJson(response, 400, { error: 'Nome, email e password sao obrigatorios.' })
@@ -117,11 +115,6 @@ export default async function handler(request, response) {
 
     if (password.length < 8) {
       sendJson(response, 400, { error: 'A password deve ter pelo menos 8 caracteres.' })
-      return
-    }
-
-    if (!allowedRoles.has(role)) {
-      sendJson(response, 400, { error: 'Perfil invalido.' })
       return
     }
 

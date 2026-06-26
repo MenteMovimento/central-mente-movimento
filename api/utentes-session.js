@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'node:crypto'
-import { canViewArea, hasPermission, normalizePermissions } from './_permissions.js'
+import { canViewArea, fullPermissions, hasPermission, normalizePermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -117,7 +117,7 @@ const requireCentralUser = async (response, userClient, adminClient, token) => {
       .select('role, active, full_name')
       .eq('id', user.id)
       .maybeSingle()
-    profile = fallback.data
+    profile = fallback.data ? { ...fallback.data, permissions: fullPermissions() } : null
     profileError = fallback.error
   }
 
@@ -134,7 +134,7 @@ const requireCentralUser = async (response, userClient, adminClient, token) => {
     return null
   }
 
-  effectiveProfile.permissions = normalizePermissions(effectiveProfile.permissions, effectiveProfile.role)
+  effectiveProfile.permissions = normalizePermissions(effectiveProfile.permissions)
 
   if (!canViewArea(effectiveProfile, 'utentes')) {
     sendJson(response, 403, { error: 'Sem permissao para aceder a Utentes.' })

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { canViewArea, normalizePermissions } from './_permissions.js'
+import { canViewArea, fullPermissions, normalizePermissions } from './_permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)
@@ -80,7 +80,9 @@ const ensureProfile = async (adminClient, user) => {
     id: user.id,
     email: user.email ?? existing?.email ?? null,
     full_name: existing?.full_name ?? getDisplayName(user),
-    role: existing?.role ?? 'admin',
+    // The legacy profile role is only needed by the older device schema.
+    // Central access is always checked against app_users.permissions.
+    role: existing?.role ?? 'member',
   }
 
   const { error } = await adminClient.from('profiles').upsert(row, { onConflict: 'id' })
@@ -114,13 +116,13 @@ const ensureExistingAccess = async (userClient, user) => {
 
     if (fallbackError) throw fallbackError
     if (fallbackUser) {
-      fallbackUser.permissions = normalizePermissions(null, fallbackUser.role)
+      fallbackUser.permissions = fullPermissions()
       return ensureAuthorizedProfile(fallbackUser)
     }
   }
 
   if (appUser) {
-    appUser.permissions = normalizePermissions(appUser.permissions, appUser.role)
+    appUser.permissions = normalizePermissions(appUser.permissions)
   }
 
   return ensureAuthorizedProfile(appUser)

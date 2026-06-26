@@ -27,33 +27,24 @@ const allAreaPermissions = ({ sensitive = true, deleteAllowed = true } = {}) => 
   delete: Boolean(deleteAllowed),
 })
 
-const roleDefaults = {
-  admin: {
-    central: { manage_users: true, view_history: true },
-    socios: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
-    utentes: allAreaPermissions({ sensitive: true, deleteAllowed: true }),
-    dispositivos: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
-  },
-  operator: {
-    central: { manage_users: false, view_history: true },
-    socios: allAreaPermissions({ sensitive: false, deleteAllowed: false }),
-    utentes: allAreaPermissions({ sensitive: true, deleteAllowed: false }),
-    dispositivos: allAreaPermissions({ sensitive: false, deleteAllowed: false }),
-  },
-  viewer: {
-    central: { manage_users: false, view_history: false },
-    socios: { ...emptyAreaPermissions(), view: true },
-    utentes: { ...emptyAreaPermissions(), view: true },
-    dispositivos: { ...emptyAreaPermissions(), view: true },
-  },
-}
+const emptyPermissions = () => ({
+  central: { manage_users: false, view_history: false },
+  socios: emptyAreaPermissions(),
+  utentes: emptyAreaPermissions(),
+  dispositivos: emptyAreaPermissions(),
+})
 
-const cloneDefault = (role) => JSON.parse(JSON.stringify(roleDefaults[role] ?? roleDefaults.viewer))
+export const fullPermissions = () => ({
+  central: { manage_users: true, view_history: true },
+  socios: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
+  utentes: allAreaPermissions({ sensitive: true, deleteAllowed: true }),
+  dispositivos: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
+})
 
 const toBoolean = (value) => value === true || value === 'true' || value === 1 || value === '1'
 
-export const normalizePermissions = (input, role = 'viewer') => {
-  const normalized = cloneDefault(role)
+export const normalizePermissions = (input) => {
+  const normalized = emptyPermissions()
   const source = input && typeof input === 'object' ? input : {}
 
   normalized.central = {
@@ -97,7 +88,7 @@ export const normalizePermissions = (input, role = 'viewer') => {
 }
 
 export const hasPermission = (profile, area, action) => {
-  const permissions = normalizePermissions(profile?.permissions, profile?.role)
+  const permissions = normalizePermissions(profile?.permissions)
   if (area === 'central') return Boolean(permissions.central?.[action])
   if (!AREA_IDS.includes(area) || !AREA_ACTIONS.includes(action)) return false
   return Boolean(permissions[area]?.[action])
@@ -107,8 +98,9 @@ export const canManageUsers = (profile) => hasPermission(profile, 'central', 'ma
 
 export const canViewArea = (profile, area) => hasPermission(profile, area, 'view')
 
-export const mapCentralRoleToDeviceRole = (role) => {
-  if (role === 'admin') return 'admin'
-  if (role === 'operator') return 'manager'
+export const mapCentralPermissionsToDeviceRole = (permissions) => {
+  const normalized = normalizePermissions(permissions)
+  if (normalized.central.manage_users || normalized.dispositivos.delete) return 'admin'
+  if (normalized.dispositivos.edit || normalized.dispositivos.export) return 'manager'
   return 'member'
 }
