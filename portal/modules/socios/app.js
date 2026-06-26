@@ -1392,6 +1392,10 @@ async function loadProfile() {
     throw new Error("Conta sem perfil de acesso. Peça ao administrador para autorizar este utilizador.");
   }
 
+  if (window.CENTRAL_PERMISSIONS?.normalize) {
+    data.permissions = window.CENTRAL_PERMISSIONS.normalize(data.permissions);
+  }
+
   return data;
 }
 
@@ -1465,35 +1469,35 @@ function applyPermissions() {
 }
 
 function canWrite() {
-  return hasCentralPermission("socios", "edit", ["admin", "operator"].includes(state.profile?.role));
+  return hasCentralPermission("socios", "edit");
 }
 
 function canDelete() {
-  return hasCentralPermission("socios", "delete", state.profile?.role === "admin");
+  return hasCentralPermission("socios", "delete");
 }
 
 function canExport() {
-  return hasCentralPermission("socios", "export", ["admin", "operator"].includes(state.profile?.role));
+  return hasCentralPermission("socios", "export");
 }
 
 function canManageUsers() {
-  return hasCentralPermission("central", "manage_users", state.profile?.role === "admin");
+  return hasCentralPermission("central", "manage_users");
 }
 
 function canViewHistory() {
-  return hasCentralPermission("central", "view_history", state.profile?.role === "admin");
+  return hasCentralPermission("central", "view_history");
 }
 
 function canViewManuals() {
-  return hasCentralPermission("socios", "view", ["admin", "operator", "viewer"].includes(state.profile?.role));
+  return hasCentralPermission("socios", "view");
 }
 
-function hasCentralPermission(area, action, fallback = false) {
+function hasCentralPermission(area, action) {
   const centralPermissions = window.CENTRAL_PERMISSIONS;
   if (centralPermissions?.has) {
     return centralPermissions.has(state.profile, area, action);
   }
-  return fallback;
+  return state.profile?.permissions?.[area]?.[action] === true;
 }
 
 async function detectOptionalFeatures() {

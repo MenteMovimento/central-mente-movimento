@@ -12,6 +12,77 @@
     setItem: (key, value) => sessionStorage.setItem(key, value),
     removeItem: (key) => sessionStorage.removeItem(key)
   };
+  const permissionAreas = ["socios", "utentes", "dispositivos"];
+  const permissionActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
+  const emptyAreaPermissions = () => ({
+    view: false, edit: false, view_sensitive: false, edit_sensitive: false, export: false, delete: false
+  });
+  const emptyPermissions = () => ({
+    central: { manage_users: false, view_history: false },
+    socios: emptyAreaPermissions(),
+    utentes: emptyAreaPermissions(),
+    dispositivos: emptyAreaPermissions()
+  });
+  const fullPermissions = () => ({
+    central: { manage_users: true, view_history: true },
+    socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
+    utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
+    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true }
+  });
+  const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
+  const normalizeCentralPermissions = (input) => {
+    const source = input && typeof input === "object" ? input : {};
+    const hasStoredMatrix =
+      Object.keys(source.central || {}).length > 0 ||
+      permissionAreas.some((area) => Object.keys(source[area] || {}).length > 0);
+    const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions();
+
+    normalized.central.manage_users = permissionBoolean(source.central?.manage_users ?? normalized.central.manage_users);
+    normalized.central.view_history = permissionBoolean(source.central?.view_history ?? normalized.central.view_history);
+    permissionAreas.forEach((area) => {
+      const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
+      permissionActions.forEach((action) => {
+        if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+          normalized[area][action] = permissionBoolean(sourceArea[action]);
+        }
+      });
+      const current = normalized[area];
+      if (current.edit) current.view = true;
+      if (current.export) current.view = true;
+      if (current.delete) {
+        current.edit = true;
+        current.view = true;
+      }
+      if (current.view_sensitive) current.view = true;
+      if (current.edit_sensitive) {
+        current.view_sensitive = true;
+        current.edit = true;
+        current.view = true;
+      }
+      if (area !== "utentes") {
+        current.view_sensitive = false;
+        current.edit_sensitive = false;
+      }
+    });
+    return normalized;
+  };
+  const hasCentralPermission = (profile, area, action) => {
+    const permissions = normalizeCentralPermissions(profile?.permissions);
+    return Boolean(permissions[area]?.[action]);
+  };
+  const applyCentralPermissionsToPage = (profile) => {
+    const effectiveProfile = profile ? { ...profile, permissions: normalizeCentralPermissions(profile.permissions) } : profile;
+    window.CENTRAL_USER_PROFILE = effectiveProfile;
+    window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
+    return effectiveProfile;
+  };
+  if (!window.CENTRAL_PERMISSIONS) {
+    window.CENTRAL_PERMISSIONS = {
+      normalize: normalizeCentralPermissions,
+      has: hasCentralPermission,
+      applyToPage: applyCentralPermissionsToPage
+    };
+  }
   const clearPersistentAuth = () => {
     try {
       Object.keys(localStorage)
@@ -78,7 +149,6 @@
   };
   const ensureAccess = async (session, area = "") => {
     const cacheArea = area || "dashboard";
-    if (hasAccessCache(session, cacheArea)) return;
     const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
     const response = await fetch("/api/ensure-access", {

@@ -5,7 +5,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text unique,
   full_name text,
-  role public.member_role not null default 'member',
+  role public.member_role not null default 'admin',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -78,7 +78,7 @@ set search_path = public
 as $$
 begin
   insert into public.profiles (id, email, full_name, role)
-  values (new.id, new.email, nullif(new.raw_user_meta_data->>'full_name', ''), 'member')
+  values (new.id, new.email, nullif(new.raw_user_meta_data->>'full_name', ''), 'admin')
   on conflict (id) do nothing;
 
   return new;
@@ -96,16 +96,7 @@ stable
 security definer
 set search_path = public
 as $$
-  select case role::text
-    when 'admin' then 'admin'::public.member_role
-    when 'operator' then 'manager'::public.member_role
-    when 'viewer' then 'member'::public.member_role
-    else null
-  end
-  from public.app_users
-  where id = auth.uid()
-    and active = true
-  limit 1;
+  select role from public.profiles where id = auth.uid();
 $$;
 
 alter table public.profiles enable row level security;
@@ -113,100 +104,97 @@ alter table public.devices enable row level security;
 alter table public.device_history enable row level security;
 alter table public.device_attachments enable row level security;
 
-create policy "Members can read own profile"
+-- The Central permissions matrix is required before this schema is used.
+create policy "users read own device profile"
 on public.profiles
 for select
 to authenticated
 using (id = auth.uid());
 
-create policy "Authenticated members can read profiles"
-on public.profiles
-for select
-to authenticated
-using (id = auth.uid() or public.current_member_role() = 'admin');
-
-create policy "Authenticated members can update profiles"
-on public.profiles
-for update
-to authenticated
-using (public.current_member_role() = 'admin')
-with check (public.current_member_role() = 'admin');
-
-create policy "Authenticated members can read devices"
+create policy "authorized users read devices"
 on public.devices
 for select
 to authenticated
-using (public.current_member_role() in ('admin', 'manager', 'member'));
+using (private.current_app_permission('dispositivos', 'view'));
 
-create policy "Authenticated members can create devices"
+create policy "authorized users create devices"
 on public.devices
 for insert
 to authenticated
-with check (public.current_member_role() in ('admin', 'manager'));
+with check (private.current_app_permission('dispositivos', 'edit'));
 
-create policy "Authenticated members can update devices"
+create policy "authorized users update devices"
 on public.devices
 for update
 to authenticated
-using (public.current_member_role() in ('admin', 'manager'))
-with check (public.current_member_role() in ('admin', 'manager'));
+using (private.current_app_permission('dispositivos', 'edit'))
+with check (private.current_app_permission('dispositivos', 'edit'));
 
-create policy "Authenticated members can delete devices"
+create policy "authorized users delete devices"
 on public.devices
 for delete
 to authenticated
-using (public.current_member_role() = 'admin');
+using (private.current_app_permission('dispositivos', 'delete'));
 
-create policy "Authenticated members can read device history"
+create policy "authorized users read device history"
 on public.device_history
 for select
 to authenticated
-using (public.current_member_role() in ('admin', 'manager', 'member'));
+using (private.current_app_permission('dispositivos', 'view'));
 
-create policy "Authenticated members can create device history"
+create policy "authorized users create device history"
 on public.device_history
 for insert
 to authenticated
-with check (public.current_member_role() in ('admin', 'manager'));
+with check (private.current_app_permission('dispositivos', 'edit'));
 
-create policy "Authenticated members can read device attachments"
+create policy "authorized users read device attachments"
 on public.device_attachments
 for select
 to authenticated
-using (public.current_member_role() in ('admin', 'manager', 'member'));
+using (private.current_app_permission('dispositivos', 'view'));
 
-create policy "Authenticated members can create device attachments"
+create policy "authorized users create device attachments"
 on public.device_attachments
 for insert
 to authenticated
-with check (public.current_member_role() in ('admin', 'manager'));
+with check (private.current_app_permission('dispositivos', 'edit'));
 
-create policy "Authenticated members can delete device attachments"
+create policy "authorized users delete device attachments"
 on public.device_attachments
 for delete
 to authenticated
-using (public.current_member_role() in ('admin', 'manager'));
+using (private.current_app_permission('dispositivos', 'edit'));
 
 insert into storage.buckets (id, name, public)
 values ('device-attachments', 'device-attachments', false)
 on conflict (id) do nothing;
 
-create policy "Authenticated members can read device attachment files"
+create policy "authorized users read device attachment files"
 on storage.objects
 for select
 to authenticated
-using (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager', 'member'));
+using (
+  bucket_id = 'device-attachments'
+  and private.current_app_permission('dispositivos', 'view')
+);
 
-create policy "Authenticated members can create device attachment files"
+create policy "authorized users create device attachment files"
 on storage.objects
 for insert
 to authenticated
-with check (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager'));
+with check (
+  bucket_id = 'device-attachments'
+  and private.current_app_permission('dispositivos', 'edit')
+);
 
-create policy "Authenticated members can delete device attachment files"
+create policy "authorized users delete device attachment files"
 on storage.objects
 for delete
 to authenticated
-using (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager'));
+using (
+  bucket_id = 'device-attachments'
+  and private.current_app_permission('dispositivos', 'edit')
+);
 
 notify pgrst, 'reload schema';

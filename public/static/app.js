@@ -474,8 +474,7 @@ const emptyAreaPermissions = () => ({
   delete: false,
 });
 
-// Permissions are the single source of truth. Legacy roles are intentionally ignored.
-const defaultCentralPermissionsForRole = () => {
+const fullCentralPermissions = () => {
   const all = (sensitive = true, deleteAllowed = true) => ({
     view: true,
     edit: true,
@@ -493,11 +492,24 @@ const defaultCentralPermissionsForRole = () => {
   return JSON.parse(JSON.stringify(defaults));
 };
 
+const emptyCentralPermissions = () => ({
+  central: { manage_users: false, view_history: false },
+  socios: emptyAreaPermissions(),
+  utentes: emptyAreaPermissions(),
+  dispositivos: emptyAreaPermissions(),
+});
+
+// New users start with access selected. Once stored, every individual checkbox is authoritative.
+const defaultCentralPermissionsForRole = () => fullCentralPermissions();
+
 const boolPermission = (value) => value === true || value === "true" || value === 1 || value === "1";
 
 const normalizeCentralPermissions = (input) => {
-  const normalized = defaultCentralPermissionsForRole();
   const source = input && typeof input === "object" ? input : {};
+  const hasStoredMatrix =
+    Object.keys(source.central || {}).length > 0 ||
+    centralAreaIds.some((area) => Object.keys(source[area] || {}).length > 0);
+  const normalized = hasStoredMatrix ? emptyCentralPermissions() : fullCentralPermissions();
   normalized.central = {
     manage_users: boolPermission(source.central?.manage_users ?? normalized.central.manage_users),
     view_history: boolPermission(source.central?.view_history ?? normalized.central.view_history),

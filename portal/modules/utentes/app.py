@@ -3575,44 +3575,54 @@ def is_admin(user):
     return bool(user and user.get("perfil") == PERFIL_ADMIN)
 
 
-def default_central_permissions_for_role(role):
-    role = role if role in ("admin", "operator", "viewer") else "viewer"
-    editable = role in ("admin", "operator")
-    removable = role == "admin"
-    exportable = role in ("admin", "operator")
+def empty_central_permissions():
     return {
         "socios": {
-            "view": True,
-            "edit": editable,
+            "view": False,
+            "edit": False,
             "view_sensitive": False,
             "edit_sensitive": False,
-            "export": exportable,
-            "delete": removable,
+            "export": False,
+            "delete": False,
         },
         "utentes": {
-            "view": True,
-            "edit": editable,
-            "view_sensitive": role != "viewer",
-            "edit_sensitive": editable,
-            "export": exportable,
-            "delete": removable,
-        },
-        "dispositivos": {
-            "view": True,
-            "edit": editable,
+            "view": False,
+            "edit": False,
             "view_sensitive": False,
             "edit_sensitive": False,
-            "export": exportable,
-            "delete": removable,
+            "export": False,
+            "delete": False,
+        },
+        "dispositivos": {
+            "view": False,
+            "edit": False,
+            "view_sensitive": False,
+            "edit_sensitive": False,
+            "export": False,
+            "delete": False,
         },
         "central": {
-            "manage_users": role == "admin",
-            "view_history": role == "admin",
+            "manage_users": False,
+            "view_history": False,
         },
     }
 
 
-def normalize_central_permissions(raw_permissions, role):
+def full_central_permissions():
+    permissions = empty_central_permissions()
+    for area in CENTRAL_AREA_KEYS:
+        permissions[area].update({"view": True, "edit": True, "export": True, "delete": True})
+    permissions["utentes"].update({"view_sensitive": True, "edit_sensitive": True})
+    permissions["central"].update({"manage_users": True, "view_history": True})
+    return permissions
+
+
+def default_central_permissions_for_role(_role=None):
+    # Kept for compatibility with old callers. The matrix is the only authority.
+    return full_central_permissions()
+
+
+def normalize_central_permissions(raw_permissions, _role=None):
     if isinstance(raw_permissions, str):
         try:
             raw_permissions = json.loads(raw_permissions)
@@ -3621,7 +3631,12 @@ def normalize_central_permissions(raw_permissions, role):
     if not isinstance(raw_permissions, dict):
         raw_permissions = {}
 
-    permissions = default_central_permissions_for_role(role)
+    has_stored_matrix = bool(raw_permissions.get("central")) or any(
+        bool(raw_permissions.get(area)) for area in CENTRAL_AREA_KEYS
+    )
+    # Empty permissions are from accounts created before the matrix. They receive
+    # the agreed full-access starting point; an explicit matrix is authoritative.
+    permissions = empty_central_permissions() if has_stored_matrix else full_central_permissions()
     for area in CENTRAL_AREA_KEYS:
         source = raw_permissions.get(area)
         if not isinstance(source, dict):
@@ -3664,11 +3679,11 @@ def central_profile_for_user(user):
     if user.get("_central_profile_loaded"):
         return user.get("_central_profile")
 
-    role = "admin" if is_admin(user) else "viewer"
+    role = "viewer"
     fallback = {
         "role": role,
         "active": bool(user.get("ativo", 1)),
-        "permissions": default_central_permissions_for_role(role),
+        "permissions": full_central_permissions(),
     }
     profile = fallback
     email = str(user.get("email") or "").strip().lower()
@@ -3694,12 +3709,11 @@ def central_profile_for_user(user):
             except SupabaseError:
                 row = None
         if row:
-            central_role = row.get("role") or role
             profile = {
                 **row,
-                "role": central_role,
+                "role": "viewer",
                 "active": bool(row.get("active", True)),
-                "permissions": normalize_central_permissions(row.get("permissions"), central_role),
+                "permissions": normalize_central_permissions(row.get("permissions")),
             }
 
     user["_central_profile_loaded"] = True
@@ -3711,7 +3725,7 @@ def central_has_permission(user, area, action):
     profile = central_profile_for_user(user)
     if not profile or not profile.get("active"):
         return False
-    permissions = profile.get("permissions") or default_central_permissions_for_role(profile.get("role"))
+    permissions = profile.get("permissions") or full_central_permissions()
     if area == "central":
         return bool((permissions.get("central") or {}).get(action))
     return bool((permissions.get(area) or {}).get(action))

@@ -134,7 +134,7 @@ const centralAreaActions: CentralPermissionAction[] = [
 ]
 
 // The Central permissions matrix is the single source of truth. The legacy role is ignored.
-const defaultCentralPermissionsForRole = (_legacyRole?: string | null): Required<CentralPermissions> => {
+const fullCentralPermissions = (): Required<CentralPermissions> => {
   return {
     socios: {
       view: true,
@@ -167,11 +167,46 @@ const defaultCentralPermissionsForRole = (_legacyRole?: string | null): Required
   }
 }
 
+const emptyCentralPermissions = (): Required<CentralPermissions> => ({
+  socios: {
+    view: false,
+    edit: false,
+    view_sensitive: false,
+    edit_sensitive: false,
+    export: false,
+    delete: false,
+  },
+  utentes: {
+    view: false,
+    edit: false,
+    view_sensitive: false,
+    edit_sensitive: false,
+    export: false,
+    delete: false,
+  },
+  dispositivos: {
+    view: false,
+    edit: false,
+    view_sensitive: false,
+    edit_sensitive: false,
+    export: false,
+    delete: false,
+  },
+  central: {
+    manage_users: false,
+    view_history: false,
+  },
+})
+
 const normalizeCentralPermissions = (
   permissions?: CentralPermissions | null,
   _legacyRole?: string | null,
 ): Required<CentralPermissions> => {
-  const normalized = defaultCentralPermissionsForRole()
+  const source = permissions && typeof permissions === 'object' ? permissions : {}
+  const hasStoredMatrix =
+    Object.keys(source.central ?? {}).length > 0 ||
+    centralAreas.some((area) => Object.keys(source[area] ?? {}).length > 0)
+  const normalized = hasStoredMatrix ? emptyCentralPermissions() : fullCentralPermissions()
 
   if (permissions && typeof permissions === 'object') {
     centralAreas.forEach((area) => {
