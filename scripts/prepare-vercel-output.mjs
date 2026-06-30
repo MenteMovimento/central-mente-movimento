@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260630-utentes-export-sensitive'
+const assetVersion = '20260630-utentes-session-cache'
 
 const authPendingHead = `<script>
       (() => {
@@ -625,6 +625,7 @@ await writeFile(
     } catch (_error) {
       // Sem impacto quando o browser bloqueia sessionStorage.
     }
+    clearUtentesSessionCache();
     clearPersistentAuth();
   };
   const loadRememberedLogin = () => {
@@ -684,6 +685,17 @@ await writeFile(
       node.textContent = session?.user?.user_metadata?.full_name || session?.user?.email || "Administrador";
     });
   };
+  const utentesSessionCachePrefix = "central-utentes-session:";
+  const utentesSessionCacheKey = (session) => \`\${utentesSessionCachePrefix}\${session?.user?.id || "anon"}\`;
+  const clearUtentesSessionCache = () => {
+    try {
+      Object.keys(sessionStorage)
+        .filter((key) => key.startsWith(utentesSessionCachePrefix))
+        .forEach((key) => sessionStorage.removeItem(key));
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia sessionStorage.
+    }
+  };
   const cacheKey = (session, area = "") => \`central-access:\${session?.user?.id || "anon"}:\${area || "dashboard"}\`;
   const hasAccessCache = (session, area = "") => {
     try {
@@ -701,6 +713,26 @@ await writeFile(
       sessionStorage.setItem(cacheKey(session, area), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
       // Sessão continua válida mesmo se o browser bloquear sessionStorage.
+    }
+  };
+  const hasUtentesSessionCache = (session) => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(utentesSessionCacheKey(session)) || "{}");
+      return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
+    } catch (_error) {
+      return false;
+    }
+  };
+  const saveUtentesSessionCache = (session, payload = {}) => {
+    try {
+      const authExpiresAt = Number(session?.expires_at || 0) * 1000;
+      const apiExpiresAt = new Date(payload.expiresAt || 0).getTime();
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
+      const candidates = [authExpiresAt, apiExpiresAt, shortCacheExpiresAt].filter((value) => Number.isFinite(value) && value > Date.now());
+      const expiresAt = candidates.length ? Math.min(...candidates) : shortCacheExpiresAt;
+      sessionStorage.setItem(utentesSessionCacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+    } catch (_error) {
+      // SessÃ£o de Utentes continua normal mesmo sem cache local.
     }
   };
   const createClient = () => {
@@ -754,8 +786,10 @@ await writeFile(
   };
   const ensureUtentesSession = async (client) => {
     const { data } = await client.auth.getSession();
-    const token = data?.session?.access_token || "";
+    const session = data?.session || null;
+    const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
+    if (hasUtentesSessionCache(session)) return;
     const response = await fetch("/api/utentes-session", {
       method: "POST",
       credentials: "same-origin",
@@ -765,6 +799,8 @@ await writeFile(
       const payload = await response.json().catch(() => ({}));
       throw new Error(payload.error || "Não foi possível iniciar Utentes.");
     }
+    const payload = await response.json().catch(() => ({ ok: true }));
+    saveUtentesSessionCache(session, payload);
   };
   const goTo = async (client, target) => {
     const path = safePath(target, "/dashboard");
@@ -802,6 +838,7 @@ await writeFile(
       } catch (_error) {
         // Logout continua mesmo sem acesso a sessionStorage.
       }
+      clearUtentesSessionCache();
       clearPersistentAuth();
       window.location.replace("/login?next=" + encodeURIComponent(nextPath()));
       return;

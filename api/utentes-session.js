@@ -250,7 +250,7 @@ export default async function handler(request, response) {
       'Set-Cookie',
       sessionCookie(request, sessionToken, 43200),
     )
-    sendJson(response, 200, { ok: true })
+    sendJson(response, 200, { ok: true, expiresAt: expires.toISOString() })
   } catch (error) {
     const message = getErrorMessage(error)
     sendJson(response, 400, {
