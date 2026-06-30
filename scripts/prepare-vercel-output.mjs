@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260630-utentes-session-cache'
+const assetVersion = '20260630-password-policy'
 
 const authPendingHead = `<script>
       (() => {
@@ -230,7 +230,7 @@ const centralUsersDialog = `
         <label class="field" for="userPassword" style="margin-bottom: 16px;">
           <span>Password</span>
           <div style="position: relative; width: 100%; display: flex; align-items: center;">
-            <input id="userPassword" name="password" type="password" required style="width: 100%; padding-right: 42px;" />
+            <input id="userPassword" name="password" type="password" autocomplete="new-password" minlength="8" title="A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial." required style="width: 100%; padding-right: 42px;" />
             <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
               <i data-lucide="eye">👁️</i>
             </button>

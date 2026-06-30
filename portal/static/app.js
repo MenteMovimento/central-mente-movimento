@@ -15,6 +15,10 @@ const languageStorageKeys = [
   legacyLanguageStorageKey,
   dispositivosLanguageStorageKey,
 ];
+const passwordPolicyMessage =
+  "A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.";
+const isStrongPassword = (password) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password);
 
 const translations = {
   pt: {
@@ -1055,7 +1059,7 @@ const validateCentralUser = ({ id, email, fullName, password, requirePassword = 
   if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
   if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Indique um email válido.";
-  if (requirePassword && (!password || password.length < 8)) return "A password deve ter pelo menos 8 caracteres.";
+  if (requirePassword && (!password || !isStrongPassword(password))) return passwordPolicyMessage;
   return "";
 };
 

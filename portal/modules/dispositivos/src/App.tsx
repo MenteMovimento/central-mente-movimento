@@ -305,6 +305,8 @@ const legacyDispositivosThemeStorageKey = 'mentemovimento-theme'
 
 const stripOuterWhitespace = (value: string) => value.replace(/^\s+|\s+$/g, '')
 const normalizeEmail = (value: string) => value.toLowerCase()
+const isStrongPassword = (password: string) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password)
 const sortCollator = new Intl.Collator('pt-PT', {
   numeric: true,
   sensitivity: 'base',
@@ -908,7 +910,8 @@ const translations = {
     noExportVisible: 'Nao ha dispositivos visiveis para exportar.',
     ownDeleteBlocked: 'Nao podes eliminar a tua propria conta.',
     ownRoleBlocked: 'Nao podes alterar a permissao da tua propria conta.',
-    passwordMin: 'A palavra-passe deve ter pelo menos 6 caracteres.',
+    passwordMin:
+      'A palavra-passe deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.',
     saveFailed: 'Nao foi possivel guardar.',
     sessionActive: 'Sessao ja ativa. Entraste diretamente no painel.',
     userCreated: 'Utilizador criado com a permissao definida.',
@@ -1091,7 +1094,8 @@ const translations = {
     noExportVisible: 'There are no visible devices to export.',
     ownDeleteBlocked: 'You cannot delete your own account.',
     ownRoleBlocked: 'You cannot change your own account permission.',
-    passwordMin: 'Password must be at least 6 characters.',
+    passwordMin:
+      'Password must be at least 8 characters, one uppercase letter and one special character.',
     saveFailed: 'Could not save.',
     sessionActive: 'Session already active. You went straight to the dashboard.',
     userCreated: 'User created with the defined permission.',
@@ -1898,7 +1902,7 @@ function App() {
         return
       }
 
-      if (authForm.password.length < 6) {
+      if (authMode !== 'login' && !isStrongPassword(authForm.password)) {
         throw new Error(t.passwordMin)
       }
 
@@ -2278,7 +2282,7 @@ function App() {
         throw new Error(t.fillUser)
       }
 
-      if (payload.password.length < 6) {
+      if (!isStrongPassword(payload.password)) {
         throw new Error(t.passwordMin)
       }
 
@@ -3192,9 +3196,10 @@ function App() {
               {t.password}
               <input
                 required
-                minLength={6}
+                minLength={authMode === 'login' ? undefined : 8}
                 type="password"
                 autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                title={authMode === 'login' ? undefined : t.passwordMin}
                 value={authForm.password}
                 onChange={(event) =>
                   setAuthForm((current) => ({ ...current, password: event.target.value }))
@@ -3994,8 +3999,10 @@ function App() {
                 {t.password}
                 <input
                   required
-                  minLength={6}
+                  minLength={8}
                   type="password"
+                  autoComplete="new-password"
+                  title={t.passwordMin}
                   value={createUserForm.password}
                   onChange={(event) =>
                     setCreateUserForm((current) => ({

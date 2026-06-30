@@ -27,6 +27,12 @@ const getErrorMessage = (error) => {
   return String(error)
 }
 
+const passwordPolicyMessage =
+  'A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.'
+
+const isStrongPassword = (password) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password)
+
 const createAdminClient = (response) => {
   const supabaseUrl =
     process.env.SUPABASE_URL ??
@@ -113,8 +119,8 @@ export default async function handler(request, response) {
       return
     }
 
-    if (password.length < 8) {
-      sendJson(response, 400, { error: 'A password deve ter pelo menos 8 caracteres.' })
+    if (!isStrongPassword(password)) {
+      sendJson(response, 400, { error: passwordPolicyMessage })
       return
     }
 

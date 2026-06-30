@@ -11,6 +11,10 @@ const REMEMBER_EMAIL_STORAGE_KEY = "socios-remember-email";
 const LOGIN_FAILURE_STORAGE_KEY = "socios-login-failures";
 const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
 const CENTRAL_AUTH_STORAGE_KEY = "central-mm-auth-token";
+const passwordPolicyMessage =
+  "A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.";
+const isStrongPassword = (password) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password);
 
 const centralAuthStorage = {
   getItem: (key) => sessionStorage.getItem(key),
@@ -2399,8 +2403,8 @@ function validateCreateUser(user) {
     errors.push("Indique um email válido.");
   }
 
-  if (!user.password || user.password.length < 8) {
-    errors.push("A password deve ter pelo menos 8 caracteres.");
+  if (!user.password || !isStrongPassword(user.password)) {
+    errors.push(passwordPolicyMessage);
   }
 
   if (!["admin", "operator", "viewer"].includes(user.role)) {

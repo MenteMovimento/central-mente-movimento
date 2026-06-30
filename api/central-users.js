@@ -46,6 +46,12 @@ const isMissingPermissionsColumnError = (error) => {
 const missingPermissionsSetupMessage =
   'A base de dados ainda nao tem a matriz de permissoes. Execute supabase/promover-matriz-permissoes.sql no SQL Editor do Supabase e volte a tentar.'
 
+const passwordPolicyMessage =
+  'A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.'
+
+const isStrongPassword = (password) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password)
+
 const createAdminClient = (response) => {
   const supabaseUrl =
     process.env.SUPABASE_URL ??
@@ -203,8 +209,8 @@ export default async function handler(request, response) {
         return
       }
 
-      if (password.length < 8) {
-        sendJson(response, 400, { error: 'A password deve ter pelo menos 8 caracteres.' })
+      if (!isStrongPassword(password)) {
+        sendJson(response, 400, { error: passwordPolicyMessage })
         return
       }
 
