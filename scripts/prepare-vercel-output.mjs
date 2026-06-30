@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260630-restricted-access'
+const assetVersion = '20260630-socios-view-button'
 
 const authPendingHead = `<script>
       (() => {

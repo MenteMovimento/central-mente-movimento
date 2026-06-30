@@ -1596,6 +1596,18 @@ svg {
   resize: vertical;
 }
 
+.member-dialog.is-readonly .field input,
+.member-dialog.is-readonly .field select,
+.member-dialog.is-readonly .field textarea {
+  opacity: 1;
+  cursor: default;
+  background: var(--panel-soft);
+}
+
+.member-dialog.is-readonly .field textarea {
+  resize: none;
+}
+
 .field input[aria-invalid="true"] {
   border-color: var(--danger);
 }

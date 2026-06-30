@@ -150,6 +150,7 @@ const translations = {
       cancel: "Cancelar",
       delete: "Apagar",
       edit: "Editar",
+      view: "Ver",
       clear: "Limpar",
       active: "Ativo",
       actions: "Ações",
@@ -208,6 +209,7 @@ const translations = {
       registered: "Ficha registada.",
     },
     member: {
+      viewTitle: "Consultar sócio",
       editTitle: "Editar sócio",
       newTitle: "Novo sócio",
       subtitle: "Ficha individual",
@@ -366,6 +368,7 @@ const translations = {
       cancel: "Cancel",
       delete: "Delete",
       edit: "Edit",
+      view: "View",
       clear: "Clear",
       active: "Active",
       actions: "Actions",
@@ -424,6 +427,7 @@ const translations = {
       registered: "Record registered.",
     },
     member: {
+      viewTitle: "View member",
       editTitle: "Edit member",
       newTitle: "New member",
       subtitle: "Individual record",
@@ -669,6 +673,7 @@ const state = {
   filter: "all",
   sort: "nameAsc",
   editingId: null,
+  viewingOnly: false,
   editingUserId: null,
   csrfToken: "",
   loginFailureCount: 0,
@@ -1217,8 +1222,9 @@ function updateLanguageOptions() {
 function syncOpenDialogText() {
   if (elements.dialog.open) {
     const member = state.members.find((item) => item.id === state.editingId);
-    elements.dialogTitle.textContent = member ? t("member.editTitle") : t("member.newTitle");
+    elements.dialogTitle.textContent = state.viewingOnly ? t("member.viewTitle") : member ? t("member.editTitle") : t("member.newTitle");
     elements.dialogSubtitle.textContent = member ? member.name : t("member.subtitle");
+    elements.cancelBtn.textContent = state.viewingOnly ? t("app.close") : t("app.cancel");
   }
 
   if (!state.editingUserId) {
@@ -1480,6 +1486,10 @@ function canExport() {
   return hasCentralPermission("socios", "export");
 }
 
+function canViewMembers() {
+  return hasCentralPermission("socios", "view");
+}
+
 function canManageUsers() {
   return hasCentralPermission("central", "manage_users");
 }
@@ -1489,7 +1499,7 @@ function canViewHistory() {
 }
 
 function canViewManuals() {
-  return hasCentralPermission("socios", "view");
+  return canViewMembers();
 }
 
 function hasCentralPermission(area, action) {
@@ -2124,9 +2134,17 @@ function renderQuotaStatus(value, paidAt = "") {
 }
 
 function renderRowActions(member) {
-  if (!canWrite() && !canDelete()) {
+  if (!canViewMembers() && !canWrite() && !canDelete()) {
     return `<span class="muted-cell">—</span>`;
   }
+
+  const viewButton = canViewMembers()
+    ? `
+      <button class="icon-button" type="button" title="${escapeAttribute(t("app.view"))}" aria-label="${escapeAttribute(t("app.view"))} ${escapeAttribute(member.name || t("history.member"))}" data-action="view" data-id="${escapeAttribute(member.id)}">
+        <i data-lucide="eye"></i>
+      </button>
+    `
+    : "";
 
   const editButton = canWrite()
     ? `
@@ -2153,7 +2171,7 @@ function renderRowActions(member) {
     `
     : "";
 
-  return `<div class="row-actions">${payQuotaButton}${editButton}${deleteButton}</div>`;
+  return `<div class="row-actions">${payQuotaButton}${viewButton}${editButton}${deleteButton}</div>`;
 }
 
 function escapeHtml(value) {
@@ -2169,8 +2187,29 @@ function escapeAttribute(value) {
   return escapeHtml(value).replace(/`/g, "&#096;");
 }
 
-function openMemberDialog(member = null) {
-  if (!canWrite()) {
+function setMemberDialogReadOnly(readOnly) {
+  state.viewingOnly = Boolean(readOnly);
+  elements.dialog.classList.toggle("is-readonly", state.viewingOnly);
+  elements.form.querySelectorAll("input:not([type='hidden']), textarea").forEach((field) => {
+    field.readOnly = state.viewingOnly;
+  });
+  elements.form.querySelectorAll("select").forEach((field) => {
+    field.disabled = state.viewingOnly;
+  });
+  elements.form.querySelectorAll('button[type="submit"]').forEach((button) => {
+    button.hidden = state.viewingOnly;
+  });
+  elements.cancelBtn.textContent = state.viewingOnly ? t("app.close") : t("app.cancel");
+}
+
+function openMemberDialog(member = null, options = {}) {
+  const readOnly = Boolean(options.readOnly);
+  if (readOnly && !canViewMembers()) {
+    showToast(t("messages.noPermissionMembers"));
+    return;
+  }
+
+  if (!readOnly && !canWrite()) {
     showToast(t("messages.noPermissionMembers"));
     return;
   }
@@ -2179,9 +2218,9 @@ function openMemberDialog(member = null) {
   elements.form.reset();
   syncCsrfTokens();
   elements.formError.textContent = "";
-  elements.dialogTitle.textContent = member ? t("member.editTitle") : t("member.newTitle");
+  elements.dialogTitle.textContent = readOnly ? t("member.viewTitle") : member ? t("member.editTitle") : t("member.newTitle");
   elements.dialogSubtitle.textContent = member ? member.name : t("member.subtitle");
-  elements.deleteMemberBtn.hidden = !member || !canDelete();
+  elements.deleteMemberBtn.hidden = readOnly || !member || !canDelete();
   document.querySelector("#memberId").value = member?.id ?? "";
   populateQuotaYearOptions(member?.quotaPaidUntil ?? "");
 
@@ -2193,13 +2232,15 @@ function openMemberDialog(member = null) {
     document.querySelector("#admissionDate").value = todayInputValue();
   }
 
+  setMemberDialogReadOnly(readOnly);
   elements.dialog.showModal();
-  document.querySelector("#memberNumber").focus();
+  (readOnly ? elements.closeDialogBtn : document.querySelector("#memberNumber")).focus();
 }
 
 function closeMemberDialog() {
   elements.dialog.close();
   state.editingId = null;
+  setMemberDialogReadOnly(false);
 }
 
 async function openAdminDialog() {
@@ -2622,6 +2663,10 @@ function validateForm(member) {
 
 async function handleSubmit(event) {
   event.preventDefault();
+
+  if (state.viewingOnly) {
+    return;
+  }
 
   if (!canWrite()) {
     showToast("Não tem permissão para guardar alterações.");
@@ -3647,6 +3692,10 @@ function wireEvents() {
     }
 
     const member = state.members.find((item) => item.id === button.dataset.id);
+
+    if (button.dataset.action === "view" && member) {
+      openMemberDialog(member, { readOnly: true });
+    }
 
     if (button.dataset.action === "edit" && member) {
       openMemberDialog(member);
