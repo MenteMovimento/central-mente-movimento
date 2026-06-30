@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260630-permission-dependencies'
+const assetVersion = '20260630-restricted-access'
 
 const authPendingHead = `<script>
       (() => {
@@ -492,12 +492,104 @@ await writeFile(
     const permissions = normalizeCentralPermissions(profile?.permissions);
     return Boolean(permissions[area]?.[action]);
   };
+  const restrictedMessages = {
+    area: "Esta area tem acesso restrito para este utilizador.",
+    users: "Nao tem permissao para gerir utilizadores.",
+    history: "Nao tem permissao para consultar o historico geral.",
+    action: "Nao tem permissao para usar esta acao."
+  };
+  const restrictedAreaFromHref = (href) => {
+    try {
+      const url = new URL(href, window.location.origin);
+      if (url.origin !== window.location.origin) return "";
+      const match = url.pathname.match(/^\\/area\\/(socios|utentes|dispositivos)(?:\\/|$)/);
+      return match?.[1] || "";
+    } catch (_error) {
+      return "";
+    }
+  };
+  const setRestrictedAccess = (node, restricted, message) => {
+    if (!node) return;
+    node.hidden = false;
+    node.classList.toggle("is-restricted", Boolean(restricted));
+    node.removeAttribute("aria-disabled");
+    if (restricted) {
+      node.dataset.accessRestricted = "true";
+      node.dataset.restrictedMessage = message || restrictedMessages.action;
+    } else {
+      delete node.dataset.accessRestricted;
+      delete node.dataset.restrictedMessage;
+    }
+  };
+  const restrictedMessageForClick = (target) => {
+    const explicitNode = target.closest("[data-access-restricted='true']");
+    if (explicitNode) return explicitNode.dataset.restrictedMessage || restrictedMessages.action;
+    const profile = window.CENTRAL_USER_PROFILE;
+    if (!profile) return "";
+    const permissionNode = target.closest("[data-requires-permission-area][data-requires-permission-action]");
+    if (permissionNode) {
+      const area = permissionNode.dataset.requiresPermissionArea;
+      const action = permissionNode.dataset.requiresPermissionAction;
+      if (area && action && !hasCentralPermission(profile, area, action)) {
+        return permissionNode.dataset.restrictedMessage || restrictedMessages.action;
+      }
+    }
+    if (target.closest("[data-users-toggle]") && !hasCentralPermission(profile, "central", "manage_users")) {
+      return restrictedMessages.users;
+    }
+    const link = target.closest("a[href]");
+    if (!link) return "";
+    const area = restrictedAreaFromHref(link.getAttribute("href") || link.href);
+    if (area && !hasCentralPermission(profile, area, "view")) return restrictedMessages.area;
+    try {
+      const url = new URL(link.getAttribute("href") || link.href, window.location.origin);
+      if (url.origin === window.location.origin && url.pathname.startsWith("/historico")) {
+        if (!hasCentralPermission(profile, "central", "view_history")) return restrictedMessages.history;
+      }
+    } catch (_error) {
+      return "";
+    }
+    return "";
+  };
+  const wireRestrictedAccess = () => {
+    if (window.__CENTRAL_RESTRICTED_ACCESS_WIRED) return;
+    window.__CENTRAL_RESTRICTED_ACCESS_WIRED = true;
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        if (!target) return;
+        const message = restrictedMessageForClick(target);
+        if (!message) return;
+        event.preventDefault();
+        event.stopPropagation();
+        window.alert(message);
+      },
+      true
+    );
+  };
   const applyCentralPermissionsToPage = (profile) => {
     const effectiveProfile = profile ? { ...profile, permissions: normalizeCentralPermissions(profile.permissions) } : profile;
     window.CENTRAL_USER_PROFILE = effectiveProfile;
+    permissionAreas.forEach((area) => {
+      const restricted = effectiveProfile ? !hasCentralPermission(effectiveProfile, area, "view") : false;
+      document.querySelectorAll('[data-module-card="' + area + '"]').forEach((node) => {
+        setRestrictedAccess(node, restricted, restrictedMessages.area);
+      });
+      document.querySelectorAll('a[href^="/area/' + area + '"]').forEach((node) => {
+        setRestrictedAccess(node, restricted, restrictedMessages.area);
+      });
+    });
+    document.querySelectorAll("[data-users-toggle]").forEach((node) => {
+      setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "manage_users") : false, restrictedMessages.users);
+    });
+    document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
+      setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "view_history") : false, restrictedMessages.history);
+    });
     window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
     return effectiveProfile;
   };
+  wireRestrictedAccess();
   if (!window.CENTRAL_PERMISSIONS) {
     window.CENTRAL_PERMISSIONS = {
       normalize: normalizeCentralPermissions,
@@ -850,12 +942,104 @@ await writeFile(
     const permissions = normalizeCentralPermissions(profile?.permissions);
     return Boolean(permissions[area]?.[action]);
   };
+  const restrictedMessages = {
+    area: "Esta area tem acesso restrito para este utilizador.",
+    users: "Nao tem permissao para gerir utilizadores.",
+    history: "Nao tem permissao para consultar o historico geral.",
+    action: "Nao tem permissao para usar esta acao."
+  };
+  const restrictedAreaFromHref = (href) => {
+    try {
+      const url = new URL(href, window.location.origin);
+      if (url.origin !== window.location.origin) return "";
+      const match = url.pathname.match(/^\\/area\\/(socios|utentes|dispositivos)(?:\\/|$)/);
+      return match?.[1] || "";
+    } catch (_error) {
+      return "";
+    }
+  };
+  const setRestrictedAccess = (node, restricted, message) => {
+    if (!node) return;
+    node.hidden = false;
+    node.classList.toggle("is-restricted", Boolean(restricted));
+    node.removeAttribute("aria-disabled");
+    if (restricted) {
+      node.dataset.accessRestricted = "true";
+      node.dataset.restrictedMessage = message || restrictedMessages.action;
+    } else {
+      delete node.dataset.accessRestricted;
+      delete node.dataset.restrictedMessage;
+    }
+  };
+  const restrictedMessageForClick = (target) => {
+    const explicitNode = target.closest("[data-access-restricted='true']");
+    if (explicitNode) return explicitNode.dataset.restrictedMessage || restrictedMessages.action;
+    const profile = window.CENTRAL_USER_PROFILE;
+    if (!profile) return "";
+    const permissionNode = target.closest("[data-requires-permission-area][data-requires-permission-action]");
+    if (permissionNode) {
+      const area = permissionNode.dataset.requiresPermissionArea;
+      const action = permissionNode.dataset.requiresPermissionAction;
+      if (area && action && !hasCentralPermission(profile, area, action)) {
+        return permissionNode.dataset.restrictedMessage || restrictedMessages.action;
+      }
+    }
+    if (target.closest("[data-users-toggle]") && !hasCentralPermission(profile, "central", "manage_users")) {
+      return restrictedMessages.users;
+    }
+    const link = target.closest("a[href]");
+    if (!link) return "";
+    const area = restrictedAreaFromHref(link.getAttribute("href") || link.href);
+    if (area && !hasCentralPermission(profile, area, "view")) return restrictedMessages.area;
+    try {
+      const url = new URL(link.getAttribute("href") || link.href, window.location.origin);
+      if (url.origin === window.location.origin && url.pathname.startsWith("/historico")) {
+        if (!hasCentralPermission(profile, "central", "view_history")) return restrictedMessages.history;
+      }
+    } catch (_error) {
+      return "";
+    }
+    return "";
+  };
+  const wireRestrictedAccess = () => {
+    if (window.__CENTRAL_RESTRICTED_ACCESS_WIRED) return;
+    window.__CENTRAL_RESTRICTED_ACCESS_WIRED = true;
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        if (!target) return;
+        const message = restrictedMessageForClick(target);
+        if (!message) return;
+        event.preventDefault();
+        event.stopPropagation();
+        window.alert(message);
+      },
+      true
+    );
+  };
   const applyCentralPermissionsToPage = (profile) => {
     const effectiveProfile = profile ? { ...profile, permissions: normalizeCentralPermissions(profile.permissions) } : profile;
     window.CENTRAL_USER_PROFILE = effectiveProfile;
+    permissionAreas.forEach((area) => {
+      const restricted = effectiveProfile ? !hasCentralPermission(effectiveProfile, area, "view") : false;
+      document.querySelectorAll('[data-module-card="' + area + '"]').forEach((node) => {
+        setRestrictedAccess(node, restricted, restrictedMessages.area);
+      });
+      document.querySelectorAll('a[href^="/area/' + area + '"]').forEach((node) => {
+        setRestrictedAccess(node, restricted, restrictedMessages.area);
+      });
+    });
+    document.querySelectorAll("[data-users-toggle]").forEach((node) => {
+      setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "manage_users") : false, restrictedMessages.users);
+    });
+    document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
+      setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "view_history") : false, restrictedMessages.history);
+    });
     window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
     return effectiveProfile;
   };
+  wireRestrictedAccess();
   if (!window.CENTRAL_PERMISSIONS) {
     window.CENTRAL_PERMISSIONS = {
       normalize: normalizeCentralPermissions,
