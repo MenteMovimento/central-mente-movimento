@@ -503,6 +503,7 @@ const emptyCentralPermissions = () => ({
 const defaultCentralPermissionsForRole = () => fullCentralPermissions();
 
 const boolPermission = (value) => value === true || value === "true" || value === 1 || value === "1";
+const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
 
 const normalizeCentralPermissions = (input) => {
   const source = input && typeof input === "object" ? input : {};
@@ -518,21 +519,35 @@ const normalizeCentralPermissions = (input) => {
     const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
     const nextArea = { ...normalized[area] };
     centralAreaActions.forEach((action) => {
-      if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+      if (hasPermissionValue(sourceArea, action)) {
         nextArea[action] = boolPermission(sourceArea[action]);
       }
     });
-    if (nextArea.edit) nextArea.view = true;
-    if (nextArea.export) nextArea.view = true;
-    if (nextArea.delete) {
-      nextArea.view = true;
-      nextArea.edit = true;
-    }
-    if (nextArea.view_sensitive) nextArea.view = true;
-    if (nextArea.edit_sensitive) {
-      nextArea.view = true;
-      nextArea.edit = true;
-      nextArea.view_sensitive = true;
+    if (hasPermissionValue(sourceArea, "view") && !boolPermission(sourceArea.view)) {
+      centralAreaActions.forEach((action) => {
+        nextArea[action] = false;
+      });
+    } else {
+      if (hasPermissionValue(sourceArea, "edit") && !boolPermission(sourceArea.edit)) {
+        nextArea.delete = false;
+        nextArea.edit_sensitive = false;
+      }
+      if (hasPermissionValue(sourceArea, "view_sensitive") && !boolPermission(sourceArea.view_sensitive)) {
+        nextArea.edit_sensitive = false;
+      }
+
+      if (nextArea.edit) nextArea.view = true;
+      if (nextArea.export) nextArea.view = true;
+      if (nextArea.delete) {
+        nextArea.view = true;
+        nextArea.edit = true;
+      }
+      if (nextArea.view_sensitive) nextArea.view = true;
+      if (nextArea.edit_sensitive) {
+        nextArea.view = true;
+        nextArea.edit = true;
+        nextArea.view_sensitive = true;
+      }
     }
     if (area !== "utentes") {
       nextArea.view_sensitive = false;
@@ -625,6 +640,52 @@ const showCentralFormError = (node, message) => {
 
 const permissionInputName = (scope, area, action) => `${scope}_${area}_${action}`;
 
+const findPermissionInput = (scope, area, action) =>
+  document.querySelector(
+    `[data-permission-input="${scope}"][data-area="${area}"][data-action="${action}"]`,
+  );
+
+const setPermissionInput = (scope, area, action, checked) => {
+  const input = findPermissionInput(scope, area, action);
+  if (input) input.checked = checked;
+};
+
+const syncPermissionDependencies = (input) => {
+  const scope = input.dataset.permissionInput;
+  const area = input.dataset.area;
+  const action = input.dataset.action;
+  if (!scope || !area || area === "central" || !action) return;
+
+  if (!input.checked) {
+    if (action === "view") {
+      centralAreaActions.forEach((areaAction) => setPermissionInput(scope, area, areaAction, false));
+      return;
+    }
+    if (action === "edit") {
+      setPermissionInput(scope, area, "delete", false);
+      setPermissionInput(scope, area, "edit_sensitive", false);
+      return;
+    }
+    if (action === "view_sensitive") {
+      setPermissionInput(scope, area, "edit_sensitive", false);
+    }
+    return;
+  }
+
+  if (action === "edit" || action === "export" || action === "view_sensitive") {
+    setPermissionInput(scope, area, "view", true);
+  }
+  if (action === "delete") {
+    setPermissionInput(scope, area, "view", true);
+    setPermissionInput(scope, area, "edit", true);
+  }
+  if (action === "edit_sensitive") {
+    setPermissionInput(scope, area, "view", true);
+    setPermissionInput(scope, area, "edit", true);
+    setPermissionInput(scope, area, "view_sensitive", true);
+  }
+};
+
 const renderPermissionGrid = (container, scope, permissions) => {
   if (!container) return;
   const language = getLanguage();
@@ -686,6 +747,9 @@ const renderPermissionGrid = (container, scope, permissions) => {
       </label>
     </fieldset>
   `;
+  container.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
+    input.addEventListener("change", () => syncPermissionDependencies(input));
+  });
 };
 
 const permissionActionKey = (action) => ({
@@ -698,7 +762,7 @@ const permissionActionKey = (action) => ({
 }[action] || action);
 
 const collectPermissionGrid = (scope) => {
-  const permissions = defaultCentralPermissionsForRole();
+  const permissions = emptyCentralPermissions();
   document.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
     const area = input.dataset.area;
     const action = input.dataset.action;

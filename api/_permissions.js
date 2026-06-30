@@ -43,6 +43,9 @@ export const fullPermissions = () => ({
 
 const toBoolean = (value) => value === true || value === 'true' || value === 1 || value === '1'
 
+const hasOwnPermission = (permissions, action) =>
+  Object.prototype.hasOwnProperty.call(permissions, action)
+
 export const normalizePermissions = (input) => {
   const source = input && typeof input === 'object' ? input : {}
   const hasStoredMatrix =
@@ -64,22 +67,36 @@ export const normalizePermissions = (input) => {
     const nextArea = { ...normalized[area] }
 
     AREA_ACTIONS.forEach((action) => {
-      if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+      if (hasOwnPermission(sourceArea, action)) {
         nextArea[action] = toBoolean(sourceArea[action])
       }
     })
 
-    if (nextArea.edit) nextArea.view = true
-    if (nextArea.export) nextArea.view = true
-    if (nextArea.delete) {
-      nextArea.view = true
-      nextArea.edit = true
-    }
-    if (nextArea.view_sensitive) nextArea.view = true
-    if (nextArea.edit_sensitive) {
-      nextArea.view = true
-      nextArea.edit = true
-      nextArea.view_sensitive = true
+    if (hasOwnPermission(sourceArea, 'view') && !toBoolean(sourceArea.view)) {
+      AREA_ACTIONS.forEach((action) => {
+        nextArea[action] = false
+      })
+    } else {
+      if (hasOwnPermission(sourceArea, 'edit') && !toBoolean(sourceArea.edit)) {
+        nextArea.delete = false
+        nextArea.edit_sensitive = false
+      }
+      if (hasOwnPermission(sourceArea, 'view_sensitive') && !toBoolean(sourceArea.view_sensitive)) {
+        nextArea.edit_sensitive = false
+      }
+
+      if (nextArea.edit) nextArea.view = true
+      if (nextArea.export) nextArea.view = true
+      if (nextArea.delete) {
+        nextArea.view = true
+        nextArea.edit = true
+      }
+      if (nextArea.view_sensitive) nextArea.view = true
+      if (nextArea.edit_sensitive) {
+        nextArea.view = true
+        nextArea.edit = true
+        nextArea.view_sensitive = true
+      }
     }
 
     if (area !== 'utentes') {

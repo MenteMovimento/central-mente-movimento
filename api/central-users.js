@@ -1,7 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import {
   canManageUsers,
-  fullPermissions,
   mapCentralPermissionsToDeviceRole,
   normalizePermissions,
 } from './_permissions.js'
@@ -44,6 +43,9 @@ const isMissingPermissionsColumnError = (error) => {
   )
 }
 
+const missingPermissionsSetupMessage =
+  'A base de dados ainda nao tem a matriz de permissoes. Execute supabase/promover-matriz-permissoes.sql no SQL Editor do Supabase e volte a tentar.'
+
 const createAdminClient = (response) => {
   const supabaseUrl =
     process.env.SUPABASE_URL ??
@@ -74,18 +76,8 @@ const selectAppUsers = async (adminClient) => {
 
   if (!error) return data ?? []
 
-  if (!isMissingPermissionsColumnError(error)) throw error
-
-  const { data: fallbackData, error: fallbackError } = await adminClient
-    .from('app_users')
-    .select('id,email,full_name,active,created_at,updated_at')
-    .order('email', { ascending: true })
-
-  if (fallbackError) throw fallbackError
-  return (fallbackData ?? []).map((user) => ({
-    ...user,
-    permissions: fullPermissions(),
-  }))
+  if (isMissingPermissionsColumnError(error)) throw new Error(missingPermissionsSetupMessage)
+  throw error
 }
 
 const getAppUser = async (adminClient, id) => {
@@ -97,16 +89,8 @@ const getAppUser = async (adminClient, id) => {
 
   if (!error) return data
 
-  if (!isMissingPermissionsColumnError(error)) throw error
-
-  const { data: fallbackData, error: fallbackError } = await adminClient
-    .from('app_users')
-    .select('id,email,full_name,active,created_at,updated_at')
-    .eq('id', id)
-    .maybeSingle()
-
-  if (fallbackError) throw fallbackError
-  return fallbackData ? { ...fallbackData, permissions: fullPermissions() } : null
+  if (isMissingPermissionsColumnError(error)) throw new Error(missingPermissionsSetupMessage)
+  throw error
 }
 
 const requireManager = async (request, response, adminClient) => {
@@ -162,9 +146,6 @@ const sanitizePayload = (body) => {
   }
 }
 
-const withFallbackPermissions = (user) =>
-  user ? { ...user, permissions: normalizePermissions(user.permissions) } : user
-
 const upsertAppUser = async (adminClient, record) => {
   const { data, error } = await adminClient
     .from('app_users')
@@ -173,17 +154,8 @@ const upsertAppUser = async (adminClient, record) => {
     .single()
 
   if (!error) return data
-  if (!isMissingPermissionsColumnError(error)) throw error
-
-  const { permissions: _permissions, ...fallbackRecord } = record
-  const { data: fallbackData, error: fallbackError } = await adminClient
-    .from('app_users')
-    .upsert(fallbackRecord, { onConflict: 'id' })
-    .select('id,email,full_name,active,created_at,updated_at')
-    .single()
-
-  if (fallbackError) throw fallbackError
-  return withFallbackPermissions(fallbackData)
+  if (isMissingPermissionsColumnError(error)) throw new Error(missingPermissionsSetupMessage)
+  throw error
 }
 
 const updateAppUser = async (adminClient, id, patch) => {
@@ -195,18 +167,8 @@ const updateAppUser = async (adminClient, id, patch) => {
     .single()
 
   if (!error) return data
-  if (!isMissingPermissionsColumnError(error)) throw error
-
-  const { permissions: _permissions, ...fallbackPatch } = patch
-  const { data: fallbackData, error: fallbackError } = await adminClient
-    .from('app_users')
-    .update(fallbackPatch)
-    .eq('id', id)
-    .select('id,email,full_name,active,created_at,updated_at')
-    .single()
-
-  if (fallbackError) throw fallbackError
-  return withFallbackPermissions(fallbackData)
+  if (isMissingPermissionsColumnError(error)) throw new Error(missingPermissionsSetupMessage)
+  throw error
 }
 
 export default async function handler(request, response) {

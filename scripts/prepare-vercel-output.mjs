@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260608-header-i18n-icons'
+const assetVersion = '20260630-permission-dependencies'
 
 const authPendingHead = `<script>
       (() => {
@@ -438,6 +438,7 @@ await writeFile(
     dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
+  const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
     const hasStoredMatrix =
@@ -450,22 +451,35 @@ await writeFile(
     permissionAreas.forEach((area) => {
       const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
       permissionActions.forEach((action) => {
-        if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+        if (hasPermissionValue(sourceArea, action)) {
           normalized[area][action] = permissionBoolean(sourceArea[action]);
         }
       });
       const current = normalized[area];
-      if (current.edit) current.view = true;
-      if (current.export) current.view = true;
-      if (current.delete) {
-        current.edit = true;
-        current.view = true;
-      }
-      if (current.view_sensitive) current.view = true;
-      if (current.edit_sensitive) {
-        current.view_sensitive = true;
-        current.edit = true;
-        current.view = true;
+      if (hasPermissionValue(sourceArea, "view") && !permissionBoolean(sourceArea.view)) {
+        permissionActions.forEach((action) => {
+          current[action] = false;
+        });
+      } else {
+        if (hasPermissionValue(sourceArea, "edit") && !permissionBoolean(sourceArea.edit)) {
+          current.delete = false;
+          current.edit_sensitive = false;
+        }
+        if (hasPermissionValue(sourceArea, "view_sensitive") && !permissionBoolean(sourceArea.view_sensitive)) {
+          current.edit_sensitive = false;
+        }
+        if (current.edit) current.view = true;
+        if (current.export) current.view = true;
+        if (current.delete) {
+          current.edit = true;
+          current.view = true;
+        }
+        if (current.view_sensitive) current.view = true;
+        if (current.edit_sensitive) {
+          current.view_sensitive = true;
+          current.edit = true;
+          current.view = true;
+        }
       }
       if (area !== "utentes") {
         current.view_sensitive = false;
@@ -782,6 +796,7 @@ await writeFile(
     dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
+  const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
     const hasStoredMatrix =
@@ -794,22 +809,35 @@ await writeFile(
     permissionAreas.forEach((area) => {
       const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
       permissionActions.forEach((action) => {
-        if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+        if (hasPermissionValue(sourceArea, action)) {
           normalized[area][action] = permissionBoolean(sourceArea[action]);
         }
       });
       const current = normalized[area];
-      if (current.edit) current.view = true;
-      if (current.export) current.view = true;
-      if (current.delete) {
-        current.edit = true;
-        current.view = true;
-      }
-      if (current.view_sensitive) current.view = true;
-      if (current.edit_sensitive) {
-        current.view_sensitive = true;
-        current.edit = true;
-        current.view = true;
+      if (hasPermissionValue(sourceArea, "view") && !permissionBoolean(sourceArea.view)) {
+        permissionActions.forEach((action) => {
+          current[action] = false;
+        });
+      } else {
+        if (hasPermissionValue(sourceArea, "edit") && !permissionBoolean(sourceArea.edit)) {
+          current.delete = false;
+          current.edit_sensitive = false;
+        }
+        if (hasPermissionValue(sourceArea, "view_sensitive") && !permissionBoolean(sourceArea.view_sensitive)) {
+          current.edit_sensitive = false;
+        }
+        if (current.edit) current.view = true;
+        if (current.export) current.view = true;
+        if (current.delete) {
+          current.edit = true;
+          current.view = true;
+        }
+        if (current.view_sensitive) current.view = true;
+        if (current.edit_sensitive) {
+          current.view_sensitive = true;
+          current.edit = true;
+          current.view = true;
+        }
       }
       if (area !== "utentes") {
         current.view_sensitive = false;

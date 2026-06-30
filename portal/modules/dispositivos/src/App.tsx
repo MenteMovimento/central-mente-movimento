@@ -132,6 +132,10 @@ const centralAreaActions: CentralPermissionAction[] = [
   'export',
   'delete',
 ]
+const hasPermissionValue = (
+  permissions: Partial<CentralAreaPermission> | undefined,
+  action: CentralPermissionAction,
+) => Object.prototype.hasOwnProperty.call(permissions ?? {}, action)
 
 // The Central permissions matrix is the single source of truth. The legacy role is ignored.
 const fullCentralPermissions = (): Required<CentralPermissions> => {
@@ -229,18 +233,35 @@ const normalizeCentralPermissions = (
 
   centralAreas.forEach((area) => {
     const areaPermissions = normalized[area]
-    if (areaPermissions.delete) {
-      areaPermissions.edit = true
-      areaPermissions.view = true
+    const sourceArea = permissions?.[area]
+    if (hasPermissionValue(sourceArea, 'view') && sourceArea?.view === false) {
+      centralAreaActions.forEach((action) => {
+        areaPermissions[action] = false
+      })
+    } else {
+      if (hasPermissionValue(sourceArea, 'edit') && sourceArea?.edit === false) {
+        areaPermissions.delete = false
+        areaPermissions.edit_sensitive = false
+      }
+      if (
+        hasPermissionValue(sourceArea, 'view_sensitive') &&
+        sourceArea?.view_sensitive === false
+      ) {
+        areaPermissions.edit_sensitive = false
+      }
+      if (areaPermissions.delete) {
+        areaPermissions.edit = true
+        areaPermissions.view = true
+      }
+      if (areaPermissions.edit) areaPermissions.view = true
+      if (areaPermissions.export) areaPermissions.view = true
+      if (areaPermissions.edit_sensitive) {
+        areaPermissions.view_sensitive = true
+        areaPermissions.edit = true
+        areaPermissions.view = true
+      }
+      if (areaPermissions.view_sensitive) areaPermissions.view = true
     }
-    if (areaPermissions.edit) areaPermissions.view = true
-    if (areaPermissions.export) areaPermissions.view = true
-    if (areaPermissions.edit_sensitive) {
-      areaPermissions.view_sensitive = true
-      areaPermissions.edit = true
-      areaPermissions.view = true
-    }
-    if (areaPermissions.view_sensitive) areaPermissions.view = true
     if (area !== 'utentes') {
       areaPermissions.view_sensitive = false
       areaPermissions.edit_sensitive = false
