@@ -83,10 +83,14 @@ export const normalizePermissions = (input) => {
       }
       if (hasOwnPermission(sourceArea, 'view_sensitive') && !toBoolean(sourceArea.view_sensitive)) {
         nextArea.edit_sensitive = false
+        if (area === 'utentes') nextArea.export = false
       }
 
       if (nextArea.edit) nextArea.view = true
-      if (nextArea.export) nextArea.view = true
+      if (nextArea.export) {
+        nextArea.view = true
+        if (area === 'utentes') nextArea.view_sensitive = true
+      }
       if (nextArea.delete) {
         nextArea.view = true
         nextArea.edit = true

@@ -544,10 +544,14 @@ const normalizeCentralPermissions = (input) => {
       }
       if (hasPermissionValue(sourceArea, "view_sensitive") && !boolPermission(sourceArea.view_sensitive)) {
         nextArea.edit_sensitive = false;
+        if (area === "utentes") nextArea.export = false;
       }
 
       if (nextArea.edit) nextArea.view = true;
-      if (nextArea.export) nextArea.view = true;
+      if (nextArea.export) {
+        nextArea.view = true;
+        if (area === "utentes") nextArea.view_sensitive = true;
+      }
       if (nextArea.delete) {
         nextArea.view = true;
         nextArea.edit = true;
@@ -767,12 +771,16 @@ const syncPermissionDependencies = (input) => {
     }
     if (action === "view_sensitive") {
       setPermissionInput(scope, area, "edit_sensitive", false);
+      if (area === "utentes") setPermissionInput(scope, area, "export", false);
     }
     return;
   }
 
   if (action === "edit" || action === "export" || action === "view_sensitive") {
     setPermissionInput(scope, area, "view", true);
+  }
+  if (area === "utentes" && action === "export") {
+    setPermissionInput(scope, area, "view_sensitive", true);
   }
   if (action === "delete") {
     setPermissionInput(scope, area, "view", true);

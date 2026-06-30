@@ -3654,19 +3654,34 @@ def normalize_central_permissions(raw_permissions, _role=None):
 
     for area in CENTRAL_AREA_KEYS:
         area_permissions = permissions[area]
-        if area_permissions["delete"]:
-            area_permissions["edit"] = True
-            area_permissions["view"] = True
-        if area_permissions["edit"]:
-            area_permissions["view"] = True
-        if area_permissions["export"]:
-            area_permissions["view"] = True
-        if area_permissions["edit_sensitive"]:
-            area_permissions["view_sensitive"] = True
-            area_permissions["edit"] = True
-            area_permissions["view"] = True
-        if area_permissions["view_sensitive"]:
-            area_permissions["view"] = True
+        source = raw_permissions.get(area)
+        source = source if isinstance(source, dict) else {}
+        if source.get("view") is False:
+            for action in CENTRAL_AREA_ACTIONS:
+                area_permissions[action] = False
+        else:
+            if source.get("edit") is False:
+                area_permissions["delete"] = False
+                area_permissions["edit_sensitive"] = False
+            if source.get("view_sensitive") is False:
+                area_permissions["edit_sensitive"] = False
+                if area == "utentes":
+                    area_permissions["export"] = False
+            if area_permissions["delete"]:
+                area_permissions["edit"] = True
+                area_permissions["view"] = True
+            if area_permissions["edit"]:
+                area_permissions["view"] = True
+            if area_permissions["export"]:
+                area_permissions["view"] = True
+                if area == "utentes":
+                    area_permissions["view_sensitive"] = True
+            if area_permissions["edit_sensitive"]:
+                area_permissions["view_sensitive"] = True
+                area_permissions["edit"] = True
+                area_permissions["view"] = True
+            if area_permissions["view_sensitive"]:
+                area_permissions["view"] = True
         if area != "utentes":
             area_permissions["view_sensitive"] = False
             area_permissions["edit_sensitive"] = False

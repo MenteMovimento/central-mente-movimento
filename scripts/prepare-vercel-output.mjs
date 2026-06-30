@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260630-socios-view-button'
+const assetVersion = '20260630-utentes-export-sensitive'
 
 const authPendingHead = `<script>
       (() => {
@@ -467,9 +467,13 @@ await writeFile(
         }
         if (hasPermissionValue(sourceArea, "view_sensitive") && !permissionBoolean(sourceArea.view_sensitive)) {
           current.edit_sensitive = false;
+          if (area === "utentes") current.export = false;
         }
         if (current.edit) current.view = true;
-        if (current.export) current.view = true;
+        if (current.export) {
+          current.view = true;
+          if (area === "utentes") current.view_sensitive = true;
+        }
         if (current.delete) {
           current.edit = true;
           current.view = true;
@@ -917,9 +921,13 @@ await writeFile(
         }
         if (hasPermissionValue(sourceArea, "view_sensitive") && !permissionBoolean(sourceArea.view_sensitive)) {
           current.edit_sensitive = false;
+          if (area === "utentes") current.export = false;
         }
         if (current.edit) current.view = true;
-        if (current.export) current.view = true;
+        if (current.export) {
+          current.view = true;
+          if (area === "utentes") current.view_sensitive = true;
+        }
         if (current.delete) {
           current.edit = true;
           current.view = true;

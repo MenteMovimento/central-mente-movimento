@@ -248,13 +248,17 @@ const normalizeCentralPermissions = (
         sourceArea?.view_sensitive === false
       ) {
         areaPermissions.edit_sensitive = false
+        if (area === 'utentes') areaPermissions.export = false
       }
       if (areaPermissions.delete) {
         areaPermissions.edit = true
         areaPermissions.view = true
       }
       if (areaPermissions.edit) areaPermissions.view = true
-      if (areaPermissions.export) areaPermissions.view = true
+      if (areaPermissions.export) {
+        areaPermissions.view = true
+        if (area === 'utentes') areaPermissions.view_sensitive = true
+      }
       if (areaPermissions.edit_sensitive) {
         areaPermissions.view_sensitive = true
         areaPermissions.edit = true
