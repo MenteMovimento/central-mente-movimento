@@ -2904,6 +2904,71 @@ APP_SCRIPT = """
         diagramStates.forEach(syncDiagram);
     }
 
+    function calculateAgeFromBirthDate(value) {
+        const text = String(value || "").trim();
+        const isoMatch = text.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+        const ptMatch = text.match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+        const match = isoMatch || ptMatch;
+        if (!match) {
+            return "";
+        }
+        const birthYear = Number(isoMatch ? match[1] : match[3]);
+        const birthMonth = Number(match[2]);
+        const birthDay = Number(isoMatch ? match[3] : match[1]);
+        const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
+        if (
+            birthDate.getFullYear() !== birthYear ||
+            birthDate.getMonth() !== birthMonth - 1 ||
+            birthDate.getDate() !== birthDay
+        ) {
+            return "";
+        }
+        const today = new Date();
+        if (birthDate > today) {
+            return "";
+        }
+        let age = today.getFullYear() - birthYear;
+        const hadBirthdayThisYear =
+            today.getMonth() > birthMonth - 1 ||
+            (today.getMonth() === birthMonth - 1 && today.getDate() >= birthDay);
+        if (!hadBirthdayThisYear) {
+            age -= 1;
+        }
+        return String(Math.max(age, 0));
+    }
+
+    function setupAgeCalculation(birthName, ageName) {
+        const birthInput = form.querySelector(`[name="${birthName}"]`);
+        const ageInput = form.querySelector(`[name="${ageName}"]`);
+        if (!birthInput || !ageInput || birthInput.disabled || ageInput.disabled) {
+            return;
+        }
+        const updateAge = (notifyChange = false) => {
+            const age = calculateAgeFromBirthDate(birthInput.value);
+            if (ageInput.value !== age) {
+                ageInput.value = age;
+                if (notifyChange) {
+                    markUnsaved();
+                }
+            }
+        };
+        birthInput.addEventListener("input", () => updateAge(true));
+        birthInput.addEventListener("change", () => updateAge(true));
+        updateAge(false);
+    }
+
+    function initAgeCalculations() {
+        [
+            ["data_nascimento", "idade"],
+            ["em_data_nascimento", "em_idade"],
+            ["diag_agregado_a_data_nascimento", "diag_agregado_a_idade"],
+            ["diag_agregado_b_data_nascimento", "diag_agregado_b_idade"],
+            ["diag_agregado_c_data_nascimento", "diag_agregado_c_idade"],
+            ["diag_agregado_d_data_nascimento", "diag_agregado_d_idade"],
+            ["diag_agregado_e_data_nascimento", "diag_agregado_e_idade"],
+        ].forEach(([birthName, ageName]) => setupAgeCalculation(birthName, ageName));
+    }
+
     function drawSlash(svg, x, y, count) {
         for (let index = 0; index < count; index += 1) {
             const shift = index * 12 - (count - 1) * 6;
@@ -3241,6 +3306,7 @@ APP_SCRIPT = """
     }
 
     document.querySelectorAll("[data-diagram-editor]").forEach(initDiagramEditor);
+    initAgeCalculations();
     form.addEventListener("input", markUnsaved);
     form.addEventListener("change", markUnsaved);
     form.addEventListener("submit", () => {
@@ -5807,6 +5873,7 @@ def referenciacao_from_post(post_data):
     for row in range(MEDICATION_ROWS):
         for key, _label in MEDICATION_COLUMNS:
             data[f"med_{row}_{key}"] = field_value(post_data, f"med_{row}_{key}")
+    apply_calculated_ages(data)
     return data
 
 
@@ -6167,6 +6234,7 @@ def emergencia_from_post(post_data):
         data[key] = field_value(post_data, key)
     for key in EMERGENCIA_HEALTH_PROBLEM_MAP:
         data[key] = "1" if field_value(post_data, key) == "on" else ""
+    apply_calculated_ages(data)
     return data
 
 
@@ -6276,6 +6344,7 @@ def diagnostica_from_post(post_data):
         data[key] = "1" if field_value(post_data, key) == "on" else ""
     for key in diagnostica_table_fields():
         data[key] = field_value(post_data, key)
+    apply_calculated_ages(data)
     return data
 
 
@@ -6358,6 +6427,50 @@ SHARED_FIELD_ALIASES = {
 }
 
 
+BIRTHDATE_AGE_FIELD_PAIRS = [
+    ("data_nascimento", "idade"),
+    ("em_data_nascimento", "em_idade"),
+    *[
+        (f"diag_agregado_{row}_data_nascimento", f"diag_agregado_{row}_idade")
+        for row in DIAGNOSTICA_AGREGADO_ROWS
+    ],
+]
+
+
+def calculate_age_from_birthdate(value, reference_date=None):
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    match = re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", text) or re.fullmatch(r"(\d{2})/(\d{2})/(\d{4})", text)
+    if not match:
+        return ""
+    if len(match.group(1)) == 4:
+        year, month, day = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    else:
+        day, month, year = (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    try:
+        birth_date = datetime(year, month, day).date()
+    except ValueError:
+        return ""
+    reference_date = reference_date or datetime.now().date()
+    if birth_date > reference_date:
+        return ""
+    age = reference_date.year - birth_date.year
+    if (reference_date.month, reference_date.day) < (birth_date.month, birth_date.day):
+        age -= 1
+    return str(max(age, 0))
+
+
+def apply_calculated_ages(*data_sets):
+    for data in data_sets:
+        for birth_key, age_key in BIRTHDATE_AGE_FIELD_PAIRS:
+            if birth_key not in data or age_key not in data:
+                continue
+            birth_value = str(data.get(birth_key) or "").strip()
+            if birth_value:
+                data[age_key] = calculate_age_from_birthdate(birth_value)
+
+
 def first_post_value(post_data, keys):
     for key in keys:
         value = field_value(post_data, key)
@@ -6400,6 +6513,7 @@ def sync_shared_fields(*data_sets):
         other_text = str(ref_data.get("problema_outros_texto") or em_data.get("em_problema_outros_texto") or "").strip()
         ref_data["problema_outros_texto"] = other_text
         em_data["em_problema_outros_texto"] = other_text
+    apply_calculated_ages(*data_sets)
 
 
 def apply_utente_core_values(utente_id, *data_sets):
@@ -6574,6 +6688,7 @@ def sync_shared_fields_from_active(active_data, ref_data, em_data, ins_data, dia
     if other_text is not None:
         ref_data["problema_outros_texto"] = other_text
         em_data["em_problema_outros_texto"] = other_text
+    apply_calculated_ages(active_data, ref_data, em_data, ins_data, diag_data, atend_data)
 
 
 def sync_saved_shared_tabs(utente_id, active_tab, active_data):
