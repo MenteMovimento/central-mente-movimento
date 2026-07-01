@@ -9401,7 +9401,19 @@ def render_user_manual_page(current_user):
     </div>
 
     <div class="manual-section">
-        <h3>7. User management</h3>
+        <h3>7. Client backup</h3>
+        <p>The backup downloads a ZIP file with CSV copies and supporting files. The button is visible only to accounts allowed to export and view sensitive data.</p>
+        <ul class="manual-list">
+            <li>On the main client list, choose <strong>Export clients backup</strong>.</li>
+            <li>Save the <code>backup-utentes-YYYY-MM-DD_HH-MM-SS.zip</code> file in a protected folder named with the date.</li>
+            <li>Open the ZIP and check <code>indice.csv</code>, which summarises the exported clients.</li>
+            <li>For each client, use <code>pagamentos.csv</code> and <code>historico.csv</code> when payment or history data is needed in CSV format.</li>
+            <li>Keep the ZIP only in authorised locations because it may contain personal data, health information, history and attachments.</li>
+        </ul>
+    </div>
+
+    <div class="manual-section">
+        <h3>8. User management</h3>
         <p>The User Manager is available only to administrators.</p>
         <ul class="manual-list">
             <li>Create users by entering name, email, password and role.</li>
@@ -9413,7 +9425,7 @@ def render_user_manual_page(current_user):
     </div>
 
     <div class="manual-section">
-        <h3>8. History, theme and language</h3>
+        <h3>9. History, theme and language</h3>
         <ul class="manual-list">
             <li><strong>Change history:</strong> shows who changed something, what was changed and when it happened.</li>
             <li><strong>Dark/Light:</strong> changes the visual theme for the current account.</li>
@@ -9423,7 +9435,7 @@ def render_user_manual_page(current_user):
     </div>
 
     <div class="manual-section">
-        <h3>9. Good practices</h3>
+        <h3>10. Good practices</h3>
         <ul class="manual-list">
             <li>Search for the client before creating a new record to avoid duplicates.</li>
             <li>Review synchronized fields when changing names, dates of birth or process numbers.</li>
@@ -9513,7 +9525,19 @@ def render_user_manual_page(current_user):
     </div>
 
     <div class="manual-section">
-        <h3>7. Gestão de utilizadores</h3>
+        <h3>7. Backup de utentes</h3>
+        <p>O backup descarrega um ficheiro ZIP com cópias em CSV e outros ficheiros de consulta. O botão só aparece a contas com permissão para exportar e ver dados sensíveis.</p>
+        <ul class="manual-list">
+            <li>Na lista principal de utentes, clique em <strong>Exportar backup de utentes</strong>.</li>
+            <li>Guarde o ficheiro <code>backup-utentes-AAAA-MM-DD_HH-MM-SS.zip</code> numa pasta segura e identificada pela data.</li>
+            <li>Abra o ZIP e confirme o ficheiro <code>indice.csv</code>, que resume os utentes exportados.</li>
+            <li>Dentro da pasta de cada utente, use <code>pagamentos.csv</code> e <code>historico.csv</code> quando precisar de consultar pagamentos ou histórico em CSV.</li>
+            <li>Mantenha o ZIP apenas em locais autorizados, porque pode conter dados pessoais, informação clínica, histórico e anexos.</li>
+        </ul>
+    </div>
+
+    <div class="manual-section">
+        <h3>8. Gestão de utilizadores</h3>
         <p>O Gestor de Utilizadores está disponível apenas para administradores.</p>
         <ul class="manual-list">
             <li>Crie utilizadores preenchendo nome, email, password e cargo.</li>
@@ -9525,7 +9549,7 @@ def render_user_manual_page(current_user):
     </div>
 
     <div class="manual-section">
-        <h3>8. Histórico, tema e idioma</h3>
+        <h3>9. Histórico, tema e idioma</h3>
         <ul class="manual-list">
             <li><strong>Histórico de alterações:</strong> mostra quem fez alterações, o que fez e quando fez.</li>
             <li><strong>Escuro/Claro:</strong> muda o tema visual da conta atual.</li>
@@ -9535,7 +9559,7 @@ def render_user_manual_page(current_user):
     </div>
 
     <div class="manual-section">
-        <h3>9. Boas práticas</h3>
+        <h3>10. Boas práticas</h3>
         <ul class="manual-list">
             <li>Pesquise o utente antes de criar uma ficha nova para evitar duplicados.</li>
             <li>Confirme os campos interligados quando alterar nomes, datas de nascimento ou números de processo.</li>

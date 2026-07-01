@@ -154,7 +154,8 @@ def on_page(canvas, doc):
     width, _ = A4
     canvas.setStrokeColor(colors.HexColor("#d6e4e8"))
     canvas.line(1.6 * cm, 1.25 * cm, width - 1.6 * cm, 1.25 * cm)
-    footer = f"MenteMovimento - {doc.title_text} - atualizado em {UPDATED_AT} - pagina {doc.page}"
+    updated_at = getattr(doc, "updated_at", UPDATED_AT)
+    footer = f"MenteMovimento - {doc.title_text} - atualizado em {updated_at} - pagina {doc.page}"
     canvas.setFont(FONT_REGULAR, 7.2)
     canvas.setFillColor(colors.HexColor("#6d8190"))
     canvas.drawString(1.6 * cm, 0.82 * cm, footer)
@@ -213,7 +214,7 @@ def section(title, body=None, bullets=None, steps=None, note=None):
     return parts
 
 
-def cover(title, subtitle, audience, branch):
+def cover(title, subtitle, audience, branch, updated_at=UPDATED_AT):
     parts = []
     if LOGO.exists():
         img = Image(str(LOGO), width=5.6 * cm, height=2.0 * cm)
@@ -226,7 +227,7 @@ def cover(title, subtitle, audience, branch):
             ["Destinatários", audience],
             ["Repositório", REPO_URL],
             ["Site", SITE_URL],
-            ["Atualização", UPDATED_AT],
+            ["Atualização", updated_at],
         ],
         colWidths=[3.2 * cm, 12.4 * cm],
     )
@@ -252,7 +253,7 @@ def cover(title, subtitle, audience, branch):
     return parts
 
 
-def build_pdf(path: Path, title: str, subtitle: str, audience: str, branch: str, sections):
+def build_pdf(path: Path, title: str, subtitle: str, audience: str, branch: str, sections, updated_at=UPDATED_AT):
     path.parent.mkdir(parents=True, exist_ok=True)
     doc = BaseDocTemplate(
         str(path),
@@ -263,9 +264,10 @@ def build_pdf(path: Path, title: str, subtitle: str, audience: str, branch: str,
         bottomMargin=1.65 * cm,
     )
     doc.title_text = title
+    doc.updated_at = updated_at
     frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
     doc.addPageTemplates([PageTemplate(id="manual", frames=[frame], onPage=on_page)])
-    story = cover(title, subtitle, audience, branch)
+    story = cover(title, subtitle, audience, branch, updated_at)
     story.append(PageBreak())
     for item in sections:
         story.extend(section(**item))
@@ -395,7 +397,19 @@ UTENTES_USER_PT = COMMON_USER + [
         ],
     },
     {
-        "title": "7. Histórico, idioma e segurança",
+        "title": "7. Backup de utentes",
+        "body": "O backup de Utentes descarrega um ficheiro ZIP com cópias em CSV e outros ficheiros de consulta. Este botão só aparece a contas com permissão para exportar e ver dados sensíveis.",
+        "steps": [
+            "Entrar na área Gestão de Utentes com uma conta autorizada.",
+            "Na lista principal, clicar em Exportar backup de utentes.",
+            "Guardar o ficheiro backup-utentes-AAAA-MM-DD_HH-MM-SS.zip numa pasta segura e identificada pela data.",
+            "Abrir o ZIP e confirmar o ficheiro indice.csv, que resume os utentes exportados.",
+            "Para cada utente, confirmar os ficheiros pagamentos.csv e historico.csv quando for necessário consultar dados em CSV.",
+            "Manter o ZIP apenas em locais autorizados, porque pode conter dados pessoais, clínicos, histórico e anexos.",
+        ],
+    },
+    {
+        "title": "8. Histórico, idioma e segurança",
         "bullets": [
             "O histórico de Utentes regista alterações feitas nas fichas e deve ser usado para auditoria.",
             "A gestão de utilizadores é global e deve ser feita no dashboard principal.",
@@ -637,7 +651,19 @@ UTENTES_USER_EN = [
         ],
     },
     {
-        "title": "5. Data protection",
+        "title": "5. Client backup",
+        "body": "The client backup downloads a ZIP file with CSV copies and supporting files. The button is visible only to accounts allowed to export and view sensitive data.",
+        "steps": [
+            "Sign in to Client Management with an authorised account.",
+            "On the main client list, choose Export clients backup.",
+            "Save the backup-utentes-YYYY-MM-DD_HH-MM-SS.zip file in a protected folder named with the date.",
+            "Open the ZIP and check indice.csv, which summarises the exported clients.",
+            "For each client, use pagamentos.csv and historico.csv when payment or history data is needed in CSV format.",
+            "Keep the ZIP only in authorised locations because it may contain personal data, health information, history and attachments.",
+        ],
+    },
+    {
+        "title": "6. Data protection",
         "bullets": [
             "Do not store passwords, Supabase keys or access data in client notes.",
             "Avoid sharing screenshots with personal or health data.",
@@ -949,6 +975,7 @@ def main():
         "Administradores, técnicos e utilizadores autorizados",
         "Gestão de Utentes",
         UTENTES_USER_PT + user_extra_sections("Gestão de Utentes", "utentes", has_import_export=False),
+        updated_at="01/07/2026",
     )
     build_pdf(
         OUTPUTS["utentes_dev_pt"],
@@ -982,6 +1009,7 @@ def main():
         "Administrators, staff and authorised users",
         "Client Management",
         UTENTES_USER_EN + user_extra_sections_en("Client Management", "clients"),
+        updated_at="01/07/2026",
     )
     build_pdf(
         OUTPUTS["utentes_dev_en"],
