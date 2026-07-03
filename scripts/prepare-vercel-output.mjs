@@ -36,7 +36,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260630-login-next-fallback'
+const assetVersion = '20260703-login-dashboard'
 
 const authPendingHead = `<script>
       (() => {
@@ -673,22 +673,6 @@ await writeFile(
     if (path.startsWith("/area/dispositivos")) return "dispositivos";
     return "";
   };
-  const defaultAreaPaths = {
-    socios: "/area/socios/",
-    utentes: "/area/utentes/",
-    dispositivos: "/area/dispositivos/"
-  };
-  const fallbackPathForProfile = (profile) => {
-    const allowedArea = ["socios", "utentes", "dispositivos"].find((area) => hasCentralPermission(profile, area, "view"));
-    return allowedArea ? defaultAreaPaths[allowedArea] : "/dashboard";
-  };
-  const allowedLoginPath = (profile, target) => {
-    const path = safePath(target, "/dashboard");
-    const area = areaFromPath(path);
-    if (area && !hasCentralPermission(profile, area, "view")) return fallbackPathForProfile(profile);
-    if (path.startsWith("/historico") && !hasCentralPermission(profile, "central", "view_history")) return fallbackPathForProfile(profile);
-    return path;
-  };
   const nextPath = () => safePath(new URLSearchParams(window.location.search).get("next"), "/dashboard");
   const showError = (message) => {
     const error = document.querySelector("#centralAuthError");
@@ -826,9 +810,8 @@ await writeFile(
     }
     window.location.replace(path);
   };
-  const goToAllowedLoginPath = async (client, target) => {
-    const payload = await ensureCentralAccess(client, "");
-    await goTo(client, allowedLoginPath(payload.appUser, target));
+  const goToDashboardAfterLogin = async (client) => {
+    await goTo(client, "/dashboard");
   };
   const wireUtentesLinks = (client) => {
     document.querySelectorAll('a[href^="/area/utentes"]').forEach((link) => {
@@ -867,7 +850,7 @@ await writeFile(
       loadRememberedLogin();
       if (session) {
         try {
-          await goToAllowedLoginPath(client, nextPath());
+          await goToDashboardAfterLogin(client);
           return;
         } catch (_error) {
           await clearCentralSession(client);
@@ -893,7 +876,7 @@ await writeFile(
         }
         saveRememberedLogin(email, remember);
         try {
-          await goToAllowedLoginPath(client, nextPath());
+          await goToDashboardAfterLogin(client);
         } catch (error) {
           showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
         }

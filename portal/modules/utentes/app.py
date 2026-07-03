@@ -5111,19 +5111,16 @@ CENTRAL_SOCIOS_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M16 10h2"></path>
     <path d="M16 14h2"></path>
-    <path d="M6.2 15a3 3 0 0 1 5.6 0"></path>
+    <path d="M6.17 15a3 3 0 0 1 5.66 0"></path>
     <circle cx="9" cy="11" r="2"></circle>
-    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
 </svg>
 """
 
 
 CENTRAL_UTENTES_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M19.5 12.6 12 20l-7.5-7.4a4.8 4.8 0 0 1 6.8-6.8l.7.7.7-.7a4.8 4.8 0 0 1 6.8 6.8Z"></path>
-    <path d="m12 6.5-2 2a2 2 0 0 0 2.8 2.8l.9-.9"></path>
-    <path d="m14.5 9.5 4 4"></path>
-    <path d="m9.5 14.5 2 2"></path>
+    <path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"></path>
 </svg>
 """
 
@@ -5131,11 +5128,17 @@ CENTRAL_UTENTES_ICON = """
 CENTRAL_DISPOSITIVOS_ICON = """
 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 17v4"></path>
+    <path d="m14.305 7.53.923-.382"></path>
+    <path d="m15.228 4.852-.923-.383"></path>
+    <path d="m16.852 3.228-.383-.924"></path>
+    <path d="m16.852 8.772-.383.923"></path>
+    <path d="m19.148 3.228.383-.924"></path>
+    <path d="m19.53 9.696-.382-.924"></path>
+    <path d="m20.772 4.852.924-.383"></path>
+    <path d="m20.772 7.148.924.383"></path>
+    <path d="M22 13v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
     <path d="M8 21h8"></path>
-    <rect x="3" y="4" width="18" height="13" rx="2"></rect>
-    <path d="M17.5 8.5v.01"></path>
-    <path d="M19 10.6a2.6 2.6 0 1 1-2.1-4.2"></path>
-    <path d="M18.8 6.2 20 5"></path>
+    <circle cx="18" cy="6" r="3"></circle>
 </svg>
 """
 
