@@ -7633,7 +7633,7 @@ def render_diagnostica_form(data, readonly=False):
                 {render_diagnostica_checkbox_options(data, DIAGNOSTICA_FAMILIAR, readonly)}
             </div>
             <div class="form-grid">
-                {render_text_input(data, "diag_familiar_outro_texto", "Outro", "span-6", readonly=readonly)}
+                {render_textarea_input(data, "diag_familiar_outro_texto", "Outro", "span-6", rows=4, readonly=readonly)}
             </div>
         </section>
 
