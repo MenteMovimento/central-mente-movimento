@@ -60,12 +60,12 @@ USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_SECRET_KEY)
 
 TAB_SECTIONS = [
     ("referenciacao", "Formulário de Referenciação"),
-    ("pagamentos", "Pagamentos e Mensalidades"),
     ("emergencia", "Informações em Caso de Emergência"),
     ("inscricao", "Ficha de Inscrição e Avaliação Inicial de Requisitos"),
     ("diagnostica", "Avaliação Diagnóstica Multidisciplinar"),
     ("atendimentos", "Registo de Atendimentos e Acompanhamentos"),
     ("protecao_dados", "Proteção de dados e Termos de Responsabilidade"),
+    ("pagamentos", "Pagamentos e Mensalidades")
 ]
 
 UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia"}
