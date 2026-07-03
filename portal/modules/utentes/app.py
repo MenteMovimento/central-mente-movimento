@@ -4105,7 +4105,7 @@ TRANSLATIONS = {
         "loading": "A carregar",
         "toggle_active": "Alterar estado",
         "activate_client": "Ativar utente",
-        "deactivate_client": "Inativar utente",
+        "deactivate_client": "Desativar utente",
         "search_by_name": "Pesquisar por nome",
         "search": "Pesquisar",
         "clear": "Limpar",
@@ -4342,11 +4342,11 @@ EN_STATIC_TRANSLATIONS = {
     "Sem concelho preenchido": "No municipality filled in",
     "Sem dados suficientes": "Not enough data",
     "Ativar utente": "Activate client",
-    "Inativar utente": "Deactivate client",
+    "Desativar utente": "Deactivate client",
     "Utente ativado com sucesso": "Client activated successfully",
     "Utente inativado com sucesso": "Client deactivated successfully",
     "Ativar este utente?": "Activate this client?",
-    "Inativar este utente?": "Deactivate this client?",
+    "Desativar este utente?": "Deactivate this client?",
     "Ativo": "Active",
     "Inativo": "Inactive",
     "Ver": "View",
@@ -8258,7 +8258,7 @@ def render_list(query="", notice="", current_user=None):
         payment_info = payment_summary(pagamentos_data, current_user)
         next_payment_label = month_label(payment_info["next_month"], user_language(current_user))
         toggle_action_label = tr(current_user, "deactivate_client" if is_active else "activate_client")
-        toggle_confirm = "Inativar este utente?" if is_active else "Ativar este utente?"
+        toggle_confirm = "Desativar este utente?" if is_active else "Ativar este utente?"
         toggle_icon = USER_X_ICON if is_active else USER_CHECK_ICON
         if can_edit:
             payment_html = f"""
