@@ -856,6 +856,19 @@ main {
     padding: 8px;
 }
 
+.attendance-section-head {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.attendance-section-head .section-title {
+    margin: 0;
+}
+
 .attachments-list {
     display: grid;
     gap: 10px;
@@ -2882,6 +2895,13 @@ APP_SCRIPT = """
         return attrs;
     }
 
+    function genogramParentChildPath(parentA, parentB, child) {
+        const midX = (parentA.x + parentB.x) / 2;
+        const midY = (parentA.y + parentB.y) / 2;
+        const childJointY = (midY + child.y) / 2;
+        return `M ${parentA.x},${parentA.y} L ${parentB.x},${parentB.y} M ${midX},${midY} L ${midX},${childJointY} L ${child.x},${childJointY} L ${child.x},${child.y}`;
+    }
+
     function findNode(state, id) {
         return state.data.nodes.find((node) => node.id === id);
     }
@@ -2891,7 +2911,8 @@ APP_SCRIPT = """
         if (state.selectedNodes.includes(nodeId)) {
             state.selectedNodes = state.selectedNodes.filter((id) => id !== nodeId);
         } else {
-            state.selectedNodes = [...state.selectedNodes.slice(-1), nodeId];
+            const maxSelected = state.kind === "genograma" ? 3 : 2;
+            state.selectedNodes = [...state.selectedNodes.slice(-(maxSelected - 1)), nodeId];
         }
     }
 
@@ -3013,12 +3034,18 @@ APP_SCRIPT = """
         data.edges.forEach((edge) => {
             const source = findNode(state, edge.source);
             const target = findNode(state, edge.target);
-            if (!source || !target) {
+            const coParent = edge.coParent ? findNode(state, edge.coParent) : null;
+            if (!source || !target || (edge.type === "parent_child" && edge.coParent && !coParent)) {
                 return;
             }
-            const path = ["conflict", "stress"].includes(edge.type)
-                ? zigzagPath(source, target)
-                : `M ${source.x},${source.y} L ${target.x},${target.y}`;
+            let path;
+            if (kind === "genograma" && edge.type === "parent_child" && coParent) {
+                path = genogramParentChildPath(source, coParent, target);
+            } else if (["conflict", "stress"].includes(edge.type)) {
+                path = zigzagPath(source, target);
+            } else {
+                path = `M ${source.x},${source.y} L ${target.x},${target.y}`;
+            }
             const element = svgElement("path", { d: path, ...lineAttrs(edge) });
             element.classList.add("diagram-edge");
             if (state.selectedEdge === edge.id) {
@@ -3237,16 +3264,30 @@ APP_SCRIPT = """
         const connect = editor.querySelector("[data-diagram-connect]");
         if (connect) {
             connect.addEventListener("click", () => {
-                if (state.selectedNodes.length !== 2) {
-                    alert("Seleciona dois elementos para criar a ligação.");
-                    return;
+                const relationType = relation ? relation.value : "strong";
+                if (kind === "genograma" && relationType === "parent_child" && state.selectedNodes.length === 3) {
+                    state.data.edges.push({
+                        id: `e${Date.now()}`,
+                        source: state.selectedNodes[0],
+                        coParent: state.selectedNodes[1],
+                        target: state.selectedNodes[2],
+                        type: relationType,
+                    });
+                } else {
+                    if (state.selectedNodes.length !== 2) {
+                        const message = kind === "genograma" && relationType === "parent_child"
+                            ? "Seleciona dois elementos, ou seleciona primeiro os dois progenitores e depois o filho."
+                            : "Seleciona dois elementos para criar a ligação.";
+                        alert(message);
+                        return;
+                    }
+                    state.data.edges.push({
+                        id: `e${Date.now()}`,
+                        source: state.selectedNodes[0],
+                        target: state.selectedNodes[1],
+                        type: relationType,
+                    });
                 }
-                state.data.edges.push({
-                    id: `e${Date.now()}`,
-                    source: state.selectedNodes[0],
-                    target: state.selectedNodes[1],
-                    type: relation ? relation.value : "strong",
-                });
                 state.selectedNodes = [];
                 syncDiagram(state);
                 markUnsaved();
@@ -3293,7 +3334,7 @@ APP_SCRIPT = """
                 } else if (state.selectedNodes.length) {
                     const ids = new Set(state.selectedNodes);
                     state.data.nodes = state.data.nodes.filter((node) => !ids.has(node.id));
-                    state.data.edges = state.data.edges.filter((edge) => !ids.has(edge.source) && !ids.has(edge.target));
+                    state.data.edges = state.data.edges.filter((edge) => !ids.has(edge.source) && !ids.has(edge.target) && !ids.has(edge.coParent));
                     state.selectedNodes = [];
                 }
                 syncDiagram(state);
@@ -3305,7 +3346,58 @@ APP_SCRIPT = """
         renderDiagram(state);
     }
 
+    function initAttendanceRows() {
+        const section = form.querySelector("[data-attendance-records]");
+        if (!section) {
+            return;
+        }
+        const addButton = section.querySelector("[data-attendance-add]");
+        const countInput = section.querySelector("[data-attendance-count]");
+        const tableBody = section.querySelector("[data-attendance-body]");
+        const template = section.querySelector("[data-attendance-row-template]");
+        if (!addButton || !countInput || !tableBody) {
+            return;
+        }
+        addButton.addEventListener("click", () => {
+            const currentCount = Number.parseInt(countInput.value || String(tableBody.querySelectorAll("tr").length), 10);
+            const nextIndex = Number.isFinite(currentCount) && currentCount >= 0 ? currentCount : tableBody.querySelectorAll("tr").length;
+            let row = null;
+            if (template) {
+                const wrapper = document.createElement("tbody");
+                wrapper.innerHTML = template.innerHTML.replaceAll("__INDEX__", String(nextIndex)).trim();
+                row = wrapper.querySelector("tr");
+            } else {
+                const sourceRow = tableBody.querySelector("tr:last-child");
+                row = sourceRow ? sourceRow.cloneNode(true) : null;
+                if (row) {
+                    row.querySelectorAll("[name], [id], label[for]").forEach((element) => {
+                        ["name", "id", "for"].forEach((attr) => {
+                            const value = element.getAttribute(attr);
+                            if (value) {
+                                element.setAttribute(attr, value.replace(/atend_\\d+_/g, `atend_${nextIndex}_`));
+                            }
+                        });
+                    });
+                    row.querySelectorAll("input, textarea").forEach((field) => {
+                        if (field.type === "checkbox" || field.type === "radio") {
+                            field.checked = false;
+                        } else {
+                            field.value = "";
+                        }
+                    });
+                }
+            }
+            if (!row) {
+                return;
+            }
+            tableBody.appendChild(row);
+            countInput.value = String(nextIndex + 1);
+            markUnsaved();
+        });
+    }
+
     document.querySelectorAll("[data-diagram-editor]").forEach(initDiagramEditor);
+    initAttendanceRows();
     initAgeCalculations();
     form.addEventListener("input", markUnsaved);
     form.addEventListener("change", markUnsaved);
@@ -4570,9 +4662,11 @@ EN_STATIC_TRANSLATIONS = {
     "Nome do sistema/rede:": "System/network name:",
     "Nome:": "Name:",
     "Seleciona dois elementos para criar a ligação.": "Select two elements to create the link.",
+    "Seleciona dois elementos, ou seleciona primeiro os dois progenitores e depois o filho.": "Select two elements, or select the two parents first and then the child.",
     "Seleciona um elemento para editar.": "Select one element to edit.",
     "Seleciona uma pessoa.": "Select a person.",
-    "Clique uma vez numa figura para selecionar. Para ligar duas figuras, selecione a primeira e depois a segunda, e carregue em “Ligar selecionados”. Arraste uma figura para a mover.": "Click a figure once to select it. To connect two figures, select the first and then the second, and press “Connect selected”. Drag a figure to move it.",
+    "Clique uma vez numa figura para selecionar. Para filiação com dois progenitores, selecione primeiro os dois progenitores e depois o filho. Arraste uma figura para a mover.": "Click a figure once to select it. For parent-child links with two parents, select the two parents first and then the child. Drag a figure to move it.",
+    "Adicionar registo": "Add record",
     "Rede externa": "External network",
     "Forte": "Strong",
     "Fraca": "Weak",
@@ -5796,7 +5890,9 @@ DIAGNOSTICA_AVDI_ROWS = [
 ]
 
 
-ATENDIMENTO_ROWS = 1
+ATENDIMENTO_MIN_ROWS = 1
+ATENDIMENTO_MAX_ROWS = 40
+ATENDIMENTO_ROW_COUNT_FIELD = "atend_row_count"
 
 
 ATENDIMENTO_TEXT_FIELDS = [
@@ -5821,6 +5917,9 @@ ATENDIMENTO_TIPOS = [
     ("presencial", "Presencial"),
     ("telefonico", "Telefónico"),
 ]
+
+
+ATENDIMENTO_ROW_KEY_RE = re.compile(r"^atend_(\d+)_(?:data|ambito_|tipo|descricao|observacoes|profissionais)")
 
 
 def referenciacao_checkbox_keys():
@@ -6355,17 +6454,46 @@ def serialize_diagnostica(post_data):
     return json.dumps(diagnostica_from_post(post_data), ensure_ascii=False)
 
 
-def atendimento_ambito_keys():
+def raw_mapping_value(mapping, key):
+    value = mapping.get(key, "")
+    if isinstance(value, (list, tuple)):
+        value = value[0] if value else ""
+    return str(value or "").strip()
+
+
+def clamp_atendimento_row_count(value, fallback=ATENDIMENTO_MIN_ROWS):
+    try:
+        count = int(str(value or "").strip())
+    except (TypeError, ValueError):
+        count = fallback
+    return max(ATENDIMENTO_MIN_ROWS, min(ATENDIMENTO_MAX_ROWS, count))
+
+
+def atendimento_row_count_from_mapping(mapping, fallback=ATENDIMENTO_MIN_ROWS):
+    explicit = raw_mapping_value(mapping, ATENDIMENTO_ROW_COUNT_FIELD)
+    explicit_count = clamp_atendimento_row_count(explicit, fallback) if explicit else fallback
+    max_index = -1
+    for key in mapping:
+        match = ATENDIMENTO_ROW_KEY_RE.match(str(key))
+        if match:
+            max_index = max(max_index, int(match.group(1)))
+    inferred_count = max_index + 1 if max_index >= 0 else fallback
+    return clamp_atendimento_row_count(max(explicit_count, inferred_count), fallback)
+
+
+def atendimento_ambito_keys(row_count=ATENDIMENTO_MIN_ROWS):
+    row_count = clamp_atendimento_row_count(row_count)
     keys = []
-    for row in range(ATENDIMENTO_ROWS):
+    for row in range(row_count):
         for key, _label in ATENDIMENTO_AMBITOS:
             keys.append(f"atend_{row}_ambito_{key}")
     return keys
 
 
-def atendimento_row_fields():
+def atendimento_row_fields(row_count=ATENDIMENTO_MIN_ROWS):
+    row_count = clamp_atendimento_row_count(row_count)
     fields = []
-    for row in range(ATENDIMENTO_ROWS):
+    for row in range(row_count):
         fields.extend(
             [
                 f"atend_{row}_data",
@@ -6379,10 +6507,12 @@ def atendimento_row_fields():
     return fields
 
 
-def default_atendimentos_data():
+def default_atendimentos_data(row_count=ATENDIMENTO_MIN_ROWS):
+    row_count = clamp_atendimento_row_count(row_count)
     data = {key: "" for key in ATENDIMENTO_TEXT_FIELDS}
-    data.update({key: "" for key in atendimento_ambito_keys()})
-    data.update({key: "" for key in atendimento_row_fields()})
+    data[ATENDIMENTO_ROW_COUNT_FIELD] = str(row_count)
+    data.update({key: "" for key in atendimento_ambito_keys(row_count)})
+    data.update({key: "" for key in atendimento_row_fields(row_count)})
     return data
 
 
@@ -6395,6 +6525,7 @@ def load_atendimentos_data(utente_id):
         except json.JSONDecodeError:
             stored = {"atend_0_descricao": raw}
         if isinstance(stored, dict):
+            data = default_atendimentos_data(atendimento_row_count_from_mapping(stored))
             for key in data:
                 if key in stored:
                     data[key] = str(stored.get(key) or "")
@@ -6402,12 +6533,13 @@ def load_atendimentos_data(utente_id):
 
 
 def atendimentos_from_post(post_data):
-    data = default_atendimentos_data()
+    row_count = atendimento_row_count_from_mapping(post_data)
+    data = default_atendimentos_data(row_count)
     for key in ATENDIMENTO_TEXT_FIELDS:
         data[key] = field_value(post_data, key)
-    for key in atendimento_ambito_keys():
+    for key in atendimento_ambito_keys(row_count):
         data[key] = "1" if field_value(post_data, key) == "on" else ""
-    for key in atendimento_row_fields():
+    for key in atendimento_row_fields(row_count):
         data[key] = field_value(post_data, key)
     return data
 
@@ -6422,7 +6554,7 @@ SHARED_FIELD_ALIASES = {
     "data_nascimento": ["data_nascimento", "em_data_nascimento", "ins_data_nascimento", "diag_agregado_a_data_nascimento"],
     "idade": ["idade", "em_idade", "diag_agregado_a_idade"],
     "contacto_telefonico": ["contacto_telefonico", "ins_contactos"],
-    "numero_processo": ["numero_processo", "em_processo_numero", "ins_processo_numero", "diag_processo_numero", "atend_processo_numero"],
+    "numero_processo": ["em_processo_numero", "ins_processo_numero", "diag_processo_numero", "atend_processo_numero"],
     "morada": ["morada", "ins_morada"],
     "codigo_postal": ["codigo_postal", "ins_codigo_postal"],
     "nif": ["nif", "ins_nif"],
@@ -6547,7 +6679,6 @@ def apply_utente_core_values(utente_id, *data_sets):
         "diag_agregado_a_data_nascimento": utente["data_nascimento"],
         "contacto_telefonico": utente["telefone"],
         "ins_contactos": utente["telefone"],
-        "numero_processo": utente["numero_utente"],
         "em_processo_numero": utente["numero_utente"],
         "ins_processo_numero": utente["numero_utente"],
         "diag_processo_numero": utente["numero_utente"],
@@ -7531,7 +7662,7 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
             {"<button class='button secondary' type='button' data-diagram-deceased>Falecido</button>" if kind == "genograma" else ""}
             <button class="button danger" type="button" data-diagram-delete>Apagar selecionado</button>
         </div>
-        <p class="diagram-help">Clique uma vez numa figura para selecionar. Para ligar duas figuras, selecione a primeira e depois a segunda, e carregue em “Ligar selecionados”. Arraste uma figura para a mover.</p>
+        <p class="diagram-help">Clique uma vez numa figura para selecionar. Para filiação com dois progenitores, selecione primeiro os dois progenitores e depois o filho. Arraste uma figura para a mover.</p>
     """
     return f"""
     <div class="diagram-editor" data-diagram-editor data-diagram-kind="{kind}" data-readonly="{readonly_attr}">
@@ -7755,9 +7886,10 @@ def render_atendimento_tipo(data, row, readonly=False):
 
 
 def render_atendimentos_form(data, readonly=False):
+    row_count = atendimento_row_count_from_mapping(data)
     disabled = "disabled" if readonly else ""
     rows = ""
-    for row in range(ATENDIMENTO_ROWS):
+    for row in range(row_count):
         rows += f"""
         <tr>
             <td class="meta-cell">
@@ -7799,14 +7931,18 @@ def render_atendimentos_form(data, readonly=False):
     <div class="atendimentos-form{' readonly-section' if readonly else ''}">
         <section class="form-section">
             <h4 class="section-title">Registo de Atendimentos e Acompanhamentos</h4>
+            <input type="hidden" name="{ATENDIMENTO_ROW_COUNT_FIELD}" value="{esc(row_count)}" data-attendance-count>
             <div class="form-grid">
                 {render_text_input(data, "atend_nome", "Nome do Utente", "span-8", readonly=readonly)}
                 {render_text_input(data, "atend_processo_numero", "Processo n.º", "span-4", readonly=readonly)}
             </div>
         </section>
 
-        <section class="form-section readonly-section">
-            <h4 class="section-title">Registos</h4>
+        <section class="form-section readonly-section" data-attendance-records>
+            <div class="attendance-section-head">
+                <h4 class="section-title">Registos</h4>
+                {"" if readonly else '<button class="button secondary" type="button" data-attendance-add>Adicionar registo</button>'}
+            </div>
             <div class="medication-wrap">
                 <table class="sheet-table attendance-table">
                     <thead>
@@ -7817,7 +7953,7 @@ def render_atendimentos_form(data, readonly=False):
                             <th>Profissionais / Pessoas Envolvidas</th>
                         </tr>
                     </thead>
-                    <tbody>{rows}</tbody>
+                    <tbody data-attendance-body>{rows}</tbody>
                 </table>
             </div>
         </section>
