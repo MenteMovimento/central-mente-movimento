@@ -71,6 +71,17 @@ MODULES = [
         "detail": "Base de dispositivos",
         "table": "devices",
     },
+    {
+        "id": "atividades",
+        "name": "Gestao de Atividades",
+        "label": "Atividades",
+        "path": "/area/atividades",
+        "schema": "atividades",
+        "icon": "calendar-days",
+        "accent": "indigo",
+        "detail": "Planeamento e registo de atividades",
+        "table": "activities",
+    },
 ]
 
 SESSIONS = {}
@@ -697,6 +708,11 @@ def area_panels(module):
             ("Anexos", "paperclip"),
             ("CSV", "file-spreadsheet"),
         ],
+        "atividades": [
+            ("Agenda", "calendar-plus"),
+            ("Presencas", "users-round"),
+            ("Relatorios", "clipboard-list"),
+        ],
     }
     panels = []
     for label, icon in labels_by_module.get(module["id"], []):
@@ -869,6 +885,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             "/socios": "/area/socios",
             "/utentes": "/area/utentes",
             "/dispositivos": "/area/dispositivos",
+            "/atividades": "/area/atividades",
         }
         if request_path in short_area_routes:
             self.redirect(short_area_routes[request_path])

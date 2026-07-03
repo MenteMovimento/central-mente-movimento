@@ -10,6 +10,7 @@ const sociosSource = path.join(root, 'portal', 'modules', 'socios')
 const sociosOutput = path.join(publicDir, 'area', 'socios')
 const dispositivosDist = path.join(root, 'portal', 'modules', 'dispositivos', 'dist')
 const dispositivosOutput = path.join(publicDir, 'area', 'dispositivos')
+const atividadesOutput = path.join(publicDir, 'area', 'atividades')
 const supabaseUmd = path.join(
   root,
   'portal',
@@ -36,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260703-login-dashboard'
+const assetVersion = '20260703-atividades-basic'
 
 const authPendingHead = `<script>
       (() => {
@@ -119,6 +120,16 @@ const moduleCards = `
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar</span>
   </a>
+</article>
+<article class="module-card module-indigo" data-module-card="atividades">
+  <div class="module-topline">
+    <span class="module-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+  </div>
+  <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
+  <a class="module-action" href="/area/atividades/">
+    <i data-lucide="arrow-right"></i>
+    <span data-i18n="module.enter">Entrar</span>
+  </a>
 </article>`
 
 const topbar = (activeId = '') => `
@@ -145,6 +156,10 @@ const topbar = (activeId = '') => `
       <a class="topnav-link${activeId === 'dispositivos' ? ' active' : ''}" href="/area/dispositivos/">
         <i data-lucide="monitor-cog"></i>
         <span data-i18n="nav.dispositivos">Dispositivos</span>
+      </a>
+      <a class="topnav-link${activeId === 'atividades' ? ' active' : ''}" href="/area/atividades/">
+        <i data-lucide="calendar-days"></i>
+        <span data-i18n="nav.atividades">Atividades</span>
       </a>
     </nav>
     <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
@@ -347,6 +362,51 @@ ${topbar()}
   </section>
   <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
     ${moduleCards}
+  </section>
+</main>
+${centralUsersDialog}`,
+})
+
+const atividadesPage = pageShell({
+  title: 'Gest&atilde;o de Atividades - MenteMovimento',
+  page: 'atividades',
+  titleKey: 'module.atividades.title',
+  body: `
+${topbar('atividades')}
+<main class="global-shell activities-shell">
+  <section class="global-panel area-indigo">
+    <p class="eyebrow">Area de trabalho</p>
+    <i data-lucide="calendar-days"></i>
+    <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
+    <p class="global-copy" data-i18n="module.atividades.detail">Planeamento e registo de atividades</p>
+    <div class="branch-card">
+      <div>
+        <span class="branch-label">Estado</span>
+        <strong>Base inicial</strong>
+      </div>
+      <div>
+        <span class="branch-label">Area</span>
+        <strong>Atividades</strong>
+      </div>
+      <div>
+        <span class="branch-label">Proximo passo</span>
+        <strong>Registos</strong>
+      </div>
+    </div>
+    <div class="tool-grid" aria-label="Ferramentas de atividades">
+      <article class="tool-tile">
+        <i data-lucide="calendar-plus"></i>
+        <span>Agenda</span>
+      </article>
+      <article class="tool-tile">
+        <i data-lucide="users-round"></i>
+        <span>Presencas</span>
+      </article>
+      <article class="tool-tile">
+        <i data-lucide="clipboard-list"></i>
+        <span>Relatorios</span>
+      </article>
+    </div>
   </section>
 </main>
 ${centralUsersDialog}`,
@@ -1209,17 +1269,20 @@ await writeFile(
 await writeFile(path.join(publicDir, 'login.html'), loginPage)
 await writeFile(path.join(publicDir, 'logout.html'), logoutPage)
 await writeFile(path.join(publicDir, 'index.html'), dashboardPage)
+await mkdir(atividadesOutput, { recursive: true })
+await writeFile(path.join(atividadesOutput, 'index.html'), atividadesPage)
 for (const page of [
   globalPage({
     file: 'historico.html',
     key: 'global.history',
     title: 'Histórico geral',
     icon: 'history',
-    copy: 'Registo comum de alterações feitas nos ramos de sócios, utentes e dispositivos.',
+    copy: 'Registo comum de alteracoes feitas nos ramos de socios, utentes, dispositivos e atividades.',
     items: [
       ['socios', 'Sócios', 'Alterações em fichas e quotas.'],
       ['utentes', 'Utentes', 'Alterações em fichas, separadores e anexos.'],
       ['dispositivos', 'Dispositivos', 'Alterações em listagens, reparações, estados, anexos e CSV.'],
+      ['atividades', 'Atividades', 'Alteracoes em agenda, presencas e relatorios.'],
     ],
   }),
   globalPage({
@@ -1230,7 +1293,7 @@ for (const page of [
     copy: 'Gestão única de administradores, utilizadores e acessos a cada ramo.',
     items: [
       ['admin', 'Administrador', 'Acesso total ao website.'],
-      ['manager', 'Gestor de ramo', 'Acesso limitado a sócios, utentes ou dispositivos.'],
+      ['manager', 'Gestor de ramo', 'Acesso limitado a socios, utentes, dispositivos ou atividades.'],
       ['viewer', 'Consulta', 'Acesso só de leitura quando necessário.'],
     ],
   }),
@@ -1239,11 +1302,12 @@ for (const page of [
     key: 'global.manuals',
     title: 'Manuais',
     icon: 'book-open',
-    copy: 'Área comum para consultar os manuais dos três ramos e os manuais técnicos.',
+    copy: 'Area comum para consultar os manuais dos ramos e os manuais tecnicos.',
     items: [
       ['socios', 'Manual de sócios', 'Quotas, exportações e gestão de sócios.'],
       ['utentes', 'Manual de utentes', 'Fichas, separadores, anexos PDF, genograma e ecomapa.'],
       ['dispositivos', 'Manual de dispositivos', 'Reparações, estados, estatísticas, anexos e CSV.'],
+      ['atividades', 'Manual de atividades', 'A preparar quando o modulo de atividades estiver fechado.'],
     ],
   }),
 ]) {

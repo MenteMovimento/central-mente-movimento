@@ -96,6 +96,24 @@
       ]
     },
     {
+      "source": "/area/atividades",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/area/atividades/",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
+    },
+    {
       "source": "/static/styles.css",
       "headers": [
         {
@@ -212,6 +230,14 @@
     {
       "source": "/area/dispositivos/(.*)",
       "destination": "/area/dispositivos/$1"
+    },
+    {
+      "source": "/area/atividades",
+      "destination": "/area/atividades/index.html"
+    },
+    {
+      "source": "/area/atividades/(.*)",
+      "destination": "/area/atividades/$1"
     },
     {
       "source": "/dashboard",

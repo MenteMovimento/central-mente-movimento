@@ -4082,6 +4082,7 @@ TRANSLATIONS = {
         "nav_socios": "S\u00f3cios",
         "nav_utentes": "Utentes",
         "nav_dispositivos": "Dispositivos",
+        "nav_atividades": "Atividades",
         "header_tools": "Ferramentas e a\u00e7\u00f5es",
         "open_menu": "Abrir menu",
         "history": "Historico",
@@ -4178,6 +4179,7 @@ TRANSLATIONS = {
         "nav_socios": "Members",
         "nav_utentes": "Clients",
         "nav_dispositivos": "Devices",
+        "nav_atividades": "Activities",
         "header_tools": "Tools and actions",
         "open_menu": "Open menu",
         "history": "History",
@@ -5029,6 +5031,10 @@ def render_header(current_user):
                     {CENTRAL_DISPOSITIVOS_ICON}
                     <span>{esc(tr(current_user, 'nav_dispositivos'))}</span>
                 </a>
+                <a class="central-nav-link" href="/area/atividades/">
+                    {CENTRAL_ATIVIDADES_ICON}
+                    <span>{esc(tr(current_user, 'nav_atividades'))}</span>
+                </a>
             </nav>
 
             <div class="central-actions" aria-label="{esc(tr(current_user, 'header_tools'))}">
@@ -5364,6 +5370,22 @@ USERS_ICON = """
     <path d="M18 21a8 8 0 0 0-16 0"></path>
     <circle cx="10" cy="8" r="5"></circle>
     <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path>
+</svg>
+"""
+
+
+CENTRAL_ATIVIDADES_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M8 2v4"></path>
+    <path d="M16 2v4"></path>
+    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+    <path d="M3 10h18"></path>
+    <path d="M8 14h.01"></path>
+    <path d="M12 14h.01"></path>
+    <path d="M16 14h.01"></path>
+    <path d="M8 18h.01"></path>
+    <path d="M12 18h.01"></path>
+    <path d="M16 18h.01"></path>
 </svg>
 """
 

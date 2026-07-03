@@ -10,6 +10,7 @@
   --brand-dark: #195a51;
   --blue: #2d6cdf;
   --amber: #ad741b;
+  --indigo: #6554c0;
   --green: #23776b;
   --danger: #b42318;
 }
@@ -38,6 +39,7 @@ body.dark-mode {
   --brand: #18c996;
   --brand-dark: #72e5bf;
   --blue: #85b7ff;
+  --indigo: #b7a7ff;
   --green: #18c996;
   --danger: #ff8175;
   background:
@@ -895,6 +897,10 @@ body.dark-mode .central-admin-forms {
   border-top-color: var(--amber);
 }
 
+.module-indigo {
+  border-top-color: var(--indigo);
+}
+
 .module-topline {
   display: flex;
   align-items: center;
@@ -921,6 +927,11 @@ body.dark-mode .central-admin-forms {
 .module-amber .module-icon {
   background: #fff3dc;
   color: var(--amber);
+}
+
+.module-indigo .module-icon {
+  background: #f0edff;
+  color: var(--indigo);
 }
 
 .status-chip {
@@ -1033,6 +1044,10 @@ body.dark-mode .central-admin-forms {
 
 .area-amber {
   border-top-color: var(--amber);
+}
+
+.area-indigo {
+  border-top-color: var(--indigo);
 }
 
 .area-heading {

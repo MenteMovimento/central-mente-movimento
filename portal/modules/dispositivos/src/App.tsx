@@ -15,6 +15,7 @@ import {
   ArrowUpDown,
   BarChart3,
   BookOpen,
+  CalendarDays,
   CheckCircle2,
   CircleAlert,
   ClipboardList,
@@ -837,6 +838,7 @@ const translations = {
     navSocios: 'Socios',
     navUtentes: 'Utentes',
     navDispositivos: 'Dispositivos',
+    navAtividades: 'Atividades',
     name: 'Nome',
     newDevice: 'Novo dispositivo',
     noDevices: 'Nenhum dispositivo encontrado.',
@@ -1022,6 +1024,7 @@ const translations = {
     navSocios: 'Members',
     navUtentes: 'Clients',
     navDispositivos: 'Devices',
+    navAtividades: 'Activities',
     newDevice: 'New device',
     noDevices: 'No devices found.',
     noAttachments: 'No attachments for this device.',
@@ -3290,6 +3293,10 @@ function App() {
             <a className="portal-nav-link active" href="/area/dispositivos/">
               <MonitorCog aria-hidden="true" />
               <span>{t.navDispositivos}</span>
+            </a>
+            <a className="portal-nav-link" href="/area/atividades/">
+              <CalendarDays aria-hidden="true" />
+              <span>{t.navAtividades}</span>
             </a>
           </nav>
 

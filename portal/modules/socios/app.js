@@ -113,6 +113,7 @@ const translations = {
       socios: "Sócios",
       utentes: "Utentes",
       dispositivos: "Dispositivos",
+      atividades: "Atividades",
     },
     menu: {
       users: "Utilizadores",
@@ -331,6 +332,7 @@ const translations = {
       socios: "Members",
       utentes: "Clients",
       dispositivos: "Devices",
+      atividades: "Activities",
     },
     menu: {
       users: "Users",
@@ -1066,6 +1068,7 @@ function updateStaticLanguageText() {
   setText('.topnav a[href="/area/socios/"] span', "nav.socios");
   setText('.topnav a[href="/area/utentes/"] span', "nav.utentes");
   setText('.topnav a[href="/area/dispositivos/"] span', "nav.dispositivos");
+  setText('.topnav a[href="/area/atividades/"] span', "nav.atividades");
   setAttributeText(".topbar-actions", "aria-label", "nav.tools");
 
   setText(".setup-panel h1", "app.setupTitle");
