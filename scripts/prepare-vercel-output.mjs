@@ -375,7 +375,7 @@ const atividadesPage = pageShell({
 ${topbar('atividades')}
 <main class="global-shell activities-shell">
   <section class="global-panel area-indigo">
-    <p class="eyebrow">Area de trabalho</p>
+    <p class="eyebrow">&Aacute;rea de trabalho</p>
     <i data-lucide="calendar-days"></i>
     <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
     <p class="global-copy" data-i18n="module.atividades.detail">Planeamento e registo de atividades</p>
@@ -385,11 +385,11 @@ ${topbar('atividades')}
         <strong>Base inicial</strong>
       </div>
       <div>
-        <span class="branch-label">Area</span>
+        <span class="branch-label">&Aacute;rea</span>
         <strong>Atividades</strong>
       </div>
       <div>
-        <span class="branch-label">Proximo passo</span>
+        <span class="branch-label">Pr&oacute;ximo passo</span>
         <strong>Registos</strong>
       </div>
     </div>
@@ -400,11 +400,11 @@ ${topbar('atividades')}
       </article>
       <article class="tool-tile">
         <i data-lucide="users-round"></i>
-        <span>Presencas</span>
+        <span>Presen&ccedil;as</span>
       </article>
       <article class="tool-tile">
         <i data-lucide="clipboard-list"></i>
-        <span>Relatorios</span>
+        <span>Relat&oacute;rios</span>
       </article>
     </div>
   </section>
