@@ -236,6 +236,10 @@
       "destination": "/area/atividades/index.html"
     },
     {
+      "source": "/area/atividades/",
+      "destination": "/area/atividades/index.html"
+    },
+    {
       "source": "/area/atividades/(.*)",
       "destination": "/area/atividades/$1"
     },
