@@ -1,4 +1,4 @@
-export const AREA_IDS = ['socios', 'utentes', 'dispositivos']
+export const AREA_IDS = ['socios', 'utentes', 'dispositivos', 'atividades']
 
 export const AREA_ACTIONS = [
   'view',
@@ -32,6 +32,7 @@ const emptyPermissions = () => ({
   socios: emptyAreaPermissions(),
   utentes: emptyAreaPermissions(),
   dispositivos: emptyAreaPermissions(),
+  atividades: emptyAreaPermissions(),
 })
 
 export const fullPermissions = () => ({
@@ -39,6 +40,7 @@ export const fullPermissions = () => ({
   socios: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
   utentes: allAreaPermissions({ sensitive: true, deleteAllowed: true }),
   dispositivos: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
+  atividades: allAreaPermissions({ sensitive: false, deleteAllowed: false }),
 })
 
 const toBoolean = (value) => value === true || value === 'true' || value === 1 || value === '1'
@@ -106,6 +108,9 @@ export const normalizePermissions = (input) => {
     if (area !== 'utentes') {
       nextArea.view_sensitive = false
       nextArea.edit_sensitive = false
+    }
+    if (area === 'atividades') {
+      nextArea.delete = false
     }
 
     normalized[area] = nextArea

@@ -70,7 +70,7 @@ TAB_SECTIONS = [
 
 UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia"}
 UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "protecao_dados"}
-CENTRAL_AREA_KEYS = ("socios", "utentes", "dispositivos")
+CENTRAL_AREA_KEYS = ("socios", "utentes", "dispositivos", "atividades")
 CENTRAL_AREA_ACTIONS = ("view", "edit", "view_sensitive", "edit_sensitive", "export", "delete")
 
 PERFIL_ADMIN = "Administrador"
@@ -3770,6 +3770,7 @@ def full_central_permissions():
     permissions = empty_central_permissions()
     for area in CENTRAL_AREA_KEYS:
         permissions[area].update({"view": True, "edit": True, "export": True, "delete": True})
+    permissions["atividades"]["delete"] = False
     permissions["utentes"].update({"view_sensitive": True, "edit_sensitive": True})
     permissions["central"].update({"manage_users": True, "view_history": True})
     return permissions
@@ -3843,6 +3844,8 @@ def normalize_central_permissions(raw_permissions, _role=None):
         if area != "utentes":
             area_permissions["view_sensitive"] = False
             area_permissions["edit_sensitive"] = False
+        if area == "atividades":
+            area_permissions["delete"] = False
     return permissions
 
 

@@ -569,7 +569,7 @@ const refreshStatus = async () => {
   }
 };
 
-const centralAreaIds = ["socios", "utentes", "dispositivos"];
+const centralAreaIds = ["socios", "utentes", "dispositivos", "atividades"];
 const centralAreaActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
 
 const emptyAreaPermissions = () => ({
@@ -595,6 +595,7 @@ const fullCentralPermissions = () => {
     socios: all(false, true),
     utentes: all(true, true),
     dispositivos: all(false, true),
+    atividades: all(false, false),
   };
   return JSON.parse(JSON.stringify(defaults));
 };
@@ -604,6 +605,7 @@ const emptyCentralPermissions = () => ({
   socios: emptyAreaPermissions(),
   utentes: emptyAreaPermissions(),
   dispositivos: emptyAreaPermissions(),
+  atividades: emptyAreaPermissions(),
 });
 
 // New users start with access selected. Once stored, every individual checkbox is authoritative.
@@ -664,6 +666,9 @@ const normalizeCentralPermissions = (input) => {
       nextArea.view_sensitive = false;
       nextArea.edit_sensitive = false;
     }
+    if (area === "atividades") {
+      nextArea.delete = false;
+    }
     normalized[area] = nextArea;
   });
   return normalized;
@@ -681,7 +686,7 @@ const centralAreaFromHref = (href) => {
   try {
     const url = new URL(href, window.location.origin);
     if (url.origin !== window.location.origin) return "";
-    const match = url.pathname.match(/^\/area\/(socios|utentes|dispositivos)(?:\/|$)/);
+    const match = url.pathname.match(/^\/area\/(socios|utentes|dispositivos|atividades)(?:\/|$)/);
     return match?.[1] || "";
   } catch (_error) {
     return "";
@@ -1207,7 +1212,8 @@ const renderPermissionGrid = (container, scope, permissions) => {
       const cells = centralAreaActions
         .map((action) => {
           const isSensitive = action === "view_sensitive" || action === "edit_sensitive";
-          if (isSensitive && area !== "utentes") {
+          const isActivityDelete = area === "atividades" && action === "delete";
+          if ((isSensitive && area !== "utentes") || isActivityDelete) {
             return `<td class="permission-na">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
           }
           const name = permissionInputName(scope, area, action);

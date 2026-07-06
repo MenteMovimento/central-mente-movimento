@@ -11,7 +11,7 @@
   };
   // Every embedded branch receives the same permissions helper as the Central.
   // A stored matrix is authoritative; only old empty matrices start with full access.
-  const permissionAreas = ["socios", "utentes", "dispositivos"];
+  const permissionAreas = ["socios", "utentes", "dispositivos", "atividades"];
   const permissionActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
   const emptyAreaPermissions = () => ({
     view: false, edit: false, view_sensitive: false, edit_sensitive: false, export: false, delete: false
@@ -20,15 +20,18 @@
     central: { manage_users: false, view_history: false },
     socios: emptyAreaPermissions(),
     utentes: emptyAreaPermissions(),
-    dispositivos: emptyAreaPermissions()
+    dispositivos: emptyAreaPermissions(),
+    atividades: emptyAreaPermissions()
   });
   const fullPermissions = () => ({
     central: { manage_users: true, view_history: true },
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
-    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true }
+    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
+    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
+  const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
     const hasStoredMatrix =
@@ -41,26 +44,46 @@
     permissionAreas.forEach((area) => {
       const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
       permissionActions.forEach((action) => {
-        if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+        if (hasPermissionValue(sourceArea, action)) {
           normalized[area][action] = permissionBoolean(sourceArea[action]);
         }
       });
       const current = normalized[area];
-      if (current.edit) current.view = true;
-      if (current.export) current.view = true;
-      if (current.delete) {
-        current.edit = true;
-        current.view = true;
-      }
-      if (current.view_sensitive) current.view = true;
-      if (current.edit_sensitive) {
-        current.view_sensitive = true;
-        current.edit = true;
-        current.view = true;
+      if (hasPermissionValue(sourceArea, "view") && !permissionBoolean(sourceArea.view)) {
+        permissionActions.forEach((action) => {
+          current[action] = false;
+        });
+      } else {
+        if (hasPermissionValue(sourceArea, "edit") && !permissionBoolean(sourceArea.edit)) {
+          current.delete = false;
+          current.edit_sensitive = false;
+        }
+        if (hasPermissionValue(sourceArea, "view_sensitive") && !permissionBoolean(sourceArea.view_sensitive)) {
+          current.edit_sensitive = false;
+          if (area === "utentes") current.export = false;
+        }
+        if (current.edit) current.view = true;
+        if (current.export) {
+          current.view = true;
+          if (area === "utentes") current.view_sensitive = true;
+        }
+        if (current.delete) {
+          current.edit = true;
+          current.view = true;
+        }
+        if (current.view_sensitive) current.view = true;
+        if (current.edit_sensitive) {
+          current.view_sensitive = true;
+          current.edit = true;
+          current.view = true;
+        }
       }
       if (area !== "utentes") {
         current.view_sensitive = false;
         current.edit_sensitive = false;
+      }
+      if (area === "atividades") {
+        current.delete = false;
       }
     });
     return normalized;
@@ -69,12 +92,104 @@
     const permissions = normalizeCentralPermissions(profile?.permissions);
     return Boolean(permissions[area]?.[action]);
   };
+  const restrictedMessages = {
+    area: "Esta area tem acesso restrito para este utilizador.",
+    users: "Nao tem permissao para gerir utilizadores.",
+    history: "Nao tem permissao para consultar o historico geral.",
+    action: "Nao tem permissao para usar esta acao."
+  };
+  const restrictedAreaFromHref = (href) => {
+    try {
+      const url = new URL(href, window.location.origin);
+      if (url.origin !== window.location.origin) return "";
+      const match = url.pathname.match(/^\/area\/(socios|utentes|dispositivos|atividades)(?:\/|$)/);
+      return match?.[1] || "";
+    } catch (_error) {
+      return "";
+    }
+  };
+  const setRestrictedAccess = (node, restricted, message) => {
+    if (!node) return;
+    node.hidden = false;
+    node.classList.toggle("is-restricted", Boolean(restricted));
+    node.removeAttribute("aria-disabled");
+    if (restricted) {
+      node.dataset.accessRestricted = "true";
+      node.dataset.restrictedMessage = message || restrictedMessages.action;
+    } else {
+      delete node.dataset.accessRestricted;
+      delete node.dataset.restrictedMessage;
+    }
+  };
+  const restrictedMessageForClick = (target) => {
+    const explicitNode = target.closest("[data-access-restricted='true']");
+    if (explicitNode) return explicitNode.dataset.restrictedMessage || restrictedMessages.action;
+    const profile = window.CENTRAL_USER_PROFILE;
+    if (!profile) return "";
+    const permissionNode = target.closest("[data-requires-permission-area][data-requires-permission-action]");
+    if (permissionNode) {
+      const area = permissionNode.dataset.requiresPermissionArea;
+      const action = permissionNode.dataset.requiresPermissionAction;
+      if (area && action && !hasCentralPermission(profile, area, action)) {
+        return permissionNode.dataset.restrictedMessage || restrictedMessages.action;
+      }
+    }
+    if (target.closest("[data-users-toggle]") && !hasCentralPermission(profile, "central", "manage_users")) {
+      return restrictedMessages.users;
+    }
+    const link = target.closest("a[href]");
+    if (!link) return "";
+    const area = restrictedAreaFromHref(link.getAttribute("href") || link.href);
+    if (area && !hasCentralPermission(profile, area, "view")) return restrictedMessages.area;
+    try {
+      const url = new URL(link.getAttribute("href") || link.href, window.location.origin);
+      if (url.origin === window.location.origin && url.pathname.startsWith("/historico")) {
+        if (!hasCentralPermission(profile, "central", "view_history")) return restrictedMessages.history;
+      }
+    } catch (_error) {
+      return "";
+    }
+    return "";
+  };
+  const wireRestrictedAccess = () => {
+    if (window.__CENTRAL_RESTRICTED_ACCESS_WIRED) return;
+    window.__CENTRAL_RESTRICTED_ACCESS_WIRED = true;
+    document.addEventListener(
+      "click",
+      (event) => {
+        const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+        if (!target) return;
+        const message = restrictedMessageForClick(target);
+        if (!message) return;
+        event.preventDefault();
+        event.stopPropagation();
+        window.alert(message);
+      },
+      true
+    );
+  };
   const applyCentralPermissionsToPage = (profile) => {
     const effectiveProfile = profile ? { ...profile, permissions: normalizeCentralPermissions(profile.permissions) } : profile;
     window.CENTRAL_USER_PROFILE = effectiveProfile;
+    permissionAreas.forEach((area) => {
+      const restricted = effectiveProfile ? !hasCentralPermission(effectiveProfile, area, "view") : false;
+      document.querySelectorAll('[data-module-card="' + area + '"]').forEach((node) => {
+        setRestrictedAccess(node, restricted, restrictedMessages.area);
+      });
+      document.querySelectorAll('a[href^="/area/' + area + '"]').forEach((node) => {
+        setRestrictedAccess(node, restricted, restrictedMessages.area);
+      });
+    });
+    document.querySelectorAll("[data-users-toggle]").forEach((node) => {
+      setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "manage_users") : false, restrictedMessages.users);
+    });
+    document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
+      setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "view_history") : false, restrictedMessages.history);
+    });
     window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
     return effectiveProfile;
   };
+  wireRestrictedAccess();
   if (!window.CENTRAL_PERMISSIONS) {
     window.CENTRAL_PERMISSIONS = {
       normalize: normalizeCentralPermissions,
@@ -106,6 +221,7 @@
     } catch (_error) {
       // Sem impacto quando o browser bloqueia sessionStorage.
     }
+    clearUtentesSessionCache();
     clearPersistentAuth();
   };
   const loadRememberedLogin = () => {
@@ -151,6 +267,7 @@
     if (path.startsWith("/area/socios")) return "socios";
     if (path.startsWith("/area/utentes")) return "utentes";
     if (path.startsWith("/area/dispositivos")) return "dispositivos";
+    if (path.startsWith("/area/atividades")) return "atividades";
     return "";
   };
   const nextPath = () => safePath(new URLSearchParams(window.location.search).get("next"), "/dashboard");
@@ -164,6 +281,17 @@
     document.querySelectorAll("[data-user-email]").forEach((node) => {
       node.textContent = session?.user?.user_metadata?.full_name || session?.user?.email || "Administrador";
     });
+  };
+  const utentesSessionCachePrefix = "central-utentes-session:";
+  const utentesSessionCacheKey = (session) => `${utentesSessionCachePrefix}${session?.user?.id || "anon"}`;
+  const clearUtentesSessionCache = () => {
+    try {
+      Object.keys(sessionStorage)
+        .filter((key) => key.startsWith(utentesSessionCachePrefix))
+        .forEach((key) => sessionStorage.removeItem(key));
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia sessionStorage.
+    }
   };
   const cacheKey = (session, area = "") => `central-access:${session?.user?.id || "anon"}:${area || "dashboard"}`;
   const hasAccessCache = (session, area = "") => {
@@ -182,6 +310,26 @@
       sessionStorage.setItem(cacheKey(session, area), JSON.stringify({ ok: true, expiresAt }));
     } catch (_error) {
       // Sessão continua válida mesmo se o browser bloquear sessionStorage.
+    }
+  };
+  const hasUtentesSessionCache = (session) => {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(utentesSessionCacheKey(session)) || "{}");
+      return cached.ok === true && Number(cached.expiresAt || 0) > Date.now();
+    } catch (_error) {
+      return false;
+    }
+  };
+  const saveUtentesSessionCache = (session, payload = {}) => {
+    try {
+      const authExpiresAt = Number(session?.expires_at || 0) * 1000;
+      const apiExpiresAt = new Date(payload.expiresAt || 0).getTime();
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
+      const candidates = [authExpiresAt, apiExpiresAt, shortCacheExpiresAt].filter((value) => Number.isFinite(value) && value > Date.now());
+      const expiresAt = candidates.length ? Math.min(...candidates) : shortCacheExpiresAt;
+      sessionStorage.setItem(utentesSessionCacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+    } catch (_error) {
+      // SessÃ£o de Utentes continua normal mesmo sem cache local.
     }
   };
   const createClient = () => {
@@ -235,8 +383,10 @@
   };
   const ensureUtentesSession = async (client) => {
     const { data } = await client.auth.getSession();
-    const token = data?.session?.access_token || "";
+    const session = data?.session || null;
+    const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
+    if (hasUtentesSessionCache(session)) return;
     const response = await fetch("/api/utentes-session", {
       method: "POST",
       credentials: "same-origin",
@@ -246,6 +396,8 @@
       const payload = await response.json().catch(() => ({}));
       throw new Error(payload.error || "Não foi possível iniciar Utentes.");
     }
+    const payload = await response.json().catch(() => ({ ok: true }));
+    saveUtentesSessionCache(session, payload);
   };
   const goTo = async (client, target) => {
     const path = safePath(target, "/dashboard");
@@ -254,6 +406,9 @@
       await ensureUtentesSession(client);
     }
     window.location.replace(path);
+  };
+  const goToDashboardAfterLogin = async (client) => {
+    await goTo(client, "/dashboard");
   };
   const wireUtentesLinks = (client) => {
     document.querySelectorAll('a[href^="/area/utentes"]').forEach((link) => {
@@ -283,6 +438,7 @@
       } catch (_error) {
         // Logout continua mesmo sem acesso a sessionStorage.
       }
+      clearUtentesSessionCache();
       clearPersistentAuth();
       window.location.replace("/login?next=" + encodeURIComponent(nextPath()));
       return;
@@ -291,7 +447,7 @@
       loadRememberedLogin();
       if (session) {
         try {
-          await goTo(client, nextPath());
+          await goToDashboardAfterLogin(client);
           return;
         } catch (_error) {
           await clearCentralSession(client);
@@ -317,7 +473,7 @@
         }
         saveRememberedLogin(email, remember);
         try {
-          await goTo(client, nextPath());
+          await goToDashboardAfterLogin(client);
         } catch (error) {
           showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
         }

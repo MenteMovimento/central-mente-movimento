@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260706-atividades-blocos'
+const assetVersion = '20260706-atividades-permissoes'
 
 const authPendingHead = `<script>
       (() => {
@@ -375,15 +375,6 @@ const atividadesPage = pageShell({
 ${topbar('atividades')}
 <main class="global-shell activities-shell">
   <section class="activities-workspace area-indigo" data-activities-calendar>
-    <header class="activities-heading">
-      <div>
-        <p class="eyebrow" data-i18n="activities.eyebrow">Hor&aacute;rio semanal</p>
-        <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
-        <p class="global-copy" data-i18n="activities.copy">Planeie as atividades da semana por dia, hora e professor.</p>
-      </div>
-      <span class="module-icon activities-heading-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
-    </header>
-
     <form class="activity-form" data-activities-form>
       <input type="hidden" name="id" />
       <div class="activity-form-title">
@@ -515,7 +506,7 @@ await writeFile(
   };
   // Every embedded branch receives the same permissions helper as the Central.
   // A stored matrix is authoritative; only old empty matrices start with full access.
-  const permissionAreas = ["socios", "utentes", "dispositivos"];
+  const permissionAreas = ["socios", "utentes", "dispositivos", "atividades"];
   const permissionActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
   const emptyAreaPermissions = () => ({
     view: false, edit: false, view_sensitive: false, edit_sensitive: false, export: false, delete: false
@@ -524,13 +515,15 @@ await writeFile(
     central: { manage_users: false, view_history: false },
     socios: emptyAreaPermissions(),
     utentes: emptyAreaPermissions(),
-    dispositivos: emptyAreaPermissions()
+    dispositivos: emptyAreaPermissions(),
+    atividades: emptyAreaPermissions()
   });
   const fullPermissions = () => ({
     central: { manage_users: true, view_history: true },
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
-    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true }
+    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
+    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
   const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
@@ -584,6 +577,9 @@ await writeFile(
         current.view_sensitive = false;
         current.edit_sensitive = false;
       }
+      if (area === "atividades") {
+        current.delete = false;
+      }
     });
     return normalized;
   };
@@ -601,7 +597,7 @@ await writeFile(
     try {
       const url = new URL(href, window.location.origin);
       if (url.origin !== window.location.origin) return "";
-      const match = url.pathname.match(/^\\/area\\/(socios|utentes|dispositivos)(?:\\/|$)/);
+      const match = url.pathname.match(/^\\/area\\/(socios|utentes|dispositivos|atividades)(?:\\/|$)/);
       return match?.[1] || "";
     } catch (_error) {
       return "";
@@ -766,6 +762,7 @@ await writeFile(
     if (path.startsWith("/area/socios")) return "socios";
     if (path.startsWith("/area/utentes")) return "utentes";
     if (path.startsWith("/area/dispositivos")) return "dispositivos";
+    if (path.startsWith("/area/atividades")) return "atividades";
     return "";
   };
   const nextPath = () => safePath(new URLSearchParams(window.location.search).get("next"), "/dashboard");
@@ -1009,7 +1006,7 @@ await writeFile(
     setItem: (key, value) => sessionStorage.setItem(key, value),
     removeItem: (key) => sessionStorage.removeItem(key)
   };
-  const permissionAreas = ["socios", "utentes", "dispositivos"];
+  const permissionAreas = ["socios", "utentes", "dispositivos", "atividades"];
   const permissionActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
   const emptyAreaPermissions = () => ({
     view: false, edit: false, view_sensitive: false, edit_sensitive: false, export: false, delete: false
@@ -1018,13 +1015,15 @@ await writeFile(
     central: { manage_users: false, view_history: false },
     socios: emptyAreaPermissions(),
     utentes: emptyAreaPermissions(),
-    dispositivos: emptyAreaPermissions()
+    dispositivos: emptyAreaPermissions(),
+    atividades: emptyAreaPermissions()
   });
   const fullPermissions = () => ({
     central: { manage_users: true, view_history: true },
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
-    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true }
+    dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
+    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
   const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
@@ -1078,6 +1077,9 @@ await writeFile(
         current.view_sensitive = false;
         current.edit_sensitive = false;
       }
+      if (area === "atividades") {
+        current.delete = false;
+      }
     });
     return normalized;
   };
@@ -1095,7 +1097,7 @@ await writeFile(
     try {
       const url = new URL(href, window.location.origin);
       if (url.origin !== window.location.origin) return "";
-      const match = url.pathname.match(/^\\/area\\/(socios|utentes|dispositivos)(?:\\/|$)/);
+      const match = url.pathname.match(/^\\/area\\/(socios|utentes|dispositivos|atividades)(?:\\/|$)/);
       return match?.[1] || "";
     } catch (_error) {
       return "";
@@ -1208,6 +1210,7 @@ await writeFile(
     if (path.startsWith("/area/socios")) return "socios";
     if (path.startsWith("/area/utentes")) return "utentes";
     if (path.startsWith("/area/dispositivos")) return "dispositivos";
+    if (path.startsWith("/area/atividades")) return "atividades";
     return "";
   };
   const redirectToCentralLogin = () => {

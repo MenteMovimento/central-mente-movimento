@@ -150,7 +150,7 @@ const readBody = async (request) => {
 
 const requestedArea = (body) => {
   const area = String(body?.area ?? '').trim()
-  return ['socios', 'utentes', 'dispositivos'].includes(area) ? area : ''
+  return ['socios', 'utentes', 'dispositivos', 'atividades'].includes(area) ? area : ''
 }
 
 const enforceAreaAccess = (appUser, area) => {
