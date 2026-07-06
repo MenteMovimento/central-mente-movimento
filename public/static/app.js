@@ -15,6 +15,10 @@ const languageStorageKeys = [
   legacyLanguageStorageKey,
   dispositivosLanguageStorageKey,
 ];
+const passwordPolicyMessage =
+  "A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.";
+const isStrongPassword = (password) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password);
 
 const translations = {
   pt: {
@@ -32,6 +36,7 @@ const translations = {
     "nav.socios": "S\u00f3cios",
     "nav.utentes": "Utentes",
     "nav.dispositivos": "Dispositivos",
+    "nav.atividades": "Atividades",
     "menu.history": "Hist\u00f3rico",
     "menu.historyFull": "Hist\u00f3rico geral",
     "menu.users": "Utilizadores",
@@ -61,32 +66,80 @@ const translations = {
     "module.utentes.detail": "Base de utentes",
     "module.dispositivos.title": "Gest\u00e3o de Dispositivos",
     "module.dispositivos.detail": "Base de dispositivos",
+    "module.atividades.title": "Gest\u00e3o de Atividades",
+    "module.atividades.detail": "Planeamento e registo de atividades",
+    "activities.eyebrow": "Calend\u00e1rio semanal",
+    "activities.copy": "Planeie as atividades da semana por dia, hora e professor.",
+    "activities.form.addTitle": "Adicionar atividade",
+    "activities.form.editTitle": "Editar atividade",
+    "activities.day": "Dia",
+    "activities.start": "In\u00edcio",
+    "activities.end": "Fim",
+    "activities.name": "Nome da atividade",
+    "activities.teacher": "Professor",
+    "activities.save": "Guardar",
+    "activities.update": "Atualizar",
+    "activities.clear": "Limpar",
+    "activities.week": "Semana",
+    "activities.weekTitle": "Calend\u00e1rio semanal",
+    "activities.clearWeek": "Limpar semana",
+    "activities.emptyDay": "Sem atividades",
+    "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
+    "activities.remove": "Remover",
+    "activities.edit": "Editar",
+    "activities.confirmDelete": "Remover esta atividade?",
+    "activities.confirmClearWeek": "Limpar todas as atividades da semana?",
+    "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o professor.",
+    "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
+    "activities.saved": "Atividade guardada.",
+    "activities.deleted": "Atividade removida.",
+    "activities.cleared": "Semana limpa.",
+    "activities.count.one": "1 atividade",
+    "activities.count.other": "{count} atividades",
+    "activities.day.monday": "Segunda-feira",
+    "activities.day.tuesday": "Ter\u00e7a-feira",
+    "activities.day.wednesday": "Quarta-feira",
+    "activities.day.thursday": "Quinta-feira",
+    "activities.day.friday": "Sexta-feira",
+    "activities.day.saturday": "S\u00e1bado",
+    "activities.day.sunday": "Domingo",
+    "activities.dayShort.monday": "Seg",
+    "activities.dayShort.tuesday": "Ter",
+    "activities.dayShort.wednesday": "Qua",
+    "activities.dayShort.thursday": "Qui",
+    "activities.dayShort.friday": "Sex",
+    "activities.dayShort.saturday": "S\u00e1b",
+    "activities.dayShort.sunday": "Dom",
     "module.enter": "Entrar",
     "global.eyebrow": "Ferramenta global",
     "global.history.title": "Hist\u00f3rico geral",
-    "global.history.copy": "Registo comum de altera\u00e7\u00f5es feitas nos ramos de s\u00f3cios, utentes e dispositivos.",
+    "global.history.copy": "Registo comum de altera\u00e7\u00f5es feitas nos ramos de s\u00f3cios, utentes, dispositivos e atividades.",
     "global.history.socios.title": "S\u00f3cios",
     "global.history.socios.copy": "Altera\u00e7\u00f5es em fichas e quotas.",
     "global.history.utentes.title": "Utentes",
     "global.history.utentes.copy": "Altera\u00e7\u00f5es em fichas, separadores e anexos.",
     "global.history.dispositivos.title": "Dispositivos",
     "global.history.dispositivos.copy": "Altera\u00e7\u00f5es em listagens, repara\u00e7\u00f5es, estados, anexos e CSV.",
+    "global.history.atividades.title": "Atividades",
+    "global.history.atividades.copy": "Altera\u00e7\u00f5es em agenda, presen\u00e7as e relat\u00f3rios.",
     "global.users.title": "Utilizadores e permiss\u00f5es",
     "global.users.copy": "Gest\u00e3o \u00fanica de administradores, utilizadores e acessos a cada ramo.",
     "global.users.admin.title": "Administrador",
     "global.users.admin.copy": "Acesso total ao website.",
     "global.users.manager.title": "Gestor de ramo",
-    "global.users.manager.copy": "Acesso limitado a s\u00f3cios, utentes ou dispositivos.",
+    "global.users.manager.copy": "Acesso limitado a s\u00f3cios, utentes, dispositivos ou atividades.",
     "global.users.viewer.title": "Consulta",
     "global.users.viewer.copy": "Acesso s\u00f3 de leitura quando necess\u00e1rio.",
     "global.manuals.title": "Manuais",
-    "global.manuals.copy": "\u00c1rea comum para consultar os manuais dos tr\u00eas ramos e os manuais t\u00e9cnicos.",
+    "global.manuals.copy": "\u00c1rea comum para consultar os manuais dos ramos e os manuais t\u00e9cnicos.",
     "global.manuals.socios.title": "Manual de s\u00f3cios",
     "global.manuals.socios.copy": "Quotas, exporta\u00e7\u00f5es e gest\u00e3o de s\u00f3cios.",
     "global.manuals.utentes.title": "Manual de utentes",
     "global.manuals.utentes.copy": "Fichas, separadores, anexos PDF, genograma e ecomapa.",
     "global.manuals.dispositivos.title": "Manual de dispositivos",
     "global.manuals.dispositivos.copy": "Repara\u00e7\u00f5es, estados, estat\u00edsticas, anexos e CSV.",
+    "global.manuals.atividades.title": "Manual de atividades",
+    "global.manuals.atividades.copy": "A preparar quando o m\u00f3dulo de atividades estiver fechado.",
     "users.title": "Utilizadores",
     "users.subtitle": "Crie acessos novos e edite permiss\u00f5es de utilizadores existentes.",
     "users.refresh": "Atualizar",
@@ -111,6 +164,11 @@ const translations = {
     "users.empty": "Sem utilizadores registados.",
     "users.self": "A pr\u00f3pria conta",
     "users.adminOnly": "S\u00f3 administradores podem gerir utilizadores.",
+    "access.restricted": "Acesso restrito.",
+    "access.areaRestricted": "Esta area tem acesso restrito para este utilizador.",
+    "access.usersRestricted": "Nao tem permissao para gerir utilizadores.",
+    "access.historyRestricted": "Nao tem permissao para consultar o historico geral.",
+    "access.actionRestricted": "Nao tem permissao para usar esta acao.",
     "users.saved": "Acesso de utilizador guardado.",
     "users.created": "Utilizador criado.",
     "users.deleted": "Utilizador eliminado.",
@@ -129,6 +187,7 @@ const translations = {
     "permissions.socios": "S\u00f3cios",
     "permissions.utentes": "Utentes",
     "permissions.dispositivos": "Dispositivos",
+    "permissions.atividades": "Atividades",
     "permissions.notApplicable": "-",
   },
   en: {
@@ -146,6 +205,7 @@ const translations = {
     "nav.socios": "Members",
     "nav.utentes": "Clients",
     "nav.dispositivos": "Devices",
+    "nav.atividades": "Activities",
     "menu.history": "History",
     "menu.historyFull": "Global history",
     "menu.users": "Users",
@@ -175,32 +235,80 @@ const translations = {
     "module.utentes.detail": "Clients database",
     "module.dispositivos.title": "Device Management",
     "module.dispositivos.detail": "Devices database",
+    "module.atividades.title": "Activity Management",
+    "module.atividades.detail": "Activity planning and records",
+    "activities.eyebrow": "Weekly calendar",
+    "activities.copy": "Plan the week's activities by day, time and teacher.",
+    "activities.form.addTitle": "Add activity",
+    "activities.form.editTitle": "Edit activity",
+    "activities.day": "Day",
+    "activities.start": "Start",
+    "activities.end": "End",
+    "activities.name": "Activity name",
+    "activities.teacher": "Teacher",
+    "activities.save": "Save",
+    "activities.update": "Update",
+    "activities.clear": "Clear",
+    "activities.week": "Week",
+    "activities.weekTitle": "Weekly calendar",
+    "activities.clearWeek": "Clear week",
+    "activities.emptyDay": "No activities",
+    "activities.emptyWeek": "There are no activities in this week yet.",
+    "activities.remove": "Remove",
+    "activities.edit": "Edit",
+    "activities.confirmDelete": "Remove this activity?",
+    "activities.confirmClearWeek": "Clear every activity from the week?",
+    "activities.validationRequired": "Fill in the day, time, activity name and teacher.",
+    "activities.validationTime": "The end time must be after the start time.",
+    "activities.saved": "Activity saved.",
+    "activities.deleted": "Activity removed.",
+    "activities.cleared": "Week cleared.",
+    "activities.count.one": "1 activity",
+    "activities.count.other": "{count} activities",
+    "activities.day.monday": "Monday",
+    "activities.day.tuesday": "Tuesday",
+    "activities.day.wednesday": "Wednesday",
+    "activities.day.thursday": "Thursday",
+    "activities.day.friday": "Friday",
+    "activities.day.saturday": "Saturday",
+    "activities.day.sunday": "Sunday",
+    "activities.dayShort.monday": "Mon",
+    "activities.dayShort.tuesday": "Tue",
+    "activities.dayShort.wednesday": "Wed",
+    "activities.dayShort.thursday": "Thu",
+    "activities.dayShort.friday": "Fri",
+    "activities.dayShort.saturday": "Sat",
+    "activities.dayShort.sunday": "Sun",
     "module.enter": "Enter",
     "global.eyebrow": "Global tool",
     "global.history.title": "Global history",
-    "global.history.copy": "Shared record of changes made in members, clients and devices.",
+    "global.history.copy": "Shared record of changes made in members, clients, devices and activities.",
     "global.history.socios.title": "Members",
     "global.history.socios.copy": "Changes in member records and fees.",
     "global.history.utentes.title": "Clients",
     "global.history.utentes.copy": "Changes in records, sections and attachments.",
     "global.history.dispositivos.title": "Devices",
     "global.history.dispositivos.copy": "Changes in lists, repairs, states, attachments and CSV.",
+    "global.history.atividades.title": "Activities",
+    "global.history.atividades.copy": "Changes in schedule, attendance and reports.",
     "global.users.title": "Users and permissions",
     "global.users.copy": "Single management area for administrators, users and access to each branch.",
     "global.users.admin.title": "Administrator",
     "global.users.admin.copy": "Full access to the website.",
     "global.users.manager.title": "Branch manager",
-    "global.users.manager.copy": "Limited access to members, clients or devices.",
+    "global.users.manager.copy": "Limited access to members, clients, devices or activities.",
     "global.users.viewer.title": "Viewer",
     "global.users.viewer.copy": "Read-only access when needed.",
     "global.manuals.title": "Manuals",
-    "global.manuals.copy": "Shared area to consult manuals for the three branches and technical guides.",
+    "global.manuals.copy": "Shared area to consult branch manuals and technical guides.",
     "global.manuals.socios.title": "Members manual",
     "global.manuals.socios.copy": "Fees, exports and member management.",
     "global.manuals.utentes.title": "Clients manual",
     "global.manuals.utentes.copy": "Records, sections, PDF attachments, genogram and ecomap.",
     "global.manuals.dispositivos.title": "Devices manual",
     "global.manuals.dispositivos.copy": "Repairs, states, statistics, attachments and CSV.",
+    "global.manuals.atividades.title": "Activities manual",
+    "global.manuals.atividades.copy": "To be prepared when the activities module is complete.",
     "users.title": "Users",
     "users.subtitle": "Create new access and edit permissions for existing users.",
     "users.refresh": "Refresh",
@@ -225,6 +333,11 @@ const translations = {
     "users.empty": "No users registered.",
     "users.self": "Current account",
     "users.adminOnly": "Only administrators can manage users.",
+    "access.restricted": "Restricted access.",
+    "access.areaRestricted": "This area is restricted for this user.",
+    "access.usersRestricted": "You do not have permission to manage users.",
+    "access.historyRestricted": "You do not have permission to view the global history.",
+    "access.actionRestricted": "You do not have permission to use this action.",
     "users.saved": "User access saved.",
     "users.created": "User created.",
     "users.deleted": "User deleted.",
@@ -243,6 +356,7 @@ const translations = {
     "permissions.socios": "Members",
     "permissions.utentes": "Clients",
     "permissions.dispositivos": "Devices",
+    "permissions.atividades": "Activities",
     "permissions.notApplicable": "-",
   },
 };
@@ -334,6 +448,7 @@ const applyLanguage = (language, { persist = false } = {}) => {
   document.documentElement.lang = language === "pt" ? "pt-PT" : "en";
   translateStaticContent(language);
   translateStatusChips(language);
+  window.__CENTRAL_RENDER_ACTIVITIES?.();
   document.querySelectorAll("[data-language-toggle]").forEach((button) => {
     const label = getTranslation(language === "pt" ? "language.ptLabel" : "language.enLabel", language);
     button.setAttribute("title", label);
@@ -503,6 +618,7 @@ const emptyCentralPermissions = () => ({
 const defaultCentralPermissionsForRole = () => fullCentralPermissions();
 
 const boolPermission = (value) => value === true || value === "true" || value === 1 || value === "1";
+const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
 
 const normalizeCentralPermissions = (input) => {
   const source = input && typeof input === "object" ? input : {};
@@ -518,21 +634,39 @@ const normalizeCentralPermissions = (input) => {
     const sourceArea = source[area] && typeof source[area] === "object" ? source[area] : {};
     const nextArea = { ...normalized[area] };
     centralAreaActions.forEach((action) => {
-      if (Object.prototype.hasOwnProperty.call(sourceArea, action)) {
+      if (hasPermissionValue(sourceArea, action)) {
         nextArea[action] = boolPermission(sourceArea[action]);
       }
     });
-    if (nextArea.edit) nextArea.view = true;
-    if (nextArea.export) nextArea.view = true;
-    if (nextArea.delete) {
-      nextArea.view = true;
-      nextArea.edit = true;
-    }
-    if (nextArea.view_sensitive) nextArea.view = true;
-    if (nextArea.edit_sensitive) {
-      nextArea.view = true;
-      nextArea.edit = true;
-      nextArea.view_sensitive = true;
+    if (hasPermissionValue(sourceArea, "view") && !boolPermission(sourceArea.view)) {
+      centralAreaActions.forEach((action) => {
+        nextArea[action] = false;
+      });
+    } else {
+      if (hasPermissionValue(sourceArea, "edit") && !boolPermission(sourceArea.edit)) {
+        nextArea.delete = false;
+        nextArea.edit_sensitive = false;
+      }
+      if (hasPermissionValue(sourceArea, "view_sensitive") && !boolPermission(sourceArea.view_sensitive)) {
+        nextArea.edit_sensitive = false;
+        if (area === "utentes") nextArea.export = false;
+      }
+
+      if (nextArea.edit) nextArea.view = true;
+      if (nextArea.export) {
+        nextArea.view = true;
+        if (area === "utentes") nextArea.view_sensitive = true;
+      }
+      if (nextArea.delete) {
+        nextArea.view = true;
+        nextArea.edit = true;
+      }
+      if (nextArea.view_sensitive) nextArea.view = true;
+      if (nextArea.edit_sensitive) {
+        nextArea.view = true;
+        nextArea.edit = true;
+        nextArea.view_sensitive = true;
+      }
     }
     if (area !== "utentes") {
       nextArea.view_sensitive = false;
@@ -551,22 +685,111 @@ const centralHasPermission = (profile, area, action) => {
 
 const centralCanManageUsers = (profile) => centralHasPermission(profile, "central", "manage_users");
 
+const centralAreaFromHref = (href) => {
+  try {
+    const url = new URL(href, window.location.origin);
+    if (url.origin !== window.location.origin) return "";
+    const match = url.pathname.match(/^\/area\/(socios|utentes|dispositivos)(?:\/|$)/);
+    return match?.[1] || "";
+  } catch (_error) {
+    return "";
+  }
+};
+
+const setCentralRestrictedAccess = (node, restricted, message) => {
+  if (!node) return;
+  node.hidden = false;
+  node.classList.toggle("is-restricted", Boolean(restricted));
+  node.removeAttribute("aria-disabled");
+  if (restricted) {
+    node.dataset.accessRestricted = "true";
+    node.dataset.restrictedMessage = message || getTranslation("access.restricted");
+  } else {
+    delete node.dataset.accessRestricted;
+    delete node.dataset.restrictedMessage;
+  }
+};
+
+const showCentralRestrictedAccess = (message) => {
+  window.alert(message || getTranslation("access.restricted"));
+};
+
+const centralRestrictedMessageForClick = (target) => {
+  const explicitNode = target.closest("[data-access-restricted='true']");
+  if (explicitNode) return explicitNode.dataset.restrictedMessage || getTranslation("access.restricted");
+
+  const profile = window.CENTRAL_USER_PROFILE;
+  if (!profile) return "";
+
+  const permissionNode = target.closest("[data-requires-permission-area][data-requires-permission-action]");
+  if (permissionNode) {
+    const area = permissionNode.dataset.requiresPermissionArea;
+    const action = permissionNode.dataset.requiresPermissionAction;
+    if (area && action && !centralHasPermission(profile, area, action)) {
+      return permissionNode.dataset.restrictedMessage || getTranslation("access.actionRestricted");
+    }
+  }
+
+  const usersNode = target.closest("[data-users-toggle]");
+  if (usersNode && !centralCanManageUsers(profile)) return getTranslation("access.usersRestricted");
+
+  const link = target.closest("a[href]");
+  if (!link) return "";
+  const area = centralAreaFromHref(link.getAttribute("href") || link.href);
+  if (area && !centralHasPermission(profile, area, "view")) return getTranslation("access.areaRestricted");
+
+  try {
+    const url = new URL(link.getAttribute("href") || link.href, window.location.origin);
+    if (url.origin === window.location.origin && url.pathname.startsWith("/historico")) {
+      if (!centralHasPermission(profile, "central", "view_history")) return getTranslation("access.historyRestricted");
+    }
+  } catch (_error) {
+    return "";
+  }
+  return "";
+};
+
+const wireCentralRestrictedAccess = () => {
+  if (window.__CENTRAL_RESTRICTED_ACCESS_WIRED) return;
+  window.__CENTRAL_RESTRICTED_ACCESS_WIRED = true;
+  document.addEventListener(
+    "click",
+    (event) => {
+      const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+      if (!target) return;
+      const message = centralRestrictedMessageForClick(target);
+      if (!message) return;
+      event.preventDefault();
+      event.stopPropagation();
+      showCentralRestrictedAccess(message);
+    },
+    true
+  );
+};
+
 const applyCentralPermissionsToPage = (profile) => {
   const permissions = normalizeCentralPermissions(profile?.permissions);
+  const effectiveProfile = profile ? { ...profile, permissions } : profile;
+  window.CENTRAL_USER_PROFILE = effectiveProfile;
   centralAreaIds.forEach((area) => {
     const canView = Boolean(permissions[area]?.view);
     document.querySelectorAll(`[data-module-card="${area}"]`).forEach((node) => {
-      node.hidden = !canView;
+      setCentralRestrictedAccess(node, !canView, getTranslation("access.areaRestricted"));
     });
     document.querySelectorAll(`a[href^="/area/${area}"]`).forEach((node) => {
-      node.hidden = !canView;
-      node.setAttribute("aria-disabled", String(!canView));
+      setCentralRestrictedAccess(node, !canView, getTranslation("access.areaRestricted"));
     });
   });
   document.querySelectorAll("[data-users-toggle]").forEach((node) => {
-    node.hidden = !centralCanManageUsers({ ...profile, permissions });
+    setCentralRestrictedAccess(node, !centralCanManageUsers(effectiveProfile), getTranslation("access.usersRestricted"));
   });
+  document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
+    setCentralRestrictedAccess(node, !centralHasPermission(effectiveProfile, "central", "view_history"), getTranslation("access.historyRestricted"));
+  });
+  window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
 };
+
+wireCentralRestrictedAccess();
 
 window.CENTRAL_PERMISSIONS = {
   normalize: normalizeCentralPermissions,
@@ -598,6 +821,276 @@ const escapeHtml = (value) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
+const activitiesStorageKey = "central-activities-weekly-calendar-v1";
+const activitiesDays = [
+  { key: "monday" },
+  { key: "tuesday" },
+  { key: "wednesday" },
+  { key: "thursday" },
+  { key: "friday" },
+  { key: "saturday" },
+  { key: "sunday" },
+];
+const activitiesState = {
+  entries: [],
+};
+
+const activityId = () =>
+  window.crypto?.randomUUID?.() || `activity-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const isActivityDay = (day) => activitiesDays.some((item) => item.key === day);
+const isActivityTime = (time) => /^\d{2}:\d{2}$/.test(time || "");
+
+const activitiesElements = () => ({
+  root: document.querySelector("[data-activities-calendar]"),
+  form: document.querySelector("[data-activities-form]"),
+  grid: document.querySelector("[data-activities-grid]"),
+  error: document.querySelector("[data-activities-error]"),
+  clearBtn: document.querySelector("[data-activities-clear]"),
+  clearWeekBtn: document.querySelector("[data-activities-clear-week]"),
+  formTitle: document.querySelector("[data-activities-form-title]"),
+  submitLabel: document.querySelector("[data-activities-submit-label]"),
+});
+
+const normalizeActivityEntry = (entry) => {
+  const title = String(entry?.title || "").trim();
+  const teacher = String(entry?.teacher || "").trim();
+  const day = isActivityDay(entry?.day) ? entry.day : "monday";
+  const start = isActivityTime(entry?.start) ? entry.start : "09:00";
+  const end = isActivityTime(entry?.end) ? entry.end : "";
+  if (!title || !teacher) return null;
+  return {
+    id: String(entry?.id || activityId()),
+    day,
+    start,
+    end: end && end > start ? end : "",
+    title,
+    teacher,
+  };
+};
+
+const loadActivities = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(activitiesStorageKey) || "[]");
+    activitiesState.entries = Array.isArray(stored)
+      ? stored.map(normalizeActivityEntry).filter(Boolean)
+      : [];
+  } catch (_error) {
+    activitiesState.entries = [];
+  }
+};
+
+const saveActivities = () => {
+  try {
+    localStorage.setItem(activitiesStorageKey, JSON.stringify(activitiesState.entries));
+  } catch (_error) {
+    // O calendario continua editavel na sessao atual mesmo sem localStorage.
+  }
+};
+
+const sortedActivities = () =>
+  [...activitiesState.entries].sort((left, right) => {
+    const dayDiff =
+      activitiesDays.findIndex((item) => item.key === left.day) -
+      activitiesDays.findIndex((item) => item.key === right.day);
+    if (dayDiff !== 0) return dayDiff;
+    if (left.start !== right.start) return left.start.localeCompare(right.start);
+    return left.title.localeCompare(right.title);
+  });
+
+const activityCountText = (count) =>
+  count === 1
+    ? getTranslation("activities.count.one")
+    : getTranslation("activities.count.other").replace("{count}", String(count));
+
+const activityTimeText = (entry) => (entry.end ? `${entry.start} - ${entry.end}` : entry.start);
+
+const setActivitiesFeedback = (message = "", kind = "error") => {
+  const { error } = activitiesElements();
+  if (!error) return;
+  error.textContent = message;
+  error.hidden = !message;
+  error.classList.toggle("is-success", kind === "success");
+};
+
+const setActivitiesFormMode = (editing) => {
+  const { formTitle, submitLabel } = activitiesElements();
+  if (formTitle) {
+    formTitle.textContent = getTranslation(editing ? "activities.form.editTitle" : "activities.form.addTitle");
+  }
+  if (submitLabel) {
+    submitLabel.textContent = getTranslation(editing ? "activities.update" : "activities.save");
+  }
+};
+
+const resetActivitiesForm = () => {
+  const { form } = activitiesElements();
+  if (!form) return;
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.day.value = "monday";
+  form.elements.start.value = "09:00";
+  form.elements.end.value = "";
+  setActivitiesFormMode(false);
+  setActivitiesFeedback("");
+};
+
+const renderActivitySlot = (entry) => `
+  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}">
+    <div class="activity-slot-main">
+      <time>${escapeHtml(activityTimeText(entry))}</time>
+      <strong>${escapeHtml(entry.title)}</strong>
+      <span><i data-lucide="graduation-cap"></i>${escapeHtml(entry.teacher)}</span>
+    </div>
+    <div class="activity-slot-actions">
+      <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
+        <i data-lucide="pencil"></i>
+      </button>
+      <button class="icon-link danger-link" type="button" data-activity-action="delete" data-id="${escapeHtml(entry.id)}" title="${escapeHtml(getTranslation("activities.remove"))}" aria-label="${escapeHtml(getTranslation("activities.remove"))}">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  </article>
+`;
+
+const renderActivitiesCalendar = () => {
+  const { root, grid } = activitiesElements();
+  if (!root || !grid) return;
+  const entries = sortedActivities();
+  grid.classList.toggle("is-empty", entries.length === 0);
+  grid.innerHTML = activitiesDays
+    .map((day) => {
+      const dayEntries = entries.filter((entry) => entry.day === day.key);
+      return `
+        <section class="calendar-day" data-day="${escapeHtml(day.key)}">
+          <header class="calendar-day-head">
+            <div>
+              <span>${escapeHtml(getTranslation(`activities.dayShort.${day.key}`))}</span>
+              <strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong>
+            </div>
+            <small>${escapeHtml(activityCountText(dayEntries.length))}</small>
+          </header>
+          <div class="calendar-day-list">
+            ${
+              dayEntries.length
+                ? dayEntries.map(renderActivitySlot).join("")
+                : `<p class="calendar-empty">${escapeHtml(getTranslation("activities.emptyDay"))}</p>`
+            }
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+  refreshIcons();
+};
+
+const validateActivityPayload = (payload) => {
+  if (!payload.day || !payload.start || !payload.title || !payload.teacher) {
+    return getTranslation("activities.validationRequired");
+  }
+  if (payload.end && payload.end <= payload.start) {
+    return getTranslation("activities.validationTime");
+  }
+  return "";
+};
+
+const handleActivitySubmit = (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const payload = {
+    id: String(data.get("id") || "").trim(),
+    day: String(data.get("day") || "monday"),
+    start: String(data.get("start") || "").trim(),
+    end: String(data.get("end") || "").trim(),
+    title: String(data.get("title") || "").trim(),
+    teacher: String(data.get("teacher") || "").trim(),
+  };
+  const validation = validateActivityPayload(payload);
+  if (validation) {
+    setActivitiesFeedback(validation);
+    return;
+  }
+  const entry = normalizeActivityEntry({ ...payload, id: payload.id || activityId() });
+  if (!entry) {
+    setActivitiesFeedback(getTranslation("activities.validationRequired"));
+    return;
+  }
+  const existingIndex = activitiesState.entries.findIndex((item) => item.id === entry.id);
+  if (existingIndex >= 0) {
+    activitiesState.entries.splice(existingIndex, 1, entry);
+  } else {
+    activitiesState.entries.push(entry);
+  }
+  saveActivities();
+  resetActivitiesForm();
+  renderActivitiesCalendar();
+  setActivitiesFeedback(getTranslation("activities.saved"), "success");
+};
+
+const editActivity = (id) => {
+  const { form } = activitiesElements();
+  const entry = activitiesState.entries.find((item) => item.id === id);
+  if (!form || !entry) return;
+  form.elements.id.value = entry.id;
+  form.elements.day.value = entry.day;
+  form.elements.start.value = entry.start;
+  form.elements.end.value = entry.end;
+  form.elements.title.value = entry.title;
+  form.elements.teacher.value = entry.teacher;
+  setActivitiesFormMode(true);
+  setActivitiesFeedback("");
+  form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  form.elements.title.focus();
+};
+
+const deleteActivity = (id) => {
+  const entry = activitiesState.entries.find((item) => item.id === id);
+  if (!entry) return;
+  if (!window.confirm(getTranslation("activities.confirmDelete"))) return;
+  activitiesState.entries = activitiesState.entries.filter((item) => item.id !== id);
+  saveActivities();
+  renderActivitiesCalendar();
+  setActivitiesFeedback(getTranslation("activities.deleted"), "success");
+};
+
+const clearActivityWeek = () => {
+  if (!activitiesState.entries.length) return;
+  if (!window.confirm(getTranslation("activities.confirmClearWeek"))) return;
+  activitiesState.entries = [];
+  saveActivities();
+  resetActivitiesForm();
+  renderActivitiesCalendar();
+  setActivitiesFeedback(getTranslation("activities.cleared"), "success");
+};
+
+const wireActivitiesCalendar = () => {
+  const { root, form, grid, clearBtn, clearWeekBtn } = activitiesElements();
+  if (!root || !form || !grid) return;
+  window.__CENTRAL_RENDER_ACTIVITIES = () => {
+    setActivitiesFormMode(Boolean(form.elements.id.value));
+    renderActivitiesCalendar();
+  };
+  loadActivities();
+  resetActivitiesForm();
+  renderActivitiesCalendar();
+  form.addEventListener("submit", handleActivitySubmit);
+  clearBtn?.addEventListener("click", resetActivitiesForm);
+  clearWeekBtn?.addEventListener("click", clearActivityWeek);
+  grid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-activity-action]");
+    if (!button) return;
+    const id = button.dataset.id || "";
+    if (button.dataset.activityAction === "edit") {
+      editActivity(id);
+      return;
+    }
+    if (button.dataset.activityAction === "delete") {
+      deleteActivity(id);
+    }
+  });
+};
+
 const centralUsersElements = () => ({
   dialog: document.querySelector("#centralUsersDialog"),
   closeBtn: document.querySelector("#centralCloseUsersBtn"),
@@ -624,6 +1117,56 @@ const showCentralFormError = (node, message) => {
 };
 
 const permissionInputName = (scope, area, action) => `${scope}_${area}_${action}`;
+
+const findPermissionInput = (scope, area, action) =>
+  document.querySelector(
+    `[data-permission-input="${scope}"][data-area="${area}"][data-action="${action}"]`,
+  );
+
+const setPermissionInput = (scope, area, action, checked) => {
+  const input = findPermissionInput(scope, area, action);
+  if (input) input.checked = checked;
+};
+
+const syncPermissionDependencies = (input) => {
+  const scope = input.dataset.permissionInput;
+  const area = input.dataset.area;
+  const action = input.dataset.action;
+  if (!scope || !area || area === "central" || !action) return;
+
+  if (!input.checked) {
+    if (action === "view") {
+      centralAreaActions.forEach((areaAction) => setPermissionInput(scope, area, areaAction, false));
+      return;
+    }
+    if (action === "edit") {
+      setPermissionInput(scope, area, "delete", false);
+      setPermissionInput(scope, area, "edit_sensitive", false);
+      return;
+    }
+    if (action === "view_sensitive") {
+      setPermissionInput(scope, area, "edit_sensitive", false);
+      if (area === "utentes") setPermissionInput(scope, area, "export", false);
+    }
+    return;
+  }
+
+  if (action === "edit" || action === "export" || action === "view_sensitive") {
+    setPermissionInput(scope, area, "view", true);
+  }
+  if (area === "utentes" && action === "export") {
+    setPermissionInput(scope, area, "view_sensitive", true);
+  }
+  if (action === "delete") {
+    setPermissionInput(scope, area, "view", true);
+    setPermissionInput(scope, area, "edit", true);
+  }
+  if (action === "edit_sensitive") {
+    setPermissionInput(scope, area, "view", true);
+    setPermissionInput(scope, area, "edit", true);
+    setPermissionInput(scope, area, "view_sensitive", true);
+  }
+};
 
 const renderPermissionGrid = (container, scope, permissions) => {
   if (!container) return;
@@ -686,6 +1229,9 @@ const renderPermissionGrid = (container, scope, permissions) => {
       </label>
     </fieldset>
   `;
+  container.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
+    input.addEventListener("change", () => syncPermissionDependencies(input));
+  });
 };
 
 const permissionActionKey = (action) => ({
@@ -698,7 +1244,7 @@ const permissionActionKey = (action) => ({
 }[action] || action);
 
 const collectPermissionGrid = (scope) => {
-  const permissions = defaultCentralPermissionsForRole();
+  const permissions = emptyCentralPermissions();
   document.querySelectorAll(`[data-permission-input="${scope}"]`).forEach((input) => {
     const area = input.dataset.area;
     const action = input.dataset.action;
@@ -884,7 +1430,7 @@ const validateCentralUser = ({ id, email, fullName, password, requirePassword = 
   if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
   if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Indique um email válido.";
-  if (requirePassword && (!password || password.length < 8)) return "A password deve ter pelo menos 8 caracteres.";
+  if (requirePassword && (!password || !isStrongPassword(password))) return passwordPolicyMessage;
   return "";
 };
 
@@ -1100,6 +1646,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getTheme());
   applyLanguage(getLanguage(), { persist: true });
   wirePasswordToggle();
+  wireActivitiesCalendar();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {
     refreshStatus();

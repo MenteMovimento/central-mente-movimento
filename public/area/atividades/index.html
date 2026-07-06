@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>MenteMovimento</title>
+    <title>Gest&atilde;o de Atividades - MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
     <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-calendar" />
     <script src="/static/vendor/lucide.min.js" defer></script>
@@ -13,8 +13,8 @@
     <script src="/static/app.js?v=20260706-atividades-calendar" defer></script>
     <script src="/static/central-auth.js?v=20260706-atividades-calendar" defer></script>
   </head>
-  <body data-central-page="dashboard">
-    
+  <body data-central-page="atividades" data-title-key="module.atividades.title">
+
 
 <header class="topbar">
   <div class="topbar-inner">
@@ -40,7 +40,7 @@
         <i data-lucide="monitor-cog"></i>
         <span data-i18n="nav.dispositivos">Dispositivos</span>
       </a>
-      <a class="topnav-link" href="/area/atividades/">
+      <a class="topnav-link active" href="/area/atividades/">
         <i data-lucide="calendar-days"></i>
         <span data-i18n="nav.atividades">Atividades</span>
       </a>
@@ -71,54 +71,77 @@
     </div>
   </div>
 </header>
-<main class="dashboard">
-  <section class="dashboard-heading" aria-label="Gestão da associação">
-    <div>
-      <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestão da associação</p>
-    </div>
-  </section>
-  <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
-    
-<article class="module-card module-green" data-module-card="socios">
-  <div class="module-topline">
-    <span class="module-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
-  </div>
-  <h2 data-i18n="module.socios.title">Gestão de Sócios</h2>
-  <a class="module-action" href="/area/socios/">
-    <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar</span>
-  </a>
-</article>
-<article class="module-card module-blue" data-module-card="utentes">
-  <div class="module-topline">
-    <span class="module-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
-  </div>
-  <h2 data-i18n="module.utentes.title">Gestão de Utentes</h2>
-  <a class="module-action" href="/area/utentes/">
-    <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar</span>
-  </a>
-</article>
-<article class="module-card module-amber" data-module-card="dispositivos">
-  <div class="module-topline">
-    <span class="module-icon" aria-hidden="true"><i data-lucide="monitor-cog"></i></span>
-  </div>
-  <h2 data-i18n="module.dispositivos.title">Gestão de Dispositivos</h2>
-  <a class="module-action" href="/area/dispositivos/">
-    <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar</span>
-  </a>
-</article>
-<article class="module-card module-indigo" data-module-card="atividades">
-  <div class="module-topline">
-    <span class="module-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
-  </div>
-  <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
-  <a class="module-action" href="/area/atividades/">
-    <i data-lucide="arrow-right"></i>
-    <span data-i18n="module.enter">Entrar</span>
-  </a>
-</article>
+<main class="global-shell activities-shell">
+  <section class="activities-workspace area-indigo" data-activities-calendar>
+    <header class="activities-heading">
+      <div>
+        <p class="eyebrow" data-i18n="activities.eyebrow">Calend&aacute;rio semanal</p>
+        <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
+        <p class="global-copy" data-i18n="activities.copy">Planeie as atividades da semana por dia, hora e professor.</p>
+      </div>
+      <span class="module-icon activities-heading-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+    </header>
+
+    <form class="activity-form" data-activities-form>
+      <input type="hidden" name="id" />
+      <div class="activity-form-title">
+        <i data-lucide="calendar-plus" aria-hidden="true"></i>
+        <strong data-activities-form-title data-i18n="activities.form.addTitle">Adicionar atividade</strong>
+      </div>
+      <label class="activity-field">
+        <span data-i18n="activities.day">Dia</span>
+        <select name="day" required>
+          <option value="monday" data-i18n="activities.day.monday">Segunda-feira</option>
+          <option value="tuesday" data-i18n="activities.day.tuesday">Ter&ccedil;a-feira</option>
+          <option value="wednesday" data-i18n="activities.day.wednesday">Quarta-feira</option>
+          <option value="thursday" data-i18n="activities.day.thursday">Quinta-feira</option>
+          <option value="friday" data-i18n="activities.day.friday">Sexta-feira</option>
+          <option value="saturday" data-i18n="activities.day.saturday">S&aacute;bado</option>
+          <option value="sunday" data-i18n="activities.day.sunday">Domingo</option>
+        </select>
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.start">In&iacute;cio</span>
+        <input type="time" name="start" value="09:00" required />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.end">Fim</span>
+        <input type="time" name="end" />
+      </label>
+      <label class="activity-field activity-field-wide">
+        <span data-i18n="activities.name">Nome da atividade</span>
+        <input type="text" name="title" autocomplete="off" required />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.teacher">Professor</span>
+        <input type="text" name="teacher" autocomplete="off" required />
+      </label>
+      <div class="activity-form-actions">
+        <button class="primary-button" type="submit">
+          <i data-lucide="save"></i>
+          <span data-activities-submit-label data-i18n="activities.save">Guardar</span>
+        </button>
+        <button class="secondary-button" type="button" data-activities-clear>
+          <i data-lucide="eraser"></i>
+          <span data-i18n="activities.clear">Limpar</span>
+        </button>
+      </div>
+      <p class="form-error activity-error" data-activities-error role="alert" hidden></p>
+    </form>
+
+    <section class="weekly-calendar-shell" aria-labelledby="weeklyCalendarTitle">
+      <div class="weekly-calendar-head">
+        <div>
+          <p class="eyebrow" data-i18n="activities.week">Semana</p>
+          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Calend&aacute;rio semanal</h3>
+        </div>
+        <button class="secondary-button" type="button" data-activities-clear-week>
+          <i data-lucide="trash-2"></i>
+          <span data-i18n="activities.clearWeek">Limpar semana</span>
+        </button>
+      </div>
+      <div class="weekly-calendar" data-activities-grid aria-live="polite"></div>
+    </section>
   </section>
 </main>
 
