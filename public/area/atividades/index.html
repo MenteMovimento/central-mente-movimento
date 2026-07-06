@@ -6,12 +6,12 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Gest&atilde;o de Atividades - MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-modal-drag" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-ver-imprimir" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260706-atividades-modal-drag" defer></script>
-    <script src="/static/app.js?v=20260706-atividades-modal-drag" defer></script>
-    <script src="/static/central-auth.js?v=20260706-atividades-modal-drag" defer></script>
+    <script src="/static/central-config.js?v=20260706-atividades-ver-imprimir" defer></script>
+    <script src="/static/app.js?v=20260706-atividades-ver-imprimir" defer></script>
+    <script src="/static/central-auth.js?v=20260706-atividades-ver-imprimir" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
 
@@ -86,10 +86,16 @@
           <i data-lucide="chevron-right"></i>
         </button>
       </div>
-      <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false">
-        <i data-lucide="calendar-plus"></i>
-        <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
-      </button>
+      <div class="activity-toolbar-actions">
+        <button class="secondary-button activity-print-button" type="button" data-activities-print data-requires-permission-area="atividades" data-requires-permission-action="export">
+          <i data-lucide="printer"></i>
+          <span data-i18n="activities.printWeek">Imprimir semana</span>
+        </button>
+        <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <i data-lucide="calendar-plus"></i>
+          <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
+        </button>
+      </div>
     </div>
 
     <dialog class="activity-dialog" id="activityFormDialog" data-activities-dialog aria-labelledby="activityFormTitle">

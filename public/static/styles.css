@@ -1270,6 +1270,20 @@ body.dark-mode .central-admin-forms {
   padding: 0 18px;
 }
 
+.activity-toolbar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.activity-toolbar-actions .secondary-button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 16px;
+}
+
 .activity-dialog {
   width: min(860px, calc(100% - 32px));
   max-height: min(720px, calc(100% - 32px));
@@ -1504,6 +1518,7 @@ body.dark-mode .central-admin-forms {
   display: grid;
   align-content: start;
   gap: 8px;
+  position: relative;
   background: #ffffff;
 }
 
@@ -1512,8 +1527,32 @@ body.dark-mode .central-admin-forms {
 }
 
 .timetable-cell.is-drop-target {
+  outline: 2px solid rgba(35, 119, 107, 0.55);
+  outline-offset: -6px;
+}
+
+.timetable-cell.is-valid-drop-zone {
+  background: #edf8f5;
   outline: 2px dashed rgba(35, 119, 107, 0.35);
   outline-offset: -6px;
+  padding-top: 36px;
+}
+
+.timetable-cell.is-valid-drop-zone::before {
+  content: attr(data-drop-label);
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  min-height: 20px;
+  border-radius: 5px;
+  background: rgba(35, 119, 107, 0.1);
+  color: var(--brand-dark);
+  font-size: 0.74rem;
+  font-weight: 850;
+  pointer-events: none;
 }
 
 .timetable-empty-cell {
@@ -1530,6 +1569,7 @@ body.dark-mode .central-admin-forms {
 
 .activity-slot {
   display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 8px;
   border: 1px solid rgba(80, 101, 96, 0.24);
   border-left: 4px solid #8a9895;
@@ -1537,6 +1577,19 @@ body.dark-mode .central-admin-forms {
   background: #fbfcfc;
   cursor: grab;
   padding: 10px;
+}
+
+.activity-drag-handle {
+  display: grid;
+  place-items: start center;
+  width: 16px;
+  color: #778784;
+  padding-top: 2px;
+}
+
+.activity-drag-handle svg {
+  width: 16px;
+  height: 16px;
 }
 
 .activity-slot:active {
@@ -1580,6 +1633,7 @@ body.dark-mode .central-admin-forms {
 }
 
 .activity-slot-actions {
+  grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
   gap: 6px;
@@ -1697,8 +1751,13 @@ body.dark-mode .central-admin-forms {
   }
 
   .activity-week-control,
-  .activity-create-button {
+  .activity-create-button,
+  .activity-toolbar-actions {
     width: 100%;
+  }
+
+  .activity-toolbar-actions {
+    justify-content: flex-start;
   }
 
   .activity-week-control {
@@ -1768,6 +1827,7 @@ body.dark-mode .central-admin-forms {
 
   .activity-form-actions .primary-button,
   .activity-form-actions .secondary-button,
+  .activity-toolbar-actions .secondary-button,
   .activity-create-button,
   .weekly-calendar-head .secondary-button {
     width: 100%;

@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260706-atividades-modal-drag'
+const assetVersion = '20260706-atividades-ver-imprimir'
 
 const authPendingHead = `<script>
       (() => {
@@ -388,10 +388,16 @@ ${topbar('atividades')}
           <i data-lucide="chevron-right"></i>
         </button>
       </div>
-      <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false">
-        <i data-lucide="calendar-plus"></i>
-        <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
-      </button>
+      <div class="activity-toolbar-actions">
+        <button class="secondary-button activity-print-button" type="button" data-activities-print data-requires-permission-area="atividades" data-requires-permission-action="export">
+          <i data-lucide="printer"></i>
+          <span data-i18n="activities.printWeek">Imprimir semana</span>
+        </button>
+        <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <i data-lucide="calendar-plus"></i>
+          <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
+        </button>
+      </div>
     </div>
 
     <dialog class="activity-dialog" id="activityFormDialog" data-activities-dialog aria-labelledby="activityFormTitle">
@@ -704,6 +710,11 @@ await writeFile(
     });
     document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
       setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "view_history") : false, restrictedMessages.history);
+    });
+    document.querySelectorAll("[data-requires-permission-area][data-requires-permission-action]").forEach((node) => {
+      const area = node.dataset.requiresPermissionArea;
+      const action = node.dataset.requiresPermissionAction;
+      setRestrictedAccess(node, effectiveProfile && area && action ? !hasCentralPermission(effectiveProfile, area, action) : false, restrictedMessages.action);
     });
     window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
     return effectiveProfile;
@@ -1204,6 +1215,11 @@ await writeFile(
     });
     document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
       setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "view_history") : false, restrictedMessages.history);
+    });
+    document.querySelectorAll("[data-requires-permission-area][data-requires-permission-action]").forEach((node) => {
+      const area = node.dataset.requiresPermissionArea;
+      const action = node.dataset.requiresPermissionAction;
+      setRestrictedAccess(node, effectiveProfile && area && action ? !hasCentralPermission(effectiveProfile, area, action) : false, restrictedMessages.action);
     });
     window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
     return effectiveProfile;

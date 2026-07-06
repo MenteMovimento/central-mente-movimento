@@ -186,6 +186,11 @@
     document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
       setRestrictedAccess(node, effectiveProfile ? !hasCentralPermission(effectiveProfile, "central", "view_history") : false, restrictedMessages.history);
     });
+    document.querySelectorAll("[data-requires-permission-area][data-requires-permission-action]").forEach((node) => {
+      const area = node.dataset.requiresPermissionArea;
+      const action = node.dataset.requiresPermissionAction;
+      setRestrictedAccess(node, effectiveProfile && area && action ? !hasCentralPermission(effectiveProfile, area, action) : false, restrictedMessages.action);
+    });
     window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
     return effectiveProfile;
   };

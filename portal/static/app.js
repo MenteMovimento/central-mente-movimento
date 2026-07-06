@@ -74,6 +74,9 @@ const translations = {
     "activities.closeCreateButton": "Fechar",
     "activities.form.addTitle": "Adicionar atividade",
     "activities.form.editTitle": "Editar atividade",
+    "activities.form.viewTitle": "Ver atividade",
+    "activities.printWeek": "Imprimir semana",
+    "activities.printTitle": "Horário semanal de atividades",
     "activities.weekPrevious": "Semana anterior",
     "activities.weekNext": "Semana seguinte",
     "activities.weekRange": "{start} a {end}",
@@ -91,6 +94,9 @@ const translations = {
     "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
     "activities.remove": "Remover",
     "activities.edit": "Editar",
+    "activities.view": "Ver",
+    "activities.dragHandle": "Arrastar para ordenar",
+    "activities.dropHere": "Largar aqui",
     "activities.confirmDelete": "Remover esta atividade?",
     "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o professor.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
@@ -242,6 +248,9 @@ const translations = {
     "activities.closeCreateButton": "Close",
     "activities.form.addTitle": "Add activity",
     "activities.form.editTitle": "Edit activity",
+    "activities.form.viewTitle": "View activity",
+    "activities.printWeek": "Print week",
+    "activities.printTitle": "Weekly activities timetable",
     "activities.weekPrevious": "Previous week",
     "activities.weekNext": "Next week",
     "activities.weekRange": "{start} to {end}",
@@ -259,6 +268,9 @@ const translations = {
     "activities.emptyWeek": "There are no activities in this week yet.",
     "activities.remove": "Remove",
     "activities.edit": "Edit",
+    "activities.view": "View",
+    "activities.dragHandle": "Drag to reorder",
+    "activities.dropHere": "Drop here",
     "activities.confirmDelete": "Remove this activity?",
     "activities.validationRequired": "Fill in the day, time, activity name and teacher.",
     "activities.validationTime": "The end time must be after the start time.",
@@ -789,6 +801,15 @@ const applyCentralPermissionsToPage = (profile) => {
   document.querySelectorAll('a[href^="/historico"]').forEach((node) => {
     setCentralRestrictedAccess(node, !centralHasPermission(effectiveProfile, "central", "view_history"), getTranslation("access.historyRestricted"));
   });
+  document.querySelectorAll("[data-requires-permission-area][data-requires-permission-action]").forEach((node) => {
+    const area = node.dataset.requiresPermissionArea;
+    const action = node.dataset.requiresPermissionAction;
+    setCentralRestrictedAccess(
+      node,
+      area && action ? !centralHasPermission(effectiveProfile, area, action) : false,
+      getTranslation("access.actionRestricted"),
+    );
+  });
   window.dispatchEvent(new CustomEvent("central-permissions-ready", { detail: effectiveProfile }));
 };
 
@@ -898,6 +919,7 @@ const activitiesElements = () => ({
   error: document.querySelector("[data-activities-error]"),
   createBtn: document.querySelector("[data-activities-create]"),
   createLabel: document.querySelector("[data-activities-create-label]"),
+  printBtn: document.querySelector("[data-activities-print]"),
   prevWeekBtn: document.querySelector("[data-activities-week-prev]"),
   nextWeekBtn: document.querySelector("[data-activities-week-next]"),
   weekRange: document.querySelector("[data-activities-week-range]"),
@@ -1064,19 +1086,39 @@ const setActivityFormOpen = (open) => {
   refreshIcons();
 };
 
-const setActivitiesFormMode = (editing) => {
+const setActivitiesFormMode = (mode) => {
+  const normalizedMode = mode === "view" ? "view" : mode ? "edit" : "add";
   const { formTitle, submitLabel } = activitiesElements();
   if (formTitle) {
-    formTitle.textContent = getTranslation(editing ? "activities.form.editTitle" : "activities.form.addTitle");
+    formTitle.textContent = getTranslation(
+      normalizedMode === "view"
+        ? "activities.form.viewTitle"
+        : normalizedMode === "edit"
+          ? "activities.form.editTitle"
+          : "activities.form.addTitle",
+    );
   }
   if (submitLabel) {
-    submitLabel.textContent = getTranslation(editing ? "activities.update" : "activities.save");
+    submitLabel.textContent = getTranslation(normalizedMode === "edit" ? "activities.update" : "activities.save");
   }
+};
+
+const setActivityFormReadOnly = (readonly) => {
+  const { form, clearBtn } = activitiesElements();
+  if (!form) return;
+  form.classList.toggle("is-readonly", readonly);
+  form.querySelectorAll("input, select").forEach((field) => {
+    if (field.type !== "hidden") field.disabled = readonly;
+  });
+  const submitButton = form.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.hidden = readonly;
+  if (clearBtn) clearBtn.hidden = readonly;
 };
 
 const resetActivitiesForm = () => {
   const { form } = activitiesElements();
   if (!form) return;
+  setActivityFormReadOnly(false);
   form.reset();
   form.elements.id.value = "";
   form.elements.day.value = "monday";
@@ -1088,16 +1130,22 @@ const resetActivitiesForm = () => {
 
 const renderActivitySlot = (entry) => `
   <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}" draggable="true">
+    <span class="activity-drag-handle" title="${escapeHtml(getTranslation("activities.dragHandle"))}" aria-hidden="true">
+      <i data-lucide="grip-vertical"></i>
+    </span>
     <div class="activity-slot-main">
       <time>${escapeHtml(activityTimeText(entry))}</time>
       <strong>${escapeHtml(entry.title)}</strong>
       <span><i data-lucide="graduation-cap"></i>${escapeHtml(entry.teacher)}</span>
     </div>
     <div class="activity-slot-actions">
-      <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
+      <button class="icon-link" type="button" data-activity-action="view" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="view" title="${escapeHtml(getTranslation("activities.view"))}" aria-label="${escapeHtml(getTranslation("activities.view"))}">
+        <i data-lucide="eye"></i>
+      </button>
+      <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
         <i data-lucide="pencil"></i>
       </button>
-      <button class="icon-link danger-link" type="button" data-activity-action="delete" data-id="${escapeHtml(entry.id)}" title="${escapeHtml(getTranslation("activities.remove"))}" aria-label="${escapeHtml(getTranslation("activities.remove"))}">
+      <button class="icon-link danger-link" type="button" data-activity-action="delete" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.remove"))}" aria-label="${escapeHtml(getTranslation("activities.remove"))}">
         <i data-lucide="trash-2"></i>
       </button>
     </div>
@@ -1141,7 +1189,7 @@ const renderActivitiesCalendar = () => {
                     (entry) => entry.day === day.key && periodKey(activityDisplayPeriod(entry)) === currentPeriodKey,
                   );
                   return `
-                    <div class="timetable-cell${cellEntries.length ? " has-activity" : ""}" role="cell" data-day="${escapeHtml(day.key)}" data-period="${escapeHtml(periodKey(period))}">
+                    <div class="timetable-cell${cellEntries.length ? " has-activity" : ""}" role="cell" data-day="${escapeHtml(day.key)}" data-period="${escapeHtml(periodKey(period))}" data-drop-label="${escapeHtml(getTranslation("activities.dropHere"))}">
                       ${
                         cellEntries.length
                           ? cellEntries.map(renderActivitySlot).join("")
@@ -1158,6 +1206,9 @@ const renderActivitiesCalendar = () => {
     </div>
   `;
   refreshIcons();
+  if (window.CENTRAL_USER_PROFILE) {
+    applyCentralPermissionsToPage(window.CENTRAL_USER_PROFILE);
+  }
 };
 
 const validateActivityPayload = (payload) => {
@@ -1211,9 +1262,8 @@ const handleActivitySubmit = (event) => {
   setActivitiesFeedback(getTranslation("activities.saved"), "success");
 };
 
-const editActivity = (id) => {
+const fillActivityForm = (entry) => {
   const { form } = activitiesElements();
-  const entry = activitiesState.entries.find((item) => item.id === id);
   if (!form || !entry) return;
   activitiesState.selectedWeekStart = entry.weekStart;
   updateActivityWeekControls();
@@ -1223,6 +1273,25 @@ const editActivity = (id) => {
   form.elements.end.value = entry.end;
   form.elements.title.value = entry.title;
   form.elements.teacher.value = entry.teacher;
+};
+
+const viewActivity = (id) => {
+  const { form } = activitiesElements();
+  const entry = activitiesState.entries.find((item) => item.id === id);
+  if (!form || !entry) return;
+  fillActivityForm(entry);
+  setActivitiesFormMode("view");
+  setActivityFormReadOnly(true);
+  setActivityFormOpen(true);
+  setActivitiesFeedback("");
+};
+
+const editActivity = (id) => {
+  const { form } = activitiesElements();
+  const entry = activitiesState.entries.find((item) => item.id === id);
+  if (!form || !entry) return;
+  fillActivityForm(entry);
+  setActivityFormReadOnly(false);
   setActivitiesFormMode(true);
   setActivityFormOpen(true);
   setActivitiesFeedback("");
@@ -1238,6 +1307,91 @@ const deleteActivity = (id) => {
   saveActivities();
   renderActivitiesCalendar();
   setActivitiesFeedback(getTranslation("activities.deleted"), "success");
+};
+
+const activityPrintDocument = () => {
+  const entries = sortedActivities();
+  const periods = activityPeriods(entries);
+  const dayHeaders = activitiesDays
+    .map((day, index) => {
+      const dayDate = addDaysToIso(activitiesState.selectedWeekStart, index);
+      return `<th><span>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</span><small>${escapeHtml(formatActivityDate(dayDate))}</small></th>`;
+    })
+    .join("");
+  const rows = periods
+    .map((period) => {
+      const periodText = escapeHtml(periodTimeText(period));
+      const currentPeriodKey = periodKey(period);
+      const cells = activitiesDays
+        .map((day) => {
+          const cellEntries = entries.filter(
+            (entry) => entry.day === day.key && periodKey(activityDisplayPeriod(entry)) === currentPeriodKey,
+          );
+          const content = cellEntries.length
+            ? cellEntries
+                .map(
+                  (entry) => `
+                    <article>
+                      <strong>${escapeHtml(activityTimeText(entry))}</strong>
+                      <span>${escapeHtml(entry.title)}</span>
+                      <small>${escapeHtml(entry.teacher)}</small>
+                    </article>
+                  `,
+                )
+                .join("")
+            : `<em>${escapeHtml(getTranslation("activities.emptyDay"))}</em>`;
+          return `<td>${content}</td>`;
+        })
+        .join("");
+      return `<tr><th>${periodText}</th>${cells}</tr>`;
+    })
+    .join("");
+  return `<!doctype html>
+<html lang="${escapeHtml(getLanguage() === "en" ? "en" : "pt")}">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(getTranslation("activities.printTitle"))}</title>
+  <style>
+    body { color: #081614; font-family: Arial, sans-serif; margin: 24px; }
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    p { color: #506560; margin: 0 0 18px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #cfdcd9; padding: 10px; vertical-align: top; }
+    thead th { background: #eef5f3; text-align: center; }
+    tbody th { background: #f8fbfa; white-space: nowrap; width: 110px; }
+    th span, th small { display: block; }
+    th small { color: #506560; margin-top: 4px; }
+    article { border-left: 4px solid #8a9895; padding: 0 0 0 8px; margin-bottom: 10px; }
+    article:last-child { margin-bottom: 0; }
+    article strong, article span, article small { display: block; }
+    article strong { color: #005f56; }
+    article small, em { color: #667774; }
+  </style>
+</head>
+<body>
+  <h1>${escapeHtml(getTranslation("activities.printTitle"))}</h1>
+  <p>${escapeHtml(activityWeekRangeText())}</p>
+  <table>
+    <thead><tr><th>${escapeHtml(getTranslation("activities.start"))}</th>${dayHeaders}</tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</body>
+</html>`;
+};
+
+const printActivityWeek = () => {
+  const printWindow = window.open("", "_blank", "noopener,noreferrer");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+  printWindow.document.open();
+  printWindow.document.write(activityPrintDocument());
+  printWindow.document.close();
+  printWindow.focus();
+  window.setTimeout(() => {
+    printWindow.print();
+  }, 100);
 };
 
 const changeActivityWeek = (weekOffset) => {
@@ -1266,13 +1420,30 @@ const reorderActivitiesInCell = (draggedId, targetCellKey, targetId = "") => {
 };
 
 const clearActivityDropTargets = () => {
+  document.querySelectorAll(".timetable-cell.is-drop-target, .timetable-cell.is-valid-drop-zone").forEach((cell) => {
+    cell.classList.remove("is-drop-target", "is-valid-drop-zone");
+  });
+};
+
+const clearActivityActiveDropTarget = () => {
   document.querySelectorAll(".timetable-cell.is-drop-target").forEach((cell) => {
     cell.classList.remove("is-drop-target");
   });
 };
 
+const markActivityDropZone = (entry) => {
+  clearActivityDropTargets();
+  if (!entry) return;
+  const key = activityCellKey(entry);
+  document.querySelectorAll(".timetable-cell").forEach((cell) => {
+    if (activityCellKeyFromElement(cell) === key) {
+      cell.classList.add("is-valid-drop-zone");
+    }
+  });
+};
+
 const wireActivitiesCalendar = () => {
-  const { root, dialog, dialogCloseBtn, form, grid, createBtn, prevWeekBtn, nextWeekBtn, clearBtn } = activitiesElements();
+  const { root, dialog, dialogCloseBtn, form, grid, createBtn, prevWeekBtn, nextWeekBtn, clearBtn, printBtn } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
     setActivitiesFormMode(Boolean(form.elements.id.value));
@@ -1297,6 +1468,7 @@ const wireActivitiesCalendar = () => {
   prevWeekBtn?.addEventListener("click", () => changeActivityWeek(-1));
   nextWeekBtn?.addEventListener("click", () => changeActivityWeek(1));
   clearBtn?.addEventListener("click", resetActivitiesForm);
+  printBtn?.addEventListener("click", printActivityWeek);
   dialogCloseBtn?.addEventListener("click", () => {
     resetActivitiesForm();
     setActivityFormOpen(false);
@@ -1324,6 +1496,10 @@ const wireActivitiesCalendar = () => {
     const button = event.target.closest("[data-activity-action]");
     if (!button) return;
     const id = button.dataset.id || "";
+    if (button.dataset.activityAction === "view") {
+      viewActivity(id);
+      return;
+    }
     if (button.dataset.activityAction === "edit") {
       editActivity(id);
       return;
@@ -1339,8 +1515,14 @@ const wireActivitiesCalendar = () => {
       event.preventDefault();
       return;
     }
+    if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "edit")) {
+      event.preventDefault();
+      showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+      return;
+    }
     activitiesState.draggedActivityId = slot.dataset.activityId || "";
     slot.classList.add("is-dragging");
+    markActivityDropZone(activitiesState.entries.find((entry) => entry.id === activitiesState.draggedActivityId));
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", activitiesState.draggedActivityId);
   });
@@ -1351,7 +1533,7 @@ const wireActivitiesCalendar = () => {
     if (!cell || !draggedEntry || activityCellKey(draggedEntry) !== activityCellKeyFromElement(cell)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-    clearActivityDropTargets();
+    clearActivityActiveDropTarget();
     cell.classList.add("is-drop-target");
   });
   grid.addEventListener("dragleave", (event) => {
