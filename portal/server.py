@@ -567,6 +567,7 @@ def rewrite_utentes_html(text):
     output = output.replace('href="/area/utentes/area/socios"', 'href="/area/socios"')
     output = output.replace('href="/area/utentes/area/utentes/"', 'href="/area/utentes/"')
     output = output.replace('href="/area/utentes/area/dispositivos"', 'href="/area/dispositivos"')
+    output = output.replace('href="/area/utentes/area/atividades"', 'href="/area/atividades"')
     output = output.replace('src="/area/utentes/static/', 'src="/static/')
     output = output.replace('href="/area/utentes/static/', 'href="/static/')
     return output

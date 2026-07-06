@@ -966,14 +966,23 @@ const activityCountText = (count) =>
 
 const activityTimeText = (entry) => (entry.end ? `${entry.start} - ${entry.end}` : entry.start);
 
-const activitySlotKey = (entry) => `${entry.start}|${entry.end || ""}`;
 const periodKey = ([start, end]) => `${start}|${end || ""}`;
 const periodTimeText = ([start, end]) => (end ? `${start} - ${end}` : start);
+
+const periodContainsActivity = ([start, end], entry) => {
+  const activityEnd = entry.end || entry.start;
+  if (!end) return entry.start === start && !entry.end;
+  return entry.start >= start && activityEnd <= end;
+};
+
+const activityDisplayPeriod = (entry) =>
+  defaultActivityPeriods.find((period) => periodContainsActivity(period, entry)) || [entry.start, entry.end || ""];
 
 const activityPeriods = (entries) => {
   const periods = new Map(defaultActivityPeriods.map((period) => [periodKey(period), period]));
   entries.forEach((entry) => {
-    periods.set(activitySlotKey(entry), [entry.start, entry.end || ""]);
+    const period = activityDisplayPeriod(entry);
+    periods.set(periodKey(period), period);
   });
   return [...periods.values()].sort(([leftStart, leftEnd], [rightStart, rightEnd]) => {
     if (leftStart !== rightStart) return leftStart.localeCompare(rightStart);
@@ -1084,13 +1093,14 @@ const renderActivitiesCalendar = () => {
       ${periods
         .map((period) => {
           const [start, end] = period;
+          const currentPeriodKey = periodKey(period);
           return `
             <div class="timetable-row" role="row">
               <div class="timetable-time-cell" role="rowheader">${escapeHtml(periodTimeText(period))}</div>
               ${activitiesDays
                 .map((day) => {
                   const cellEntries = entries.filter(
-                    (entry) => entry.day === day.key && entry.start === start && (entry.end || "") === (end || ""),
+                    (entry) => entry.day === day.key && periodKey(activityDisplayPeriod(entry)) === currentPeriodKey,
                   );
                   return `
                     <div class="timetable-cell${cellEntries.length ? " has-activity" : ""}" role="cell" data-day="${escapeHtml(day.key)}" data-period="${escapeHtml(periodKey(period))}">

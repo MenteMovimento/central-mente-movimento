@@ -48,6 +48,7 @@ def rewrite_html(text):
         output = output.replace(f'{attr}="{PREFIX}/area/socios', f'{attr}="/area/socios')
         output = output.replace(f'{attr}="{PREFIX}/area/utentes/', f'{attr}="{PREFIX}/')
         output = output.replace(f'{attr}="{PREFIX}/area/dispositivos', f'{attr}="/area/dispositivos')
+        output = output.replace(f'{attr}="{PREFIX}/area/atividades', f'{attr}="/area/atividades')
         output = output.replace(f'{attr}="{PREFIX}/static/', f'{attr}="/static/')
     return output
 
@@ -76,7 +77,11 @@ def is_legacy_login(path):
 def central_redirect_target(path):
     parsed = urlparse(path)
     route = parsed.path
-    if route.startswith("/area/socios") or route.startswith("/area/dispositivos"):
+    if (
+        route.startswith("/area/socios")
+        or route.startswith("/area/dispositivos")
+        or route.startswith("/area/atividades")
+    ):
         return route + (f"?{parsed.query}" if parsed.query else "")
     return None
 
