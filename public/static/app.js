@@ -87,13 +87,11 @@ const translations = {
     "activities.clear": "Limpar",
     "activities.week": "Segunda a sexta",
     "activities.weekTitle": "Hor\u00e1rio escolar",
-    "activities.clearWeek": "Limpar semana",
     "activities.emptyDay": "Sem atividades",
     "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
     "activities.remove": "Remover",
     "activities.edit": "Editar",
     "activities.confirmDelete": "Remover esta atividade?",
-    "activities.confirmClearWeek": "Limpar todas as atividades da semana?",
     "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o professor.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
     "activities.saved": "Atividade guardada.",
@@ -257,13 +255,11 @@ const translations = {
     "activities.clear": "Clear",
     "activities.week": "Monday to Friday",
     "activities.weekTitle": "School timetable",
-    "activities.clearWeek": "Clear week",
     "activities.emptyDay": "No activities",
     "activities.emptyWeek": "There are no activities in this week yet.",
     "activities.remove": "Remove",
     "activities.edit": "Edit",
     "activities.confirmDelete": "Remove this activity?",
-    "activities.confirmClearWeek": "Clear every activity from the week?",
     "activities.validationRequired": "Fill in the day, time, activity name and teacher.",
     "activities.validationTime": "The end time must be after the start time.",
     "activities.saved": "Activity saved.",
@@ -884,6 +880,7 @@ const formatActivityDate = (date) => activityDateFormatter().format(date);
 const activitiesState = {
   entries: [],
   selectedWeekStart: weekStartIso(),
+  draggedActivityId: "",
 };
 
 const activityId = () =>
@@ -894,6 +891,8 @@ const isActivityTime = (time) => /^\d{2}:\d{2}$/.test(time || "");
 
 const activitiesElements = () => ({
   root: document.querySelector("[data-activities-calendar]"),
+  dialog: document.querySelector("[data-activities-dialog]"),
+  dialogCloseBtn: document.querySelector("[data-activities-dialog-close]"),
   form: document.querySelector("[data-activities-form]"),
   grid: document.querySelector("[data-activities-grid]"),
   error: document.querySelector("[data-activities-error]"),
@@ -903,18 +902,18 @@ const activitiesElements = () => ({
   nextWeekBtn: document.querySelector("[data-activities-week-next]"),
   weekRange: document.querySelector("[data-activities-week-range]"),
   clearBtn: document.querySelector("[data-activities-clear]"),
-  clearWeekBtn: document.querySelector("[data-activities-clear-week]"),
   formTitle: document.querySelector("[data-activities-form-title]"),
   submitLabel: document.querySelector("[data-activities-submit-label]"),
 });
 
-const normalizeActivityEntry = (entry, fallbackWeekStart = activitiesState.selectedWeekStart) => {
+const normalizeActivityEntry = (entry, fallbackWeekStart = activitiesState.selectedWeekStart, fallbackOrder = 0) => {
   const title = String(entry?.title || "").trim();
   const teacher = String(entry?.teacher || "").trim();
   const day = isActivityDay(entry?.day) ? entry.day : "monday";
   const start = isActivityTime(entry?.start) ? entry.start : "09:00";
   const end = isActivityTime(entry?.end) ? entry.end : "";
   const storedWeekStart = dateFromIso(String(entry?.weekStart || "")) ? weekStartIso(entry.weekStart) : fallbackWeekStart;
+  const order = Number(entry?.order);
   if (!title || !teacher) return null;
   return {
     id: String(entry?.id || activityId()),
@@ -924,6 +923,7 @@ const normalizeActivityEntry = (entry, fallbackWeekStart = activitiesState.selec
     end: end && end > start ? end : "",
     title,
     teacher,
+    order: Number.isFinite(order) ? order : fallbackOrder,
   };
 };
 
@@ -931,7 +931,7 @@ const loadActivities = () => {
   try {
     const stored = JSON.parse(localStorage.getItem(activitiesStorageKey) || "[]");
     activitiesState.entries = Array.isArray(stored)
-      ? stored.map((entry) => normalizeActivityEntry(entry, activitiesState.selectedWeekStart)).filter(Boolean)
+      ? stored.map((entry, index) => normalizeActivityEntry(entry, activitiesState.selectedWeekStart, index)).filter(Boolean)
       : [];
   } catch (_error) {
     activitiesState.entries = [];
@@ -955,6 +955,12 @@ const sortedActivities = () =>
       activitiesDays.findIndex((item) => item.key === left.day) -
       activitiesDays.findIndex((item) => item.key === right.day);
     if (dayDiff !== 0) return dayDiff;
+    const [leftPeriodStart, leftPeriodEnd] = activityDisplayPeriod(left);
+    const [rightPeriodStart, rightPeriodEnd] = activityDisplayPeriod(right);
+    if (leftPeriodStart !== rightPeriodStart) return leftPeriodStart.localeCompare(rightPeriodStart);
+    if ((leftPeriodEnd || "") !== (rightPeriodEnd || "")) return (leftPeriodEnd || "").localeCompare(rightPeriodEnd || "");
+    const orderDiff = (Number(left.order) || 0) - (Number(right.order) || 0);
+    if (orderDiff !== 0) return orderDiff;
     if (left.start !== right.start) return left.start.localeCompare(right.start);
     return left.title.localeCompare(right.title);
   });
@@ -977,6 +983,21 @@ const periodContainsActivity = ([start, end], entry) => {
 
 const activityDisplayPeriod = (entry) =>
   defaultActivityPeriods.find((period) => periodContainsActivity(period, entry)) || [entry.start, entry.end || ""];
+
+const activityCellKey = (entry) => `${entry.weekStart}|${entry.day}|${periodKey(activityDisplayPeriod(entry))}`;
+
+const activityCellKeyFromElement = (cell) => {
+  if (!cell?.dataset?.day || !cell.dataset.period) return "";
+  return `${activitiesState.selectedWeekStart}|${cell.dataset.day}|${cell.dataset.period}`;
+};
+
+const nextActivityOrderForCell = (entry) =>
+  Math.max(
+    -1,
+    ...activitiesState.entries
+      .filter((item) => item.id !== entry.id && activityCellKey(item) === activityCellKey(entry))
+      .map((item) => Number(item.order) || 0),
+  ) + 1;
 
 const activityPeriods = (entries) => {
   const periods = new Map(defaultActivityPeriods.map((period) => [periodKey(period), period]));
@@ -1013,9 +1034,26 @@ const updateActivityWeekControls = () => {
   }
 };
 
+const isActivityFormOpen = () => {
+  const { dialog, form } = activitiesElements();
+  return dialog ? dialog.open : Boolean(form && !form.hidden);
+};
+
 const setActivityFormOpen = (open) => {
-  const { form, createBtn, createLabel } = activitiesElements();
+  const { dialog, form, createBtn, createLabel } = activitiesElements();
   if (form) form.hidden = !open;
+  if (dialog) {
+    if (open && !dialog.open) {
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      } else {
+        dialog.setAttribute("open", "");
+      }
+    }
+    if (!open && dialog.open) {
+      dialog.close();
+    }
+  }
   if (createBtn) {
     createBtn.classList.toggle("is-active", open);
     createBtn.setAttribute("aria-expanded", String(open));
@@ -1049,7 +1087,7 @@ const resetActivitiesForm = () => {
 };
 
 const renderActivitySlot = (entry) => `
-  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}">
+  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}" draggable="true">
     <div class="activity-slot-main">
       <time>${escapeHtml(activityTimeText(entry))}</time>
       <strong>${escapeHtml(entry.title)}</strong>
@@ -1156,6 +1194,11 @@ const handleActivitySubmit = (event) => {
     return;
   }
   const existingIndex = activitiesState.entries.findIndex((item) => item.id === entry.id);
+  const existingEntry = existingIndex >= 0 ? activitiesState.entries[existingIndex] : null;
+  entry.order =
+    existingEntry && activityCellKey(existingEntry) === activityCellKey(entry)
+      ? existingEntry.order
+      : nextActivityOrderForCell(entry);
   if (existingIndex >= 0) {
     activitiesState.entries.splice(existingIndex, 1, entry);
   } else {
@@ -1197,16 +1240,6 @@ const deleteActivity = (id) => {
   setActivitiesFeedback(getTranslation("activities.deleted"), "success");
 };
 
-const clearActivityWeek = () => {
-  if (!selectedWeekActivities().length) return;
-  if (!window.confirm(getTranslation("activities.confirmClearWeek"))) return;
-  activitiesState.entries = activitiesState.entries.filter((entry) => entry.weekStart !== activitiesState.selectedWeekStart);
-  saveActivities();
-  resetActivitiesForm();
-  renderActivitiesCalendar();
-  setActivitiesFeedback(getTranslation("activities.cleared"), "success");
-};
-
 const changeActivityWeek = (weekOffset) => {
   const nextWeek = addDaysToIso(activitiesState.selectedWeekStart, weekOffset * 7);
   activitiesState.selectedWeekStart = weekStartIso(nextWeek);
@@ -1215,12 +1248,35 @@ const changeActivityWeek = (weekOffset) => {
   renderActivitiesCalendar();
 };
 
+const reorderActivitiesInCell = (draggedId, targetCellKey, targetId = "") => {
+  const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
+  if (!draggedEntry || activityCellKey(draggedEntry) !== targetCellKey) return false;
+  const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === targetCellKey);
+  if (cellEntries.length < 2) return false;
+  const nextOrder = cellEntries.filter((entry) => entry.id !== draggedId);
+  const targetIndex = targetId ? nextOrder.findIndex((entry) => entry.id === targetId) : nextOrder.length;
+  nextOrder.splice(targetIndex >= 0 ? targetIndex : nextOrder.length, 0, draggedEntry);
+  nextOrder.forEach((entry, index) => {
+    const source = activitiesState.entries.find((item) => item.id === entry.id);
+    if (source) source.order = index;
+  });
+  saveActivities();
+  renderActivitiesCalendar();
+  return true;
+};
+
+const clearActivityDropTargets = () => {
+  document.querySelectorAll(".timetable-cell.is-drop-target").forEach((cell) => {
+    cell.classList.remove("is-drop-target");
+  });
+};
+
 const wireActivitiesCalendar = () => {
-  const { root, form, grid, createBtn, prevWeekBtn, nextWeekBtn, clearBtn, clearWeekBtn } = activitiesElements();
+  const { root, dialog, dialogCloseBtn, form, grid, createBtn, prevWeekBtn, nextWeekBtn, clearBtn } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
     setActivitiesFormMode(Boolean(form.elements.id.value));
-    setActivityFormOpen(!form.hidden);
+    setActivityFormOpen(isActivityFormOpen());
     renderActivitiesCalendar();
   };
   loadActivities();
@@ -1229,7 +1285,7 @@ const wireActivitiesCalendar = () => {
   renderActivitiesCalendar();
   form.addEventListener("submit", handleActivitySubmit);
   createBtn?.addEventListener("click", () => {
-    const shouldOpen = form.hidden;
+    const shouldOpen = !isActivityFormOpen();
     if (shouldOpen) {
       resetActivitiesForm();
     }
@@ -1241,7 +1297,29 @@ const wireActivitiesCalendar = () => {
   prevWeekBtn?.addEventListener("click", () => changeActivityWeek(-1));
   nextWeekBtn?.addEventListener("click", () => changeActivityWeek(1));
   clearBtn?.addEventListener("click", resetActivitiesForm);
-  clearWeekBtn?.addEventListener("click", clearActivityWeek);
+  dialogCloseBtn?.addEventListener("click", () => {
+    resetActivitiesForm();
+    setActivityFormOpen(false);
+  });
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) {
+      resetActivitiesForm();
+      setActivityFormOpen(false);
+    }
+  });
+  dialog?.addEventListener("cancel", () => {
+    resetActivitiesForm();
+  });
+  dialog?.addEventListener("close", () => {
+    if (form) form.hidden = true;
+    if (createBtn) {
+      createBtn.classList.remove("is-active");
+      createBtn.setAttribute("aria-expanded", "false");
+    }
+    if (activitiesElements().createLabel) {
+      activitiesElements().createLabel.textContent = getTranslation("activities.createButton");
+    }
+  });
   grid.addEventListener("click", (event) => {
     const button = event.target.closest("[data-activity-action]");
     if (!button) return;
@@ -1253,6 +1331,54 @@ const wireActivitiesCalendar = () => {
     if (button.dataset.activityAction === "delete") {
       deleteActivity(id);
     }
+  });
+  grid.addEventListener("dragstart", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const slot = target?.closest(".activity-slot");
+    if (!slot || target?.closest("[data-activity-action]")) {
+      event.preventDefault();
+      return;
+    }
+    activitiesState.draggedActivityId = slot.dataset.activityId || "";
+    slot.classList.add("is-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", activitiesState.draggedActivityId);
+  });
+  grid.addEventListener("dragover", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const cell = target?.closest(".timetable-cell");
+    const draggedEntry = activitiesState.entries.find((entry) => entry.id === activitiesState.draggedActivityId);
+    if (!cell || !draggedEntry || activityCellKey(draggedEntry) !== activityCellKeyFromElement(cell)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    clearActivityDropTargets();
+    cell.classList.add("is-drop-target");
+  });
+  grid.addEventListener("dragleave", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const cell = target?.closest(".timetable-cell");
+    if (cell && !cell.contains(event.relatedTarget)) {
+      cell.classList.remove("is-drop-target");
+    }
+  });
+  grid.addEventListener("drop", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const cell = target?.closest(".timetable-cell");
+    const targetSlot = target?.closest(".activity-slot");
+    if (!cell) return;
+    const draggedId = activitiesState.draggedActivityId || event.dataTransfer.getData("text/plain");
+    const changed = reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), targetSlot?.dataset.activityId || "");
+    if (changed) {
+      event.preventDefault();
+      setActivitiesFeedback("");
+    }
+    activitiesState.draggedActivityId = "";
+    clearActivityDropTargets();
+  });
+  grid.addEventListener("dragend", () => {
+    activitiesState.draggedActivityId = "";
+    clearActivityDropTargets();
+    grid.querySelectorAll(".activity-slot.is-dragging").forEach((slot) => slot.classList.remove("is-dragging"));
   });
 };
 

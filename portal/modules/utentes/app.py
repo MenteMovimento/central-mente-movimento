@@ -3352,7 +3352,7 @@ APP_SCRIPT = """
             return;
         }
         const addButton = section.querySelector("[data-attendance-add]");
-        const countInput = section.querySelector("[data-attendance-count]");
+        const countInput = form.querySelector("[data-attendance-count]");
         const tableBody = section.querySelector("[data-attendance-body]");
         const template = section.querySelector("[data-attendance-row-template]");
         if (!addButton || !countInput || !tableBody) {

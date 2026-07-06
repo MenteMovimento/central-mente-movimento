@@ -589,8 +589,8 @@ body.dark-mode .timetable-time-cell {
 
 body.dark-mode .activity-slot {
   background: #101f34;
-  border-color: rgba(183, 167, 255, 0.32);
-  border-left-color: var(--indigo);
+  border-color: rgba(152, 169, 165, 0.34);
+  border-left-color: #98a9a5;
 }
 
 body.dark-mode .activity-week-range,
@@ -1194,7 +1194,6 @@ body.dark-mode .central-admin-forms {
 
 .activities-workspace {
   border: 1px solid var(--line);
-  border-top: 5px solid var(--indigo);
   border-radius: 8px;
   background: var(--panel);
   box-shadow: 0 10px 28px rgba(23, 41, 38, 0.08);
@@ -1271,6 +1270,42 @@ body.dark-mode .central-admin-forms {
   padding: 0 18px;
 }
 
+.activity-dialog {
+  width: min(860px, calc(100% - 32px));
+  max-height: min(720px, calc(100% - 32px));
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+}
+
+.activity-dialog::backdrop {
+  background: rgba(8, 22, 20, 0.52);
+}
+
+.activity-dialog-panel {
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(13, 34, 41, 0.22);
+}
+
+.activity-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid var(--line);
+  padding: 20px 22px;
+}
+
+.activity-dialog-head .icon-link {
+  width: 42px;
+  min-height: 42px;
+  flex: 0 0 auto;
+}
+
 .activity-form {
   display: grid;
   grid-template-columns: minmax(170px, 1fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr) minmax(220px, 1.4fr) minmax(180px, 1fr) auto;
@@ -1286,12 +1321,20 @@ body.dark-mode .central-admin-forms {
   display: none;
 }
 
+.activity-dialog .activity-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 0;
+  border-radius: 0;
+  background: #f8fbfa;
+  padding: 22px;
+}
+
 .activity-form-title {
   grid-column: 1 / -1;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--indigo);
+  color: var(--brand-dark);
   font-weight: 850;
 }
 
@@ -1325,14 +1368,16 @@ body.dark-mode .central-admin-forms {
 
 .activity-field input:focus,
 .activity-field select:focus {
-  border-color: var(--indigo);
-  outline: 3px solid rgba(101, 84, 192, 0.16);
+  border-color: var(--brand);
+  outline: 3px solid rgba(35, 119, 107, 0.16);
 }
 
 .activity-form-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  grid-column: 1 / -1;
   min-width: max-content;
 }
 
@@ -1343,6 +1388,10 @@ body.dark-mode .central-admin-forms {
 }
 
 .activity-error {
+  grid-column: 1 / -1;
+}
+
+.activity-dialog .activity-field-wide {
   grid-column: 1 / -1;
 }
 
@@ -1400,7 +1449,7 @@ body.dark-mode .central-admin-forms {
 
 .timetable-head {
   min-height: 64px;
-  background: #f7f4ff;
+  background: #f4f8f7;
 }
 
 .timetable-time-cell,
@@ -1459,7 +1508,12 @@ body.dark-mode .central-admin-forms {
 }
 
 .timetable-cell.has-activity {
-  background: #fbfaff;
+  background: #f8fbfa;
+}
+
+.timetable-cell.is-drop-target {
+  outline: 2px dashed rgba(35, 119, 107, 0.35);
+  outline-offset: -6px;
 }
 
 .timetable-empty-cell {
@@ -1477,11 +1531,20 @@ body.dark-mode .central-admin-forms {
 .activity-slot {
   display: grid;
   gap: 8px;
-  border: 1px solid rgba(101, 84, 192, 0.22);
-  border-left: 4px solid var(--indigo);
+  border: 1px solid rgba(80, 101, 96, 0.24);
+  border-left: 4px solid #8a9895;
   border-radius: 8px;
-  background: #fbfaff;
+  background: #fbfcfc;
+  cursor: grab;
   padding: 10px;
+}
+
+.activity-slot:active {
+  cursor: grabbing;
+}
+
+.activity-slot.is-dragging {
+  opacity: 0.55;
 }
 
 .activity-slot-main {
@@ -1491,7 +1554,7 @@ body.dark-mode .central-admin-forms {
 }
 
 .activity-slot time {
-  color: var(--indigo);
+  color: var(--brand-dark);
   font-size: 0.88rem;
   font-weight: 900;
 }

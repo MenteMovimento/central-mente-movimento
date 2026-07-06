@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260706-atividades-bloco-utentes-link'
+const assetVersion = '20260706-atividades-modal-drag'
 
 const authPendingHead = `<script>
       (() => {
@@ -394,50 +394,59 @@ ${topbar('atividades')}
       </button>
     </div>
 
-    <form class="activity-form" id="activityFormPanel" data-activities-form hidden>
-      <input type="hidden" name="id" />
-      <div class="activity-form-title">
-        <i data-lucide="calendar-plus" aria-hidden="true"></i>
-        <strong data-activities-form-title data-i18n="activities.form.addTitle">Adicionar atividade</strong>
+    <dialog class="activity-dialog" id="activityFormDialog" data-activities-dialog aria-labelledby="activityFormTitle">
+      <div class="activity-dialog-panel">
+        <header class="activity-dialog-head">
+          <div class="activity-form-title">
+            <i data-lucide="calendar-plus" aria-hidden="true"></i>
+            <strong id="activityFormTitle" data-activities-form-title data-i18n="activities.form.addTitle">Adicionar atividade</strong>
+          </div>
+          <button class="icon-link" type="button" data-activities-dialog-close aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <form class="activity-form" id="activityFormPanel" data-activities-form hidden>
+          <input type="hidden" name="id" />
+          <label class="activity-field">
+            <span data-i18n="activities.day">Dia</span>
+            <select name="day" required>
+              <option value="monday" data-i18n="activities.day.monday">Segunda-feira</option>
+              <option value="tuesday" data-i18n="activities.day.tuesday">Ter&ccedil;a-feira</option>
+              <option value="wednesday" data-i18n="activities.day.wednesday">Quarta-feira</option>
+              <option value="thursday" data-i18n="activities.day.thursday">Quinta-feira</option>
+              <option value="friday" data-i18n="activities.day.friday">Sexta-feira</option>
+            </select>
+          </label>
+          <label class="activity-field">
+            <span data-i18n="activities.start">In&iacute;cio</span>
+            <input type="time" name="start" value="09:00" required />
+          </label>
+          <label class="activity-field">
+            <span data-i18n="activities.end">Fim</span>
+            <input type="time" name="end" />
+          </label>
+          <label class="activity-field activity-field-wide">
+            <span data-i18n="activities.name">Nome da atividade</span>
+            <input type="text" name="title" autocomplete="off" required />
+          </label>
+          <label class="activity-field">
+            <span data-i18n="activities.teacher">Professor</span>
+            <input type="text" name="teacher" autocomplete="off" required />
+          </label>
+          <div class="activity-form-actions">
+            <button class="primary-button" type="submit">
+              <i data-lucide="save"></i>
+              <span data-activities-submit-label data-i18n="activities.save">Guardar</span>
+            </button>
+            <button class="secondary-button" type="button" data-activities-clear>
+              <i data-lucide="eraser"></i>
+              <span data-i18n="activities.clear">Limpar</span>
+            </button>
+          </div>
+          <p class="form-error activity-error" data-activities-error role="alert" hidden></p>
+        </form>
       </div>
-      <label class="activity-field">
-        <span data-i18n="activities.day">Dia</span>
-        <select name="day" required>
-          <option value="monday" data-i18n="activities.day.monday">Segunda-feira</option>
-          <option value="tuesday" data-i18n="activities.day.tuesday">Ter&ccedil;a-feira</option>
-          <option value="wednesday" data-i18n="activities.day.wednesday">Quarta-feira</option>
-          <option value="thursday" data-i18n="activities.day.thursday">Quinta-feira</option>
-          <option value="friday" data-i18n="activities.day.friday">Sexta-feira</option>
-        </select>
-      </label>
-      <label class="activity-field">
-        <span data-i18n="activities.start">In&iacute;cio</span>
-        <input type="time" name="start" value="09:00" required />
-      </label>
-      <label class="activity-field">
-        <span data-i18n="activities.end">Fim</span>
-        <input type="time" name="end" />
-      </label>
-      <label class="activity-field activity-field-wide">
-        <span data-i18n="activities.name">Nome da atividade</span>
-        <input type="text" name="title" autocomplete="off" required />
-      </label>
-      <label class="activity-field">
-        <span data-i18n="activities.teacher">Professor</span>
-        <input type="text" name="teacher" autocomplete="off" required />
-      </label>
-      <div class="activity-form-actions">
-        <button class="primary-button" type="submit">
-          <i data-lucide="save"></i>
-          <span data-activities-submit-label data-i18n="activities.save">Guardar</span>
-        </button>
-        <button class="secondary-button" type="button" data-activities-clear>
-          <i data-lucide="eraser"></i>
-          <span data-i18n="activities.clear">Limpar</span>
-        </button>
-      </div>
-      <p class="form-error activity-error" data-activities-error role="alert" hidden></p>
-    </form>
+    </dialog>
 
     <section class="weekly-calendar-shell" aria-labelledby="weeklyCalendarTitle">
       <div class="weekly-calendar-head">
@@ -445,10 +454,6 @@ ${topbar('atividades')}
           <p class="eyebrow" data-i18n="activities.week">Segunda a sexta</p>
           <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Hor&aacute;rio escolar</h3>
         </div>
-        <button class="secondary-button" type="button" data-activities-clear-week>
-          <i data-lucide="trash-2"></i>
-          <span data-i18n="activities.clearWeek">Limpar semana</span>
-        </button>
       </div>
       <div class="weekly-calendar" data-activities-grid aria-live="polite"></div>
     </section>
