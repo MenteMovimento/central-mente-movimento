@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260706-atividades-semana-real'
+const assetVersion = '20260706-atividades-setas-semana'
 
 const authPendingHead = `<script>
       (() => {
@@ -377,11 +377,16 @@ ${topbar('atividades')}
   <section class="activities-workspace area-indigo" data-activities-calendar>
     <div class="activities-toolbar">
       <div class="activity-week-control">
-        <label class="activity-field activity-week-field">
-          <span data-i18n="activities.weekDate">Semana</span>
-          <input type="date" data-activities-week-date />
-        </label>
-        <p class="activity-week-range" data-activities-week-range></p>
+        <button class="icon-link activity-week-nav" type="button" data-activities-week-prev title="Semana anterior" aria-label="Semana anterior" data-i18n-title="activities.weekPrevious" data-i18n-aria-label="activities.weekPrevious">
+          <i data-lucide="chevron-left"></i>
+        </button>
+        <div class="activity-week-summary">
+          <span data-i18n="activities.week">Segunda a sexta</span>
+          <strong data-activities-week-range></strong>
+        </div>
+        <button class="icon-link activity-week-nav" type="button" data-activities-week-next title="Semana seguinte" aria-label="Semana seguinte" data-i18n-title="activities.weekNext" data-i18n-aria-label="activities.weekNext">
+          <i data-lucide="chevron-right"></i>
+        </button>
       </div>
       <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false">
         <i data-lucide="calendar-plus"></i>

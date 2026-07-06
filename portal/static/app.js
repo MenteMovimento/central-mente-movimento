@@ -74,7 +74,8 @@ const translations = {
     "activities.closeCreateButton": "Fechar",
     "activities.form.addTitle": "Adicionar atividade",
     "activities.form.editTitle": "Editar atividade",
-    "activities.weekDate": "Semana",
+    "activities.weekPrevious": "Semana anterior",
+    "activities.weekNext": "Semana seguinte",
     "activities.weekRange": "{start} a {end}",
     "activities.day": "Dia",
     "activities.start": "In\u00edcio",
@@ -243,7 +244,8 @@ const translations = {
     "activities.closeCreateButton": "Close",
     "activities.form.addTitle": "Add activity",
     "activities.form.editTitle": "Edit activity",
-    "activities.weekDate": "Week",
+    "activities.weekPrevious": "Previous week",
+    "activities.weekNext": "Next week",
     "activities.weekRange": "{start} to {end}",
     "activities.day": "Day",
     "activities.start": "Start",
@@ -827,7 +829,6 @@ const escapeHtml = (value) =>
     .replaceAll("'", "&#039;");
 
 const activitiesStorageKey = "central-activities-weekly-calendar-v1";
-const activitiesSelectedWeekKey = "central-activities-selected-week-v1";
 const activitiesDays = [
   { key: "monday" },
   { key: "tuesday" },
@@ -880,19 +881,9 @@ const activityDateFormatter = () =>
 
 const formatActivityDate = (date) => activityDateFormatter().format(date);
 
-const readSelectedActivityWeek = () => {
-  try {
-    const stored = localStorage.getItem(activitiesSelectedWeekKey);
-    if (dateFromIso(stored || "")) return weekStartIso(stored);
-  } catch (_error) {
-    // Sem impacto quando o browser bloqueia localStorage.
-  }
-  return weekStartIso();
-};
-
 const activitiesState = {
   entries: [],
-  selectedWeekStart: readSelectedActivityWeek(),
+  selectedWeekStart: weekStartIso(),
 };
 
 const activityId = () =>
@@ -908,7 +899,8 @@ const activitiesElements = () => ({
   error: document.querySelector("[data-activities-error]"),
   createBtn: document.querySelector("[data-activities-create]"),
   createLabel: document.querySelector("[data-activities-create-label]"),
-  weekInput: document.querySelector("[data-activities-week-date]"),
+  prevWeekBtn: document.querySelector("[data-activities-week-prev]"),
+  nextWeekBtn: document.querySelector("[data-activities-week-next]"),
   weekRange: document.querySelector("[data-activities-week-range]"),
   clearBtn: document.querySelector("[data-activities-clear]"),
   clearWeekBtn: document.querySelector("[data-activities-clear-week]"),
@@ -1006,20 +998,9 @@ const activityWeekRangeText = () => {
 };
 
 const updateActivityWeekControls = () => {
-  const { weekInput, weekRange } = activitiesElements();
-  if (weekInput && weekInput.value !== activitiesState.selectedWeekStart) {
-    weekInput.value = activitiesState.selectedWeekStart;
-  }
+  const { weekRange } = activitiesElements();
   if (weekRange) {
     weekRange.textContent = activityWeekRangeText();
-  }
-};
-
-const saveSelectedActivityWeek = () => {
-  try {
-    localStorage.setItem(activitiesSelectedWeekKey, activitiesState.selectedWeekStart);
-  } catch (_error) {
-    // Sem impacto quando o browser bloqueia localStorage.
   }
 };
 
@@ -1215,16 +1196,16 @@ const clearActivityWeek = () => {
   setActivitiesFeedback(getTranslation("activities.cleared"), "success");
 };
 
-const changeActivityWeek = (value) => {
-  activitiesState.selectedWeekStart = weekStartIso(value || new Date());
-  saveSelectedActivityWeek();
+const changeActivityWeek = (weekOffset) => {
+  const nextWeek = addDaysToIso(activitiesState.selectedWeekStart, weekOffset * 7);
+  activitiesState.selectedWeekStart = weekStartIso(nextWeek);
   resetActivitiesForm();
   setActivityFormOpen(false);
   renderActivitiesCalendar();
 };
 
 const wireActivitiesCalendar = () => {
-  const { root, form, grid, createBtn, weekInput, clearBtn, clearWeekBtn } = activitiesElements();
+  const { root, form, grid, createBtn, prevWeekBtn, nextWeekBtn, clearBtn, clearWeekBtn } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
     setActivitiesFormMode(Boolean(form.elements.id.value));
@@ -1246,9 +1227,8 @@ const wireActivitiesCalendar = () => {
       form.elements.title.focus();
     }
   });
-  weekInput?.addEventListener("change", (event) => {
-    changeActivityWeek(event.currentTarget.value);
-  });
+  prevWeekBtn?.addEventListener("click", () => changeActivityWeek(-1));
+  nextWeekBtn?.addEventListener("click", () => changeActivityWeek(1));
   clearBtn?.addEventListener("click", resetActivitiesForm);
   clearWeekBtn?.addEventListener("click", clearActivityWeek);
   grid.addEventListener("click", (event) => {

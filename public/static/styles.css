@@ -575,7 +575,6 @@ body.dark-mode .field input,
 body.dark-mode .field select,
 body.dark-mode .branch-card,
 body.dark-mode .activity-form,
-body.dark-mode .activity-week-field input,
 body.dark-mode .activity-field input,
 body.dark-mode .activity-field select,
 body.dark-mode .timetable-empty-cell {
@@ -595,6 +594,7 @@ body.dark-mode .activity-slot {
 }
 
 body.dark-mode .activity-week-range,
+body.dark-mode .activity-week-summary span,
 body.dark-mode .timetable-day-head small {
   color: #b9c9d8;
 }
@@ -1234,20 +1234,34 @@ body.dark-mode .central-admin-forms {
 
 .activity-week-control {
   display: flex;
-  align-items: end;
-  gap: 14px;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
 }
 
-.activity-week-field {
-  width: min(240px, 100%);
+.activity-week-nav {
+  width: 44px;
+  min-height: 44px;
+  flex: 0 0 auto;
+}
+
+.activity-week-summary {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.activity-week-summary span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .activity-week-range {
-  margin: 0 0 11px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 800;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 900;
   white-space: nowrap;
 }
 
@@ -1620,13 +1634,20 @@ body.dark-mode .central-admin-forms {
   }
 
   .activity-week-control,
-  .activity-week-field,
   .activity-create-button {
     width: 100%;
   }
 
+  .activity-week-control {
+    flex-direction: row;
+  }
+
+  .activity-week-summary {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
   .activity-week-range {
-    margin-bottom: 0;
     white-space: normal;
   }
 
