@@ -6,12 +6,12 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Gest&atilde;o de Atividades - MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-permissoes" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-semana-real" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260706-atividades-permissoes" defer></script>
-    <script src="/static/app.js?v=20260706-atividades-permissoes" defer></script>
-    <script src="/static/central-auth.js?v=20260706-atividades-permissoes" defer></script>
+    <script src="/static/central-config.js?v=20260706-atividades-semana-real" defer></script>
+    <script src="/static/app.js?v=20260706-atividades-semana-real" defer></script>
+    <script src="/static/central-auth.js?v=20260706-atividades-semana-real" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
 
@@ -73,7 +73,21 @@
 </header>
 <main class="global-shell activities-shell">
   <section class="activities-workspace area-indigo" data-activities-calendar>
-    <form class="activity-form" data-activities-form>
+    <div class="activities-toolbar">
+      <div class="activity-week-control">
+        <label class="activity-field activity-week-field">
+          <span data-i18n="activities.weekDate">Semana</span>
+          <input type="date" data-activities-week-date />
+        </label>
+        <p class="activity-week-range" data-activities-week-range></p>
+      </div>
+      <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false">
+        <i data-lucide="calendar-plus"></i>
+        <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
+      </button>
+    </div>
+
+    <form class="activity-form" id="activityFormPanel" data-activities-form hidden>
       <input type="hidden" name="id" />
       <div class="activity-form-title">
         <i data-lucide="calendar-plus" aria-hidden="true"></i>

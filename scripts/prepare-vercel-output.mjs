@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260706-atividades-permissoes'
+const assetVersion = '20260706-atividades-semana-real'
 
 const authPendingHead = `<script>
       (() => {
@@ -375,7 +375,21 @@ const atividadesPage = pageShell({
 ${topbar('atividades')}
 <main class="global-shell activities-shell">
   <section class="activities-workspace area-indigo" data-activities-calendar>
-    <form class="activity-form" data-activities-form>
+    <div class="activities-toolbar">
+      <div class="activity-week-control">
+        <label class="activity-field activity-week-field">
+          <span data-i18n="activities.weekDate">Semana</span>
+          <input type="date" data-activities-week-date />
+        </label>
+        <p class="activity-week-range" data-activities-week-range></p>
+      </div>
+      <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false">
+        <i data-lucide="calendar-plus"></i>
+        <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
+      </button>
+    </div>
+
+    <form class="activity-form" id="activityFormPanel" data-activities-form hidden>
       <input type="hidden" name="id" />
       <div class="activity-form-title">
         <i data-lucide="calendar-plus" aria-hidden="true"></i>

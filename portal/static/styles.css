@@ -575,6 +575,7 @@ body.dark-mode .field input,
 body.dark-mode .field select,
 body.dark-mode .branch-card,
 body.dark-mode .activity-form,
+body.dark-mode .activity-week-field input,
 body.dark-mode .activity-field input,
 body.dark-mode .activity-field select,
 body.dark-mode .timetable-empty-cell {
@@ -591,6 +592,11 @@ body.dark-mode .activity-slot {
   background: #101f34;
   border-color: rgba(183, 167, 255, 0.32);
   border-left-color: var(--indigo);
+}
+
+body.dark-mode .activity-week-range,
+body.dark-mode .timetable-day-head small {
+  color: #b9c9d8;
 }
 
 body.dark-mode .activity-error.is-success {
@@ -1218,6 +1224,39 @@ body.dark-mode .central-admin-forms {
   color: var(--indigo);
 }
 
+.activities-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.activity-week-control {
+  display: flex;
+  align-items: end;
+  gap: 14px;
+  min-width: 0;
+}
+
+.activity-week-field {
+  width: min(240px, 100%);
+}
+
+.activity-week-range {
+  margin: 0 0 11px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.activity-create-button {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0 18px;
+}
+
 .activity-form {
   display: grid;
   grid-template-columns: minmax(170px, 1fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr) minmax(220px, 1.4fr) minmax(180px, 1fr) auto;
@@ -1227,6 +1266,10 @@ body.dark-mode .central-admin-forms {
   border-radius: 8px;
   background: #f8fbfa;
   padding: 16px;
+}
+
+.activity-form[hidden] {
+  display: none;
 }
 
 .activity-form-title {
@@ -1386,6 +1429,12 @@ body.dark-mode .central-admin-forms {
 
 .timetable-day-head strong {
   font-size: 1rem;
+}
+
+.timetable-day-head small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .timetable-cell {
@@ -1563,9 +1612,22 @@ body.dark-mode .central-admin-forms {
   }
 
   .activities-heading,
+  .activities-toolbar,
+  .activity-week-control,
   .weekly-calendar-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .activity-week-control,
+  .activity-week-field,
+  .activity-create-button {
+    width: 100%;
+  }
+
+  .activity-week-range {
+    margin-bottom: 0;
+    white-space: normal;
   }
 
   .activity-form {
@@ -1622,6 +1684,7 @@ body.dark-mode .central-admin-forms {
 
   .activity-form-actions .primary-button,
   .activity-form-actions .secondary-button,
+  .activity-create-button,
   .weekly-calendar-head .secondary-button {
     width: 100%;
   }

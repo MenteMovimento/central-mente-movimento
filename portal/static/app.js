@@ -70,8 +70,12 @@ const translations = {
     "module.atividades.detail": "Planeamento e registo de atividades",
     "activities.eyebrow": "Hor\u00e1rio semanal",
     "activities.copy": "Planeie as atividades da semana por dia, hora e professor.",
+    "activities.createButton": "Criar Atividade",
+    "activities.closeCreateButton": "Fechar",
     "activities.form.addTitle": "Adicionar atividade",
     "activities.form.editTitle": "Editar atividade",
+    "activities.weekDate": "Semana",
+    "activities.weekRange": "{start} a {end}",
     "activities.day": "Dia",
     "activities.start": "In\u00edcio",
     "activities.end": "Fim",
@@ -235,8 +239,12 @@ const translations = {
     "module.atividades.detail": "Activity planning and records",
     "activities.eyebrow": "Weekly timetable",
     "activities.copy": "Plan the week's activities by day, time and teacher.",
+    "activities.createButton": "Create Activity",
+    "activities.closeCreateButton": "Close",
     "activities.form.addTitle": "Add activity",
     "activities.form.editTitle": "Edit activity",
+    "activities.weekDate": "Week",
+    "activities.weekRange": "{start} to {end}",
     "activities.day": "Day",
     "activities.start": "Start",
     "activities.end": "End",
@@ -819,6 +827,7 @@ const escapeHtml = (value) =>
     .replaceAll("'", "&#039;");
 
 const activitiesStorageKey = "central-activities-weekly-calendar-v1";
+const activitiesSelectedWeekKey = "central-activities-selected-week-v1";
 const activitiesDays = [
   { key: "monday" },
   { key: "tuesday" },
@@ -830,8 +839,60 @@ const defaultActivityPeriods = [
   ["09:00", "12:00"],
   ["13:00", "17:00"],
 ];
+const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
+
+const dateToIso = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const dateFromIso = (value) => {
+  if (!dateIsoPattern.test(value || "")) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  return date;
+};
+
+const weekStartIso = (value = new Date()) => {
+  const source = value instanceof Date ? value : dateFromIso(String(value || ""));
+  const date = source ? new Date(source.getFullYear(), source.getMonth(), source.getDate()) : new Date();
+  const weekday = date.getDay();
+  const offset = weekday === 0 ? -6 : 1 - weekday;
+  date.setDate(date.getDate() + offset);
+  return dateToIso(date);
+};
+
+const addDaysToIso = (iso, days) => {
+  const date = dateFromIso(iso) || new Date();
+  date.setDate(date.getDate() + days);
+  return date;
+};
+
+const activityDateFormatter = () =>
+  new Intl.DateTimeFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+
+const formatActivityDate = (date) => activityDateFormatter().format(date);
+
+const readSelectedActivityWeek = () => {
+  try {
+    const stored = localStorage.getItem(activitiesSelectedWeekKey);
+    if (dateFromIso(stored || "")) return weekStartIso(stored);
+  } catch (_error) {
+    // Sem impacto quando o browser bloqueia localStorage.
+  }
+  return weekStartIso();
+};
+
 const activitiesState = {
   entries: [],
+  selectedWeekStart: readSelectedActivityWeek(),
 };
 
 const activityId = () =>
@@ -845,21 +906,27 @@ const activitiesElements = () => ({
   form: document.querySelector("[data-activities-form]"),
   grid: document.querySelector("[data-activities-grid]"),
   error: document.querySelector("[data-activities-error]"),
+  createBtn: document.querySelector("[data-activities-create]"),
+  createLabel: document.querySelector("[data-activities-create-label]"),
+  weekInput: document.querySelector("[data-activities-week-date]"),
+  weekRange: document.querySelector("[data-activities-week-range]"),
   clearBtn: document.querySelector("[data-activities-clear]"),
   clearWeekBtn: document.querySelector("[data-activities-clear-week]"),
   formTitle: document.querySelector("[data-activities-form-title]"),
   submitLabel: document.querySelector("[data-activities-submit-label]"),
 });
 
-const normalizeActivityEntry = (entry) => {
+const normalizeActivityEntry = (entry, fallbackWeekStart = activitiesState.selectedWeekStart) => {
   const title = String(entry?.title || "").trim();
   const teacher = String(entry?.teacher || "").trim();
   const day = isActivityDay(entry?.day) ? entry.day : "monday";
   const start = isActivityTime(entry?.start) ? entry.start : "09:00";
   const end = isActivityTime(entry?.end) ? entry.end : "";
+  const storedWeekStart = dateFromIso(String(entry?.weekStart || "")) ? weekStartIso(entry.weekStart) : fallbackWeekStart;
   if (!title || !teacher) return null;
   return {
     id: String(entry?.id || activityId()),
+    weekStart: storedWeekStart,
     day,
     start,
     end: end && end > start ? end : "",
@@ -872,7 +939,7 @@ const loadActivities = () => {
   try {
     const stored = JSON.parse(localStorage.getItem(activitiesStorageKey) || "[]");
     activitiesState.entries = Array.isArray(stored)
-      ? stored.map(normalizeActivityEntry).filter(Boolean)
+      ? stored.map((entry) => normalizeActivityEntry(entry, activitiesState.selectedWeekStart)).filter(Boolean)
       : [];
   } catch (_error) {
     activitiesState.entries = [];
@@ -887,8 +954,11 @@ const saveActivities = () => {
   }
 };
 
+const selectedWeekActivities = () =>
+  activitiesState.entries.filter((entry) => entry.weekStart === activitiesState.selectedWeekStart);
+
 const sortedActivities = () =>
-  [...activitiesState.entries].sort((left, right) => {
+  selectedWeekActivities().sort((left, right) => {
     const dayDiff =
       activitiesDays.findIndex((item) => item.key === left.day) -
       activitiesDays.findIndex((item) => item.key === right.day);
@@ -925,6 +995,45 @@ const setActivitiesFeedback = (message = "", kind = "error") => {
   error.textContent = message;
   error.hidden = !message;
   error.classList.toggle("is-success", kind === "success");
+};
+
+const activityWeekRangeText = () => {
+  const start = dateFromIso(activitiesState.selectedWeekStart) || new Date();
+  const end = addDaysToIso(activitiesState.selectedWeekStart, 4);
+  return getTranslation("activities.weekRange")
+    .replace("{start}", formatActivityDate(start))
+    .replace("{end}", formatActivityDate(end));
+};
+
+const updateActivityWeekControls = () => {
+  const { weekInput, weekRange } = activitiesElements();
+  if (weekInput && weekInput.value !== activitiesState.selectedWeekStart) {
+    weekInput.value = activitiesState.selectedWeekStart;
+  }
+  if (weekRange) {
+    weekRange.textContent = activityWeekRangeText();
+  }
+};
+
+const saveSelectedActivityWeek = () => {
+  try {
+    localStorage.setItem(activitiesSelectedWeekKey, activitiesState.selectedWeekStart);
+  } catch (_error) {
+    // Sem impacto quando o browser bloqueia localStorage.
+  }
+};
+
+const setActivityFormOpen = (open) => {
+  const { form, createBtn, createLabel } = activitiesElements();
+  if (form) form.hidden = !open;
+  if (createBtn) {
+    createBtn.classList.toggle("is-active", open);
+    createBtn.setAttribute("aria-expanded", String(open));
+  }
+  if (createLabel) {
+    createLabel.textContent = getTranslation(open ? "activities.closeCreateButton" : "activities.createButton");
+  }
+  refreshIcons();
 };
 
 const setActivitiesFormMode = (editing) => {
@@ -970,6 +1079,7 @@ const renderActivitySlot = (entry) => `
 const renderActivitiesCalendar = () => {
   const { root, grid } = activitiesElements();
   if (!root || !grid) return;
+  updateActivityWeekControls();
   const entries = sortedActivities();
   const periods = activityPeriods(entries);
   grid.classList.toggle("is-empty", entries.length === 0);
@@ -978,14 +1088,16 @@ const renderActivitiesCalendar = () => {
       <div class="timetable-row timetable-head" role="row">
         <div class="timetable-time-cell" role="columnheader">${escapeHtml(getTranslation("activities.start"))}</div>
         ${activitiesDays
-          .map(
-            (day) => `
+          .map((day, index) => {
+            const dayDate = addDaysToIso(activitiesState.selectedWeekStart, index);
+            return `
               <div class="timetable-day-head" role="columnheader">
                 <span>${escapeHtml(getTranslation(`activities.dayShort.${day.key}`))}</span>
                 <strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong>
+                <small>${escapeHtml(formatActivityDate(dayDate))}</small>
               </div>
-            `,
-          )
+            `;
+          })
           .join("")}
       </div>
       ${periods
@@ -1035,6 +1147,7 @@ const handleActivitySubmit = (event) => {
   const data = new FormData(form);
   const payload = {
     id: String(data.get("id") || "").trim(),
+    weekStart: activitiesState.selectedWeekStart,
     day: String(data.get("day") || "monday"),
     start: String(data.get("start") || "").trim(),
     end: String(data.get("end") || "").trim(),
@@ -1067,6 +1180,8 @@ const editActivity = (id) => {
   const { form } = activitiesElements();
   const entry = activitiesState.entries.find((item) => item.id === id);
   if (!form || !entry) return;
+  activitiesState.selectedWeekStart = entry.weekStart;
+  updateActivityWeekControls();
   form.elements.id.value = entry.id;
   form.elements.day.value = entry.day;
   form.elements.start.value = entry.start;
@@ -1074,6 +1189,7 @@ const editActivity = (id) => {
   form.elements.title.value = entry.title;
   form.elements.teacher.value = entry.teacher;
   setActivitiesFormMode(true);
+  setActivityFormOpen(true);
   setActivitiesFeedback("");
   form.scrollIntoView({ behavior: "smooth", block: "nearest" });
   form.elements.title.focus();
@@ -1090,26 +1206,49 @@ const deleteActivity = (id) => {
 };
 
 const clearActivityWeek = () => {
-  if (!activitiesState.entries.length) return;
+  if (!selectedWeekActivities().length) return;
   if (!window.confirm(getTranslation("activities.confirmClearWeek"))) return;
-  activitiesState.entries = [];
+  activitiesState.entries = activitiesState.entries.filter((entry) => entry.weekStart !== activitiesState.selectedWeekStart);
   saveActivities();
   resetActivitiesForm();
   renderActivitiesCalendar();
   setActivitiesFeedback(getTranslation("activities.cleared"), "success");
 };
 
+const changeActivityWeek = (value) => {
+  activitiesState.selectedWeekStart = weekStartIso(value || new Date());
+  saveSelectedActivityWeek();
+  resetActivitiesForm();
+  setActivityFormOpen(false);
+  renderActivitiesCalendar();
+};
+
 const wireActivitiesCalendar = () => {
-  const { root, form, grid, clearBtn, clearWeekBtn } = activitiesElements();
+  const { root, form, grid, createBtn, weekInput, clearBtn, clearWeekBtn } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
     setActivitiesFormMode(Boolean(form.elements.id.value));
+    setActivityFormOpen(!form.hidden);
     renderActivitiesCalendar();
   };
   loadActivities();
   resetActivitiesForm();
+  setActivityFormOpen(false);
   renderActivitiesCalendar();
   form.addEventListener("submit", handleActivitySubmit);
+  createBtn?.addEventListener("click", () => {
+    const shouldOpen = form.hidden;
+    if (shouldOpen) {
+      resetActivitiesForm();
+    }
+    setActivityFormOpen(shouldOpen);
+    if (shouldOpen) {
+      form.elements.title.focus();
+    }
+  });
+  weekInput?.addEventListener("change", (event) => {
+    changeActivityWeek(event.currentTarget.value);
+  });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   clearWeekBtn?.addEventListener("click", clearActivityWeek);
   grid.addEventListener("click", (event) => {
