@@ -68,6 +68,48 @@ const translations = {
     "module.dispositivos.detail": "Base de dispositivos",
     "module.atividades.title": "Gest\u00e3o de Atividades",
     "module.atividades.detail": "Planeamento e registo de atividades",
+    "activities.eyebrow": "Calend\u00e1rio semanal",
+    "activities.copy": "Planeie as atividades da semana por dia, hora e professor.",
+    "activities.form.addTitle": "Adicionar atividade",
+    "activities.form.editTitle": "Editar atividade",
+    "activities.day": "Dia",
+    "activities.start": "In\u00edcio",
+    "activities.end": "Fim",
+    "activities.name": "Nome da atividade",
+    "activities.teacher": "Professor",
+    "activities.save": "Guardar",
+    "activities.update": "Atualizar",
+    "activities.clear": "Limpar",
+    "activities.week": "Semana",
+    "activities.weekTitle": "Calend\u00e1rio semanal",
+    "activities.clearWeek": "Limpar semana",
+    "activities.emptyDay": "Sem atividades",
+    "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
+    "activities.remove": "Remover",
+    "activities.edit": "Editar",
+    "activities.confirmDelete": "Remover esta atividade?",
+    "activities.confirmClearWeek": "Limpar todas as atividades da semana?",
+    "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o professor.",
+    "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
+    "activities.saved": "Atividade guardada.",
+    "activities.deleted": "Atividade removida.",
+    "activities.cleared": "Semana limpa.",
+    "activities.count.one": "1 atividade",
+    "activities.count.other": "{count} atividades",
+    "activities.day.monday": "Segunda-feira",
+    "activities.day.tuesday": "Ter\u00e7a-feira",
+    "activities.day.wednesday": "Quarta-feira",
+    "activities.day.thursday": "Quinta-feira",
+    "activities.day.friday": "Sexta-feira",
+    "activities.day.saturday": "S\u00e1bado",
+    "activities.day.sunday": "Domingo",
+    "activities.dayShort.monday": "Seg",
+    "activities.dayShort.tuesday": "Ter",
+    "activities.dayShort.wednesday": "Qua",
+    "activities.dayShort.thursday": "Qui",
+    "activities.dayShort.friday": "Sex",
+    "activities.dayShort.saturday": "S\u00e1b",
+    "activities.dayShort.sunday": "Dom",
     "module.enter": "Entrar",
     "global.eyebrow": "Ferramenta global",
     "global.history.title": "Hist\u00f3rico geral",
@@ -195,6 +237,48 @@ const translations = {
     "module.dispositivos.detail": "Devices database",
     "module.atividades.title": "Activity Management",
     "module.atividades.detail": "Activity planning and records",
+    "activities.eyebrow": "Weekly calendar",
+    "activities.copy": "Plan the week's activities by day, time and teacher.",
+    "activities.form.addTitle": "Add activity",
+    "activities.form.editTitle": "Edit activity",
+    "activities.day": "Day",
+    "activities.start": "Start",
+    "activities.end": "End",
+    "activities.name": "Activity name",
+    "activities.teacher": "Teacher",
+    "activities.save": "Save",
+    "activities.update": "Update",
+    "activities.clear": "Clear",
+    "activities.week": "Week",
+    "activities.weekTitle": "Weekly calendar",
+    "activities.clearWeek": "Clear week",
+    "activities.emptyDay": "No activities",
+    "activities.emptyWeek": "There are no activities in this week yet.",
+    "activities.remove": "Remove",
+    "activities.edit": "Edit",
+    "activities.confirmDelete": "Remove this activity?",
+    "activities.confirmClearWeek": "Clear every activity from the week?",
+    "activities.validationRequired": "Fill in the day, time, activity name and teacher.",
+    "activities.validationTime": "The end time must be after the start time.",
+    "activities.saved": "Activity saved.",
+    "activities.deleted": "Activity removed.",
+    "activities.cleared": "Week cleared.",
+    "activities.count.one": "1 activity",
+    "activities.count.other": "{count} activities",
+    "activities.day.monday": "Monday",
+    "activities.day.tuesday": "Tuesday",
+    "activities.day.wednesday": "Wednesday",
+    "activities.day.thursday": "Thursday",
+    "activities.day.friday": "Friday",
+    "activities.day.saturday": "Saturday",
+    "activities.day.sunday": "Sunday",
+    "activities.dayShort.monday": "Mon",
+    "activities.dayShort.tuesday": "Tue",
+    "activities.dayShort.wednesday": "Wed",
+    "activities.dayShort.thursday": "Thu",
+    "activities.dayShort.friday": "Fri",
+    "activities.dayShort.saturday": "Sat",
+    "activities.dayShort.sunday": "Sun",
     "module.enter": "Enter",
     "global.eyebrow": "Global tool",
     "global.history.title": "Global history",
@@ -272,6 +356,7 @@ const translations = {
     "permissions.socios": "Members",
     "permissions.utentes": "Clients",
     "permissions.dispositivos": "Devices",
+    "permissions.atividades": "Activities",
     "permissions.notApplicable": "-",
   },
 };
@@ -363,6 +448,7 @@ const applyLanguage = (language, { persist = false } = {}) => {
   document.documentElement.lang = language === "pt" ? "pt-PT" : "en";
   translateStaticContent(language);
   translateStatusChips(language);
+  window.__CENTRAL_RENDER_ACTIVITIES?.();
   document.querySelectorAll("[data-language-toggle]").forEach((button) => {
     const label = getTranslation(language === "pt" ? "language.ptLabel" : "language.enLabel", language);
     button.setAttribute("title", label);
@@ -734,6 +820,276 @@ const escapeHtml = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+
+const activitiesStorageKey = "central-activities-weekly-calendar-v1";
+const activitiesDays = [
+  { key: "monday" },
+  { key: "tuesday" },
+  { key: "wednesday" },
+  { key: "thursday" },
+  { key: "friday" },
+  { key: "saturday" },
+  { key: "sunday" },
+];
+const activitiesState = {
+  entries: [],
+};
+
+const activityId = () =>
+  window.crypto?.randomUUID?.() || `activity-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const isActivityDay = (day) => activitiesDays.some((item) => item.key === day);
+const isActivityTime = (time) => /^\d{2}:\d{2}$/.test(time || "");
+
+const activitiesElements = () => ({
+  root: document.querySelector("[data-activities-calendar]"),
+  form: document.querySelector("[data-activities-form]"),
+  grid: document.querySelector("[data-activities-grid]"),
+  error: document.querySelector("[data-activities-error]"),
+  clearBtn: document.querySelector("[data-activities-clear]"),
+  clearWeekBtn: document.querySelector("[data-activities-clear-week]"),
+  formTitle: document.querySelector("[data-activities-form-title]"),
+  submitLabel: document.querySelector("[data-activities-submit-label]"),
+});
+
+const normalizeActivityEntry = (entry) => {
+  const title = String(entry?.title || "").trim();
+  const teacher = String(entry?.teacher || "").trim();
+  const day = isActivityDay(entry?.day) ? entry.day : "monday";
+  const start = isActivityTime(entry?.start) ? entry.start : "09:00";
+  const end = isActivityTime(entry?.end) ? entry.end : "";
+  if (!title || !teacher) return null;
+  return {
+    id: String(entry?.id || activityId()),
+    day,
+    start,
+    end: end && end > start ? end : "",
+    title,
+    teacher,
+  };
+};
+
+const loadActivities = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(activitiesStorageKey) || "[]");
+    activitiesState.entries = Array.isArray(stored)
+      ? stored.map(normalizeActivityEntry).filter(Boolean)
+      : [];
+  } catch (_error) {
+    activitiesState.entries = [];
+  }
+};
+
+const saveActivities = () => {
+  try {
+    localStorage.setItem(activitiesStorageKey, JSON.stringify(activitiesState.entries));
+  } catch (_error) {
+    // O calendario continua editavel na sessao atual mesmo sem localStorage.
+  }
+};
+
+const sortedActivities = () =>
+  [...activitiesState.entries].sort((left, right) => {
+    const dayDiff =
+      activitiesDays.findIndex((item) => item.key === left.day) -
+      activitiesDays.findIndex((item) => item.key === right.day);
+    if (dayDiff !== 0) return dayDiff;
+    if (left.start !== right.start) return left.start.localeCompare(right.start);
+    return left.title.localeCompare(right.title);
+  });
+
+const activityCountText = (count) =>
+  count === 1
+    ? getTranslation("activities.count.one")
+    : getTranslation("activities.count.other").replace("{count}", String(count));
+
+const activityTimeText = (entry) => (entry.end ? `${entry.start} - ${entry.end}` : entry.start);
+
+const setActivitiesFeedback = (message = "", kind = "error") => {
+  const { error } = activitiesElements();
+  if (!error) return;
+  error.textContent = message;
+  error.hidden = !message;
+  error.classList.toggle("is-success", kind === "success");
+};
+
+const setActivitiesFormMode = (editing) => {
+  const { formTitle, submitLabel } = activitiesElements();
+  if (formTitle) {
+    formTitle.textContent = getTranslation(editing ? "activities.form.editTitle" : "activities.form.addTitle");
+  }
+  if (submitLabel) {
+    submitLabel.textContent = getTranslation(editing ? "activities.update" : "activities.save");
+  }
+};
+
+const resetActivitiesForm = () => {
+  const { form } = activitiesElements();
+  if (!form) return;
+  form.reset();
+  form.elements.id.value = "";
+  form.elements.day.value = "monday";
+  form.elements.start.value = "09:00";
+  form.elements.end.value = "";
+  setActivitiesFormMode(false);
+  setActivitiesFeedback("");
+};
+
+const renderActivitySlot = (entry) => `
+  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}">
+    <div class="activity-slot-main">
+      <time>${escapeHtml(activityTimeText(entry))}</time>
+      <strong>${escapeHtml(entry.title)}</strong>
+      <span><i data-lucide="graduation-cap"></i>${escapeHtml(entry.teacher)}</span>
+    </div>
+    <div class="activity-slot-actions">
+      <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
+        <i data-lucide="pencil"></i>
+      </button>
+      <button class="icon-link danger-link" type="button" data-activity-action="delete" data-id="${escapeHtml(entry.id)}" title="${escapeHtml(getTranslation("activities.remove"))}" aria-label="${escapeHtml(getTranslation("activities.remove"))}">
+        <i data-lucide="trash-2"></i>
+      </button>
+    </div>
+  </article>
+`;
+
+const renderActivitiesCalendar = () => {
+  const { root, grid } = activitiesElements();
+  if (!root || !grid) return;
+  const entries = sortedActivities();
+  grid.classList.toggle("is-empty", entries.length === 0);
+  grid.innerHTML = activitiesDays
+    .map((day) => {
+      const dayEntries = entries.filter((entry) => entry.day === day.key);
+      return `
+        <section class="calendar-day" data-day="${escapeHtml(day.key)}">
+          <header class="calendar-day-head">
+            <div>
+              <span>${escapeHtml(getTranslation(`activities.dayShort.${day.key}`))}</span>
+              <strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong>
+            </div>
+            <small>${escapeHtml(activityCountText(dayEntries.length))}</small>
+          </header>
+          <div class="calendar-day-list">
+            ${
+              dayEntries.length
+                ? dayEntries.map(renderActivitySlot).join("")
+                : `<p class="calendar-empty">${escapeHtml(getTranslation("activities.emptyDay"))}</p>`
+            }
+          </div>
+        </section>
+      `;
+    })
+    .join("");
+  refreshIcons();
+};
+
+const validateActivityPayload = (payload) => {
+  if (!payload.day || !payload.start || !payload.title || !payload.teacher) {
+    return getTranslation("activities.validationRequired");
+  }
+  if (payload.end && payload.end <= payload.start) {
+    return getTranslation("activities.validationTime");
+  }
+  return "";
+};
+
+const handleActivitySubmit = (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = new FormData(form);
+  const payload = {
+    id: String(data.get("id") || "").trim(),
+    day: String(data.get("day") || "monday"),
+    start: String(data.get("start") || "").trim(),
+    end: String(data.get("end") || "").trim(),
+    title: String(data.get("title") || "").trim(),
+    teacher: String(data.get("teacher") || "").trim(),
+  };
+  const validation = validateActivityPayload(payload);
+  if (validation) {
+    setActivitiesFeedback(validation);
+    return;
+  }
+  const entry = normalizeActivityEntry({ ...payload, id: payload.id || activityId() });
+  if (!entry) {
+    setActivitiesFeedback(getTranslation("activities.validationRequired"));
+    return;
+  }
+  const existingIndex = activitiesState.entries.findIndex((item) => item.id === entry.id);
+  if (existingIndex >= 0) {
+    activitiesState.entries.splice(existingIndex, 1, entry);
+  } else {
+    activitiesState.entries.push(entry);
+  }
+  saveActivities();
+  resetActivitiesForm();
+  renderActivitiesCalendar();
+  setActivitiesFeedback(getTranslation("activities.saved"), "success");
+};
+
+const editActivity = (id) => {
+  const { form } = activitiesElements();
+  const entry = activitiesState.entries.find((item) => item.id === id);
+  if (!form || !entry) return;
+  form.elements.id.value = entry.id;
+  form.elements.day.value = entry.day;
+  form.elements.start.value = entry.start;
+  form.elements.end.value = entry.end;
+  form.elements.title.value = entry.title;
+  form.elements.teacher.value = entry.teacher;
+  setActivitiesFormMode(true);
+  setActivitiesFeedback("");
+  form.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  form.elements.title.focus();
+};
+
+const deleteActivity = (id) => {
+  const entry = activitiesState.entries.find((item) => item.id === id);
+  if (!entry) return;
+  if (!window.confirm(getTranslation("activities.confirmDelete"))) return;
+  activitiesState.entries = activitiesState.entries.filter((item) => item.id !== id);
+  saveActivities();
+  renderActivitiesCalendar();
+  setActivitiesFeedback(getTranslation("activities.deleted"), "success");
+};
+
+const clearActivityWeek = () => {
+  if (!activitiesState.entries.length) return;
+  if (!window.confirm(getTranslation("activities.confirmClearWeek"))) return;
+  activitiesState.entries = [];
+  saveActivities();
+  resetActivitiesForm();
+  renderActivitiesCalendar();
+  setActivitiesFeedback(getTranslation("activities.cleared"), "success");
+};
+
+const wireActivitiesCalendar = () => {
+  const { root, form, grid, clearBtn, clearWeekBtn } = activitiesElements();
+  if (!root || !form || !grid) return;
+  window.__CENTRAL_RENDER_ACTIVITIES = () => {
+    setActivitiesFormMode(Boolean(form.elements.id.value));
+    renderActivitiesCalendar();
+  };
+  loadActivities();
+  resetActivitiesForm();
+  renderActivitiesCalendar();
+  form.addEventListener("submit", handleActivitySubmit);
+  clearBtn?.addEventListener("click", resetActivitiesForm);
+  clearWeekBtn?.addEventListener("click", clearActivityWeek);
+  grid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-activity-action]");
+    if (!button) return;
+    const id = button.dataset.id || "";
+    if (button.dataset.activityAction === "edit") {
+      editActivity(id);
+      return;
+    }
+    if (button.dataset.activityAction === "delete") {
+      deleteActivity(id);
+    }
+  });
+};
 
 const centralUsersElements = () => ({
   dialog: document.querySelector("#centralUsersDialog"),
@@ -1290,6 +1646,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getTheme());
   applyLanguage(getLanguage(), { persist: true });
   wirePasswordToggle();
+  wireActivitiesCalendar();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {
     refreshStatus();

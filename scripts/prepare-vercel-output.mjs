@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260703-atividades-basic'
+const assetVersion = '20260706-atividades-calendar'
 
 const authPendingHead = `<script>
       (() => {
@@ -374,39 +374,76 @@ const atividadesPage = pageShell({
   body: `
 ${topbar('atividades')}
 <main class="global-shell activities-shell">
-  <section class="global-panel area-indigo">
-    <p class="eyebrow">&Aacute;rea de trabalho</p>
-    <i data-lucide="calendar-days"></i>
-    <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
-    <p class="global-copy" data-i18n="module.atividades.detail">Planeamento e registo de atividades</p>
-    <div class="branch-card">
+  <section class="activities-workspace area-indigo" data-activities-calendar>
+    <header class="activities-heading">
       <div>
-        <span class="branch-label">Estado</span>
-        <strong>Base inicial</strong>
+        <p class="eyebrow" data-i18n="activities.eyebrow">Calend&aacute;rio semanal</p>
+        <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
+        <p class="global-copy" data-i18n="activities.copy">Planeie as atividades da semana por dia, hora e professor.</p>
       </div>
-      <div>
-        <span class="branch-label">&Aacute;rea</span>
-        <strong>Atividades</strong>
+      <span class="module-icon activities-heading-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+    </header>
+
+    <form class="activity-form" data-activities-form>
+      <input type="hidden" name="id" />
+      <div class="activity-form-title">
+        <i data-lucide="calendar-plus" aria-hidden="true"></i>
+        <strong data-activities-form-title data-i18n="activities.form.addTitle">Adicionar atividade</strong>
       </div>
-      <div>
-        <span class="branch-label">Pr&oacute;ximo passo</span>
-        <strong>Registos</strong>
+      <label class="activity-field">
+        <span data-i18n="activities.day">Dia</span>
+        <select name="day" required>
+          <option value="monday" data-i18n="activities.day.monday">Segunda-feira</option>
+          <option value="tuesday" data-i18n="activities.day.tuesday">Ter&ccedil;a-feira</option>
+          <option value="wednesday" data-i18n="activities.day.wednesday">Quarta-feira</option>
+          <option value="thursday" data-i18n="activities.day.thursday">Quinta-feira</option>
+          <option value="friday" data-i18n="activities.day.friday">Sexta-feira</option>
+          <option value="saturday" data-i18n="activities.day.saturday">S&aacute;bado</option>
+          <option value="sunday" data-i18n="activities.day.sunday">Domingo</option>
+        </select>
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.start">In&iacute;cio</span>
+        <input type="time" name="start" value="09:00" required />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.end">Fim</span>
+        <input type="time" name="end" />
+      </label>
+      <label class="activity-field activity-field-wide">
+        <span data-i18n="activities.name">Nome da atividade</span>
+        <input type="text" name="title" autocomplete="off" required />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.teacher">Professor</span>
+        <input type="text" name="teacher" autocomplete="off" required />
+      </label>
+      <div class="activity-form-actions">
+        <button class="primary-button" type="submit">
+          <i data-lucide="save"></i>
+          <span data-activities-submit-label data-i18n="activities.save">Guardar</span>
+        </button>
+        <button class="secondary-button" type="button" data-activities-clear>
+          <i data-lucide="eraser"></i>
+          <span data-i18n="activities.clear">Limpar</span>
+        </button>
       </div>
-    </div>
-    <div class="tool-grid" aria-label="Ferramentas de atividades">
-      <article class="tool-tile">
-        <i data-lucide="calendar-plus"></i>
-        <span>Agenda</span>
-      </article>
-      <article class="tool-tile">
-        <i data-lucide="users-round"></i>
-        <span>Presen&ccedil;as</span>
-      </article>
-      <article class="tool-tile">
-        <i data-lucide="clipboard-list"></i>
-        <span>Relat&oacute;rios</span>
-      </article>
-    </div>
+      <p class="form-error activity-error" data-activities-error role="alert" hidden></p>
+    </form>
+
+    <section class="weekly-calendar-shell" aria-labelledby="weeklyCalendarTitle">
+      <div class="weekly-calendar-head">
+        <div>
+          <p class="eyebrow" data-i18n="activities.week">Semana</p>
+          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Calend&aacute;rio semanal</h3>
+        </div>
+        <button class="secondary-button" type="button" data-activities-clear-week>
+          <i data-lucide="trash-2"></i>
+          <span data-i18n="activities.clearWeek">Limpar semana</span>
+        </button>
+      </div>
+      <div class="weekly-calendar" data-activities-grid aria-live="polite"></div>
+    </section>
   </section>
 </main>
 ${centralUsersDialog}`,
