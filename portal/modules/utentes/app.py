@@ -3759,6 +3759,14 @@ def empty_central_permissions():
             "export": False,
             "delete": False,
         },
+        "atividades": {
+            "view": False,
+            "edit": False,
+            "view_sensitive": False,
+            "edit_sensitive": False,
+            "export": False,
+            "delete": False,
+        },
         "central": {
             "manage_users": False,
             "view_history": False,

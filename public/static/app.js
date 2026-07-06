@@ -1153,6 +1153,7 @@ const handleActivitySubmit = (event) => {
   }
   saveActivities();
   resetActivitiesForm();
+  setActivityFormOpen(false);
   renderActivitiesCalendar();
   setActivitiesFeedback(getTranslation("activities.saved"), "success");
 };
