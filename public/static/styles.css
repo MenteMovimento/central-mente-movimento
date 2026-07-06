@@ -522,7 +522,8 @@ body.dark-mode .global-panel,
 body.dark-mode .global-item,
 body.dark-mode .tool-tile,
 body.dark-mode .activities-workspace,
-body.dark-mode .calendar-day,
+body.dark-mode .school-timetable,
+body.dark-mode .timetable-cell,
 body.dark-mode .central-admin-panel,
 body.dark-mode .secondary-button,
 body.dark-mode .session-chip,
@@ -576,11 +577,13 @@ body.dark-mode .branch-card,
 body.dark-mode .activity-form,
 body.dark-mode .activity-field input,
 body.dark-mode .activity-field select,
-body.dark-mode .calendar-empty {
+body.dark-mode .timetable-empty-cell {
   background: #081827;
 }
 
-body.dark-mode .calendar-day-head {
+body.dark-mode .timetable-head,
+body.dark-mode .timetable-day-head,
+body.dark-mode .timetable-time-cell {
   background: #12263c;
 }
 
@@ -1317,70 +1320,100 @@ body.dark-mode .central-admin-forms {
 }
 
 .weekly-calendar {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(170px, 1fr));
-  gap: 10px;
-  min-width: 1220px;
+  min-width: 1040px;
 }
 
-.calendar-day {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-height: 360px;
+.school-timetable {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
 }
 
-.calendar-day-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  border-bottom: 1px solid var(--line);
-  background: #f7f4ff;
-  padding: 12px;
-}
-
-.calendar-day-head div {
+.timetable-row {
   display: grid;
-  gap: 3px;
+  grid-template-columns: 112px repeat(5, minmax(165px, 1fr));
+  min-height: 94px;
+  border-top: 1px solid var(--line);
 }
 
-.calendar-day-head span,
-.calendar-day-head small {
+.timetable-row:first-child {
+  border-top: 0;
+}
+
+.timetable-head {
+  min-height: 64px;
+  background: #f7f4ff;
+}
+
+.timetable-time-cell,
+.timetable-day-head,
+.timetable-cell {
+  min-width: 0;
+  border-left: 1px solid var(--line);
+  padding: 10px;
+}
+
+.timetable-time-cell:first-child {
+  border-left: 0;
+}
+
+.timetable-time-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fbfa;
+  color: var(--brand-dark);
+  font-size: 0.86rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.timetable-day-head {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  text-align: center;
+}
+
+.timetable-day-head span {
   color: var(--muted);
   font-size: 0.76rem;
   font-weight: 850;
   text-transform: uppercase;
 }
 
-.calendar-day-head strong {
-  font-size: 0.98rem;
+.timetable-day-head strong {
+  font-size: 1rem;
 }
 
-.calendar-day-list {
+.timetable-cell {
   display: grid;
   align-content: start;
-  gap: 10px;
-  padding: 10px;
+  gap: 8px;
+  background: #ffffff;
 }
 
-.calendar-empty {
-  margin: 0;
+.timetable-cell.has-activity {
+  background: #fbfaff;
+}
+
+.timetable-empty-cell {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
   border: 1px dashed var(--line);
   border-radius: 6px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding: 12px;
+  color: #8a9895;
+  font-size: 0.78rem;
+  font-weight: 750;
   text-align: center;
 }
 
 .activity-slot {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   border: 1px solid rgba(101, 84, 192, 0.22);
   border-left: 4px solid var(--indigo);
   border-radius: 8px;
@@ -1423,12 +1456,12 @@ body.dark-mode .central-admin-forms {
 .activity-slot-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
 .activity-slot-actions .icon-link {
-  width: 38px;
-  min-height: 38px;
+  width: 34px;
+  min-height: 34px;
   padding: 0;
 }
 

@@ -68,7 +68,7 @@ const translations = {
     "module.dispositivos.detail": "Base de dispositivos",
     "module.atividades.title": "Gest\u00e3o de Atividades",
     "module.atividades.detail": "Planeamento e registo de atividades",
-    "activities.eyebrow": "Calend\u00e1rio semanal",
+    "activities.eyebrow": "Hor\u00e1rio semanal",
     "activities.copy": "Planeie as atividades da semana por dia, hora e professor.",
     "activities.form.addTitle": "Adicionar atividade",
     "activities.form.editTitle": "Editar atividade",
@@ -80,8 +80,8 @@ const translations = {
     "activities.save": "Guardar",
     "activities.update": "Atualizar",
     "activities.clear": "Limpar",
-    "activities.week": "Semana",
-    "activities.weekTitle": "Calend\u00e1rio semanal",
+    "activities.week": "Segunda a sexta",
+    "activities.weekTitle": "Hor\u00e1rio escolar",
     "activities.clearWeek": "Limpar semana",
     "activities.emptyDay": "Sem atividades",
     "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
@@ -101,15 +101,11 @@ const translations = {
     "activities.day.wednesday": "Quarta-feira",
     "activities.day.thursday": "Quinta-feira",
     "activities.day.friday": "Sexta-feira",
-    "activities.day.saturday": "S\u00e1bado",
-    "activities.day.sunday": "Domingo",
     "activities.dayShort.monday": "Seg",
     "activities.dayShort.tuesday": "Ter",
     "activities.dayShort.wednesday": "Qua",
     "activities.dayShort.thursday": "Qui",
     "activities.dayShort.friday": "Sex",
-    "activities.dayShort.saturday": "S\u00e1b",
-    "activities.dayShort.sunday": "Dom",
     "module.enter": "Entrar",
     "global.eyebrow": "Ferramenta global",
     "global.history.title": "Hist\u00f3rico geral",
@@ -237,7 +233,7 @@ const translations = {
     "module.dispositivos.detail": "Devices database",
     "module.atividades.title": "Activity Management",
     "module.atividades.detail": "Activity planning and records",
-    "activities.eyebrow": "Weekly calendar",
+    "activities.eyebrow": "Weekly timetable",
     "activities.copy": "Plan the week's activities by day, time and teacher.",
     "activities.form.addTitle": "Add activity",
     "activities.form.editTitle": "Edit activity",
@@ -249,8 +245,8 @@ const translations = {
     "activities.save": "Save",
     "activities.update": "Update",
     "activities.clear": "Clear",
-    "activities.week": "Week",
-    "activities.weekTitle": "Weekly calendar",
+    "activities.week": "Monday to Friday",
+    "activities.weekTitle": "School timetable",
     "activities.clearWeek": "Clear week",
     "activities.emptyDay": "No activities",
     "activities.emptyWeek": "There are no activities in this week yet.",
@@ -270,15 +266,11 @@ const translations = {
     "activities.day.wednesday": "Wednesday",
     "activities.day.thursday": "Thursday",
     "activities.day.friday": "Friday",
-    "activities.day.saturday": "Saturday",
-    "activities.day.sunday": "Sunday",
     "activities.dayShort.monday": "Mon",
     "activities.dayShort.tuesday": "Tue",
     "activities.dayShort.wednesday": "Wed",
     "activities.dayShort.thursday": "Thu",
     "activities.dayShort.friday": "Fri",
-    "activities.dayShort.saturday": "Sat",
-    "activities.dayShort.sunday": "Sun",
     "module.enter": "Enter",
     "global.eyebrow": "Global tool",
     "global.history.title": "Global history",
@@ -828,8 +820,17 @@ const activitiesDays = [
   { key: "wednesday" },
   { key: "thursday" },
   { key: "friday" },
-  { key: "saturday" },
-  { key: "sunday" },
+];
+const defaultActivityPeriods = [
+  ["08:00", "09:00"],
+  ["09:00", "10:00"],
+  ["10:00", "11:00"],
+  ["11:00", "12:00"],
+  ["12:00", "13:00"],
+  ["14:00", "15:00"],
+  ["15:00", "16:00"],
+  ["16:00", "17:00"],
+  ["17:00", "18:00"],
 ];
 const activitiesState = {
   entries: [],
@@ -905,6 +906,21 @@ const activityCountText = (count) =>
 
 const activityTimeText = (entry) => (entry.end ? `${entry.start} - ${entry.end}` : entry.start);
 
+const activitySlotKey = (entry) => `${entry.start}|${entry.end || ""}`;
+const periodKey = ([start, end]) => `${start}|${end || ""}`;
+const periodTimeText = ([start, end]) => (end ? `${start} - ${end}` : start);
+
+const activityPeriods = (entries) => {
+  const periods = new Map(defaultActivityPeriods.map((period) => [periodKey(period), period]));
+  entries.forEach((entry) => {
+    periods.set(activitySlotKey(entry), [entry.start, entry.end || ""]);
+  });
+  return [...periods.values()].sort(([leftStart, leftEnd], [rightStart, rightEnd]) => {
+    if (leftStart !== rightStart) return leftStart.localeCompare(rightStart);
+    return (leftEnd || "").localeCompare(rightEnd || "");
+  });
+};
+
 const setActivitiesFeedback = (message = "", kind = "error") => {
   const { error } = activitiesElements();
   if (!error) return;
@@ -957,30 +973,51 @@ const renderActivitiesCalendar = () => {
   const { root, grid } = activitiesElements();
   if (!root || !grid) return;
   const entries = sortedActivities();
+  const periods = activityPeriods(entries);
   grid.classList.toggle("is-empty", entries.length === 0);
-  grid.innerHTML = activitiesDays
-    .map((day) => {
-      const dayEntries = entries.filter((entry) => entry.day === day.key);
-      return `
-        <section class="calendar-day" data-day="${escapeHtml(day.key)}">
-          <header class="calendar-day-head">
-            <div>
-              <span>${escapeHtml(getTranslation(`activities.dayShort.${day.key}`))}</span>
-              <strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong>
+  grid.innerHTML = `
+    <div class="school-timetable" role="table" aria-label="${escapeHtml(getTranslation("activities.weekTitle"))}">
+      <div class="timetable-row timetable-head" role="row">
+        <div class="timetable-time-cell" role="columnheader">${escapeHtml(getTranslation("activities.start"))}</div>
+        ${activitiesDays
+          .map(
+            (day) => `
+              <div class="timetable-day-head" role="columnheader">
+                <span>${escapeHtml(getTranslation(`activities.dayShort.${day.key}`))}</span>
+                <strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong>
+              </div>
+            `,
+          )
+          .join("")}
+      </div>
+      ${periods
+        .map((period) => {
+          const [start, end] = period;
+          return `
+            <div class="timetable-row" role="row">
+              <div class="timetable-time-cell" role="rowheader">${escapeHtml(periodTimeText(period))}</div>
+              ${activitiesDays
+                .map((day) => {
+                  const cellEntries = entries.filter(
+                    (entry) => entry.day === day.key && entry.start === start && (entry.end || "") === (end || ""),
+                  );
+                  return `
+                    <div class="timetable-cell${cellEntries.length ? " has-activity" : ""}" role="cell" data-day="${escapeHtml(day.key)}" data-period="${escapeHtml(periodKey(period))}">
+                      ${
+                        cellEntries.length
+                          ? cellEntries.map(renderActivitySlot).join("")
+                          : `<span class="timetable-empty-cell">${escapeHtml(getTranslation("activities.emptyDay"))}</span>`
+                      }
+                    </div>
+                  `;
+                })
+                .join("")}
             </div>
-            <small>${escapeHtml(activityCountText(dayEntries.length))}</small>
-          </header>
-          <div class="calendar-day-list">
-            ${
-              dayEntries.length
-                ? dayEntries.map(renderActivitySlot).join("")
-                : `<p class="calendar-empty">${escapeHtml(getTranslation("activities.emptyDay"))}</p>`
-            }
-          </div>
-        </section>
-      `;
-    })
-    .join("");
+          `;
+        })
+        .join("")}
+    </div>
+  `;
   refreshIcons();
 };
 

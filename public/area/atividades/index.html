@@ -6,12 +6,12 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Gest&atilde;o de Atividades - MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-calendar" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260706-atividades-horario" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260706-atividades-calendar" defer></script>
-    <script src="/static/app.js?v=20260706-atividades-calendar" defer></script>
-    <script src="/static/central-auth.js?v=20260706-atividades-calendar" defer></script>
+    <script src="/static/central-config.js?v=20260706-atividades-horario" defer></script>
+    <script src="/static/app.js?v=20260706-atividades-horario" defer></script>
+    <script src="/static/central-auth.js?v=20260706-atividades-horario" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
 
@@ -75,7 +75,7 @@
   <section class="activities-workspace area-indigo" data-activities-calendar>
     <header class="activities-heading">
       <div>
-        <p class="eyebrow" data-i18n="activities.eyebrow">Calend&aacute;rio semanal</p>
+        <p class="eyebrow" data-i18n="activities.eyebrow">Hor&aacute;rio semanal</p>
         <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
         <p class="global-copy" data-i18n="activities.copy">Planeie as atividades da semana por dia, hora e professor.</p>
       </div>
@@ -96,8 +96,6 @@
           <option value="wednesday" data-i18n="activities.day.wednesday">Quarta-feira</option>
           <option value="thursday" data-i18n="activities.day.thursday">Quinta-feira</option>
           <option value="friday" data-i18n="activities.day.friday">Sexta-feira</option>
-          <option value="saturday" data-i18n="activities.day.saturday">S&aacute;bado</option>
-          <option value="sunday" data-i18n="activities.day.sunday">Domingo</option>
         </select>
       </label>
       <label class="activity-field">
@@ -132,8 +130,8 @@
     <section class="weekly-calendar-shell" aria-labelledby="weeklyCalendarTitle">
       <div class="weekly-calendar-head">
         <div>
-          <p class="eyebrow" data-i18n="activities.week">Semana</p>
-          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Calend&aacute;rio semanal</h3>
+          <p class="eyebrow" data-i18n="activities.week">Segunda a sexta</p>
+          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Hor&aacute;rio escolar</h3>
         </div>
         <button class="secondary-button" type="button" data-activities-clear-week>
           <i data-lucide="trash-2"></i>

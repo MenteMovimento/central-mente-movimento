@@ -37,7 +37,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260706-atividades-calendar'
+const assetVersion = '20260706-atividades-horario'
 
 const authPendingHead = `<script>
       (() => {
@@ -377,7 +377,7 @@ ${topbar('atividades')}
   <section class="activities-workspace area-indigo" data-activities-calendar>
     <header class="activities-heading">
       <div>
-        <p class="eyebrow" data-i18n="activities.eyebrow">Calend&aacute;rio semanal</p>
+        <p class="eyebrow" data-i18n="activities.eyebrow">Hor&aacute;rio semanal</p>
         <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
         <p class="global-copy" data-i18n="activities.copy">Planeie as atividades da semana por dia, hora e professor.</p>
       </div>
@@ -398,8 +398,6 @@ ${topbar('atividades')}
           <option value="wednesday" data-i18n="activities.day.wednesday">Quarta-feira</option>
           <option value="thursday" data-i18n="activities.day.thursday">Quinta-feira</option>
           <option value="friday" data-i18n="activities.day.friday">Sexta-feira</option>
-          <option value="saturday" data-i18n="activities.day.saturday">S&aacute;bado</option>
-          <option value="sunday" data-i18n="activities.day.sunday">Domingo</option>
         </select>
       </label>
       <label class="activity-field">
@@ -434,8 +432,8 @@ ${topbar('atividades')}
     <section class="weekly-calendar-shell" aria-labelledby="weeklyCalendarTitle">
       <div class="weekly-calendar-head">
         <div>
-          <p class="eyebrow" data-i18n="activities.week">Semana</p>
-          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Calend&aacute;rio semanal</h3>
+          <p class="eyebrow" data-i18n="activities.week">Segunda a sexta</p>
+          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Hor&aacute;rio escolar</h3>
         </div>
         <button class="secondary-button" type="button" data-activities-clear-week>
           <i data-lucide="trash-2"></i>
