@@ -904,6 +904,7 @@ const activitiesState = {
   draggedActivityId: "",
   dragPreviewCellKey: "",
   dragPreviewIndex: -1,
+  dragImageEl: null,
 };
 
 const activityId = () =>
@@ -1239,6 +1240,27 @@ const activityDropIndexFromEvent = (event, cell) => {
 
 const eventElement = (event) => (event.target instanceof Element ? event.target : event.target?.parentElement);
 
+const clearActivityDragImage = () => {
+  activitiesState.dragImageEl?.remove();
+  activitiesState.dragImageEl = null;
+};
+
+const setActivityDragImage = (event, slot) => {
+  if (!event.dataTransfer?.setDragImage || !slot) return;
+  clearActivityDragImage();
+  const bounds = slot.getBoundingClientRect();
+  const dragImage = slot.cloneNode(true);
+  dragImage.classList.remove("is-dragging");
+  dragImage.classList.add("activity-drag-image");
+  dragImage.removeAttribute("draggable");
+  dragImage.setAttribute("aria-hidden", "true");
+  dragImage.style.width = `${bounds.width}px`;
+  dragImage.style.height = `${bounds.height}px`;
+  document.body.appendChild(dragImage);
+  activitiesState.dragImageEl = dragImage;
+  event.dataTransfer.setDragImage(dragImage, Math.min(bounds.width / 2, 140), 24);
+};
+
 const beginActivityDragPreview = (slot, entry) => {
   const cell = slot.closest(".timetable-cell");
   if (!cell || !entry) return;
@@ -1251,6 +1273,7 @@ const beginActivityDragPreview = (slot, entry) => {
 
 const finishActivityDragPreview = () => {
   activitiesState.draggedActivityId = "";
+  clearActivityDragImage();
   clearActivityDropPreview();
   document.querySelectorAll(".activity-slot.is-dragging").forEach((slot) => slot.classList.remove("is-dragging"));
 };
@@ -1607,9 +1630,7 @@ const wireActivitiesCalendar = () => {
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", activitiesState.draggedActivityId);
     const draggedEntry = activitiesState.entries.find((entry) => entry.id === activitiesState.draggedActivityId);
-    if (event.dataTransfer.setDragImage) {
-      event.dataTransfer.setDragImage(slot, Math.min(slot.offsetWidth / 2, 140), 24);
-    }
+    setActivityDragImage(event, slot);
     beginActivityDragPreview(slot, draggedEntry);
   });
   grid.addEventListener("dragover", (event) => {

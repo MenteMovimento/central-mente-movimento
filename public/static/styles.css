@@ -1559,8 +1559,19 @@ body.dark-mode .central-admin-forms {
 }
 
 .activity-slot.is-dragging {
+  display: none;
+}
+
+.activity-drag-image {
+  position: fixed;
+  left: -10000px;
+  top: -10000px;
+  box-shadow: 0 14px 32px rgba(8, 22, 20, 0.2);
   cursor: grabbing;
-  opacity: 0.22;
+  opacity: 0.48;
+  pointer-events: none;
+  transform: scale(0.98);
+  z-index: 9999;
 }
 
 .activity-slot-preview {
