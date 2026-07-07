@@ -1715,9 +1715,9 @@ const activityPrintDocument = () => {
     header { align-items: end; border-bottom: 2px solid #23776b; display: flex; justify-content: space-between; padding-bottom: 2mm; }
     h1 { font-size: 20px; line-height: 1.05; margin: 0; }
     p { color: #506560; font-size: 11px; font-weight: 800; margin: 0; }
-    table { border: 2px solid #8fb2ab; border-collapse: collapse; flex: 1; table-layout: fixed; width: 100%; }
-    th, td { border: 1px solid #b8c9c5; padding: 2mm; vertical-align: top; }
-    thead th { background: #e6f2ef; border-bottom: 2px solid #8fb2ab; text-align: center; vertical-align: middle; }
+    table { border: 2px solid #7fa39b; border-collapse: collapse; flex: 1; table-layout: fixed; width: 100%; }
+    th, td { border: 1.5px solid #a3b8b3; padding: 2mm; vertical-align: top; }
+    thead th { background: #e6f2ef; border-bottom: 2.5px solid #7fa39b; text-align: center; vertical-align: middle; }
     thead th.time-head,
     tbody th { width: 28mm; }
     tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
