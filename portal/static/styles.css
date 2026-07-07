@@ -576,8 +576,7 @@ body.dark-mode .field select,
 body.dark-mode .branch-card,
 body.dark-mode .activity-form,
 body.dark-mode .activity-field input,
-body.dark-mode .activity-field select,
-body.dark-mode .timetable-empty-cell {
+body.dark-mode .activity-field select {
   background: #081827;
 }
 
@@ -1527,65 +1526,17 @@ body.dark-mode .central-admin-forms {
 }
 
 .timetable-cell.is-drop-target {
-  outline: 2px solid rgba(35, 119, 107, 0.55);
+  background: #eef5f3;
+  outline: 2px solid rgba(35, 119, 107, 0.35);
   outline-offset: -6px;
 }
 
 .timetable-cell.is-valid-drop-zone {
-  background: #edf8f5;
-  outline: 2px dashed rgba(35, 119, 107, 0.35);
-  outline-offset: -6px;
-}
-
-.timetable-cell.is-valid-drop-zone::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border-radius: 5px;
-  background: rgba(35, 119, 107, 0.1);
-  pointer-events: none;
-}
-
-.activity-drop-zone {
-  display: none;
-  position: relative;
-  z-index: 1;
-  min-height: 30px;
-  place-items: center;
-  border: 2px dashed rgba(35, 119, 107, 0.35);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--brand-dark);
-  font-size: 0.76rem;
-  font-weight: 850;
-  text-align: center;
-}
-
-.timetable-cell.is-valid-drop-zone .activity-drop-zone {
-  display: grid;
-}
-
-.activity-drop-zone.is-drop-target {
-  border-color: var(--brand);
-  background: #dff3ee;
-  box-shadow: inset 0 0 0 1px rgba(35, 119, 107, 0.24);
-}
-
-.timetable-empty-cell {
-  display: grid;
-  place-items: center;
-  min-height: 54px;
-  border: 1px dashed var(--line);
-  border-radius: 6px;
-  color: #8a9895;
-  font-size: 0.78rem;
-  font-weight: 750;
-  text-align: center;
+  background: #eef5f3;
 }
 
 .activity-slot {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
   gap: 8px;
   position: relative;
   z-index: 2;
@@ -1593,29 +1544,37 @@ body.dark-mode .central-admin-forms {
   border-left: 4px solid #8a9895;
   border-radius: 8px;
   background: #fbfcfc;
-  padding: 10px;
-}
-
-.activity-drag-handle {
-  display: grid;
-  place-items: start center;
-  width: 16px;
-  color: #778784;
   cursor: grab;
-  padding-top: 2px;
+  padding: 10px;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease;
+  user-select: none;
 }
 
-.activity-drag-handle svg {
-  width: 16px;
-  height: 16px;
-}
-
-.activity-drag-handle:active {
+.activity-slot:active {
   cursor: grabbing;
 }
 
 .activity-slot.is-dragging {
-  opacity: 0.55;
+  cursor: grabbing;
+  opacity: 0.22;
+}
+
+.activity-slot-preview {
+  border-color: rgba(35, 119, 107, 0.35);
+  border-left-color: #23776b;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(8, 22, 20, 0.1);
+  cursor: default;
+  opacity: 0.96;
+  pointer-events: none;
+}
+
+.activity-slot-preview-actions .icon-link {
+  opacity: 0.45;
 }
 
 .activity-slot-main {
@@ -1661,6 +1620,10 @@ body.dark-mode .central-admin-forms {
   width: 34px;
   min-height: 34px;
   padding: 0;
+}
+
+.activity-slot-actions button {
+  cursor: pointer;
 }
 
 .global-grid {

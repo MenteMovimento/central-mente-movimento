@@ -902,6 +902,8 @@ const activitiesState = {
   entries: [],
   selectedWeekStart: weekStartIso(),
   draggedActivityId: "",
+  dragPreviewCellKey: "",
+  dragPreviewIndex: -1,
 };
 
 const activityId = () =>
@@ -1129,10 +1131,7 @@ const resetActivitiesForm = () => {
 };
 
 const renderActivitySlot = (entry) => `
-  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}">
-    <span class="activity-drag-handle" draggable="true" title="${escapeHtml(getTranslation("activities.dragHandle"))}" aria-hidden="true">
-      <i data-lucide="grip-vertical"></i>
-    </span>
+  <article class="activity-slot" draggable="true" data-activity-id="${escapeHtml(entry.id)}">
     <div class="activity-slot-main">
       <time>${escapeHtml(activityTimeText(entry))}</time>
       <strong>${escapeHtml(entry.title)}</strong>
@@ -1152,16 +1151,109 @@ const renderActivitySlot = (entry) => `
   </article>
 `;
 
-const renderActivityDropZone = (index) => `
-  <div class="activity-drop-zone" data-activity-drop-index="${index}" aria-hidden="true">
-    ${escapeHtml(getTranslation("activities.dropHere"))}
-  </div>
+const renderActivityPreviewSlot = (entry) => `
+  <article class="activity-slot activity-slot-preview" data-activity-preview="true" aria-hidden="true">
+    <div class="activity-slot-main">
+      <time>${escapeHtml(activityTimeText(entry))}</time>
+      <strong>${escapeHtml(entry.title)}</strong>
+      <span><i data-lucide="graduation-cap"></i>${escapeHtml(entry.teacher)}</span>
+    </div>
+    <div class="activity-slot-actions activity-slot-preview-actions">
+      <span class="icon-link" aria-hidden="true"><i data-lucide="eye"></i></span>
+      <span class="icon-link" aria-hidden="true"><i data-lucide="pencil"></i></span>
+      <span class="icon-link danger-link" aria-hidden="true"><i data-lucide="trash-2"></i></span>
+    </div>
+  </article>
 `;
 
-const renderActivityCellEntries = (entries) =>
-  `${renderActivityDropZone(0)}${entries
-    .map((entry, index) => `${renderActivitySlot(entry)}${renderActivityDropZone(index + 1)}`)
-    .join("")}`;
+const activityPreviewElement = (entry) => {
+  const template = document.createElement("template");
+  template.innerHTML = renderActivityPreviewSlot(entry).trim();
+  return template.content.firstElementChild;
+};
+
+const cellActivitySlots = (cell, draggedId = "") =>
+  [...cell.querySelectorAll(".activity-slot:not(.activity-slot-preview)")].filter(
+    (slot) => slot.dataset.activityId !== draggedId,
+  );
+
+const renderActivityCellEntries = (entries) => entries.map(renderActivitySlot).join("");
+
+const renderActivityEmptyCell = () => "";
+
+const currentActivityIndexInCell = (entry) =>
+  sortedActivities()
+    .filter((item) => activityCellKey(item) === activityCellKey(entry))
+    .findIndex((item) => item.id === entry.id);
+
+const clearActivityDropPreview = () => {
+  document.querySelectorAll(".activity-slot-preview").forEach((preview) => preview.remove());
+  document.querySelectorAll(".timetable-cell.is-drop-target, .timetable-cell.is-valid-drop-zone").forEach((cell) => {
+    cell.classList.remove("is-drop-target", "is-valid-drop-zone");
+  });
+  activitiesState.dragPreviewCellKey = "";
+  activitiesState.dragPreviewIndex = -1;
+};
+
+const placeActivityDropPreview = (cell, insertionIndex, entry) => {
+  if (!cell || !entry) return;
+  const cellKey = activityCellKeyFromElement(cell);
+  const slots = cellActivitySlots(cell, entry.id);
+  const targetIndex = Math.max(0, Math.min(slots.length, insertionIndex));
+  const existingPreview = document.querySelector(".activity-slot-preview");
+  if (
+    existingPreview &&
+    existingPreview.parentElement === cell &&
+    activitiesState.dragPreviewCellKey === cellKey &&
+    activitiesState.dragPreviewIndex === targetIndex
+  ) {
+    return;
+  }
+  clearActivityDropPreview();
+  const preview = existingPreview || activityPreviewElement(entry);
+  const beforeSlot = slots[targetIndex] || null;
+  cell.classList.add("is-valid-drop-zone", "is-drop-target");
+  if (beforeSlot) {
+    cell.insertBefore(preview, beforeSlot);
+  } else {
+    cell.appendChild(preview);
+  }
+  activitiesState.dragPreviewCellKey = cellKey;
+  activitiesState.dragPreviewIndex = targetIndex;
+  refreshIcons();
+};
+
+const activityDropIndexFromEvent = (event, cell) => {
+  const draggedId = activitiesState.draggedActivityId || event.dataTransfer?.getData("text/plain") || "";
+  const slots = cellActivitySlots(cell, draggedId);
+  if (!slots.length) return 0;
+  const pointerY = event.clientY;
+  for (const [index, slot] of slots.entries()) {
+    const bounds = slot.getBoundingClientRect();
+    if (pointerY < bounds.top + bounds.height / 2) {
+      return index;
+    }
+  }
+  return slots.length;
+};
+
+const eventElement = (event) => (event.target instanceof Element ? event.target : event.target?.parentElement);
+
+const beginActivityDragPreview = (slot, entry) => {
+  const cell = slot.closest(".timetable-cell");
+  if (!cell || !entry) return;
+  const currentIndex = currentActivityIndexInCell(entry);
+  placeActivityDropPreview(cell, currentIndex < 0 ? 0 : currentIndex, entry);
+  window.requestAnimationFrame(() => {
+    slot.classList.add("is-dragging");
+  });
+};
+
+const finishActivityDragPreview = () => {
+  activitiesState.draggedActivityId = "";
+  clearActivityDropPreview();
+  document.querySelectorAll(".activity-slot.is-dragging").forEach((slot) => slot.classList.remove("is-dragging"));
+};
 
 const renderActivitiesCalendar = () => {
   const { root, grid } = activitiesElements();
@@ -1204,7 +1296,7 @@ const renderActivitiesCalendar = () => {
                       ${
                         cellEntries.length
                           ? renderActivityCellEntries(cellEntries)
-                          : `<span class="timetable-empty-cell">${escapeHtml(getTranslation("activities.emptyDay"))}</span>`
+                          : renderActivityEmptyCell()
                       }
                     </div>
                   `;
@@ -1350,7 +1442,7 @@ const activityPrintDocument = () => {
                   `,
                 )
                 .join("")
-            : `<em>${escapeHtml(getTranslation("activities.emptyDay"))}</em>`;
+            : "";
           return `<td>${content}</td>`;
         })
         .join("");
@@ -1413,83 +1505,24 @@ const changeActivityWeek = (weekOffset) => {
   renderActivitiesCalendar();
 };
 
-const reorderActivitiesInCell = (draggedId, targetCellKey, targetIndex = Number.POSITIVE_INFINITY) => {
+const reorderActivitiesInCell = (draggedId, targetCellKey, insertionIndex = Number.POSITIVE_INFINITY) => {
   const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
   if (!draggedEntry || activityCellKey(draggedEntry) !== targetCellKey) return false;
   const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === targetCellKey);
   if (cellEntries.length < 2) return false;
-  const currentIndex = cellEntries.findIndex((entry) => entry.id === draggedId);
   const nextOrder = cellEntries.filter((entry) => entry.id !== draggedId);
-  const requestedIndex = Number.isFinite(targetIndex) ? targetIndex : nextOrder.length;
-  const adjustedIndex = requestedIndex > currentIndex ? requestedIndex - 1 : requestedIndex;
-  const insertionIndex = Math.max(0, Math.min(nextOrder.length, adjustedIndex));
+  const requestedIndex = Number.isFinite(insertionIndex) ? insertionIndex : nextOrder.length;
+  const targetIndex = Math.max(0, Math.min(nextOrder.length, requestedIndex));
   const previewOrder = [...nextOrder];
-  previewOrder.splice(insertionIndex, 0, draggedEntry);
+  previewOrder.splice(targetIndex, 0, draggedEntry);
   if (previewOrder.every((entry, index) => entry.id === cellEntries[index]?.id)) return false;
-  nextOrder.splice(insertionIndex, 0, draggedEntry);
-  nextOrder.forEach((entry, index) => {
+  previewOrder.forEach((entry, index) => {
     const source = activitiesState.entries.find((item) => item.id === entry.id);
     if (source) source.order = index;
   });
   saveActivities();
   renderActivitiesCalendar();
   return true;
-};
-
-const clearActivityDropTargets = () => {
-  document.querySelectorAll(".timetable-cell.is-drop-target, .timetable-cell.is-valid-drop-zone").forEach((cell) => {
-    cell.classList.remove("is-drop-target", "is-valid-drop-zone");
-  });
-};
-
-const clearActivityActiveDropTarget = () => {
-  document.querySelectorAll(".timetable-cell.is-drop-target").forEach((cell) => {
-    cell.classList.remove("is-drop-target");
-  });
-};
-
-const markActivityDropZone = (entry) => {
-  clearActivityDropTargets();
-  if (!entry) return;
-  const key = activityCellKey(entry);
-  document.querySelectorAll(".timetable-cell").forEach((cell) => {
-    if (activityCellKeyFromElement(cell) === key) {
-      cell.classList.add("is-valid-drop-zone");
-    }
-  });
-};
-
-const eventElement = (event) => (event.target instanceof Element ? event.target : event.target?.parentElement);
-
-const activityDropIndexFromEvent = (event, cell) => {
-  const target = eventElement(event);
-  const explicitZone = target?.closest(".activity-drop-zone");
-  if (explicitZone && cell.contains(explicitZone)) {
-    const explicitIndex = Number.parseInt(explicitZone.dataset.activityDropIndex || "", 10);
-    if (Number.isFinite(explicitIndex)) return explicitIndex;
-  }
-
-  const targetSlot = target?.closest(".activity-slot");
-  if (targetSlot && cell.contains(targetSlot)) {
-    const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === activityCellKeyFromElement(cell));
-    const slotIndex = cellEntries.findIndex((entry) => entry.id === targetSlot.dataset.activityId);
-    if (slotIndex >= 0) {
-      const bounds = targetSlot.getBoundingClientRect();
-      return event.clientY < bounds.top + bounds.height / 2 ? slotIndex : slotIndex + 1;
-    }
-  }
-
-  return cell.querySelectorAll(".activity-drop-zone").length - 1;
-};
-
-const markActivityActiveDropZone = (cell, dropIndex) => {
-  clearActivityActiveDropTarget();
-  const zone = cell.querySelector(`.activity-drop-zone[data-activity-drop-index="${dropIndex}"]`);
-  if (zone) {
-    zone.classList.add("is-drop-target");
-  } else {
-    cell.classList.add("is-drop-target");
-  }
 };
 
 const wireActivitiesCalendar = () => {
@@ -1560,9 +1593,8 @@ const wireActivitiesCalendar = () => {
   });
   grid.addEventListener("dragstart", (event) => {
     const target = eventElement(event);
-    const handle = target?.closest(".activity-drag-handle");
-    const slot = handle?.closest(".activity-slot");
-    if (!handle || !slot || target?.closest("[data-activity-action]")) {
+    const slot = target?.closest(".activity-slot");
+    if (!slot || slot.classList.contains("activity-slot-preview") || target?.closest("[data-activity-action]")) {
       event.preventDefault();
       return;
     }
@@ -1572,10 +1604,13 @@ const wireActivitiesCalendar = () => {
       return;
     }
     activitiesState.draggedActivityId = slot.dataset.activityId || "";
-    slot.classList.add("is-dragging");
-    markActivityDropZone(activitiesState.entries.find((entry) => entry.id === activitiesState.draggedActivityId));
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", activitiesState.draggedActivityId);
+    const draggedEntry = activitiesState.entries.find((entry) => entry.id === activitiesState.draggedActivityId);
+    if (event.dataTransfer.setDragImage) {
+      event.dataTransfer.setDragImage(slot, Math.min(slot.offsetWidth / 2, 140), 24);
+    }
+    beginActivityDragPreview(slot, draggedEntry);
   });
   grid.addEventListener("dragover", (event) => {
     const target = eventElement(event);
@@ -1584,32 +1619,24 @@ const wireActivitiesCalendar = () => {
     if (!cell || !draggedEntry || activityCellKey(draggedEntry) !== activityCellKeyFromElement(cell)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-    markActivityActiveDropZone(cell, activityDropIndexFromEvent(event, cell));
-  });
-  grid.addEventListener("dragleave", (event) => {
-    const target = eventElement(event);
-    const cell = target?.closest(".timetable-cell");
-    if (cell && !cell.contains(event.relatedTarget)) {
-      clearActivityActiveDropTarget();
-    }
+    placeActivityDropPreview(cell, activityDropIndexFromEvent(event, cell), draggedEntry);
   });
   grid.addEventListener("drop", (event) => {
     const target = eventElement(event);
     const cell = target?.closest(".timetable-cell");
     if (!cell) return;
     const draggedId = activitiesState.draggedActivityId || event.dataTransfer.getData("text/plain");
+    const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
+    if (!draggedEntry || activityCellKey(draggedEntry) !== activityCellKeyFromElement(cell)) return;
+    event.preventDefault();
     const changed = reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), activityDropIndexFromEvent(event, cell));
     if (changed) {
-      event.preventDefault();
       setActivitiesFeedback("");
     }
-    activitiesState.draggedActivityId = "";
-    clearActivityDropTargets();
+    finishActivityDragPreview();
   });
   grid.addEventListener("dragend", () => {
-    activitiesState.draggedActivityId = "";
-    clearActivityDropTargets();
-    grid.querySelectorAll(".activity-slot.is-dragging").forEach((slot) => slot.classList.remove("is-dragging"));
+    finishActivityDragPreview();
   });
 };
 
