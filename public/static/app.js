@@ -1129,8 +1129,8 @@ const resetActivitiesForm = () => {
 };
 
 const renderActivitySlot = (entry) => `
-  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}" draggable="true">
-    <span class="activity-drag-handle" title="${escapeHtml(getTranslation("activities.dragHandle"))}" aria-hidden="true">
+  <article class="activity-slot" data-activity-id="${escapeHtml(entry.id)}">
+    <span class="activity-drag-handle" draggable="true" title="${escapeHtml(getTranslation("activities.dragHandle"))}" aria-hidden="true">
       <i data-lucide="grip-vertical"></i>
     </span>
     <div class="activity-slot-main">
@@ -1151,6 +1151,17 @@ const renderActivitySlot = (entry) => `
     </div>
   </article>
 `;
+
+const renderActivityDropZone = (index) => `
+  <div class="activity-drop-zone" data-activity-drop-index="${index}" aria-hidden="true">
+    ${escapeHtml(getTranslation("activities.dropHere"))}
+  </div>
+`;
+
+const renderActivityCellEntries = (entries) =>
+  `${renderActivityDropZone(0)}${entries
+    .map((entry, index) => `${renderActivitySlot(entry)}${renderActivityDropZone(index + 1)}`)
+    .join("")}`;
 
 const renderActivitiesCalendar = () => {
   const { root, grid } = activitiesElements();
@@ -1192,7 +1203,7 @@ const renderActivitiesCalendar = () => {
                     <div class="timetable-cell${cellEntries.length ? " has-activity" : ""}" role="cell" data-day="${escapeHtml(day.key)}" data-period="${escapeHtml(periodKey(period))}" data-drop-label="${escapeHtml(getTranslation("activities.dropHere"))}">
                       ${
                         cellEntries.length
-                          ? cellEntries.map(renderActivitySlot).join("")
+                          ? renderActivityCellEntries(cellEntries)
                           : `<span class="timetable-empty-cell">${escapeHtml(getTranslation("activities.emptyDay"))}</span>`
                       }
                     </div>
@@ -1402,14 +1413,20 @@ const changeActivityWeek = (weekOffset) => {
   renderActivitiesCalendar();
 };
 
-const reorderActivitiesInCell = (draggedId, targetCellKey, targetId = "") => {
+const reorderActivitiesInCell = (draggedId, targetCellKey, targetIndex = Number.POSITIVE_INFINITY) => {
   const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
   if (!draggedEntry || activityCellKey(draggedEntry) !== targetCellKey) return false;
   const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === targetCellKey);
   if (cellEntries.length < 2) return false;
+  const currentIndex = cellEntries.findIndex((entry) => entry.id === draggedId);
   const nextOrder = cellEntries.filter((entry) => entry.id !== draggedId);
-  const targetIndex = targetId ? nextOrder.findIndex((entry) => entry.id === targetId) : nextOrder.length;
-  nextOrder.splice(targetIndex >= 0 ? targetIndex : nextOrder.length, 0, draggedEntry);
+  const requestedIndex = Number.isFinite(targetIndex) ? targetIndex : nextOrder.length;
+  const adjustedIndex = requestedIndex > currentIndex ? requestedIndex - 1 : requestedIndex;
+  const insertionIndex = Math.max(0, Math.min(nextOrder.length, adjustedIndex));
+  const previewOrder = [...nextOrder];
+  previewOrder.splice(insertionIndex, 0, draggedEntry);
+  if (previewOrder.every((entry, index) => entry.id === cellEntries[index]?.id)) return false;
+  nextOrder.splice(insertionIndex, 0, draggedEntry);
   nextOrder.forEach((entry, index) => {
     const source = activitiesState.entries.find((item) => item.id === entry.id);
     if (source) source.order = index;
@@ -1440,6 +1457,39 @@ const markActivityDropZone = (entry) => {
       cell.classList.add("is-valid-drop-zone");
     }
   });
+};
+
+const eventElement = (event) => (event.target instanceof Element ? event.target : event.target?.parentElement);
+
+const activityDropIndexFromEvent = (event, cell) => {
+  const target = eventElement(event);
+  const explicitZone = target?.closest(".activity-drop-zone");
+  if (explicitZone && cell.contains(explicitZone)) {
+    const explicitIndex = Number.parseInt(explicitZone.dataset.activityDropIndex || "", 10);
+    if (Number.isFinite(explicitIndex)) return explicitIndex;
+  }
+
+  const targetSlot = target?.closest(".activity-slot");
+  if (targetSlot && cell.contains(targetSlot)) {
+    const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === activityCellKeyFromElement(cell));
+    const slotIndex = cellEntries.findIndex((entry) => entry.id === targetSlot.dataset.activityId);
+    if (slotIndex >= 0) {
+      const bounds = targetSlot.getBoundingClientRect();
+      return event.clientY < bounds.top + bounds.height / 2 ? slotIndex : slotIndex + 1;
+    }
+  }
+
+  return cell.querySelectorAll(".activity-drop-zone").length - 1;
+};
+
+const markActivityActiveDropZone = (cell, dropIndex) => {
+  clearActivityActiveDropTarget();
+  const zone = cell.querySelector(`.activity-drop-zone[data-activity-drop-index="${dropIndex}"]`);
+  if (zone) {
+    zone.classList.add("is-drop-target");
+  } else {
+    cell.classList.add("is-drop-target");
+  }
 };
 
 const wireActivitiesCalendar = () => {
@@ -1509,9 +1559,10 @@ const wireActivitiesCalendar = () => {
     }
   });
   grid.addEventListener("dragstart", (event) => {
-    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
-    const slot = target?.closest(".activity-slot");
-    if (!slot || target?.closest("[data-activity-action]")) {
+    const target = eventElement(event);
+    const handle = target?.closest(".activity-drag-handle");
+    const slot = handle?.closest(".activity-slot");
+    if (!handle || !slot || target?.closest("[data-activity-action]")) {
       event.preventDefault();
       return;
     }
@@ -1527,29 +1578,27 @@ const wireActivitiesCalendar = () => {
     event.dataTransfer.setData("text/plain", activitiesState.draggedActivityId);
   });
   grid.addEventListener("dragover", (event) => {
-    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const target = eventElement(event);
     const cell = target?.closest(".timetable-cell");
     const draggedEntry = activitiesState.entries.find((entry) => entry.id === activitiesState.draggedActivityId);
     if (!cell || !draggedEntry || activityCellKey(draggedEntry) !== activityCellKeyFromElement(cell)) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
-    clearActivityActiveDropTarget();
-    cell.classList.add("is-drop-target");
+    markActivityActiveDropZone(cell, activityDropIndexFromEvent(event, cell));
   });
   grid.addEventListener("dragleave", (event) => {
-    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const target = eventElement(event);
     const cell = target?.closest(".timetable-cell");
     if (cell && !cell.contains(event.relatedTarget)) {
-      cell.classList.remove("is-drop-target");
+      clearActivityActiveDropTarget();
     }
   });
   grid.addEventListener("drop", (event) => {
-    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const target = eventElement(event);
     const cell = target?.closest(".timetable-cell");
-    const targetSlot = target?.closest(".activity-slot");
     if (!cell) return;
     const draggedId = activitiesState.draggedActivityId || event.dataTransfer.getData("text/plain");
-    const changed = reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), targetSlot?.dataset.activityId || "");
+    const changed = reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), activityDropIndexFromEvent(event, cell));
     if (changed) {
       event.preventDefault();
       setActivitiesFeedback("");
