@@ -77,7 +77,7 @@ const translations = {
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
     "activities.printTitle": "Horário semanal de atividades",
-    "activities.printScheduleTitle": "Hor\u00e1rio das Atividades",
+    "activities.printScheduleTitle": "Horário de Atividades",
     "activities.weekPrevious": "Semana anterior",
     "activities.weekNext": "Semana seguinte",
     "activities.weekRange": "{start} a {end}",
