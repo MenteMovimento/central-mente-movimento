@@ -90,7 +90,6 @@ const translations = {
     "activities.update": "Atualizar",
     "activities.clear": "Limpar",
     "activities.week": "Segunda a sexta",
-    "activities.weekTitle": "Hor\u00e1rio escolar",
     "activities.lunch": "Almo\u00e7o",
     "activities.emptyDay": "Sem atividades",
     "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",

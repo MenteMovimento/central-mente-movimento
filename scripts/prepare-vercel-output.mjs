@@ -458,7 +458,6 @@ ${topbar('atividades')}
       <div class="weekly-calendar-head">
         <div>
           <p class="eyebrow" data-i18n="activities.week">Segunda a sexta</p>
-          <h3 id="weeklyCalendarTitle" data-i18n="activities.weekTitle">Hor&aacute;rio escolar</h3>
         </div>
       </div>
       <div class="weekly-calendar" data-activities-grid aria-live="polite"></div>
