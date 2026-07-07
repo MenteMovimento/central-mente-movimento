@@ -43,7 +43,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260707-atividades-menu-docs'
+const assetVersion = '20260707-atividades-manual-dialog'
 
 const authPendingHead = `<script>
       (() => {
@@ -145,14 +145,10 @@ const topbarMenu = (activeId = '') =>
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
           </a>
-          <a class="menu-item" href="/area/atividades/manual-utilizador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+          <button class="menu-item" type="button" data-activities-manuals-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="book-open"></i>
-            <span>Manual de utilizador</span>
-          </a>
-          <a class="menu-item" href="/area/atividades/manual-programador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
-            <i data-lucide="file-code-2"></i>
-            <span>Manual de programador</span>
-          </a>`
+            <span>Manuais</span>
+          </button>`
     : `
           <button class="menu-item" type="button" data-users-toggle role="menuitem">
             <i data-lucide="users-round"></i>
@@ -166,6 +162,41 @@ const topbarMenu = (activeId = '') =>
             <i data-lucide="moon"></i>
             <span data-i18n="menu.dark">Tema escuro</span>
           </button>`
+
+const atividadesManualsDialog = () => `
+<dialog class="activities-manual-dialog" data-activities-manuals-dialog aria-labelledby="activitiesManualTitle">
+  <div class="activities-manual-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesManualTitle">Manual</h2>
+        <p>Escolha o manual adequado ao que pretende consultar.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-manuals-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <div class="activities-manual-options">
+      <a class="activities-manual-option" href="/area/atividades/manual-utilizador/" data-requires-permission-area="atividades" data-requires-permission-action="view">
+        <span class="activities-manual-icon" aria-hidden="true">
+          <i data-lucide="users-round"></i>
+        </span>
+        <span>
+          <strong>Manual do Utilizador</strong>
+          <small>Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
+        </span>
+      </a>
+      <a class="activities-manual-option" href="/area/atividades/manual-programador/" data-requires-permission-area="atividades" data-requires-permission-action="view">
+        <span class="activities-manual-icon" aria-hidden="true">
+          <i data-lucide="code-2"></i>
+        </span>
+        <span>
+          <strong>Manual do Programador</strong>
+          <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
+        </span>
+      </a>
+    </div>
+  </div>
+</dialog>`
 
 const topbar = (activeId = '') => `
 <header class="topbar">
@@ -211,7 +242,8 @@ ${topbarMenu(activeId)}
       </a>
     </div>
   </div>
-</header>`
+</header>
+${activeId === 'atividades' ? atividadesManualsDialog() : ''}`
 
 const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
 <html lang="pt">

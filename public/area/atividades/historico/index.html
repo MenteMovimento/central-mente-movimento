@@ -6,12 +6,12 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Hist&oacute;rico de Atividades - MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260707-atividades-menu-docs" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260707-atividades-manual-dialog" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260707-atividades-menu-docs" defer></script>
-    <script src="/static/app.js?v=20260707-atividades-menu-docs" defer></script>
-    <script src="/static/central-auth.js?v=20260707-atividades-menu-docs" defer></script>
+    <script src="/static/central-config.js?v=20260707-atividades-manual-dialog" defer></script>
+    <script src="/static/app.js?v=20260707-atividades-manual-dialog" defer></script>
+    <script src="/static/central-auth.js?v=20260707-atividades-manual-dialog" defer></script>
   </head>
   <body data-central-page="atividades-historico">
 
@@ -27,10 +27,10 @@
         <p data-user-email>Administrador</p>
       </div>
     </a>
-    <nav class="topnav" aria-label="Ãreas principais" data-i18n-aria-label="nav.areas">
+    <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
       <a class="topnav-link" href="/area/socios/">
         <i data-lucide="id-card"></i>
-        <span data-i18n="nav.socios">SÃ³cios</span>
+        <span data-i18n="nav.socios">Sócios</span>
       </a>
       <a class="topnav-link" href="/area/utentes/">
         <i data-lucide="heart-handshake"></i>
@@ -56,22 +56,52 @@
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
           </a>
-          <a class="menu-item" href="/area/atividades/manual-utilizador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+          <button class="menu-item" type="button" data-activities-manuals-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="book-open"></i>
-            <span>Manual de utilizador</span>
-          </a>
-          <a class="menu-item" href="/area/atividades/manual-programador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
-            <i data-lucide="file-code-2"></i>
-            <span>Manual de programador</span>
-          </a>
+            <span>Manuais</span>
+          </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessÃ£o" aria-label="Terminar sessÃ£o" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+      <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
         <i data-lucide="log-out"></i>
       </a>
     </div>
   </div>
 </header>
+
+<dialog class="activities-manual-dialog" data-activities-manuals-dialog aria-labelledby="activitiesManualTitle">
+  <div class="activities-manual-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesManualTitle">Manual</h2>
+        <p>Escolha o manual adequado ao que pretende consultar.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-manuals-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <div class="activities-manual-options">
+      <a class="activities-manual-option" href="/area/atividades/manual-utilizador/" data-requires-permission-area="atividades" data-requires-permission-action="view">
+        <span class="activities-manual-icon" aria-hidden="true">
+          <i data-lucide="users-round"></i>
+        </span>
+        <span>
+          <strong>Manual do Utilizador</strong>
+          <small>Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
+        </span>
+      </a>
+      <a class="activities-manual-option" href="/area/atividades/manual-programador/" data-requires-permission-area="atividades" data-requires-permission-action="view">
+        <span class="activities-manual-icon" aria-hidden="true">
+          <i data-lucide="code-2"></i>
+        </span>
+        <span>
+          <strong>Manual do Programador</strong>
+          <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
+        </span>
+      </a>
+    </div>
+  </div>
+</dialog>
 <main class="global-shell">
   <section class="global-panel activity-document-panel">
     <a class="secondary-button activity-back-link" href="/area/atividades/">

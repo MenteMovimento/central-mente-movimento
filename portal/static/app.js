@@ -576,6 +576,49 @@ const toggleToolsMenu = (button) => {
   button.setAttribute("aria-expanded", String(shouldOpen));
 };
 
+const activitiesManualsElements = () => ({
+  dialog: document.querySelector("[data-activities-manuals-dialog]"),
+  openButtons: document.querySelectorAll("[data-activities-manuals-toggle]"),
+  closeButtons: document.querySelectorAll("[data-activities-manuals-close]"),
+});
+
+const openActivitiesManualsDialog = () => {
+  const { dialog } = activitiesManualsElements();
+  if (!dialog) return;
+  closeToolsMenus();
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+  refreshIcons();
+};
+
+const closeActivitiesManualsDialog = () => {
+  const { dialog } = activitiesManualsElements();
+  if (!dialog) return;
+  if (dialog.open && typeof dialog.close === "function") {
+    dialog.close();
+  } else {
+    dialog.removeAttribute("open");
+  }
+};
+
+const wireActivitiesManualsDialog = () => {
+  const { dialog, openButtons, closeButtons } = activitiesManualsElements();
+  if (!dialog || dialog.dataset.activitiesManualsWired === "true") return;
+  dialog.dataset.activitiesManualsWired = "true";
+  openButtons.forEach((button) => {
+    button.addEventListener("click", openActivitiesManualsDialog);
+  });
+  closeButtons.forEach((button) => {
+    button.addEventListener("click", closeActivitiesManualsDialog);
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeActivitiesManualsDialog();
+  });
+};
+
 const statusText = (item) => {
   const language = getLanguage();
   if (item.status === "integrado") return getTranslation("module.status.integrated", language);
@@ -2449,6 +2492,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getTheme());
   applyLanguage(getLanguage(), { persist: true });
   wirePasswordToggle();
+  wireActivitiesManualsDialog();
   wireActivitiesCalendar();
   renderActivitiesHistoryPage();
   refreshIcons();
