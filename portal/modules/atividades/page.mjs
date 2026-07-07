@@ -89,3 +89,78 @@ export const atividadesPageContent = () => `<main class="global-shell activities
     </section>
   </section>
 </main>`
+
+export const atividadesHistoryPageContent = () => `<main class="global-shell">
+  <section class="global-panel activity-document-panel">
+    <a class="secondary-button activity-back-link" href="/area/atividades/">
+      <i data-lucide="arrow-left"></i>
+      <span>Voltar</span>
+    </a>
+    <p class="eyebrow">Atividades</p>
+    <h2>Hist&oacute;rico de Atividades</h2>
+    <p class="global-copy">Registo apenas das a&ccedil;&otilde;es feitas na agenda de atividades deste browser.</p>
+    <div class="activity-history-list" data-activities-history>
+      <p class="activity-empty-state">Sem a&ccedil;&otilde;es registadas.</p>
+    </div>
+  </section>
+</main>`
+
+export const atividadesUserManualPageContent = () => `<main class="global-shell">
+  <section class="global-panel activity-document-panel">
+    <a class="secondary-button activity-back-link" href="/area/atividades/">
+      <i data-lucide="arrow-left"></i>
+      <span>Voltar</span>
+    </a>
+    <p class="eyebrow">Manual de utilizador</p>
+    <h2>Atividades</h2>
+    <p class="global-copy">Guia r&aacute;pido para consultar, criar, organizar e imprimir o hor&aacute;rio semanal de atividades.</p>
+    <div class="activity-manual-grid">
+      <article class="activity-manual-section">
+        <h3>Criar atividade</h3>
+        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e o professor, e grave.</p>
+      </article>
+      <article class="activity-manual-section">
+        <h3>Consultar e editar</h3>
+        <p>O olho abre a atividade em modo consulta. O l&aacute;pis permite alterar os dados. O caixote remove a atividade.</p>
+      </article>
+      <article class="activity-manual-section">
+        <h3>Organizar a semana</h3>
+        <p>Quando houver v&aacute;rias atividades no mesmo hor&aacute;rio, arraste o cart&atilde;o inteiro para mudar a ordem.</p>
+      </article>
+      <article class="activity-manual-section">
+        <h3>Imprimir</h3>
+        <p>O bot&atilde;o de impress&atilde;o gera uma folha semanal em formato de hor&aacute;rio escolar.</p>
+      </article>
+    </div>
+  </section>
+</main>`
+
+export const atividadesDeveloperManualPageContent = () => `<main class="global-shell">
+  <section class="global-panel activity-document-panel">
+    <a class="secondary-button activity-back-link" href="/area/atividades/">
+      <i data-lucide="arrow-left"></i>
+      <span>Voltar</span>
+    </a>
+    <p class="eyebrow">Manual de programador</p>
+    <h2>Atividades</h2>
+    <p class="global-copy">Notas t&eacute;cnicas essenciais para manter o m&oacute;dulo de atividades dentro do portal.</p>
+    <div class="activity-manual-grid">
+      <article class="activity-manual-section">
+        <h3>Estrutura</h3>
+        <p>A marca&ccedil;&atilde;o da &aacute;rea est&aacute; em <code>portal/modules/atividades/page.mjs</code>. A gera&ccedil;&atilde;o das p&aacute;ginas continua em <code>scripts/prepare-vercel-output.mjs</code>.</p>
+      </article>
+      <article class="activity-manual-section">
+        <h3>Dados locais</h3>
+        <p>As atividades e o hist&oacute;rico usam <code>localStorage</code>, mantendo a agenda edit&aacute;vel sem base de dados pr&oacute;pria.</p>
+      </article>
+      <article class="activity-manual-section">
+        <h3>Permiss&otilde;es</h3>
+        <p>Os controlos usam <code>data-requires-permission-area="atividades"</code> com as a&ccedil;&otilde;es <code>view</code>, <code>edit</code> e <code>export</code>.</p>
+      </article>
+      <article class="activity-manual-section">
+        <h3>Impress&atilde;o</h3>
+        <p>A impress&atilde;o semanal &eacute; gerada por iframe tempor&aacute;rio para evitar abrir separadores vazios.</p>
+      </article>
+    </div>
+  </section>
+</main>`

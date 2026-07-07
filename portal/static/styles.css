@@ -1687,6 +1687,76 @@ body.dark-mode .central-admin-forms {
   margin-bottom: 0;
 }
 
+.activity-document-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.activity-back-link {
+  width: fit-content;
+}
+
+.activity-manual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.activity-manual-section,
+.activity-empty-state {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.activity-manual-section h3 {
+  margin: 0 0 8px;
+}
+
+.activity-manual-section p,
+.activity-empty-state {
+  color: var(--muted);
+  margin: 0;
+}
+
+.activity-manual-section code {
+  color: #005f56;
+  font-weight: 800;
+}
+
+.activity-history-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.activity-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.activity-history-table th,
+.activity-history-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.activity-history-table th {
+  color: #005f56;
+  background: #eef7f4;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+}
+
+.activity-history-table tr:last-child td {
+  border-bottom: 0;
+}
+
 .is-loading svg {
   animation: spin 0.85s linear infinite;
 }
@@ -1720,6 +1790,10 @@ body.dark-mode .central-admin-forms {
   }
 
   .module-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-manual-grid {
     grid-template-columns: 1fr;
   }
 

@@ -104,6 +104,19 @@ const translations = {
     "activities.saved": "Atividade guardada.",
     "activities.deleted": "Atividade removida.",
     "activities.cleared": "Semana limpa.",
+    "activities.historyEmpty": "Sem a\u00e7\u00f5es registadas.",
+    "activities.historyAction": "A\u00e7\u00e3o",
+    "activities.historyWhen": "Data",
+    "activities.historyActivity": "Atividade",
+    "activities.historyDetails": "Detalhes",
+    "activities.historyCreated": "Criada",
+    "activities.historyUpdated": "Editada",
+    "activities.historyDeleted": "Apagada",
+    "activities.historyReordered": "Reordenada",
+    "activities.historyPrinted": "Semana impressa",
+    "activities.historyWeek": "Semana: {week}",
+    "activities.historyTeacher": "Professor: {teacher}",
+    "activities.historyTime": "Hora: {time}",
     "activities.count.one": "1 atividade",
     "activities.count.other": "{count} atividades",
     "activities.day.monday": "Segunda-feira",
@@ -280,6 +293,19 @@ const translations = {
     "activities.saved": "Activity saved.",
     "activities.deleted": "Activity removed.",
     "activities.cleared": "Week cleared.",
+    "activities.historyEmpty": "No actions registered.",
+    "activities.historyAction": "Action",
+    "activities.historyWhen": "Date",
+    "activities.historyActivity": "Activity",
+    "activities.historyDetails": "Details",
+    "activities.historyCreated": "Created",
+    "activities.historyUpdated": "Edited",
+    "activities.historyDeleted": "Deleted",
+    "activities.historyReordered": "Reordered",
+    "activities.historyPrinted": "Week printed",
+    "activities.historyWeek": "Week: {week}",
+    "activities.historyTeacher": "Teacher: {teacher}",
+    "activities.historyTime": "Time: {time}",
     "activities.count.one": "1 activity",
     "activities.count.other": "{count} activities",
     "activities.day.monday": "Monday",
@@ -849,6 +875,7 @@ const escapeHtml = (value) =>
     .replaceAll("'", "&#039;");
 
 const activitiesStorageKey = "central-activities-weekly-calendar-v1";
+const activitiesHistoryStorageKey = "central-activities-history-v1";
 const activitiesDays = [
   { key: "monday" },
   { key: "tuesday" },
@@ -901,6 +928,14 @@ const activityDateFormatter = () =>
   });
 
 const formatActivityDate = (date) => activityDateFormatter().format(date);
+const formatActivityDateTime = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+};
 
 const activitiesState = {
   entries: [],
@@ -975,6 +1010,60 @@ const saveActivities = () => {
   }
 };
 
+const normalizeActivityHistoryEntry = (entry, index = 0) => {
+  const at = new Date(entry?.at || "");
+  if (Number.isNaN(at.getTime())) return null;
+  return {
+    id: String(entry?.id || `activity-history-${index}`),
+    at: at.toISOString(),
+    action: String(entry?.action || "updated"),
+    title: String(entry?.title || ""),
+    teacher: String(entry?.teacher || ""),
+    day: isActivityDay(entry?.day) ? entry.day : "",
+    start: isActivityTime(entry?.start) ? entry.start : "",
+    end: isActivityTime(entry?.end) ? entry.end : "",
+    weekStart: dateFromIso(String(entry?.weekStart || "")) ? weekStartIso(entry.weekStart) : "",
+  };
+};
+
+const loadActivitiesHistory = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(activitiesHistoryStorageKey) || "[]");
+    return Array.isArray(stored)
+      ? stored
+        .map((entry, index) => normalizeActivityHistoryEntry(entry, index))
+        .filter(Boolean)
+        .sort((left, right) => right.at.localeCompare(left.at))
+      : [];
+  } catch (_error) {
+    return [];
+  }
+};
+
+const saveActivitiesHistory = (entries) => {
+  try {
+    localStorage.setItem(activitiesHistoryStorageKey, JSON.stringify(entries.slice(0, 200)));
+  } catch (_error) {
+    // O historico e apenas auxiliar; a agenda continua a funcionar sem ele.
+  }
+};
+
+const recordActivityHistory = (action, entry = {}) => {
+  const item = normalizeActivityEntry(entry, activitiesState.selectedWeekStart, Number(entry.order) || 0);
+  const historyEntry = {
+    id: activityId(),
+    at: new Date().toISOString(),
+    action,
+    title: item?.title || String(entry?.title || ""),
+    teacher: item?.teacher || String(entry?.teacher || ""),
+    day: item?.day || (isActivityDay(entry?.day) ? entry.day : ""),
+    start: item?.start || (isActivityTime(entry?.start) ? entry.start : ""),
+    end: item?.end || (isActivityTime(entry?.end) ? entry.end : ""),
+    weekStart: item?.weekStart || activitiesState.selectedWeekStart,
+  };
+  saveActivitiesHistory([historyEntry, ...loadActivitiesHistory()]);
+};
+
 const selectedWeekActivities = () =>
   activitiesState.entries.filter((entry) => entry.weekStart === activitiesState.selectedWeekStart);
 
@@ -1000,6 +1089,34 @@ const activityCountText = (count) =>
     : getTranslation("activities.count.other").replace("{count}", String(count));
 
 const activityTimeText = (entry) => (entry.end ? `${entry.start} - ${entry.end}` : entry.start);
+
+const activityHistoryActionLabel = (action) => {
+  const keyByAction = {
+    created: "activities.historyCreated",
+    updated: "activities.historyUpdated",
+    deleted: "activities.historyDeleted",
+    reordered: "activities.historyReordered",
+    printed: "activities.historyPrinted",
+  };
+  return getTranslation(keyByAction[action] || "activities.historyUpdated");
+};
+
+const activityHistoryDetails = (entry) => {
+  const details = [];
+  if (entry.weekStart) {
+    details.push(getTranslation("activities.historyWeek").replace("{week}", activityWeekRangeTextForWeek(entry.weekStart)));
+  }
+  if (entry.day) {
+    details.push(getTranslation(`activities.day.${entry.day}`));
+  }
+  if (entry.start) {
+    details.push(getTranslation("activities.historyTime").replace("{time}", activityTimeText(entry)));
+  }
+  if (entry.teacher) {
+    details.push(getTranslation("activities.historyTeacher").replace("{teacher}", entry.teacher));
+  }
+  return details.join(" - ");
+};
 
 const periodKey = ([start, end]) => `${start}|${end || ""}`;
 const periodTimeText = ([start, end]) => (end ? `${start} - ${end}` : start);
@@ -1048,13 +1165,16 @@ const setActivitiesFeedback = (message = "", kind = "error") => {
   error.classList.toggle("is-success", kind === "success");
 };
 
-const activityWeekRangeText = () => {
-  const start = dateFromIso(activitiesState.selectedWeekStart) || new Date();
-  const end = addDaysToIso(activitiesState.selectedWeekStart, 4);
+const activityWeekRangeTextForWeek = (weekStart) => {
+  const normalizedWeekStart = dateFromIso(String(weekStart || "")) ? weekStartIso(weekStart) : weekStartIso();
+  const start = dateFromIso(normalizedWeekStart) || new Date();
+  const end = addDaysToIso(normalizedWeekStart, 4);
   return getTranslation("activities.weekRange")
     .replace("{start}", formatActivityDate(start))
     .replace("{end}", formatActivityDate(end));
 };
+
+const activityWeekRangeText = () => activityWeekRangeTextForWeek(activitiesState.selectedWeekStart);
 
 const updateActivityWeekControls = () => {
   const { weekRange } = activitiesElements();
@@ -1353,6 +1473,44 @@ const renderActivitiesCalendar = () => {
   }
 };
 
+const renderActivitiesHistoryPage = () => {
+  const root = document.querySelector("[data-activities-history]");
+  if (!root) return;
+  const entries = loadActivitiesHistory();
+  if (!entries.length) {
+    root.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.historyEmpty"))}</p>`;
+    return;
+  }
+  root.innerHTML = `
+    <div class="activity-history-table-wrap">
+      <table class="activity-history-table">
+        <thead>
+          <tr>
+            <th>${escapeHtml(getTranslation("activities.historyWhen"))}</th>
+            <th>${escapeHtml(getTranslation("activities.historyAction"))}</th>
+            <th>${escapeHtml(getTranslation("activities.historyActivity"))}</th>
+            <th>${escapeHtml(getTranslation("activities.historyDetails"))}</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${entries
+            .map(
+              (entry) => `
+                <tr>
+                  <td>${escapeHtml(formatActivityDateTime(entry.at))}</td>
+                  <td><strong>${escapeHtml(activityHistoryActionLabel(entry.action))}</strong></td>
+                  <td>${escapeHtml(entry.title || "-")}</td>
+                  <td>${escapeHtml(activityHistoryDetails(entry) || "-")}</td>
+                </tr>
+              `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+};
+
 const validateActivityPayload = (payload) => {
   if (!payload.day || !payload.start || !payload.title || !payload.teacher) {
     return getTranslation("activities.validationRequired");
@@ -1398,6 +1556,7 @@ const handleActivitySubmit = (event) => {
     activitiesState.entries.push(entry);
   }
   saveActivities();
+  recordActivityHistory(existingIndex >= 0 ? "updated" : "created", entry);
   resetActivitiesForm();
   setActivityFormOpen(false);
   renderActivitiesCalendar();
@@ -1447,6 +1606,7 @@ const deleteActivity = (id) => {
   if (!window.confirm(getTranslation("activities.confirmDelete"))) return;
   activitiesState.entries = activitiesState.entries.filter((item) => item.id !== id);
   saveActivities();
+  recordActivityHistory("deleted", entry);
   renderActivitiesCalendar();
   setActivitiesFeedback(getTranslation("activities.deleted"), "success");
 };
@@ -1555,6 +1715,10 @@ const activityPrintDocument = () => {
 };
 
 const printActivityWeek = () => {
+  recordActivityHistory("printed", {
+    title: activityWeekRangeText(),
+    weekStart: activitiesState.selectedWeekStart,
+  });
   const printFrame = document.createElement("iframe");
   printFrame.title = getTranslation("activities.printTitle");
   printFrame.setAttribute("aria-hidden", "true");
@@ -1719,6 +1883,7 @@ const wireActivitiesCalendar = () => {
     event.preventDefault();
     const changed = reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), activityDropIndexFromEvent(event, cell));
     if (changed) {
+      recordActivityHistory("reordered", draggedEntry);
       setActivitiesFeedback("");
     }
     finishActivityDragPreview();
@@ -2285,6 +2450,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLanguage(getLanguage(), { persist: true });
   wirePasswordToggle();
   wireActivitiesCalendar();
+  renderActivitiesHistoryPage();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {
     refreshStatus();

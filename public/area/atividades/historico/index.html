@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Hist&oacute;rico de Atividades - MenteMovimento</title>
+    <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260707-atividades-menu-docs" />
+    <script src="/static/vendor/lucide.min.js" defer></script>
+    <script src="/static/vendor/supabase.js" defer></script>
+    <script src="/static/central-config.js?v=20260707-atividades-menu-docs" defer></script>
+    <script src="/static/app.js?v=20260707-atividades-menu-docs" defer></script>
+    <script src="/static/central-auth.js?v=20260707-atividades-menu-docs" defer></script>
+  </head>
+  <body data-central-page="atividades-historico">
+
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand-block brand-link" href="/dashboard">
+      <span class="brand-symbol brand-logo" aria-hidden="true">
+        <img src="/static/mente-movimento-logo.png" alt="" />
+      </span>
+      <div>
+        <h1>MenteMovimento</h1>
+        <p data-user-email>Administrador</p>
+      </div>
+    </a>
+    <nav class="topnav" aria-label="Ãreas principais" data-i18n-aria-label="nav.areas">
+      <a class="topnav-link" href="/area/socios/">
+        <i data-lucide="id-card"></i>
+        <span data-i18n="nav.socios">SÃ³cios</span>
+      </a>
+      <a class="topnav-link" href="/area/utentes/">
+        <i data-lucide="heart-handshake"></i>
+        <span data-i18n="nav.utentes">Utentes</span>
+      </a>
+      <a class="topnav-link" href="/area/dispositivos/">
+        <i data-lucide="monitor-cog"></i>
+        <span data-i18n="nav.dispositivos">Dispositivos</span>
+      </a>
+      <a class="topnav-link active" href="/area/atividades/">
+        <i data-lucide="calendar-days"></i>
+        <span data-i18n="nav.atividades">Atividades</span>
+      </a>
+    </nav>
+    <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
+      <details class="global-menu-wrap">
+        <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
+          <i data-lucide="menu"></i>
+        </summary>
+        <div class="global-tools-menu" role="menu">
+
+          <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="history"></i>
+            <span>Hist&oacute;rico</span>
+          </a>
+          <a class="menu-item" href="/area/atividades/manual-utilizador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="book-open"></i>
+            <span>Manual de utilizador</span>
+          </a>
+          <a class="menu-item" href="/area/atividades/manual-programador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="file-code-2"></i>
+            <span>Manual de programador</span>
+          </a>
+        </div>
+      </details>
+      <a class="icon-link" href="/logout" title="Terminar sessÃ£o" aria-label="Terminar sessÃ£o" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+        <i data-lucide="log-out"></i>
+      </a>
+    </div>
+  </div>
+</header>
+<main class="global-shell">
+  <section class="global-panel activity-document-panel">
+    <a class="secondary-button activity-back-link" href="/area/atividades/">
+      <i data-lucide="arrow-left"></i>
+      <span>Voltar</span>
+    </a>
+    <p class="eyebrow">Atividades</p>
+    <h2>Hist&oacute;rico de Atividades</h2>
+    <p class="global-copy">Registo apenas das a&ccedil;&otilde;es feitas na agenda de atividades deste browser.</p>
+    <div class="activity-history-list" data-activities-history>
+      <p class="activity-empty-state">Sem a&ccedil;&otilde;es registadas.</p>
+    </div>
+  </section>
+</main>
+  </body>
+</html>

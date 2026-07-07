@@ -6,12 +6,12 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Gest&atilde;o de Atividades - MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260707-atividades-module-refactor" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260707-atividades-menu-docs" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260707-atividades-module-refactor" defer></script>
-    <script src="/static/app.js?v=20260707-atividades-module-refactor" defer></script>
-    <script src="/static/central-auth.js?v=20260707-atividades-module-refactor" defer></script>
+    <script src="/static/central-config.js?v=20260707-atividades-menu-docs" defer></script>
+    <script src="/static/app.js?v=20260707-atividades-menu-docs" defer></script>
+    <script src="/static/central-auth.js?v=20260707-atividades-menu-docs" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
 
@@ -51,18 +51,19 @@
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
-          <button class="menu-item" type="button" data-users-toggle role="menuitem">
-            <i data-lucide="users-round"></i>
-            <span data-i18n="menu.users">Utilizadores</span>
-          </button>
-          <button class="menu-item" type="button" data-language-toggle role="menuitem">
-            <i data-lucide="languages"></i>
-            <span data-i18n="menu.language">Idioma</span>
-          </button>
-          <button class="menu-item" type="button" data-theme-toggle role="menuitem">
-            <i data-lucide="moon"></i>
-            <span data-i18n="menu.dark">Tema escuro</span>
-          </button>
+
+          <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="history"></i>
+            <span>Hist&oacute;rico</span>
+          </a>
+          <a class="menu-item" href="/area/atividades/manual-utilizador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="book-open"></i>
+            <span>Manual de utilizador</span>
+          </a>
+          <a class="menu-item" href="/area/atividades/manual-programador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="file-code-2"></i>
+            <span>Manual de programador</span>
+          </a>
         </div>
       </details>
       <a class="icon-link" href="/logout" title="Terminar sessÃ£o" aria-label="Terminar sessÃ£o" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">

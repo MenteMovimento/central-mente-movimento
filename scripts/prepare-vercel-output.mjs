@@ -1,7 +1,12 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { atividadesPageContent } from '../portal/modules/atividades/page.mjs'
+import {
+  atividadesDeveloperManualPageContent,
+  atividadesHistoryPageContent,
+  atividadesPageContent,
+  atividadesUserManualPageContent,
+} from '../portal/modules/atividades/page.mjs'
 
 const root = process.cwd()
 const publicDir = path.join(root, 'public')
@@ -38,7 +43,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260707-atividades-module-refactor'
+const assetVersion = '20260707-atividades-menu-docs'
 
 const authPendingHead = `<script>
       (() => {
@@ -133,6 +138,35 @@ const moduleCards = `
   </a>
 </article>`
 
+const topbarMenu = (activeId = '') =>
+  activeId === 'atividades'
+    ? `
+          <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="history"></i>
+            <span>Hist&oacute;rico</span>
+          </a>
+          <a class="menu-item" href="/area/atividades/manual-utilizador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="book-open"></i>
+            <span>Manual de utilizador</span>
+          </a>
+          <a class="menu-item" href="/area/atividades/manual-programador/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="file-code-2"></i>
+            <span>Manual de programador</span>
+          </a>`
+    : `
+          <button class="menu-item" type="button" data-users-toggle role="menuitem">
+            <i data-lucide="users-round"></i>
+            <span data-i18n="menu.users">Utilizadores</span>
+          </button>
+          <button class="menu-item" type="button" data-language-toggle role="menuitem">
+            <i data-lucide="languages"></i>
+            <span data-i18n="menu.language">Idioma</span>
+          </button>
+          <button class="menu-item" type="button" data-theme-toggle role="menuitem">
+            <i data-lucide="moon"></i>
+            <span data-i18n="menu.dark">Tema escuro</span>
+          </button>`
+
 const topbar = (activeId = '') => `
 <header class="topbar">
   <div class="topbar-inner">
@@ -169,18 +203,7 @@ const topbar = (activeId = '') => `
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
-          <button class="menu-item" type="button" data-users-toggle role="menuitem">
-            <i data-lucide="users-round"></i>
-            <span data-i18n="menu.users">Utilizadores</span>
-          </button>
-          <button class="menu-item" type="button" data-language-toggle role="menuitem">
-            <i data-lucide="languages"></i>
-            <span data-i18n="menu.language">Idioma</span>
-          </button>
-          <button class="menu-item" type="button" data-theme-toggle role="menuitem">
-            <i data-lucide="moon"></i>
-            <span data-i18n="menu.dark">Tema escuro</span>
-          </button>
+${topbarMenu(activeId)}
         </div>
       </details>
       <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
@@ -376,6 +399,30 @@ const atividadesPage = pageShell({
 ${topbar('atividades')}
 ${atividadesPageContent()}
 ${centralUsersDialog}`,
+})
+
+const atividadesHistoryPage = pageShell({
+  title: 'Hist&oacute;rico de Atividades - MenteMovimento',
+  page: 'atividades-historico',
+  body: `
+${topbar('atividades')}
+${atividadesHistoryPageContent()}`,
+})
+
+const atividadesUserManualPage = pageShell({
+  title: 'Manual de Utilizador - Atividades - MenteMovimento',
+  page: 'atividades-manual-utilizador',
+  body: `
+${topbar('atividades')}
+${atividadesUserManualPageContent()}`,
+})
+
+const atividadesDeveloperManualPage = pageShell({
+  title: 'Manual de Programador - Atividades - MenteMovimento',
+  page: 'atividades-manual-programador',
+  body: `
+${topbar('atividades')}
+${atividadesDeveloperManualPageContent()}`,
 })
 
 const logoutPage = pageShell({
@@ -1259,6 +1306,12 @@ await writeFile(path.join(publicDir, 'logout.html'), logoutPage)
 await writeFile(path.join(publicDir, 'index.html'), dashboardPage)
 await mkdir(atividadesOutput, { recursive: true })
 await writeFile(path.join(atividadesOutput, 'index.html'), atividadesPage)
+await mkdir(path.join(atividadesOutput, 'historico'), { recursive: true })
+await writeFile(path.join(atividadesOutput, 'historico', 'index.html'), atividadesHistoryPage)
+await mkdir(path.join(atividadesOutput, 'manual-utilizador'), { recursive: true })
+await writeFile(path.join(atividadesOutput, 'manual-utilizador', 'index.html'), atividadesUserManualPage)
+await mkdir(path.join(atividadesOutput, 'manual-programador'), { recursive: true })
+await writeFile(path.join(atividadesOutput, 'manual-programador', 'index.html'), atividadesDeveloperManualPage)
 for (const page of [
   globalPage({
     file: 'historico.html',
