@@ -1469,22 +1469,22 @@ const activityPrintDocument = () => {
             (entry) => entry.day === day.key && periodKey(activityDisplayPeriod(entry)) === currentPeriodKey,
           );
           const content = cellEntries.length
-            ? cellEntries
-                .map(
-                  (entry) => `
-                    <article>
-                      <strong>${escapeHtml(activityTimeText(entry))}</strong>
-                      <span>${escapeHtml(entry.title)}</span>
-                      <small>${escapeHtml(entry.teacher)}</small>
-                    </article>
-                  `,
-                )
-                .join("")
+            ? `<div class="activity-list">${cellEntries
+              .map(
+                (entry) => `
+                  <article>
+                    <strong>${escapeHtml(activityTimeText(entry))}</strong>
+                    <span>${escapeHtml(entry.title)}</span>
+                    <small>${escapeHtml(entry.teacher)}</small>
+                  </article>
+                `,
+              )
+              .join("")}</div>`
             : "";
           return `<td>${content}</td>`;
         })
         .join("");
-      const periodRow = `<tr><th>${periodText}</th>${cells}</tr>`;
+      const periodRow = `<tr class="activity-row"><th>${periodText}</th>${cells}</tr>`;
       const lunchRow = `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
       return `${periodRow}${isActivityLunchAnchor(period) ? lunchRow : ""}`;
     })
@@ -1495,48 +1495,93 @@ const activityPrintDocument = () => {
   <meta charset="utf-8">
   <title>${escapeHtml(getTranslation("activities.printTitle"))}</title>
   <style>
-    body { color: #081614; font-family: Arial, sans-serif; margin: 24px; }
-    h1 { font-size: 22px; margin: 0 0 6px; }
-    p { color: #506560; margin: 0 0 18px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #cfdcd9; padding: 10px; vertical-align: top; }
-    thead th { background: #eef5f3; text-align: center; }
-    tbody th { background: #f8fbfa; white-space: nowrap; width: 110px; }
-    .lunch-row th, .lunch-row td { background: #f2f6f5; color: #506560; font-weight: 700; text-align: center; }
+    @page { size: A4 landscape; margin: 8mm; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { color: #081614; font-family: Arial, sans-serif; font-size: 10px; }
+    .print-sheet {
+      display: flex;
+      flex-direction: column;
+      gap: 4mm;
+      height: 194mm;
+      overflow: hidden;
+      width: 100%;
+    }
+    header { align-items: end; border-bottom: 2px solid #23776b; display: flex; justify-content: space-between; padding-bottom: 3mm; }
+    h1 { font-size: 18px; line-height: 1.1; margin: 0; }
+    p { color: #506560; font-size: 11px; font-weight: 700; margin: 0; }
+    table { border-collapse: collapse; flex: 1; table-layout: fixed; width: 100%; }
+    th, td { border: 1px solid #b8c9c5; padding: 2mm; vertical-align: top; }
+    thead th { background: #e6f2ef; text-align: center; }
+    thead th:first-child,
+    tbody th { width: 27mm; }
+    tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
+    tbody tr.activity-row { height: 67mm; }
+    tbody tr.lunch-row { height: 12mm; }
+    .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 12px; font-weight: 800; text-align: center; vertical-align: middle; }
     .lunch-row td { text-transform: uppercase; }
     th span, th small { display: block; }
-    th small { color: #506560; margin-top: 4px; }
-    article { border-left: 4px solid #8a9895; padding: 0 0 0 8px; margin-bottom: 10px; }
-    article:last-child { margin-bottom: 0; }
-    article strong, article span, article small { display: block; }
-    article strong { color: #005f56; }
-    article small, em { color: #667774; }
+    th span { color: #506560; font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    th strong { font-size: 12px; line-height: 1.15; }
+    th small { color: #506560; font-size: 9px; font-weight: 700; margin-top: 1mm; }
+    .activity-list { display: grid; gap: 1.5mm; max-height: 63mm; overflow: hidden; }
+    article { border: 1px solid #cfdcd9; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.5mm 2mm; }
+    article strong, article span, article small { display: block; overflow-wrap: anywhere; }
+    article strong { color: #005f56; font-size: 10px; line-height: 1.15; }
+    article span { font-size: 11px; font-weight: 800; line-height: 1.2; margin-top: 0.8mm; }
+    article small { color: #506560; font-size: 9px; font-weight: 700; line-height: 1.15; margin-top: 0.8mm; }
+    @media print {
+      html, body { height: 194mm; overflow: hidden; }
+      .print-sheet { break-after: avoid; page-break-after: avoid; }
+    }
   </style>
 </head>
 <body>
-  <h1>${escapeHtml(getTranslation("activities.printTitle"))}</h1>
-  <p>${escapeHtml(activityWeekRangeText())}</p>
-  <table>
-    <thead><tr><th>${escapeHtml(getTranslation("activities.start"))}</th>${dayHeaders}</tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
+  <main class="print-sheet">
+    <header>
+      <h1>${escapeHtml(getTranslation("activities.weekTitle"))}</h1>
+      <p>${escapeHtml(activityWeekRangeText())}</p>
+    </header>
+    <table>
+      <thead><tr><th>${escapeHtml(getTranslation("activities.start"))}</th>${dayHeaders}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </main>
 </body>
 </html>`;
 };
 
 const printActivityWeek = () => {
-  const printWindow = window.open("", "_blank", "noopener,noreferrer");
-  if (!printWindow) {
-    window.print();
+  const printFrame = document.createElement("iframe");
+  printFrame.title = getTranslation("activities.printTitle");
+  printFrame.setAttribute("aria-hidden", "true");
+  printFrame.style.position = "fixed";
+  printFrame.style.right = "0";
+  printFrame.style.bottom = "0";
+  printFrame.style.width = "1px";
+  printFrame.style.height = "1px";
+  printFrame.style.border = "0";
+  printFrame.style.opacity = "0";
+  printFrame.style.pointerEvents = "none";
+  document.body.appendChild(printFrame);
+  const frameWindow = printFrame.contentWindow;
+  const frameDocument = frameWindow?.document;
+  if (!frameWindow || !frameDocument) {
+    printFrame.remove();
     return;
   }
-  printWindow.document.open();
-  printWindow.document.write(activityPrintDocument());
-  printWindow.document.close();
-  printWindow.focus();
+  const cleanup = () => {
+    window.setTimeout(() => printFrame.remove(), 500);
+  };
+  frameDocument.open();
+  frameDocument.write(activityPrintDocument());
+  frameDocument.close();
+  frameWindow.addEventListener("afterprint", cleanup, { once: true });
   window.setTimeout(() => {
-    printWindow.print();
-  }, 100);
+    frameWindow.focus();
+    frameWindow.print();
+    window.setTimeout(cleanup, 10000);
+  }, 150);
 };
 
 const changeActivityWeek = (weekOffset) => {
