@@ -77,6 +77,7 @@ const translations = {
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
     "activities.printTitle": "Horário semanal de atividades",
+    "activities.printScheduleTitle": "Hor\u00e1rio das Atividades",
     "activities.weekPrevious": "Semana anterior",
     "activities.weekNext": "Semana seguinte",
     "activities.weekRange": "{start} a {end}",
@@ -252,6 +253,7 @@ const translations = {
     "activities.form.viewTitle": "View activity",
     "activities.printWeek": "Print week",
     "activities.printTitle": "Weekly activities timetable",
+    "activities.printScheduleTitle": "Activities Timetable",
     "activities.weekPrevious": "Previous week",
     "activities.weekNext": "Next week",
     "activities.weekRange": "{start} to {end}",
@@ -1456,7 +1458,7 @@ const activityPrintDocument = () => {
   const dayHeaders = activitiesDays
     .map((day, index) => {
       const dayDate = addDaysToIso(activitiesState.selectedWeekStart, index);
-      return `<th><span>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</span><small>${escapeHtml(formatActivityDate(dayDate))}</small></th>`;
+      return `<th><strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong><small>${escapeHtml(formatActivityDate(dayDate))}</small></th>`;
     })
     .join("");
   const rows = periods
@@ -1493,45 +1495,47 @@ const activityPrintDocument = () => {
 <html lang="${escapeHtml(getLanguage() === "en" ? "en" : "pt")}">
 <head>
   <meta charset="utf-8">
-  <title>${escapeHtml(getTranslation("activities.printTitle"))}</title>
+  <title></title>
   <style>
-    @page { size: A4 landscape; margin: 8mm; }
+    @page { size: A4 landscape; margin: 0; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+    html, body { height: 210mm; margin: 0; overflow: hidden; padding: 0; width: 297mm; }
     body { color: #081614; font-family: Arial, sans-serif; font-size: 10px; }
     .print-sheet {
       display: flex;
       flex-direction: column;
-      gap: 4mm;
-      height: 194mm;
+      gap: 3mm;
+      height: 210mm;
       overflow: hidden;
-      width: 100%;
+      padding: 8mm 9mm 7mm;
+      width: 297mm;
     }
-    header { align-items: end; border-bottom: 2px solid #23776b; display: flex; justify-content: space-between; padding-bottom: 3mm; }
-    h1 { font-size: 18px; line-height: 1.1; margin: 0; }
-    p { color: #506560; font-size: 11px; font-weight: 700; margin: 0; }
-    table { border-collapse: collapse; flex: 1; table-layout: fixed; width: 100%; }
+    header { align-items: end; border-bottom: 2px solid #23776b; display: flex; justify-content: space-between; padding-bottom: 2mm; }
+    h1 { font-size: 20px; line-height: 1.05; margin: 0; }
+    p { color: #506560; font-size: 11px; font-weight: 800; margin: 0; }
+    table { border: 2px solid #8fb2ab; border-collapse: collapse; flex: 1; table-layout: fixed; width: 100%; }
     th, td { border: 1px solid #b8c9c5; padding: 2mm; vertical-align: top; }
-    thead th { background: #e6f2ef; text-align: center; }
-    thead th:first-child,
-    tbody th { width: 27mm; }
+    thead th { background: #e6f2ef; border-bottom: 2px solid #8fb2ab; text-align: center; vertical-align: middle; }
+    thead th.time-head,
+    tbody th { width: 28mm; }
     tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
-    tbody tr.activity-row { height: 67mm; }
+    tbody tr.activity-row { height: 63mm; }
     tbody tr.lunch-row { height: 12mm; }
-    .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 12px; font-weight: 800; text-align: center; vertical-align: middle; }
+    tbody tr.lunch-row th, tbody tr.lunch-row td { border-bottom: 2px solid #8fb2ab; border-top: 2px solid #8fb2ab; }
+    .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 12px; font-weight: 900; text-align: center; vertical-align: middle; }
     .lunch-row td { text-transform: uppercase; }
-    th span, th small { display: block; }
-    th span { color: #506560; font-size: 9px; font-weight: 800; text-transform: uppercase; }
-    th strong { font-size: 12px; line-height: 1.15; }
+    th strong, th small { display: block; }
+    th strong { font-size: 11px; line-height: 1.15; text-transform: uppercase; }
     th small { color: #506560; font-size: 9px; font-weight: 700; margin-top: 1mm; }
-    .activity-list { display: grid; gap: 1.5mm; max-height: 63mm; overflow: hidden; }
-    article { border: 1px solid #cfdcd9; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.5mm 2mm; }
+    td { background: #ffffff; }
+    .activity-list { display: grid; gap: 1.8mm; max-height: 58mm; overflow: hidden; }
+    article { border: 1px solid #c8d8d4; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.6mm 2mm; }
     article strong, article span, article small { display: block; overflow-wrap: anywhere; }
     article strong { color: #005f56; font-size: 10px; line-height: 1.15; }
     article span { font-size: 11px; font-weight: 800; line-height: 1.2; margin-top: 0.8mm; }
     article small { color: #506560; font-size: 9px; font-weight: 700; line-height: 1.15; margin-top: 0.8mm; }
     @media print {
-      html, body { height: 194mm; overflow: hidden; }
+      html, body { height: 210mm; overflow: hidden; width: 297mm; }
       .print-sheet { break-after: avoid; page-break-after: avoid; }
     }
   </style>
@@ -1539,11 +1543,11 @@ const activityPrintDocument = () => {
 <body>
   <main class="print-sheet">
     <header>
-      <h1>${escapeHtml(getTranslation("activities.weekTitle"))}</h1>
+      <h1>${escapeHtml(getTranslation("activities.printScheduleTitle"))}</h1>
       <p>${escapeHtml(activityWeekRangeText())}</p>
     </header>
     <table>
-      <thead><tr><th>${escapeHtml(getTranslation("activities.start"))}</th>${dayHeaders}</tr></thead>
+      <thead><tr><th class="time-head"></th>${dayHeaders}</tr></thead>
       <tbody>${rows}</tbody>
     </table>
   </main>
