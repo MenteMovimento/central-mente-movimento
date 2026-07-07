@@ -90,6 +90,7 @@ const translations = {
     "activities.clear": "Limpar",
     "activities.week": "Segunda a sexta",
     "activities.weekTitle": "Hor\u00e1rio escolar",
+    "activities.lunch": "Almo\u00e7o",
     "activities.emptyDay": "Sem atividades",
     "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
     "activities.remove": "Remover",
@@ -264,6 +265,7 @@ const translations = {
     "activities.clear": "Clear",
     "activities.week": "Monday to Friday",
     "activities.weekTitle": "School timetable",
+    "activities.lunch": "Lunch",
     "activities.emptyDay": "No activities",
     "activities.emptyWeek": "There are no activities in this week yet.",
     "activities.remove": "Remove",
@@ -857,6 +859,7 @@ const defaultActivityPeriods = [
   ["09:00", "12:00"],
   ["13:00", "17:00"],
 ];
+const activityLunchPeriod = ["12:00", "13:00"];
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
 
 const dateToIso = (date) => {
@@ -1182,6 +1185,17 @@ const renderActivityCellEntries = (entries) => entries.map(renderActivitySlot).j
 
 const renderActivityEmptyCell = () => "";
 
+const isActivityLunchAnchor = (period) => periodKey(period) === periodKey(defaultActivityPeriods[0]);
+
+const renderActivityLunchRow = () => `
+  <div class="timetable-row timetable-lunch-row" role="row" aria-label="${escapeHtml(getTranslation("activities.lunch"))}">
+    <div class="timetable-time-cell timetable-lunch-time" role="rowheader">${escapeHtml(periodTimeText(activityLunchPeriod))}</div>
+    <div class="timetable-lunch-cell" role="cell" aria-colspan="${activitiesDays.length}">
+      ${escapeHtml(getTranslation("activities.lunch"))}
+    </div>
+  </div>
+`;
+
 const currentActivityIndexInCell = (entry) =>
   sortedActivities()
     .filter((item) => activityCellKey(item) === activityCellKey(entry))
@@ -1306,7 +1320,7 @@ const renderActivitiesCalendar = () => {
         .map((period) => {
           const [start, end] = period;
           const currentPeriodKey = periodKey(period);
-          return `
+          const periodRow = `
             <div class="timetable-row" role="row">
               <div class="timetable-time-cell" role="rowheader">${escapeHtml(periodTimeText(period))}</div>
               ${activitiesDays
@@ -1327,6 +1341,7 @@ const renderActivitiesCalendar = () => {
                 .join("")}
             </div>
           `;
+          return `${periodRow}${isActivityLunchAnchor(period) ? renderActivityLunchRow() : ""}`;
         })
         .join("")}
     </div>
@@ -1469,7 +1484,9 @@ const activityPrintDocument = () => {
           return `<td>${content}</td>`;
         })
         .join("");
-      return `<tr><th>${periodText}</th>${cells}</tr>`;
+      const periodRow = `<tr><th>${periodText}</th>${cells}</tr>`;
+      const lunchRow = `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
+      return `${periodRow}${isActivityLunchAnchor(period) ? lunchRow : ""}`;
     })
     .join("");
   return `<!doctype html>
@@ -1485,6 +1502,8 @@ const activityPrintDocument = () => {
     th, td { border: 1px solid #cfdcd9; padding: 10px; vertical-align: top; }
     thead th { background: #eef5f3; text-align: center; }
     tbody th { background: #f8fbfa; white-space: nowrap; width: 110px; }
+    .lunch-row th, .lunch-row td { background: #f2f6f5; color: #506560; font-weight: 700; text-align: center; }
+    .lunch-row td { text-transform: uppercase; }
     th span, th small { display: block; }
     th small { color: #506560; margin-top: 4px; }
     article { border-left: 4px solid #8a9895; padding: 0 0 0 8px; margin-bottom: 10px; }

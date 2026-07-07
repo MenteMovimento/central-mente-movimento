@@ -582,7 +582,8 @@ body.dark-mode .activity-field select {
 
 body.dark-mode .timetable-head,
 body.dark-mode .timetable-day-head,
-body.dark-mode .timetable-time-cell {
+body.dark-mode .timetable-time-cell,
+body.dark-mode .timetable-lunch-cell {
   background: #12263c;
 }
 
@@ -594,7 +595,9 @@ body.dark-mode .activity-slot {
 
 body.dark-mode .activity-week-range,
 body.dark-mode .activity-week-summary span,
-body.dark-mode .timetable-day-head small {
+body.dark-mode .timetable-day-head small,
+body.dark-mode .timetable-lunch-time,
+body.dark-mode .timetable-lunch-cell {
   color: #b9c9d8;
 }
 
@@ -1467,7 +1470,8 @@ body.dark-mode .central-admin-forms {
 
 .timetable-time-cell,
 .timetable-day-head,
-.timetable-cell {
+.timetable-cell,
+.timetable-lunch-cell {
   min-width: 0;
   border-left: 1px solid var(--line);
   padding: 10px;
@@ -1533,6 +1537,27 @@ body.dark-mode .central-admin-forms {
 
 .timetable-cell.is-valid-drop-zone {
   background: #eef5f3;
+}
+
+.timetable-lunch-row {
+  min-height: 52px;
+}
+
+.timetable-lunch-time {
+  color: #506560;
+}
+
+.timetable-lunch-cell {
+  grid-column: 2 / -1;
+  display: grid;
+  place-items: center;
+  background: #f2f6f5;
+  color: #506560;
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .activity-slot {
