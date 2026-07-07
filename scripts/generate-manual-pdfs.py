@@ -41,6 +41,8 @@ OUTPUTS = {
     "utentes_dev_en": ROOT / "portal/modules/utentes/docs/Manual_Programmer_Utentes.pdf",
     "dispositivos_user": ROOT / "portal/modules/dispositivos/public/docs/Manual_Utilizador_Dispositivos.pdf",
     "dispositivos_dev": ROOT / "portal/modules/dispositivos/public/docs/Manual_Programador_Dispositivos.pdf",
+    "atividades_user": ROOT / "portal/modules/atividades/docs/Manual_Utilizador_Atividades.pdf",
+    "atividades_dev": ROOT / "portal/modules/atividades/docs/Manual_Programador_Atividades.pdf",
 }
 
 
@@ -465,6 +467,48 @@ DISPOSITIVOS_USER = COMMON_USER + [
 ]
 
 
+ATIVIDADES_USER = COMMON_USER + [
+    {
+        "title": "3. Painel de atividades",
+        "body": "A area de Atividades organiza a semana de segunda a sexta num horario escolar simples, com blocos de manha, almoco e tarde.",
+        "bullets": [
+            "Usar as setas para navegar entre semanas reais.",
+            "Confirmar o intervalo de datas mostrado antes de criar ou imprimir atividades.",
+            "Consultar as atividades diretamente nos cartoes do horario.",
+            "Usar o menu do ramo para abrir o historico especifico de Atividades.",
+        ],
+    },
+    {
+        "title": "4. Criar e editar atividades",
+        "steps": [
+            "Clicar em Criar Atividade.",
+            "Escolher o dia da semana, a hora de inicio e a hora de fim.",
+            "Preencher o nome da atividade e o professor.",
+            "Guardar e confirmar que a atividade apareceu na linha horaria correta.",
+            "Usar o olho para consultar, o lapis para editar e o caixote para eliminar.",
+        ],
+    },
+    {
+        "title": "5. Organizar atividades no mesmo horario",
+        "bullets": [
+            "Quando existirem varias atividades no mesmo espaco, arrastar o cartao inteiro para reorganizar.",
+            "Durante o arrasto, a previa indica onde a atividade vai ficar ao largar.",
+            "A ordem fica guardada neste browser para a semana selecionada.",
+            "Evitar largar atividades noutra linha se a hora real nao corresponder.",
+        ],
+    },
+    {
+        "title": "6. Imprimir horario semanal",
+        "bullets": [
+            "Clicar em Imprimir semana para gerar uma folha em formato de horario escolar.",
+            "A impressao mostra apenas a informacao essencial: datas, horas, atividade e professor.",
+            "Botoes de consulta, edicao e eliminacao nao aparecem na folha impressa.",
+            "Confirmar se o destino e Guardar como PDF ou impressora antes de finalizar.",
+        ],
+    },
+]
+
+
 DEV_COMMON = [
     {
         "title": "1. Visão geral da Central",
@@ -716,6 +760,38 @@ UTENTES_DEV_EN = [
             "Commit with a clear message.",
             "Push to main.",
             "Check the automatic Vercel deployment.",
+        ],
+    },
+]
+
+
+ATIVIDADES_DEV = DEV_COMMON + [
+    {
+        "title": "4. Estrutura do ramo Atividades",
+        "bullets": [
+            "Marcacao HTML: portal/modules/atividades/page.mjs.",
+            "Logica de agenda, formulario, historico e impressao: portal/static/app.js.",
+            "Estilos visuais globais e especificos da agenda: portal/static/styles.css.",
+            "Geracao de paginas e copia de PDFs: scripts/prepare-vercel-output.mjs.",
+            "Manuais PDF fonte: portal/modules/atividades/docs/.",
+        ],
+    },
+    {
+        "title": "5. Dados e armazenamento",
+        "bullets": [
+            "As atividades ficam em localStorage na chave central-activities-weekly-calendar-v1.",
+            "O historico do ramo fica em localStorage e regista criacao, edicao, eliminacao e impressao.",
+            "Cada atividade guarda semana, dia, hora de inicio, hora de fim, titulo, professor e ordem visual.",
+            "Atividades ainda nao tem tabela Supabase propria; qualquer migracao deve preservar os dados locais existentes.",
+        ],
+    },
+    {
+        "title": "6. Permissoes e manutencao",
+        "bullets": [
+            "Ver controla o acesso ao horario e ao botao de consulta.",
+            "Editar controla criacao, lapis, eliminacao e reordenacao.",
+            "Exportar controla a impressao da semana.",
+            "Ao alterar textos visiveis, atualizar traducoes, manuais e o output gerado.",
         ],
     },
 ]
@@ -1051,6 +1127,42 @@ def main():
                 "CSV deve preservar números de série e identificadores para evitar duplicados.",
             ],
         ),
+    )
+
+    build_pdf(
+        OUTPUTS["atividades_user"],
+        "Manual do Utilizador - Gestao de Atividades",
+        "Guia pratico para criar, consultar, organizar e imprimir o horario semanal de atividades.",
+        "Administradores e utilizadores autorizados",
+        "Gestao de Atividades",
+        ATIVIDADES_USER + user_extra_sections("Gestao de Atividades", "atividades", has_import_export=False, has_attachments=False),
+        updated_at="07/07/2026",
+    )
+    build_pdf(
+        OUTPUTS["atividades_dev"],
+        "Manual do Programador - Gestao de Atividades",
+        "Guia tecnico para manutencao do modulo de atividades dentro da Central MenteMovimento.",
+        "Programadores e responsaveis tecnicos",
+        "Gestao de Atividades",
+        ATIVIDADES_DEV
+        + dev_extra_sections(
+            "Gestao de Atividades",
+            [
+                "portal/modules/atividades/page.mjs - estrutura da pagina, historico e paginas de fallback dos manuais.",
+                "portal/static/app.js - calendario semanal, ordenacao por arrasto, dialogos, historico e impressao.",
+                "portal/static/styles.css - estilos do horario, dialogos e estados de permissao.",
+                "portal/modules/atividades/docs/ - PDFs abertos pelo botao Manuais.",
+                "scripts/prepare-vercel-output.mjs - publicacao da area em public/area/atividades/.",
+            ],
+            [
+                "Sem tabela Supabase propria neste momento.",
+                "localStorage guarda atividades e historico no browser.",
+                "Permissoes usadas: view, edit e export.",
+                "A impressao e gerada num iframe temporario para evitar separadores vazios.",
+                "Se passar para base de dados, criar migracao e plano de importacao dos dados locais.",
+            ],
+        ),
+        updated_at="07/07/2026",
     )
 
 

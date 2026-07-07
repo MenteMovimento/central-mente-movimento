@@ -16,6 +16,7 @@ const sociosSource = path.join(root, 'portal', 'modules', 'socios')
 const sociosOutput = path.join(publicDir, 'area', 'socios')
 const dispositivosDist = path.join(root, 'portal', 'modules', 'dispositivos', 'dist')
 const dispositivosOutput = path.join(publicDir, 'area', 'dispositivos')
+const atividadesDocsSource = path.join(root, 'portal', 'modules', 'atividades', 'docs')
 const atividadesOutput = path.join(publicDir, 'area', 'atividades')
 const supabaseUmd = path.join(
   root,
@@ -43,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260707-atividades-manual-dialog'
+const assetVersion = '20260707-atividades-pdf-print'
 
 const authPendingHead = `<script>
       (() => {
@@ -176,7 +177,7 @@ const atividadesManualsDialog = () => `
       </button>
     </header>
     <div class="activities-manual-options">
-      <a class="activities-manual-option" href="/area/atividades/manual-utilizador/" data-requires-permission-area="atividades" data-requires-permission-action="view">
+      <a class="activities-manual-option" href="/area/atividades/docs/Manual_Utilizador_Atividades.pdf" target="_blank" rel="noopener" data-requires-permission-area="atividades" data-requires-permission-action="view">
         <span class="activities-manual-icon" aria-hidden="true">
           <i data-lucide="users-round"></i>
         </span>
@@ -185,7 +186,7 @@ const atividadesManualsDialog = () => `
           <small>Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
         </span>
       </a>
-      <a class="activities-manual-option" href="/area/atividades/manual-programador/" data-requires-permission-area="atividades" data-requires-permission-action="view">
+      <a class="activities-manual-option" href="/area/atividades/docs/Manual_Programador_Atividades.pdf" target="_blank" rel="noopener" data-requires-permission-area="atividades" data-requires-permission-action="view">
         <span class="activities-manual-icon" aria-hidden="true">
           <i data-lucide="code-2"></i>
         </span>
@@ -1344,6 +1345,10 @@ await mkdir(path.join(atividadesOutput, 'manual-utilizador'), { recursive: true 
 await writeFile(path.join(atividadesOutput, 'manual-utilizador', 'index.html'), atividadesUserManualPage)
 await mkdir(path.join(atividadesOutput, 'manual-programador'), { recursive: true })
 await writeFile(path.join(atividadesOutput, 'manual-programador', 'index.html'), atividadesDeveloperManualPage)
+if (existsSync(atividadesDocsSource)) {
+  await mkdir(path.join(atividadesOutput, 'docs'), { recursive: true })
+  await cp(atividadesDocsSource, path.join(atividadesOutput, 'docs'), { recursive: true })
+}
 for (const page of [
   globalPage({
     file: 'historico.html',

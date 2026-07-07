@@ -1717,20 +1717,21 @@ const activityPrintDocument = () => {
     p { color: #506560; font-size: 11px; font-weight: 800; margin: 0; }
     table { border: 2px solid #7fa39b; border-collapse: collapse; flex: 1; table-layout: fixed; width: 100%; }
     th, td { border: 1.5px solid #a3b8b3; padding: 2mm; vertical-align: top; }
-    thead th { background: #e6f2ef; border-bottom: 2.5px solid #7fa39b; text-align: center; vertical-align: middle; }
+    thead tr { height: 18mm; }
+    thead th { background: #e6f2ef; border-bottom: 2.5px solid #7fa39b; padding: 1.4mm 1.8mm; text-align: center; vertical-align: middle; }
     thead th.time-head,
     tbody th { width: 28mm; }
     tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
-    tbody tr.activity-row { height: 63mm; }
+    tbody tr.activity-row { height: 77mm; }
     tbody tr.lunch-row { height: 12mm; }
     tbody tr.lunch-row th, tbody tr.lunch-row td { border-bottom: 2px solid #8fb2ab; border-top: 2px solid #8fb2ab; }
     .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 12px; font-weight: 900; text-align: center; vertical-align: middle; }
     .lunch-row td { text-transform: uppercase; }
     th strong, th small { display: block; }
-    th strong { font-size: 11px; line-height: 1.15; text-transform: uppercase; }
-    th small { color: #506560; font-size: 9px; font-weight: 700; margin-top: 1mm; }
+    th strong { font-size: 10px; line-height: 1.1; text-transform: uppercase; }
+    th small { color: #506560; font-size: 8px; font-weight: 700; margin-top: 0.5mm; }
     td { background: #ffffff; }
-    .activity-list { display: grid; gap: 1.8mm; max-height: 58mm; overflow: hidden; }
+    .activity-list { display: grid; gap: 1.8mm; max-height: 72mm; overflow: hidden; }
     article { border: 1px solid #c8d8d4; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.6mm 2mm; }
     article strong, article span, article small { display: block; overflow-wrap: anywhere; }
     article strong { color: #005f56; font-size: 10px; line-height: 1.15; }
