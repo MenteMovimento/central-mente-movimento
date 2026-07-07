@@ -1346,7 +1346,7 @@ tr:last-child td {
 }
 
 .section-heading {
-    padding: 18px 18px 0;
+    padding: 18px 18px;
 }
 
 .section-heading h3 {
