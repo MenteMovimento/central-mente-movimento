@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260708-brand-only-topbar'
+const assetVersion = '20260708-dashboard-account-name'
 
 const authPendingHead = `<script>
       (() => {
@@ -199,7 +199,7 @@ const atividadesManualsDialog = () => `
   </div>
 </dialog>`
 
-const topbar = (activeId = '') => `
+const topbar = (activeId = '', { showAccountName = false } = {}) => `
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand-block brand-link" href="/dashboard">
@@ -229,6 +229,7 @@ const topbar = (activeId = '') => `
       </a>
     </nav>
     <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
+      ${showAccountName ? '<span class="dashboard-account-name" data-dashboard-account-name hidden></span>' : ''}
       <details class="global-menu-wrap">
         <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
           <i data-lucide="menu"></i>
@@ -409,7 +410,7 @@ const dashboardPage = pageShell({
   title: 'MenteMovimento',
   page: 'dashboard',
   body: `
-${topbar()}
+${topbar('', { showAccountName: true })}
 <main class="dashboard">
   <section class="dashboard-heading" aria-label="Gestão da associação">
     <div>
@@ -796,6 +797,18 @@ await writeFile(
     error.textContent = message;
     error.hidden = false;
   };
+  const displayNameFromSession = (session, profile = null) => {
+    const metadataName = session?.user?.user_metadata?.full_name;
+    return String(profile?.full_name || metadataName || session?.user?.email || "").trim();
+  };
+  const setDashboardAccountName = (session, profile = null) => {
+    const name = displayNameFromSession(session, profile);
+    document.querySelectorAll("[data-dashboard-account-name]").forEach((node) => {
+      node.textContent = name;
+      node.title = name;
+      node.hidden = !name;
+    });
+  };
   const utentesSessionCachePrefix = "central-utentes-session:";
   const utentesSessionCacheKey = (session) => \`\${utentesSessionCachePrefix}\${session?.user?.id || "anon"}\`;
   const clearUtentesSessionCache = () => {
@@ -999,7 +1012,8 @@ await writeFile(
       return;
     }
     try {
-      await ensureCentralAccess(client, areaFromPath(window.location.pathname));
+      const payload = await ensureCentralAccess(client, areaFromPath(window.location.pathname));
+      setDashboardAccountName(session, payload?.appUser);
     } catch (error) {
       showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }

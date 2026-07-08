@@ -595,6 +595,28 @@ p {
   justify-content: flex-end;
 }
 
+.dashboard-account-name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 220px;
+  overflow: hidden;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #f8fbfa;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 850;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-account-name[hidden] {
+  display: none;
+}
+
 .topnav-link {
   display: inline-flex;
   align-items: center;
@@ -630,6 +652,7 @@ body.dark-mode .timetable-cell,
 body.dark-mode .central-admin-panel,
 body.dark-mode .secondary-button,
 body.dark-mode .session-chip,
+body.dark-mode .dashboard-account-name,
 body.dark-mode .icon-link {
   background: var(--panel);
 }
@@ -1887,6 +1910,10 @@ body.dark-mode .central-admin-forms {
     justify-content: flex-start;
     overflow-x: auto;
     padding-bottom: 2px;
+  }
+
+  .dashboard-account-name {
+    max-width: min(260px, 100%);
   }
 
   .dashboard-heading {

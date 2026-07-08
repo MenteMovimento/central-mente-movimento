@@ -608,8 +608,14 @@ def module_cards():
     return "\n".join(cards)
 
 
-def topbar(active_id=""):
+def topbar(active_id="", show_account_name=False, account_name=""):
     area_links = []
+    account_name = (account_name or "").strip()
+    account_chip = (
+        f'<span class="dashboard-account-name" title="{html.escape(account_name, quote=True)}">{html.escape(account_name)}</span>'
+        if show_account_name and account_name
+        else ""
+    )
     for module in MODULES:
         active = " active" if module["id"] == active_id else ""
         area_links.append(
@@ -636,6 +642,7 @@ def topbar(active_id=""):
           {''.join(area_links)}
         </nav>
         <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
+          {account_chip}
           <details class="global-menu-wrap">
             <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
               <i data-lucide="menu"></i>
@@ -871,10 +878,13 @@ class PortalHandler(BaseHTTPRequestHandler):
             if not self.is_authenticated():
                 self.redirect("/login")
                 return
+            user = self.current_user() or {}
+            profile = self.current_profile() or {}
+            account_name = profile.get("full_name") or user.get("email") or ""
             self.send_html(
                 render_template(
                     "dashboard.html",
-                    TOPBAR=topbar(),
+                    TOPBAR=topbar(show_account_name=True, account_name=account_name),
                     MODULE_CARDS=module_cards(),
                     MODULES_JSON=html.escape(json.dumps(MODULES, ensure_ascii=False), quote=True),
                 )
