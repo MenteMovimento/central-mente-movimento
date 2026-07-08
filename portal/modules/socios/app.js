@@ -201,7 +201,7 @@ const translations = {
       baseReadyDetail: "Adicione o primeiro sócio para começar o histórico.",
       overdueSingular: "quota em atraso",
       overduePlural: "quotas em atraso",
-      overdueDetail: "Os sócios em atraso aparecem destacados a vermelho na tabela.",
+      overdueDetail: "Sócios com pagamento atrasado.",
       noOverdue: "Sem quotas em atraso",
       paidSingular: "sócio está",
       paidPlural: "sócios estão",
