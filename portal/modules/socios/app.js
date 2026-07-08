@@ -171,7 +171,7 @@ const translations = {
     metrics: {
       members: "Sócios",
       overdue: "Quotas em atraso",
-      quotaState: "Estado das quotas",
+      quotaState: "Quotas em atraso",
       paid: "Quotas em dia",
       paidDetail: "Sócios com pagamento dentro do prazo.",
       latest: "Último registo",
@@ -390,7 +390,7 @@ const translations = {
     metrics: {
       members: "Members",
       overdue: "Overdue fees",
-      quotaState: "Fee status",
+      quotaState: "Overdue fees",
       paid: "Paid fees",
       paidDetail: "Members with payments within the due date.",
       latest: "Latest record",
