@@ -542,15 +542,15 @@ const manualSectionsByLanguage: Record<
         'Se ja existir uma sessao ativa, o site abre diretamente no painel.',
         'Se o email ja estiver registado, usa Entrar em vez de criar conta novamente.',
         'Se o Supabase pedir confirmacao, usa o botao Reenviar confirmacao apenas depois do cooldown.',
-        'Todos os utilizadores autenticados conseguem gerir dispositivos e abrir a area Utilizadores.',
+        'Todos os utilizadores autenticados conseguem gerir a area de ciberseguranca e abrir a area Utilizadores.',
       ],
     },
     {
-      title: '2. Criar um dispositivo',
+      title: '2. Criar um registo',
       steps: [
-        'No painel Novo dispositivo, preenche pelo menos ID, Modelo e Nº Série.',
+        'No painel Novo registo, preenche pelo menos ID, Modelo e Nº Série.',
         'Usa as secoes Identificacao, Hardware e sistema, Diagnostico e reparacao, Configuracao e contas.',
-        'Clica em Adicionar dispositivo para guardar na base de dados.',
+        'Clica em Adicionar registo para guardar na base de dados.',
       ],
     },
     {
@@ -566,7 +566,7 @@ const manualSectionsByLanguage: Record<
       steps: [
         'No Google Sheets, vai a Ficheiro > Transferir > Valores separados por virgulas (.csv).',
         'No site, clica em Importar CSV e escolhe o ficheiro exportado.',
-        'A importação usa o Nº Série para atualizar dispositivos existentes sem duplicar.',
+        'A importação usa o Nº Série para atualizar registos existentes sem duplicar.',
         'As colunas principais esperadas são ID, Data Entrada, Marca, Modelo, Nº Série, CPU, RAM, Disco, Estado e Observações.',
       ],
     },
@@ -602,7 +602,7 @@ const manualSectionsByLanguage: Record<
       steps: [
         'Usa Imprimir relatorio para gerar um relatorio dos registos visiveis.',
         'Abre Estatisticas para ver totais, marcas, tecnicos, avarias e resultados finais.',
-        'Ao editar um dispositivo, usa Anexar foto/fatura para guardar fotos, PDFs ou faturas.',
+        'Ao editar um registo, usa Anexar foto/fatura para guardar fotos, PDFs ou faturas.',
         'Executa supabase/feature-upgrades.sql para ativar anexos e historico em producao.',
       ],
     },
@@ -615,15 +615,15 @@ const manualSectionsByLanguage: Record<
         'If a session already exists, the dashboard opens automatically.',
         'If the email is already registered, use Sign in instead of creating the account again.',
         'If Supabase asks for confirmation, use Resend confirmation only after the cooldown.',
-        'All authenticated users can manage devices and open the Users area.',
+        'All authenticated users can manage the cybersecurity area and open the Users area.',
       ],
     },
     {
-      title: '2. Create a device',
+      title: '2. Create a record',
       steps: [
-        'In New device, fill at least ID, Model and Serial number.',
+        'In New record, fill at least ID, Model and Serial number.',
         'Use the Identification, Hardware and system, Diagnosis and repair, and Configuration and accounts sections.',
-        'Click Add device to save it to the database.',
+        'Click Add record to save it to the database.',
       ],
     },
     {
@@ -639,7 +639,7 @@ const manualSectionsByLanguage: Record<
       steps: [
         'In Google Sheets, go to File > Download > Comma separated values (.csv).',
         'In the site, click Import CSV and choose the exported file.',
-        'Import uses the Serial number to update existing devices without duplicating them.',
+        'Import uses the Serial number to update existing records without duplicating them.',
         'The main expected columns are ID, Entry Date, Brand, Model, Serial number, CPU, RAM, Disk, State and Notes.',
       ],
     },
@@ -675,7 +675,7 @@ const manualSectionsByLanguage: Record<
       steps: [
         'Use Print report to generate a report of the visible records.',
         'Open Statistics to see totals, brands, technicians, faults and final results.',
-        'When editing a device, use Attach photo/invoice to store photos, PDFs or invoices.',
+        'When editing a record, use Attach photo/invoice to store photos, PDFs or invoices.',
         'Run supabase/feature-upgrades.sql to enable attachments and history in production.',
       ],
     },
@@ -693,7 +693,7 @@ const developerManualSectionsByLanguage: Record<
     {
       title: '1. Estrutura do projeto',
       steps: [
-        'A area de dispositivos vive dentro do projeto central, em portal/modules/dispositivos.',
+        'A area de ciberseguranca vive dentro do projeto central, em portal/modules/dispositivos.',
         'As alteracoes devem ser feitas no projeto local e depois publicadas no GitHub para a Vercel atualizar.',
         'Mantem os botoes comuns alinhados com Socios e Utentes para evitar comportamentos diferentes entre abas.',
       ],
@@ -702,7 +702,7 @@ const developerManualSectionsByLanguage: Record<
       title: '2. Base de dados e ficheiros',
       steps: [
         'Executa os scripts SQL da pasta supabase quando forem adicionadas tabelas, permissoes ou funcionalidades novas.',
-        'Os dispositivos usam tabelas proprias para registos, historico, anexos e perfis de utilizadores.',
+        'A area de ciberseguranca usa tabelas proprias para registos, historico, anexos e perfis de utilizadores.',
         'Nunca coloques a chave service_role no codigo do frontend; deve ficar apenas nas variaveis protegidas da Vercel.',
       ],
     },
@@ -727,7 +727,7 @@ const developerManualSectionsByLanguage: Record<
     {
       title: '1. Project structure',
       steps: [
-        'The devices area lives inside the central project under portal/modules/dispositivos.',
+        'The cybersecurity area lives inside the central project under portal/modules/dispositivos.',
         'Make changes locally, then publish through GitHub so Vercel can update the deployment.',
         'Keep shared buttons aligned with Members and Service users to avoid different behavior across areas.',
       ],
@@ -736,7 +736,7 @@ const developerManualSectionsByLanguage: Record<
       title: '2. Database and files',
       steps: [
         'Run the SQL scripts in the supabase folder when new tables, permissions or features are added.',
-        'Devices use their own tables for records, history, attachments and user profiles.',
+        'The cybersecurity area uses its own tables for records, history, attachments and user profiles.',
         'Never place the service_role key in frontend code; keep it only in protected Vercel variables.',
       ],
     },
@@ -761,12 +761,12 @@ const developerManualSectionsByLanguage: Record<
 
 const translations = {
   pt: {
-    addDevice: 'Adicionar dispositivo',
+    addDevice: 'Adicionar registo',
     actions: 'Acoes',
     addAttachment: 'Anexar foto/fatura',
     attachments: 'Anexos',
     all: 'Todos',
-    appTitle: 'Gestor de dispositivos',
+    appTitle: 'Cibersegurança',
     archived: 'Arquivados',
     ascending: 'Crescente',
     authTabLabel: 'Autenticacao',
@@ -786,13 +786,13 @@ const translations = {
     deleteAll: 'Apagar tudo',
     demoMode: 'Modo demonstracao',
     demoModeDescription:
-      'Podes adicionar, editar e apagar dispositivos. Os dados ficam guardados neste navegador ate configurares o Supabase.',
-    devices: 'Dispositivos',
-    devicesSummary: 'Resumo dos dispositivos',
+      'Podes adicionar, editar e apagar registos. Os dados ficam guardados neste navegador ate configurares o Supabase.',
+    devices: 'Cibersegurança',
+    devicesSummary: 'Resumo de cibersegurança',
     duplicateSerial: 'Numero de serie duplicado',
     displaySettings: 'Preferencias de visualizacao',
     edit: 'Editar',
-    editDevice: 'Editar dispositivo',
+    editDevice: 'Editar registo',
     editName: 'Editar nome',
     editUser: 'Editar utilizador',
     email: 'Email',
@@ -807,10 +807,10 @@ const translations = {
     historyAction: 'Acao',
     historyDate: 'Data',
     historyDetails: 'Detalhes',
-    historyEmptyText: 'Quando forem feitas alteracoes aos dispositivos, elas aparecem aqui.',
+    historyEmptyText: 'Quando forem feitas alteracoes na area de ciberseguranca, elas aparecem aqui.',
     historyEmptyTitle: 'Sem alteracoes registadas',
-    historySubject: 'Dispositivo',
-    historySubtitle: 'Registo das alteracoes feitas aos dispositivos.',
+    historySubject: 'Registo',
+    historySubtitle: 'Registo das alteracoes feitas na area de ciberseguranca.',
     historyTitle: 'Historico de alteracoes',
     historyUser: 'Alterado por',
     importCsv: 'Importar CSV',
@@ -831,19 +831,19 @@ const translations = {
     manualDeveloperTitle: 'Manual do Programador',
     manualTitle: 'Manual de utilizacao',
     manualUserDescription:
-      'Para quem usa a app no dia a dia: dispositivos, reparacoes, CSV, anexos, historico e acessos.',
+      'Para quem usa a app no dia a dia: ciberseguranca, reparacoes, CSV, anexos, historico e acessos.',
     manualUserTitle: 'Manual do Utilizador',
     maintenance: 'Manutencao',
     managementAreas: 'Areas de gestao',
     navSocios: 'Socios',
     navUtentes: 'Utentes',
-    navDispositivos: 'Dispositivos',
+    navDispositivos: 'Cibersegurança',
     navAtividades: 'Atividades',
     name: 'Nome',
-    newDevice: 'Novo dispositivo',
-    noDevices: 'Nenhum dispositivo encontrado.',
-    noAttachments: 'Sem anexos para este dispositivo.',
-    noHistory: 'Sem historico para este dispositivo.',
+    newDevice: 'Novo registo',
+    noDevices: 'Nenhum registo encontrado.',
+    noAttachments: 'Sem anexos para este registo.',
+    noHistory: 'Sem historico para este registo.',
     noName: 'Sem nome',
     noUsers: 'Nenhum utilizador encontrado.',
     openMenu: 'Abrir menu',
@@ -885,10 +885,10 @@ const translations = {
     accountCreated: 'Conta criada com sucesso.',
     accountCreatedConfirm:
       'Conta criada. Confirma o email antes de entrar. Evitei novos envios automaticos para nao bater no limite do Supabase.',
-    allDeleted: 'Todos os dispositivos foram apagados.',
-    allDeletedDemo: 'Todos os dispositivos foram apagados em modo demonstracao.',
+    allDeleted: 'Todos os registos foram apagados.',
+    allDeletedDemo: 'Todos os registos foram apagados em modo demonstracao.',
     confirmationResent: 'Email de confirmacao reenviado. Verifica a caixa de entrada e o spam.',
-    csvEmpty: 'O CSV nao tem dispositivos para importar.',
+    csvEmpty: 'O CSV nao tem registos para importar.',
     csvExported: 'CSV exportado para abrir no Google Sheets.',
     csvImportFailed: 'Nao foi possivel importar o CSV.',
     csvUnreadable: 'O CSV tem linhas que nao foi possivel ler.',
@@ -896,20 +896,20 @@ const translations = {
     deleteAllPrompt: 'Para confirmar, escreve APAGAR',
     demoRefreshed: 'Modo demonstracao atualizado.',
     demoSupabaseRequired: 'Modo demonstracao ativo. Configura o Supabase para usar login real.',
-    deviceAdded: 'Dispositivo adicionado.',
-    deviceAddedDemo: 'Dispositivo adicionado em modo demonstracao.',
-    deviceDeleted: 'Dispositivo apagado.',
-    deviceDeletedDemo: 'Dispositivo apagado em modo demonstracao.',
-    deviceUpdated: 'Dispositivo atualizado.',
-    deviceUpdatedDemo: 'Dispositivo atualizado em modo demonstracao.',
+    deviceAdded: 'Registo adicionado.',
+    deviceAddedDemo: 'Registo adicionado em modo demonstracao.',
+    deviceDeleted: 'Registo apagado.',
+    deviceDeletedDemo: 'Registo apagado em modo demonstracao.',
+    deviceUpdated: 'Registo atualizado.',
+    deviceUpdatedDemo: 'Registo atualizado em modo demonstracao.',
     duplicateSerialImport: 'O CSV contem numeros de serie repetidos.',
     emailRegistered: 'Este email ja esta registado. Usa Entrar para aceder.',
     enterEmailToConfirm: 'Indica o email antes de pedir nova confirmacao.',
     fillRequiredDevice: 'Preenche o nome, numero de serie e modelo.',
     fillUser: 'Preenche nome, email e palavra-passe.',
-    noDevicesToDelete: 'Nao ha dispositivos para apagar.',
+    noDevicesToDelete: 'Nao ha registos para apagar.',
     noProfileChanges: 'Nao ha alteracoes para guardar.',
-    noExportVisible: 'Nao ha dispositivos visiveis para exportar.',
+    noExportVisible: 'Nao ha registos visiveis para exportar.',
     ownDeleteBlocked: 'Nao podes eliminar a tua propria conta.',
     ownRoleBlocked: 'Nao podes alterar a permissao da tua propria conta.',
     passwordMin:
@@ -928,13 +928,13 @@ const translations = {
     resendIn: (seconds: number) => `Reenviar em ${seconds}s`,
     waitSeconds: (seconds: number) => `Aguarda ${seconds}s`,
     changePermissionFor: (name: string) => `Alterar permissao de ${name}`,
-    csvImported: (count: number) => `${count} dispositivos importados do CSV.`,
-    csvImportedUpdated: (count: number) => `${count} dispositivos importados/atualizados.`,
+    csvImported: (count: number) => `${count} registos importados do CSV.`,
+    csvImportedUpdated: (count: number) => `${count} registos importados/atualizados.`,
     csvLineRequired: (row: number) => `Linha ${row}: ID, Nº Série e Modelo são obrigatórios.`,
-    duplicateSerialFound: (serial: string) => `Já existe um dispositivo com o Nº Série ${serial}.`,
+    duplicateSerialFound: (serial: string) => `Já existe um registo com o Nº Série ${serial}.`,
     duplicateSerialInCsv: (serial: string) => `O Nº Série ${serial} aparece mais do que uma vez no CSV.`,
     deleteAllConfirm: (count: number) =>
-      `Vais apagar TODOS os ${count} dispositivos. Esta acao nao pode ser desfeita. Continuar?`,
+      `Vais apagar TODOS os ${count} registos. Esta acao nao pode ser desfeita. Continuar?`,
     deleteOne: (name: string) => `Apagar "${name}"?`,
     deleteUserConfirm: (name: string) =>
       `Vais eliminar o utilizador "${name}" e o acesso dele ao site. Continuar?`,
@@ -946,12 +946,12 @@ const translations = {
       `Aguarda ${seconds} segundos antes de reenviar o email de confirmacao.`,
   },
   en: {
-    addDevice: 'Add device',
+    addDevice: 'Add record',
     actions: 'Actions',
     addAttachment: 'Attach photo/invoice',
     attachments: 'Attachments',
     all: 'All',
-    appTitle: 'Device manager',
+    appTitle: 'Cybersecurity',
     archived: 'Archived',
     ascending: 'Ascending',
     authTabLabel: 'Authentication',
@@ -971,13 +971,13 @@ const translations = {
     deleteAll: 'Delete all',
     demoMode: 'Demo mode',
     demoModeDescription:
-      'You can add, edit and delete devices. Data stays in this browser until Supabase is configured.',
-    devices: 'Devices',
-    devicesSummary: 'Devices summary',
+      'You can add, edit and delete records. Data stays in this browser until Supabase is configured.',
+    devices: 'Cybersecurity',
+    devicesSummary: 'Cybersecurity summary',
     duplicateSerial: 'Duplicate serial number',
     displaySettings: 'Display preferences',
     edit: 'Edit',
-    editDevice: 'Edit device',
+    editDevice: 'Edit record',
     editName: 'Edit name',
     editUser: 'Edit user',
     email: 'Email',
@@ -992,10 +992,10 @@ const translations = {
     historyAction: 'Action',
     historyDate: 'Date',
     historyDetails: 'Details',
-    historyEmptyText: 'When device changes are made, they appear here.',
+    historyEmptyText: 'When cybersecurity changes are made, they appear here.',
     historyEmptyTitle: 'No changes recorded',
-    historySubject: 'Device',
-    historySubtitle: 'Record of the changes made to devices.',
+    historySubject: 'Record',
+    historySubtitle: 'Record of the changes made in cybersecurity.',
     historyTitle: 'Change history',
     historyUser: 'Changed by',
     importCsv: 'Import CSV',
@@ -1018,17 +1018,17 @@ const translations = {
     manualDeveloperTitle: 'Programmer manual',
     manualTitle: 'User manual',
     manualUserDescription:
-      'For daily use: devices, repairs, CSV, attachments, history and access.',
+      'For daily use: cybersecurity, repairs, CSV, attachments, history and access.',
     manualUserTitle: 'User manual',
     name: 'Name',
     navSocios: 'Members',
     navUtentes: 'Clients',
-    navDispositivos: 'Devices',
+    navDispositivos: 'Cybersecurity',
     navAtividades: 'Activities',
-    newDevice: 'New device',
-    noDevices: 'No devices found.',
-    noAttachments: 'No attachments for this device.',
-    noHistory: 'No history for this device.',
+    newDevice: 'New record',
+    noDevices: 'No records found.',
+    noAttachments: 'No attachments for this record.',
+    noHistory: 'No history for this record.',
     noName: 'No name',
     noUsers: 'No users found.',
     openMenu: 'Open menu',
@@ -1070,10 +1070,10 @@ const translations = {
     accountCreated: 'Account created successfully.',
     accountCreatedConfirm:
       'Account created. Confirm the email before signing in. Automatic resends were avoided to prevent hitting the Supabase limit.',
-    allDeleted: 'All devices were deleted.',
-    allDeletedDemo: 'All devices were deleted in demo mode.',
+    allDeleted: 'All records were deleted.',
+    allDeletedDemo: 'All records were deleted in demo mode.',
     confirmationResent: 'Confirmation email resent. Check the inbox and spam folder.',
-    csvEmpty: 'The CSV has no devices to import.',
+    csvEmpty: 'The CSV has no records to import.',
     csvExported: 'CSV exported for Google Sheets.',
     csvImportFailed: 'Could not import the CSV.',
     csvUnreadable: 'The CSV has rows that could not be read.',
@@ -1081,20 +1081,20 @@ const translations = {
     deleteAllPrompt: 'To confirm, type APAGAR',
     demoRefreshed: 'Demo mode refreshed.',
     demoSupabaseRequired: 'Demo mode is active. Configure Supabase to use real login.',
-    deviceAdded: 'Device added.',
-    deviceAddedDemo: 'Device added in demo mode.',
-    deviceDeleted: 'Device deleted.',
-    deviceDeletedDemo: 'Device deleted in demo mode.',
-    deviceUpdated: 'Device updated.',
-    deviceUpdatedDemo: 'Device updated in demo mode.',
+    deviceAdded: 'Record added.',
+    deviceAddedDemo: 'Record added in demo mode.',
+    deviceDeleted: 'Record deleted.',
+    deviceDeletedDemo: 'Record deleted in demo mode.',
+    deviceUpdated: 'Record updated.',
+    deviceUpdatedDemo: 'Record updated in demo mode.',
     duplicateSerialImport: 'The CSV contains repeated serial numbers.',
     emailRegistered: 'This email is already registered. Use Sign in to access.',
     enterEmailToConfirm: 'Enter the email before requesting a new confirmation.',
     fillRequiredDevice: 'Fill name, serial number and model.',
     fillUser: 'Fill name, email and password.',
-    noDevicesToDelete: 'There are no devices to delete.',
+    noDevicesToDelete: 'There are no records to delete.',
     noProfileChanges: 'There are no changes to save.',
-    noExportVisible: 'There are no visible devices to export.',
+    noExportVisible: 'There are no visible records to export.',
     ownDeleteBlocked: 'You cannot delete your own account.',
     ownRoleBlocked: 'You cannot change your own account permission.',
     passwordMin:
@@ -1113,13 +1113,13 @@ const translations = {
     resendIn: (seconds: number) => `Resend in ${seconds}s`,
     waitSeconds: (seconds: number) => `Wait ${seconds}s`,
     changePermissionFor: (name: string) => `Change permission for ${name}`,
-    csvImported: (count: number) => `${count} devices imported from CSV.`,
-    csvImportedUpdated: (count: number) => `${count} devices imported/updated.`,
+    csvImported: (count: number) => `${count} records imported from CSV.`,
+    csvImportedUpdated: (count: number) => `${count} records imported/updated.`,
     csvLineRequired: (row: number) => `Row ${row}: ID, Serial No. and Model are required.`,
-    duplicateSerialFound: (serial: string) => `A device with Serial No. ${serial} already exists.`,
+    duplicateSerialFound: (serial: string) => `A record with Serial No. ${serial} already exists.`,
     duplicateSerialInCsv: (serial: string) => `Serial No. ${serial} appears more than once in the CSV.`,
     deleteAllConfirm: (count: number) =>
-      `You are about to delete ALL ${count} devices. This action cannot be undone. Continue?`,
+      `You are about to delete ALL ${count} records. This action cannot be undone. Continue?`,
     deleteOne: (name: string) => `Delete "${name}"?`,
     deleteUserConfirm: (name: string) =>
       `You are about to delete user "${name}" and remove their site access. Continue?`,
@@ -2550,7 +2550,7 @@ function App() {
     const link = document.createElement('a')
 
     link.href = url
-    link.download = `dispositivos-mentemovimento-${new Date().toISOString().slice(0, 10)}.csv`
+    link.download = `ciberseguranca-mentemovimento-${new Date().toISOString().slice(0, 10)}.csv`
     link.click()
     window.URL.revokeObjectURL(url)
     setNotice(t.csvExported)
@@ -2911,7 +2911,7 @@ function App() {
             <div className="manual-options">
               <a
                 className="manual-card"
-                href="docs/Manual_Utilizador_Dispositivos.pdf"
+                href="docs/Manual_Utilizador_Ciberseguranca.pdf"
                 target="_blank"
                 rel="noopener"
               >
@@ -2925,7 +2925,7 @@ function App() {
               </a>
               <a
                 className="manual-card"
-                href="docs/Manual_Programador_Dispositivos.pdf"
+                href="docs/Manual_Programador_Ciberseguranca.pdf"
                 target="_blank"
                 rel="noopener"
               >

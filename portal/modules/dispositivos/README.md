@@ -4,26 +4,26 @@ Repositorio com os aplicativos internos da MenteMovimento.
 
 ## Aplicacoes
 
-- `.`: site principal em React/Vite, preparado para Vercel e Supabase, com areas de `Dispositivos`, `Utentes`, `Estatisticas` e `Utilizadores`.
+- `.`: site principal em React/Vite, preparado para Vercel e Supabase, com areas de `Ciberseguranca`, `Utentes`, `Estatisticas` e `Utilizadores`.
 - `apps/utentes`: versao Python original do gestor de utentes, preservada como referencia do projeto `Utentes-MenteMovimento`.
 
 O site principal fica na raiz para a Vercel publicar tudo como uma unica aplicacao. A pasta `apps/utentes` mantem a versao Python original sem desformatar, mas a area de utentes usada no site esta integrada no React.
 
-## Funcionalidades do gestor de dispositivos
+## Funcionalidades de ciberseguranca
 
 - Login e criacao de conta com Supabase Auth.
 - Mensagens amigaveis para limite de emails e cooldown para reenviar confirmacao.
 - Tema claro/escuro com preferencia guardada no navegador.
 - Idiomas da interface: Portugues (Portugal) e Ingles.
 - Listagem, pesquisa, filtro por estado e ordenacao crescente/decrescente por coluna.
-- Criacao, edicao e remocao de dispositivos.
-- Relatorio imprimivel dos dispositivos visiveis.
+- Criacao, edicao e remocao de registos.
+- Relatorio imprimivel dos registos visiveis.
 - Pagina de estatisticas com totais, marcas, tecnicos, avarias e resultados finais.
-- Historico e anexos por dispositivo atraves do Supabase Storage.
+- Historico e anexos por registo atraves do Supabase Storage.
 - Aviso visivel para numeros de serie duplicados.
 - Campos principais: nome, numero de serie, modelo, local, estado e notas.
 - Importacao e exportacao CSV compativel com Google Sheets.
-- Contas autenticadas conseguem gerir dispositivos.
+- Contas autenticadas conseguem gerir a area de ciberseguranca.
 - Area integrada de utentes com criacao, pesquisa, edicao e remocao.
 - Area de utilizadores para criar contas, alterar nomes, eliminar acessos e gerir permissoes.
 
@@ -47,7 +47,7 @@ Para importar do Google Sheets, exporta a folha como CSV e usa `Importar CSV`. A
 ID, Data Entrada, Marca, Modelo, Nº Série, CPU, RAM (GB), Disco, Sistema Operativo, Liga, Dá Imagem, BIOS, Estado Físico, Necessita Limpeza, Avaria, Diagnóstico, Peças Necessárias, Custo Estimado, Tempo Estimado (min), Técnico, Estado, Resultado Final, credencial administrador, privilegio, chrocme, aplicação, data copia de segurança, USB bloqueada, Conta GD, data copia de segurança Google Drive, Rastrear todas as contas GD e gmail e verificar acessos de partilha, Unifiormizar o desktop, App estimulação cognmitiva, Observações
 ```
 
-Na importacao, o `Numero de serie` e usado para atualizar dispositivos existentes sem duplicar.
+Na importacao, o `Numero de serie` e usado para atualizar registos existentes sem duplicar.
 
 ## Manual de utilizacao
 
@@ -55,7 +55,7 @@ Consulta `MANUAL.md` ou usa o botao `Manual` dentro da aplicacao.
 
 ## Configurar Supabase
 
-### Dispositivos
+### Ciberseguranca
 
 1. Entra no teu projeto Supabase.
 2. Abre `SQL Editor`.
@@ -82,7 +82,7 @@ Todas as contas novas ficam automaticamente com perfil `admin`.
 
 Se usares confirmacao por email no Supabase Auth, o site mostra um botao `Reenviar confirmacao` com cooldown para evitar o erro `email rate limit exceeded`. Para testes em aula, podes desativar a confirmacao de email em `Authentication > Providers > Email`; para producao, o ideal e configurar SMTP proprio.
 
-Para corrigir contas antigas e permissões/RLS num projeto ja existente, executa o conteudo de `supabase/user-management.sql` no SQL Editor. Esse ficheiro coloca os perfis existentes como `admin`, permite que contas autenticadas usem dispositivos e prepara a area de utilizadores.
+Para corrigir contas antigas e permissoes/RLS num projeto ja existente, executa o conteudo de `supabase/user-management.sql` no SQL Editor. Esse ficheiro coloca os perfis existentes como `admin`, permite que contas autenticadas usem a area de ciberseguranca e prepara a area de utilizadores.
 
 Para ativar historico e anexos, executa tambem `supabase/feature-upgrades.sql` no SQL Editor. Esse ficheiro cria as tabelas `device_history`, `device_attachments` e o bucket privado `device-attachments`.
 
@@ -115,7 +115,7 @@ Sem estas variaveis, o gestor de utentes corre em SQLite local e cria `apps/uten
 
 ## Executar localmente
 
-Gestor de dispositivos:
+Area de ciberseguranca:
 
 ```bash
 npm install

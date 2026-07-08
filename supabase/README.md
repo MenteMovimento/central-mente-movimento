@@ -10,7 +10,7 @@ As tres areas ainda trazem os seus SQLs originais:
 
 - Socios: `portal/modules/socios/supabase/schema.sql`
 - Utentes: `portal/modules/utentes/supabase_schema.sql`
-- Dispositivos: `portal/modules/dispositivos/supabase/full-setup.sql`
+- Ciberseguranca: `portal/modules/dispositivos/supabase/full-setup.sql`
 
 Como estes ficheiros vieram de projetos separados, alguns nomes vivem no schema `public` e podem sobrepor conceitos comuns, principalmente utilizadores/perfis. Num projeto Supabase novo e vazio, isto e gerivel, mas nao deve ser corrido sem rever.
 
@@ -20,7 +20,7 @@ Como estes ficheiros vieram de projetos separados, alguns nomes vivem no schema 
 2. Corre primeiro `supabase/central-preflight.sql`.
 3. Corre o SQL de Socios.
 4. Corre o SQL de Utentes.
-5. Revê o SQL de Dispositivos antes de correr, porque ele tambem inclui tabelas de Utentes herdadas do projeto original.
+5. Reve o SQL de Ciberseguranca antes de correr, porque ele tambem inclui tabelas de Utentes herdadas do projeto original.
 6. Cria um utilizador administrador de teste em Authentication.
 7. Liga a Vercel com as variaveis de ambiente.
 
@@ -28,7 +28,7 @@ Como estes ficheiros vieram de projetos separados, alguns nomes vivem no schema 
 
 Para a versao final, o ideal e consolidar os nomes comuns numa estrutura unica:
 
-- dados especificos de Socios separados dos dados de Utentes e Dispositivos;
+- dados especificos de Socios separados dos dados de Utentes e Ciberseguranca;
 - historico geral;
 - utilizadores/administradores gerais;
 - anexos em buckets separados;

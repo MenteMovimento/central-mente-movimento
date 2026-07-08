@@ -112,7 +112,7 @@ const translations = {
       logout: "Terminar sessão",
       socios: "Sócios",
       utentes: "Utentes",
-      dispositivos: "Dispositivos",
+      dispositivos: "Cibersegurança",
       atividades: "Atividades",
     },
     menu: {
@@ -331,7 +331,7 @@ const translations = {
       logout: "Sign out",
       socios: "Members",
       utentes: "Clients",
-      dispositivos: "Devices",
+      dispositivos: "Cybersecurity",
       atividades: "Activities",
     },
     menu: {

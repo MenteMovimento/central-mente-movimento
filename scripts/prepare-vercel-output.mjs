@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260707-atividades-pdf-print'
+const assetVersion = '20260708-ciberseguranca-labels'
 
 const authPendingHead = `<script>
       (() => {
@@ -122,7 +122,7 @@ const moduleCards = `
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="monitor-cog"></i></span>
   </div>
-  <h2 data-i18n="module.dispositivos.title">Gestão de Dispositivos</h2>
+  <h2 data-i18n="module.dispositivos.title">Cibersegurança</h2>
   <a class="module-action" href="/area/dispositivos/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar</span>
@@ -222,7 +222,7 @@ const topbar = (activeId = '') => `
       </a>
       <a class="topnav-link${activeId === 'dispositivos' ? ' active' : ''}" href="/area/dispositivos/">
         <i data-lucide="monitor-cog"></i>
-        <span data-i18n="nav.dispositivos">Dispositivos</span>
+        <span data-i18n="nav.dispositivos">Cibersegurança</span>
       </a>
       <a class="topnav-link${activeId === 'atividades' ? ' active' : ''}" href="/area/atividades/">
         <i data-lucide="calendar-days"></i>
@@ -1355,11 +1355,11 @@ for (const page of [
     key: 'global.history',
     title: 'Histórico geral',
     icon: 'history',
-    copy: 'Registo comum de alteracoes feitas nos ramos de socios, utentes, dispositivos e atividades.',
+    copy: 'Registo comum de alteracoes feitas nos ramos de socios, utentes, ciberseguranca e atividades.',
     items: [
       ['socios', 'Sócios', 'Alterações em fichas e quotas.'],
       ['utentes', 'Utentes', 'Alterações em fichas, separadores e anexos.'],
-      ['dispositivos', 'Dispositivos', 'Alterações em listagens, reparações, estados, anexos e CSV.'],
+      ['dispositivos', 'Cibersegurança', 'Alterações em registos, reparações, estados, anexos e CSV.'],
       ['atividades', 'Atividades', 'Alteracoes em agenda, presencas e relatorios.'],
     ],
   }),
@@ -1371,7 +1371,7 @@ for (const page of [
     copy: 'Gestão única de administradores, utilizadores e acessos a cada ramo.',
     items: [
       ['admin', 'Administrador', 'Acesso total ao website.'],
-      ['manager', 'Gestor de ramo', 'Acesso limitado a socios, utentes, dispositivos ou atividades.'],
+      ['manager', 'Gestor de ramo', 'Acesso limitado a socios, utentes, ciberseguranca ou atividades.'],
       ['viewer', 'Consulta', 'Acesso só de leitura quando necessário.'],
     ],
   }),
@@ -1384,7 +1384,7 @@ for (const page of [
     items: [
       ['socios', 'Manual de sócios', 'Quotas, exportações e gestão de sócios.'],
       ['utentes', 'Manual de utentes', 'Fichas, separadores, anexos PDF, genograma e ecomapa.'],
-      ['dispositivos', 'Manual de dispositivos', 'Reparações, estados, estatísticas, anexos e CSV.'],
+      ['dispositivos', 'Manual de cibersegurança', 'Registos, reparações, estados, estatísticas, anexos e CSV.'],
       ['atividades', 'Manual de atividades', 'A preparar quando o modulo de atividades estiver fechado.'],
     ],
   }),
@@ -1427,7 +1427,7 @@ await writeFile(
 )
 
 if (!existsSync(dispositivosDist)) {
-  throw new Error('A build de Dispositivos nao gerou a pasta dist.')
+  throw new Error('A build de Ciberseguranca nao gerou a pasta dist.')
 }
 
 await cp(dispositivosDist, dispositivosOutput, { recursive: true })

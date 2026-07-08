@@ -74,7 +74,7 @@ for select
 to authenticated
 using (id = auth.uid());
 
--- Dispositivos: replace the historic unrestricted policies with matrix checks.
+-- Ciberseguranca: replace the historic unrestricted policies with matrix checks.
 drop policy if exists "Authenticated members can read devices" on public.devices;
 drop policy if exists "authorized users read devices" on public.devices;
 create policy "authorized users read devices"

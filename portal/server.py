@@ -62,13 +62,13 @@ MODULES = [
     },
     {
         "id": "dispositivos",
-        "name": "Gestão de Dispositivos",
-        "label": "Dispositivos",
+        "name": "Cibersegurança",
+        "label": "Cibersegurança",
         "path": "/area/dispositivos",
         "schema": "dispositivos",
         "icon": "monitor-cog",
         "accent": "amber",
-        "detail": "Base de dispositivos",
+        "detail": "Área de cibersegurança",
         "table": "devices",
     },
     {
@@ -737,11 +737,11 @@ GLOBAL_PAGES = {
         "title": "Histórico geral",
         "icon": "history",
         "eyebrow": "Ferramenta global",
-        "body": "Registo comum de alterações feitas nos ramos de sócios, utentes e dispositivos.",
+        "body": "Registo comum de alterações feitas nos ramos de sócios, utentes, cibersegurança e atividades.",
         "items": [
             ("Sócios", "Alterações em fichas e quotas."),
             ("Utentes", "Alterações em fichas, separadores e anexos."),
-            ("Dispositivos", "Alterações em listagens, reparações, estados, anexos e CSV."),
+            ("Cibersegurança", "Alterações em registos, reparações, estados, anexos e CSV."),
         ],
     },
     "utilizadores": {
@@ -751,7 +751,7 @@ GLOBAL_PAGES = {
         "body": "Gestão única de administradores, utilizadores e acessos a cada ramo.",
         "items": [
             ("Administrador", "Acesso total ? central."),
-            ("Gestor de ramo", "Acesso limitado a sócios, utentes ou dispositivos."),
+            ("Gestor de ramo", "Acesso limitado a sócios, utentes, cibersegurança ou atividades."),
             ("Consulta", "Acesso só de leitura quando necessário."),
         ],
     },
@@ -759,11 +759,11 @@ GLOBAL_PAGES = {
         "title": "Manuais",
         "icon": "book-open",
         "eyebrow": "Ferramenta global",
-        "body": "Área comum para consultar os manuais dos três ramos e os manuais técnicos.",
+        "body": "Área comum para consultar os manuais dos ramos e os manuais técnicos.",
         "items": [
             ("Manual de sócios", "Quotas, exportações e gestão de sócios."),
             ("Manual de utentes", "Fichas, separadores, anexos PDF, genograma e ecomapa."),
-            ("Manual de dispositivos", "Reparações, estados, estatísticas, anexos e CSV."),
+            ("Manual de cibersegurança", "Registos, reparações, estados, estatísticas, anexos e CSV."),
         ],
     },
 }
@@ -1245,9 +1245,9 @@ class PortalHandler(BaseHTTPRequestHandler):
                 render_template(
                     "area.html",
                     TOPBAR=topbar("dispositivos"),
-                    AREA_NAME="Gestão de Dispositivos",
-                    AREA_LABEL="Dispositivos",
-                    AREA_DETAIL="O módulo de Dispositivos ainda não está ligado. Reinicie com .\\start-local.ps1.",
+                    AREA_NAME="Cibersegurança",
+                    AREA_LABEL="Cibersegurança",
+                    AREA_DETAIL="O módulo de Cibersegurança ainda não está ligado. Reinicie com .\\start-local.ps1.",
                     AREA_ICON="monitor-cog",
                     AREA_ACCENT="amber",
                     AREA_SCHEMA="dispositivos",

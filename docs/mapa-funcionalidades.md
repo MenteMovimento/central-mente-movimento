@@ -46,9 +46,9 @@ utentes.utente_abas
 utentes.utente_anexos
 ```
 
-## Ramo Dispositivos
+## Ramo Ciberseguranca
 
-Funcionalidades que devem ser migradas do projeto de dispositivos:
+Funcionalidades que devem ser migradas do projeto de ciberseguranca:
 
 - Listagem.
 - Reparações.

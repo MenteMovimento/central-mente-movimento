@@ -4,7 +4,7 @@ Projeto local para testar um unico site central para os tres ramos de gestao da 
 
 - Gestao de Socios
 - Gestao de Utentes
-- Gestao de Dispositivos
+- Ciberseguranca
 
 ## Correr localmente
 
@@ -39,7 +39,7 @@ A area de Utentes tambem corre dentro da Central, sem segundo login. A copia loc
 C:\Users\Asus\Documents\CentralMenteMovimento\portal\modules\utentes\utentes.db
 ```
 
-A area de Dispositivos tambem corre dentro da Central, sem segundo login. A copia local fica em:
+A area de Ciberseguranca tambem corre dentro da Central, sem segundo login. A copia local fica em:
 
 ```text
 C:\Users\Asus\Documents\CentralMenteMovimento\portal\modules\dispositivos
@@ -57,7 +57,7 @@ Para parar os servicos:
 Central:       http://127.0.0.1:8090
 Socios:        http://127.0.0.1:8090/area/socios
 Utentes:       http://127.0.0.1:8090/area/utentes
-Dispositivos:  http://127.0.0.1:8090/area/dispositivos
+Ciberseguranca: http://127.0.0.1:8090/area/dispositivos
 ```
 
 Tambem existem atalhos:
@@ -76,7 +76,7 @@ O ramo de Socios ja esta integrado como copia local da aplicacao de Socios, com 
 
 O ramo de Utentes ja esta integrado como copia local da aplicacao Python de Utentes, incluindo fichas, separadores, anexos PDF, genograma/ecomapa, historico, utilizadores, tema, idioma e manuais.
 
-O ramo de Dispositivos ja esta integrado como copia local da aplicacao React/Vite de Dispositivos, incluindo listagem, reparacoes, estados, estatisticas, CSV e fluxo visual proprio dentro da Central.
+O ramo de Ciberseguranca ja esta integrado como copia local da aplicacao React/Vite, incluindo listagem, reparacoes, estados, estatisticas, CSV e fluxo visual proprio dentro da Central.
 
 O tema claro/escuro passa a ser partilhado entre as areas, e as ferramentas secundarias ficam recolhidas no menu dos tres tracinhos para manter a barra superior consistente.
 

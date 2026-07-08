@@ -1,5 +1,5 @@
 -- Security hardening for Central MenteMovimento.
--- Run after the Socios, Utentes and Dispositivos schemas are already installed.
+-- Run after the Socios, Utentes and Ciberseguranca schemas are already installed.
 -- This makes app_users the single authority for access across the central site.
 
 create extension if not exists pgcrypto;

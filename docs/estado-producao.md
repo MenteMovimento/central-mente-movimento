@@ -14,9 +14,9 @@
 - Garantir que os botoes de gestao de administradores/utilizadores usam apenas funcoes serverless com `SUPABASE_SERVICE_ROLE_KEY` guardada na Vercel.
 - Remover a dependencia dos servidores locais nas portas `8091` e `8092`.
 - Decidir a forma final da area de Utentes em producao: manter backend Python serverless ou migrar para frontend/Supabase diretamente.
-- Criar regras RLS finais para proteger dados de Socios, Utentes, Dispositivos, Historico e Utilizadores.
+- Criar regras RLS finais para proteger dados de Socios, Utentes, Ciberseguranca, Historico e Utilizadores.
 - Fazer migracao dos dados antigos depois de testar a base vazia.
-- Validar anexos PDF, anexos de dispositivos, CSV, exportacoes, modo escuro, idioma, manuais e menus nas tres areas depois do deploy.
+- Validar anexos PDF, anexos de ciberseguranca, CSV, exportacoes, modo escuro, idioma, manuais e menus nas areas depois do deploy.
 
 ## Recomendacao
 

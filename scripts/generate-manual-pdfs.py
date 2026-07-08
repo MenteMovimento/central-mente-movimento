@@ -39,8 +39,8 @@ OUTPUTS = {
     "utentes_dev_pt": ROOT / "portal/modules/utentes/docs/Manual_Programador_Utentes.pdf",
     "utentes_user_en": ROOT / "portal/modules/utentes/docs/Manual_User_Utentes.pdf",
     "utentes_dev_en": ROOT / "portal/modules/utentes/docs/Manual_Programmer_Utentes.pdf",
-    "dispositivos_user": ROOT / "portal/modules/dispositivos/public/docs/Manual_Utilizador_Dispositivos.pdf",
-    "dispositivos_dev": ROOT / "portal/modules/dispositivos/public/docs/Manual_Programador_Dispositivos.pdf",
+    "dispositivos_user": ROOT / "portal/modules/dispositivos/public/docs/Manual_Utilizador_Ciberseguranca.pdf",
+    "dispositivos_dev": ROOT / "portal/modules/dispositivos/public/docs/Manual_Programador_Ciberseguranca.pdf",
     "atividades_user": ROOT / "portal/modules/atividades/docs/Manual_Utilizador_Atividades.pdf",
     "atividades_dev": ROOT / "portal/modules/atividades/docs/Manual_Programador_Atividades.pdf",
 }
@@ -279,7 +279,7 @@ def build_pdf(path: Path, title: str, subtitle: str, audience: str, branch: str,
 COMMON_USER = [
     {
         "title": "1. Acesso ao site central",
-        "body": "A Central MenteMovimento usa um único login para as três áreas de gestão. Depois de entrar, o utilizador escolhe Gestão de Sócios, Gestão de Utentes ou Gestão de Dispositivos sem repetir credenciais.",
+        "body": "A Central MenteMovimento usa um único login para as áreas de gestão. Depois de entrar, o utilizador escolhe Gestão de Sócios, Gestão de Utentes, Cibersegurança ou Atividades sem repetir credenciais.",
         "steps": [
             "Abrir o site central na Vercel.",
             "Introduzir email e password autorizados.",
@@ -425,21 +425,21 @@ UTENTES_USER_PT = COMMON_USER + [
 
 DISPOSITIVOS_USER = COMMON_USER + [
     {
-        "title": "3. Painel de dispositivos",
-        "body": "A área de Dispositivos organiza equipamentos, estados, reparações, anexos e estatísticas.",
+        "title": "3. Painel de cibersegurança",
+        "body": "A área de Cibersegurança organiza equipamentos, estados, reparações, anexos e estatísticas.",
         "bullets": [
             "Os cartões de topo mostram total, ativos, em manutenção e arquivados.",
-            "A aba Dispositivos contém o formulário e a tabela principal.",
+            "A aba Cibersegurança contém o formulário e a tabela principal.",
             "A aba Estatísticas apresenta distribuição por estado, marcas, técnicos, avarias e resultados.",
             "A pesquisa e filtros afetam os registos visíveis.",
         ],
     },
     {
-        "title": "4. Criar e editar dispositivos",
+        "title": "4. Criar e editar registos",
         "steps": [
             "Preencher ID, data de entrada, marca, modelo e número de série.",
             "Completar hardware, sistema, diagnóstico, reparação, estado e observações.",
-            "Guardar o dispositivo e confirmar que aparece na tabela.",
+            "Guardar o registo e confirmar que aparece na tabela.",
             "Usar o lápis para editar uma linha existente.",
             "Atualizar o estado para Ativo, Manutenção ou Arquivado conforme a situação real.",
         ],
@@ -448,7 +448,7 @@ DISPOSITIVOS_USER = COMMON_USER + [
         "title": "5. CSV, relatório e anexos",
         "bullets": [
             "Exportar CSV cria uma cópia dos registos visíveis para arquivo ou análise.",
-            "Importar CSV permite atualizar vários dispositivos; confirmar colunas antes de importar.",
+            "Importar CSV permite atualizar vários registos; confirmar colunas antes de importar.",
             "Imprimir relatório prepara uma vista adequada para impressão.",
             "Anexos podem guardar fotografias, faturas, relatórios ou comprovativos relacionados com o equipamento.",
             "O botão Apagar tudo deve ser usado apenas em testes ou com autorização expressa.",
@@ -619,7 +619,7 @@ UTENTES_DEV_PT = DEV_COMMON + [
 
 DISPOSITIVOS_DEV = DEV_COMMON + [
     {
-        "title": "4. Estrutura do ramo Dispositivos",
+        "title": "4. Estrutura do ramo Cibersegurança",
         "bullets": [
             "Aplicação React/Vite: portal/modules/dispositivos/src/App.tsx.",
             "Estilos: portal/modules/dispositivos/src/App.css.",
@@ -637,7 +637,7 @@ DISPOSITIVOS_DEV = DEV_COMMON + [
             "device_attachments guarda metadados dos ficheiros associados a equipamentos.",
             "O Storage device-attachments guarda os ficheiros físicos.",
             "CSV usa mapeamento de colunas para importar/exportar listas.",
-            "Estatísticas são calculadas a partir dos dispositivos carregados no estado da app.",
+            "Estatísticas são calculadas a partir dos registos carregados no estado da app.",
         ],
     },
     {
@@ -655,7 +655,7 @@ DISPOSITIVOS_DEV = DEV_COMMON + [
 UTENTES_USER_EN = [
     {
         "title": "1. Central access",
-        "body": "Central MenteMovimento uses one sign-in for members, clients and devices. After signing in, choose the working area from the dashboard or the top navigation.",
+        "body": "Central MenteMovimento uses one sign-in for members, clients, cybersecurity and activities. After signing in, choose the working area from the dashboard or the top navigation.",
         "bullets": [
             "Use an authorised email and password.",
             "Remember credentials only on trusted browsers.",
@@ -929,7 +929,7 @@ def dev_extra_sections(branch: str, module_files: list[str], data_notes: list[st
                 "Executar o gerador de manuais quando houver mudança funcional.",
                 "Executar npm run build na raiz do projeto.",
                 "Abrir pelo menos login, dashboard e o ramo alterado.",
-                "Testar navegação entre Sócios, Utentes e Dispositivos.",
+                "Testar navegação entre Sócios, Utentes e Cibersegurança.",
                 "Confirmar que tema escuro, idioma e menu mantêm comportamento global.",
                 "Fazer commit e push para main apenas depois dos testes básicos passarem.",
             ],
@@ -965,7 +965,7 @@ def dev_extra_sections(branch: str, module_files: list[str], data_notes: list[st
         {
             "title": "Política de dados reais",
             "bullets": [
-                "Nunca commitar exports reais de sócios, utentes ou dispositivos.",
+                "Nunca commitar exports reais de sócios, utentes ou cibersegurança.",
                 "Nunca commitar anexos reais ou bases SQLite com dados pessoais.",
                 "Usar dados fictícios em testes e prints de suporte.",
                 "Se uma chave ou ficheiro sensível for publicado por engano, revogar, substituir e registar o incidente.",
@@ -982,7 +982,7 @@ def dev_extra_sections_en(branch: str):
                 "Run the manual generator whenever functionality changes.",
                 "Run npm run build from the repository root.",
                 f"Open the {branch} area and test the changed workflow.",
-                "Test navigation between members, clients and devices.",
+                "Test navigation between members, clients and cybersecurity.",
                 "Confirm that dark mode, language and the menu still behave globally.",
                 "Push to main only after the basic production checks pass.",
             ],
@@ -1097,23 +1097,23 @@ def main():
     )
     build_pdf(
         OUTPUTS["dispositivos_user"],
-        "Manual do Utilizador - Gestão de Dispositivos",
-        "Guia prático para gerir equipamentos, CSV, relatórios, anexos e estatísticas.",
+        "Manual do Utilizador - Cibersegurança",
+        "Guia prático para gerir registos, CSV, relatórios, anexos e estatísticas.",
         "Administradores e operadores da associação",
-        "Gestão de Dispositivos",
-        DISPOSITIVOS_USER + user_extra_sections("Gestão de Dispositivos", "dispositivos"),
+        "Cibersegurança",
+        DISPOSITIVOS_USER + user_extra_sections("Cibersegurança", "cibersegurança"),
     )
     build_pdf(
         OUTPUTS["dispositivos_dev"],
-        "Manual do Programador - Gestão de Dispositivos",
-        "Guia técnico para manutenção da área de Dispositivos no projeto central.",
+        "Manual do Programador - Cibersegurança",
+        "Guia técnico para manutenção da área de Cibersegurança no projeto central.",
         "Programadores e responsáveis técnicos",
-        "Gestão de Dispositivos",
+        "Cibersegurança",
         DISPOSITIVOS_DEV
         + dev_extra_sections(
-            "Gestão de Dispositivos",
+            "Cibersegurança",
             [
-                "portal/modules/dispositivos/src/App.tsx - componente principal, formulários, tabela e estatísticas.",
+                "portal/modules/dispositivos/src/App.tsx - componente principal, formulários, tabela e estatísticas da área de cibersegurança.",
                 "portal/modules/dispositivos/src/App.css - estilos do ramo e adaptação ao tema.",
                 "portal/modules/dispositivos/public/docs/ - PDFs descarregados no botão Manuais.",
                 "portal/modules/dispositivos/supabase/schema.sql - tabelas e políticas do ramo.",

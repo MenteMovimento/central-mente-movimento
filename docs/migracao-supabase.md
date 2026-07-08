@@ -7,7 +7,7 @@ Este protótipo local já junta a navegação num único site, mas ainda não ju
 Antes de qualquer migração:
 
 - Exportar a base de sócios.
-- Exportar a base de dispositivos.
+- Exportar a base de ciberseguranca.
 - Exportar a base de utentes.
 - Guardar ficheiros/anexos do Supabase Storage.
 - Confirmar contagens de registos antes e depois.
