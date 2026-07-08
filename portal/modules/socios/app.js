@@ -1438,7 +1438,6 @@ function showApp() {
   elements.authView.hidden = true;
   elements.appShell.hidden = false;
   elements.userEmail.textContent = state.profile.full_name || state.profile.email || state.user.email || "";
-  elements.userRole.textContent = roleLabel(state.profile.role);
   applyPermissions();
   updateStaticLanguageText();
   renderIcons();
