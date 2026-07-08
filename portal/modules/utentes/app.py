@@ -2133,7 +2133,7 @@ header.central-header {
 }
 
 .dark-theme header.central-header {
-    background: var(--panel);
+    background: var(--bg);
 }
 
 .central-topbar {
