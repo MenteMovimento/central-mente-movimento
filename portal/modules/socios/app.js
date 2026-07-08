@@ -1139,7 +1139,6 @@ function updateStaticLanguageText() {
   setText('label[for="createUserName"] span, label[for="accessUserName"] span', "app.name");
   setText('label[for="createUserEmail"] span, label[for="accessUserEmail"] span', "app.email");
   setText('label[for="createUserPassword"] span', "app.password");
-  setText('label[for="createUserRole"] span, label[for="accessUserRole"] span', "app.profile");
   setText('label[for="accessUserActive"] span', "app.active");
   setText("#clearUserFormBtn", "app.clear");
   setText("#createUserForm .primary-button span", "admin.createButton");
