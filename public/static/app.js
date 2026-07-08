@@ -104,6 +104,8 @@ const translations = {
     "activities.saved": "Atividade guardada.",
     "activities.deleted": "Atividade removida.",
     "activities.cleared": "Semana limpa.",
+    "activities.localOnly": "Agenda partilhada indisponivel. As alteracoes ficam apenas neste browser ate configurar o Supabase.",
+    "activities.saveError": "Nao foi possivel guardar a atividade partilhada.",
     "activities.historyEmpty": "Sem a\u00e7\u00f5es registadas.",
     "activities.historyAction": "A\u00e7\u00e3o",
     "activities.historyWhen": "Data",
@@ -293,6 +295,8 @@ const translations = {
     "activities.saved": "Activity saved.",
     "activities.deleted": "Activity removed.",
     "activities.cleared": "Week cleared.",
+    "activities.localOnly": "Shared timetable unavailable. Changes stay only in this browser until Supabase is configured.",
+    "activities.saveError": "Could not save the shared activity.",
     "activities.historyEmpty": "No actions registered.",
     "activities.historyAction": "Action",
     "activities.historyWhen": "Date",
@@ -919,6 +923,10 @@ const escapeHtml = (value) =>
 
 const activitiesStorageKey = "central-activities-weekly-calendar-v1";
 const activitiesHistoryStorageKey = "central-activities-history-v1";
+const activitiesMigrationStorageKey = "central-activities-supabase-migrated-v1";
+const activitiesHistoryMigrationStorageKey = "central-activities-history-supabase-migrated-v1";
+const activitiesScheduleTableName = "activities_schedule";
+const activitiesHistoryTableName = "activities_history";
 const activitiesDays = [
   { key: "monday" },
   { key: "tuesday" },
@@ -981,7 +989,10 @@ const formatActivityDateTime = (value) => {
 };
 
 const activitiesState = {
+  client: null,
   entries: [],
+  history: [],
+  storageMode: "local",
   selectedWeekStart: weekStartIso(),
   draggedActivityId: "",
   dragPreviewCellKey: "",
@@ -1034,23 +1045,151 @@ const normalizeActivityEntry = (entry, fallbackWeekStart = activitiesState.selec
   };
 };
 
-const loadActivities = () => {
+const createActivitiesClient = () => {
+  if (activitiesState.client) return activitiesState.client;
+  const config = window.CENTRAL_CONFIG || {};
+  if (!config.supabaseUrl || !config.supabaseAnonKey || !window.supabase?.createClient) {
+    return null;
+  }
+  activitiesState.client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: centralAuthStorageKey,
+      storage: centralAuthStorage,
+    },
+  });
+  return activitiesState.client;
+};
+
+const activityTimeFromRow = (value) => String(value || "").slice(0, 5);
+
+const activityEntryFromRow = (row, fallbackOrder = 0) =>
+  normalizeActivityEntry(
+    {
+      id: row?.id,
+      weekStart: row?.week_start,
+      day: row?.day,
+      start: activityTimeFromRow(row?.start_time),
+      end: activityTimeFromRow(row?.end_time),
+      title: row?.title,
+      teacher: row?.teacher,
+      order: row?.sort_order,
+    },
+    dateFromIso(String(row?.week_start || "")) ? weekStartIso(row.week_start) : activitiesState.selectedWeekStart,
+    fallbackOrder,
+  );
+
+const activityEntryToRow = (entry) => ({
+  id: entry.id,
+  week_start: entry.weekStart,
+  day: entry.day,
+  start_time: entry.start,
+  end_time: entry.end || null,
+  title: entry.title,
+  teacher: entry.teacher,
+  sort_order: Number(entry.order) || 0,
+});
+
+const readActivitiesFromStorage = () => {
   try {
     const stored = JSON.parse(localStorage.getItem(activitiesStorageKey) || "[]");
-    activitiesState.entries = Array.isArray(stored)
+    return Array.isArray(stored)
       ? stored.map((entry, index) => normalizeActivityEntry(entry, activitiesState.selectedWeekStart, index)).filter(Boolean)
       : [];
   } catch (_error) {
-    activitiesState.entries = [];
+    return [];
   }
 };
 
-const saveActivities = () => {
+const saveActivities = (entries = activitiesState.entries) => {
   try {
-    localStorage.setItem(activitiesStorageKey, JSON.stringify(activitiesState.entries));
+    localStorage.setItem(activitiesStorageKey, JSON.stringify(entries));
   } catch (_error) {
     // O calendario continua editavel na sessao atual mesmo sem localStorage.
   }
+};
+
+const markActivitiesRemoteUnavailable = (error) => {
+  activitiesState.storageMode = "local";
+  if (error) {
+    console.warn("Atividades partilhadas indisponiveis.", error);
+  }
+  if (activitiesElements().root) {
+    setActivitiesFeedback(getTranslation("activities.localOnly"));
+  }
+};
+
+const hasActivitiesMigrationRun = (key) => {
+  try {
+    return localStorage.getItem(key) === "true";
+  } catch (_error) {
+    return true;
+  }
+};
+
+const markActivitiesMigrationRun = (key) => {
+  try {
+    localStorage.setItem(key, "true");
+  } catch (_error) {
+    // A migracao pode voltar a tentar noutro carregamento se o browser bloquear localStorage.
+  }
+};
+
+const migrateLocalActivitiesToRemote = async (client, remoteEntries, localEntries) => {
+  if (!localEntries.length || hasActivitiesMigrationRun(activitiesMigrationStorageKey)) return remoteEntries;
+  const remoteIds = new Set(remoteEntries.map((entry) => entry.id));
+  const missingEntries = localEntries.filter((entry) => !remoteIds.has(entry.id));
+  if (!missingEntries.length) {
+    markActivitiesMigrationRun(activitiesMigrationStorageKey);
+    return remoteEntries;
+  }
+  const { data, error } = await client
+    .from(activitiesScheduleTableName)
+    .upsert(missingEntries.map(activityEntryToRow), { onConflict: "id" })
+    .select("id,week_start,day,start_time,end_time,title,teacher,sort_order");
+  if (error) {
+    console.warn("Nao foi possivel migrar atividades locais.", error);
+    return remoteEntries;
+  }
+  markActivitiesMigrationRun(activitiesMigrationStorageKey);
+  const migratedEntries = Array.isArray(data)
+    ? data.map((row, index) => activityEntryFromRow(row, remoteEntries.length + index)).filter(Boolean)
+    : missingEntries;
+  return [
+    ...remoteEntries.filter((entry) => !new Set(migratedEntries.map((item) => item.id)).has(entry.id)),
+    ...migratedEntries,
+  ];
+};
+
+const loadActivities = async () => {
+  const localEntries = readActivitiesFromStorage();
+  const client = createActivitiesClient();
+  if (!client) {
+    activitiesState.entries = localEntries;
+    markActivitiesRemoteUnavailable();
+    return;
+  }
+  const { data, error } = await client
+    .from(activitiesScheduleTableName)
+    .select("id,week_start,day,start_time,end_time,title,teacher,sort_order")
+    .order("week_start", { ascending: true })
+    .order("day", { ascending: true })
+    .order("start_time", { ascending: true })
+    .order("sort_order", { ascending: true });
+  if (error) {
+    activitiesState.entries = localEntries;
+    markActivitiesRemoteUnavailable(error);
+    return;
+  }
+  activitiesState.storageMode = "remote";
+  let remoteEntries = Array.isArray(data)
+    ? data.map((row, index) => activityEntryFromRow(row, index)).filter(Boolean)
+    : [];
+  remoteEntries = await migrateLocalActivitiesToRemote(client, remoteEntries, localEntries);
+  activitiesState.entries = remoteEntries;
+  saveActivities(remoteEntries);
 };
 
 const normalizeActivityHistoryEntry = (entry, index = 0) => {
@@ -1069,7 +1208,7 @@ const normalizeActivityHistoryEntry = (entry, index = 0) => {
   };
 };
 
-const loadActivitiesHistory = () => {
+const readActivitiesHistoryFromStorage = () => {
   try {
     const stored = JSON.parse(localStorage.getItem(activitiesHistoryStorageKey) || "[]");
     return Array.isArray(stored)
@@ -1091,6 +1230,95 @@ const saveActivitiesHistory = (entries) => {
   }
 };
 
+const activityHistoryEntryFromRow = (row, index = 0) =>
+  normalizeActivityHistoryEntry(
+    {
+      id: row?.id,
+      at: row?.created_at,
+      action: row?.action,
+      title: row?.title,
+      teacher: row?.teacher,
+      day: row?.day,
+      start: activityTimeFromRow(row?.start_time),
+      end: activityTimeFromRow(row?.end_time),
+      weekStart: row?.week_start,
+    },
+    index,
+  );
+
+const activityHistoryEntryToRow = (entry) => ({
+  id: entry.id,
+  created_at: entry.at,
+  action: entry.action,
+  title: entry.title || null,
+  teacher: entry.teacher || null,
+  day: entry.day || null,
+  start_time: entry.start || null,
+  end_time: entry.end || null,
+  week_start: entry.weekStart || null,
+});
+
+const migrateLocalActivityHistoryToRemote = async (client, remoteEntries, localEntries) => {
+  if (!localEntries.length || hasActivitiesMigrationRun(activitiesHistoryMigrationStorageKey)) return remoteEntries;
+  const remoteIds = new Set(remoteEntries.map((entry) => entry.id));
+  const missingEntries = localEntries.filter((entry) => !remoteIds.has(entry.id)).slice(0, 200);
+  if (!missingEntries.length) {
+    markActivitiesMigrationRun(activitiesHistoryMigrationStorageKey);
+    return remoteEntries;
+  }
+  const { data, error } = await client
+    .from(activitiesHistoryTableName)
+    .insert(missingEntries.map(activityHistoryEntryToRow))
+    .select("id,created_at,action,title,teacher,day,start_time,end_time,week_start");
+  if (error) {
+    console.warn("Nao foi possivel migrar historico local de atividades.", error);
+    return remoteEntries;
+  }
+  markActivitiesMigrationRun(activitiesHistoryMigrationStorageKey);
+  const migratedEntries = Array.isArray(data)
+    ? data.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
+    : missingEntries;
+  return [...remoteEntries, ...migratedEntries]
+    .sort((left, right) => right.at.localeCompare(left.at))
+    .slice(0, 200);
+};
+
+const loadActivitiesHistory = async () => {
+  const localEntries = readActivitiesHistoryFromStorage();
+  const client = createActivitiesClient();
+  if (!client) {
+    activitiesState.history = localEntries;
+    return localEntries;
+  }
+  const { data, error } = await client
+    .from(activitiesHistoryTableName)
+    .select("id,created_at,action,title,teacher,day,start_time,end_time,week_start")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) {
+    console.warn("Historico partilhado de atividades indisponivel.", error);
+    activitiesState.history = localEntries;
+    return localEntries;
+  }
+  let remoteEntries = Array.isArray(data)
+    ? data.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
+    : [];
+  remoteEntries = await migrateLocalActivityHistoryToRemote(client, remoteEntries, localEntries);
+  activitiesState.history = remoteEntries;
+  saveActivitiesHistory(remoteEntries);
+  return remoteEntries;
+};
+
+const saveActivityHistoryRemote = async (entry) => {
+  if (activitiesState.storageMode !== "remote") return;
+  const client = createActivitiesClient();
+  if (!client) return;
+  const { error } = await client
+    .from(activitiesHistoryTableName)
+    .insert(activityHistoryEntryToRow(entry));
+  if (error) console.warn("Nao foi possivel guardar historico de atividades.", error);
+};
+
 const recordActivityHistory = (action, entry = {}) => {
   const item = normalizeActivityEntry(entry, activitiesState.selectedWeekStart, Number(entry.order) || 0);
   const historyEntry = {
@@ -1104,7 +1332,11 @@ const recordActivityHistory = (action, entry = {}) => {
     end: item?.end || (isActivityTime(entry?.end) ? entry.end : ""),
     weekStart: item?.weekStart || activitiesState.selectedWeekStart,
   };
-  saveActivitiesHistory([historyEntry, ...loadActivitiesHistory()]);
+  const cachedHistory = activitiesState.history.length ? activitiesState.history : readActivitiesHistoryFromStorage();
+  const nextHistory = [historyEntry, ...cachedHistory].slice(0, 200);
+  activitiesState.history = nextHistory;
+  saveActivitiesHistory(nextHistory);
+  void saveActivityHistoryRemote(historyEntry);
 };
 
 const selectedWeekActivities = () =>
@@ -1516,10 +1748,16 @@ const renderActivitiesCalendar = () => {
   }
 };
 
-const renderActivitiesHistoryPage = () => {
+const renderActivitiesHistoryPage = async () => {
   const root = document.querySelector("[data-activities-history]");
   if (!root) return;
-  const entries = loadActivitiesHistory();
+  let entries = [];
+  try {
+    entries = await loadActivitiesHistory();
+  } catch (error) {
+    console.warn("Nao foi possivel carregar historico de atividades.", error);
+    entries = readActivitiesHistoryFromStorage();
+  }
   if (!entries.length) {
     root.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.historyEmpty"))}</p>`;
     return;
@@ -1564,9 +1802,41 @@ const validateActivityPayload = (payload) => {
   return "";
 };
 
-const handleActivitySubmit = (event) => {
+const saveActivityEntryRemote = async (entry) => {
+  if (activitiesState.storageMode !== "remote") return entry;
+  const client = createActivitiesClient();
+  if (!client) return entry;
+  const { data, error } = await client
+    .from(activitiesScheduleTableName)
+    .upsert(activityEntryToRow(entry), { onConflict: "id" })
+    .select("id,week_start,day,start_time,end_time,title,teacher,sort_order")
+    .single();
+  if (error) throw error;
+  return activityEntryFromRow(data, entry.order) || entry;
+};
+
+const deleteActivityEntryRemote = async (id) => {
+  if (activitiesState.storageMode !== "remote") return;
+  const client = createActivitiesClient();
+  if (!client) return;
+  const { error } = await client.from(activitiesScheduleTableName).delete().eq("id", id);
+  if (error) throw error;
+};
+
+const saveActivityOrderRemote = async (entries) => {
+  if (activitiesState.storageMode !== "remote") return;
+  const client = createActivitiesClient();
+  if (!client || !entries.length) return;
+  const { error } = await client
+    .from(activitiesScheduleTableName)
+    .upsert(entries.map(activityEntryToRow), { onConflict: "id" });
+  if (error) throw error;
+};
+
+const handleActivitySubmit = async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
+  const submitButton = form.querySelector('button[type="submit"]');
   const data = new FormData(form);
   const payload = {
     id: String(data.get("id") || "").trim(),
@@ -1593,17 +1863,30 @@ const handleActivitySubmit = (event) => {
     existingEntry && activityCellKey(existingEntry) === activityCellKey(entry)
       ? existingEntry.order
       : nextActivityOrderForCell(entry);
-  if (existingIndex >= 0) {
-    activitiesState.entries.splice(existingIndex, 1, entry);
-  } else {
-    activitiesState.entries.push(entry);
+  if (submitButton) submitButton.disabled = true;
+  try {
+    const savedEntry = await saveActivityEntryRemote(entry);
+    if (existingIndex >= 0) {
+      activitiesState.entries.splice(existingIndex, 1, savedEntry);
+    } else {
+      activitiesState.entries.push(savedEntry);
+    }
+    saveActivities();
+    recordActivityHistory(existingIndex >= 0 ? "updated" : "created", savedEntry);
+    resetActivitiesForm();
+    setActivityFormOpen(false);
+    renderActivitiesCalendar();
+    if (activitiesState.storageMode === "remote") {
+      setActivitiesFeedback(getTranslation("activities.saved"), "success");
+    } else {
+      setActivitiesFeedback(getTranslation("activities.localOnly"));
+    }
+  } catch (error) {
+    console.warn("Erro ao guardar atividade.", error);
+    setActivitiesFeedback(getTranslation("activities.saveError"));
+  } finally {
+    if (submitButton) submitButton.disabled = false;
   }
-  saveActivities();
-  recordActivityHistory(existingIndex >= 0 ? "updated" : "created", entry);
-  resetActivitiesForm();
-  setActivityFormOpen(false);
-  renderActivitiesCalendar();
-  setActivitiesFeedback(getTranslation("activities.saved"), "success");
 };
 
 const fillActivityForm = (entry) => {
@@ -1643,15 +1926,25 @@ const editActivity = (id) => {
   form.elements.title.focus();
 };
 
-const deleteActivity = (id) => {
+const deleteActivity = async (id) => {
   const entry = activitiesState.entries.find((item) => item.id === id);
   if (!entry) return;
   if (!window.confirm(getTranslation("activities.confirmDelete"))) return;
-  activitiesState.entries = activitiesState.entries.filter((item) => item.id !== id);
-  saveActivities();
-  recordActivityHistory("deleted", entry);
-  renderActivitiesCalendar();
-  setActivitiesFeedback(getTranslation("activities.deleted"), "success");
+  try {
+    await deleteActivityEntryRemote(id);
+    activitiesState.entries = activitiesState.entries.filter((item) => item.id !== id);
+    saveActivities();
+    recordActivityHistory("deleted", entry);
+    renderActivitiesCalendar();
+    if (activitiesState.storageMode === "remote") {
+      setActivitiesFeedback(getTranslation("activities.deleted"), "success");
+    } else {
+      setActivitiesFeedback(getTranslation("activities.localOnly"));
+    }
+  } catch (error) {
+    console.warn("Erro ao remover atividade.", error);
+    setActivitiesFeedback(getTranslation("activities.saveError"));
+  }
 };
 
 const activityPrintDocument = () => {
@@ -1803,7 +2096,7 @@ const changeActivityWeek = (weekOffset) => {
   renderActivitiesCalendar();
 };
 
-const reorderActivitiesInCell = (draggedId, targetCellKey, insertionIndex = Number.POSITIVE_INFINITY) => {
+const reorderActivitiesInCell = async (draggedId, targetCellKey, insertionIndex = Number.POSITIVE_INFINITY) => {
   const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
   if (!draggedEntry || activityCellKey(draggedEntry) !== targetCellKey) return false;
   const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === targetCellKey);
@@ -1814,13 +2107,25 @@ const reorderActivitiesInCell = (draggedId, targetCellKey, insertionIndex = Numb
   const previewOrder = [...nextOrder];
   previewOrder.splice(targetIndex, 0, draggedEntry);
   if (previewOrder.every((entry, index) => entry.id === cellEntries[index]?.id)) return false;
+  const previousOrders = new Map(activitiesState.entries.map((entry) => [entry.id, entry.order]));
   previewOrder.forEach((entry, index) => {
     const source = activitiesState.entries.find((item) => item.id === entry.id);
     if (source) source.order = index;
   });
-  saveActivities();
-  renderActivitiesCalendar();
-  return true;
+  try {
+    await saveActivityOrderRemote(previewOrder);
+    saveActivities();
+    renderActivitiesCalendar();
+    return true;
+  } catch (error) {
+    console.warn("Erro ao reordenar atividade.", error);
+    activitiesState.entries.forEach((entry) => {
+      if (previousOrders.has(entry.id)) entry.order = previousOrders.get(entry.id);
+    });
+    renderActivitiesCalendar();
+    setActivitiesFeedback(getTranslation("activities.saveError"));
+    return false;
+  }
 };
 
 const wireActivitiesCalendar = () => {
@@ -1831,10 +2136,17 @@ const wireActivitiesCalendar = () => {
     setActivityFormOpen(isActivityFormOpen());
     renderActivitiesCalendar();
   };
-  loadActivities();
+  activitiesState.entries = readActivitiesFromStorage();
+  activitiesState.history = readActivitiesHistoryFromStorage();
   resetActivitiesForm();
   setActivityFormOpen(false);
   renderActivitiesCalendar();
+  void loadActivities()
+    .catch((error) => {
+      activitiesState.entries = readActivitiesFromStorage();
+      markActivitiesRemoteUnavailable(error);
+    })
+    .finally(() => renderActivitiesCalendar());
   form.addEventListener("submit", handleActivitySubmit);
   createBtn?.addEventListener("click", () => {
     const shouldOpen = !isActivityFormOpen();
@@ -1886,7 +2198,7 @@ const wireActivitiesCalendar = () => {
       return;
     }
     if (button.dataset.activityAction === "delete") {
-      deleteActivity(id);
+      void deleteActivity(id);
     }
   });
   grid.addEventListener("dragstart", (event) => {
@@ -1917,7 +2229,7 @@ const wireActivitiesCalendar = () => {
     event.dataTransfer.dropEffect = "move";
     placeActivityDropPreview(cell, activityDropIndexFromEvent(event, cell), draggedEntry);
   });
-  grid.addEventListener("drop", (event) => {
+  grid.addEventListener("drop", async (event) => {
     const target = eventElement(event);
     const cell = target?.closest(".timetable-cell");
     if (!cell) return;
@@ -1925,10 +2237,10 @@ const wireActivitiesCalendar = () => {
     const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
     if (!draggedEntry || activityCellKey(draggedEntry) !== activityCellKeyFromElement(cell)) return;
     event.preventDefault();
-    const changed = reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), activityDropIndexFromEvent(event, cell));
+    const changed = await reorderActivitiesInCell(draggedId, activityCellKeyFromElement(cell), activityDropIndexFromEvent(event, cell));
     if (changed) {
       recordActivityHistory("reordered", draggedEntry);
-      setActivitiesFeedback("");
+      setActivitiesFeedback(activitiesState.storageMode === "remote" ? "" : getTranslation("activities.localOnly"));
     }
     finishActivityDragPreview();
   });
@@ -2495,7 +2807,7 @@ document.addEventListener("DOMContentLoaded", () => {
   wirePasswordToggle();
   wireActivitiesManualsDialog();
   wireActivitiesCalendar();
-  renderActivitiesHistoryPage();
+  void renderActivitiesHistoryPage();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {
     refreshStatus();

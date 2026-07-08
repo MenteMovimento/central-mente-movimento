@@ -11,6 +11,7 @@ As tres areas ainda trazem os seus SQLs originais:
 - Socios: `portal/modules/socios/supabase/schema.sql`
 - Utentes: `portal/modules/utentes/supabase_schema.sql`
 - Ciberseguranca: `portal/modules/dispositivos/supabase/full-setup.sql`
+- Atividades: `supabase/activities-shared-storage.sql`
 
 Como estes ficheiros vieram de projetos separados, alguns nomes vivem no schema `public` e podem sobrepor conceitos comuns, principalmente utilizadores/perfis. Num projeto Supabase novo e vazio, isto e gerivel, mas nao deve ser corrido sem rever.
 
@@ -21,8 +22,9 @@ Como estes ficheiros vieram de projetos separados, alguns nomes vivem no schema 
 3. Corre o SQL de Socios.
 4. Corre o SQL de Utentes.
 5. Reve o SQL de Ciberseguranca antes de correr, porque ele tambem inclui tabelas de Utentes herdadas do projeto original.
-6. Cria um utilizador administrador de teste em Authentication.
-7. Liga a Vercel com as variaveis de ambiente.
+6. Corre `supabase/activities-shared-storage.sql` para ativar a agenda partilhada de atividades.
+7. Cria um utilizador administrador de teste em Authentication.
+8. Liga a Vercel com as variaveis de ambiente.
 
 ## Producao final
 
