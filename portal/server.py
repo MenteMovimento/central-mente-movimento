@@ -630,7 +630,6 @@ def topbar(active_id=""):
           </span>
           <div>
             <h1>MenteMovimento</h1>
-            <p>{html.escape(CENTRAL_EMAIL)}</p>
           </div>
         </a>
         <nav class="topnav" aria-label="Areas principais" data-i18n-aria-label="nav.areas">

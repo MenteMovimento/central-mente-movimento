@@ -5021,8 +5021,6 @@ def render_header(current_user):
                 </span>
                 <span class="central-brand-copy">
                     <strong>MenteMovimento</strong>
-                    <span>{esc(current_user.get("nome"))}</span>
-                    <b>{esc(profile_label(current_user.get("perfil"), current_user))}</b>
                 </span>
                 <span class="central-loading-indicator" data-loading-indicator role="status" aria-label="{esc(tr(current_user, "loading"))}" title="{esc(tr(current_user, "loading"))}">
                     <span class="central-loading-dot" aria-hidden="true"></span>

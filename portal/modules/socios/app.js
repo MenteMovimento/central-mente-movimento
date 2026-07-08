@@ -910,7 +910,7 @@ function applyOrganizationName() {
     (normalizedConfiguredName.includes("gest") && normalizedConfiguredName.includes("socio"));
   const name = usesDefaultName ? t("app.title") : configuredName;
   document.title = name;
-  elements.appTitle.textContent = name;
+  if (elements.appTitle) elements.appTitle.textContent = name;
   elements.authTitle.textContent = name;
 }
 
@@ -1002,6 +1002,7 @@ function applyLanguage(language = loadStoredLanguage(), persist = true) {
   updateLanguageOptions();
 
   if (state.profile) {
+    if (elements.userRole) elements.userRole.textContent = roleLabel(state.profile.role);
     render();
     renderAppUsers();
     renderHistory();
@@ -1437,7 +1438,8 @@ function showApp() {
   elements.setupView.hidden = true;
   elements.authView.hidden = true;
   elements.appShell.hidden = false;
-  elements.userEmail.textContent = state.profile.full_name || state.profile.email || state.user.email || "";
+  if (elements.userEmail) elements.userEmail.textContent = state.profile.full_name || state.profile.email || state.user.email || "";
+  if (elements.userRole) elements.userRole.textContent = roleLabel(state.profile.role);
   applyPermissions();
   updateStaticLanguageText();
   renderIcons();

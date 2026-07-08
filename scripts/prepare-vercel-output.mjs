@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260708-topbar-theme'
+const assetVersion = '20260708-brand-only-topbar'
 
 const authPendingHead = `<script>
       (() => {
@@ -208,7 +208,6 @@ const topbar = (activeId = '') => `
       </span>
       <div>
         <h1>MenteMovimento</h1>
-        <p data-user-email>Administrador</p>
       </div>
     </a>
     <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
@@ -797,11 +796,6 @@ await writeFile(
     error.textContent = message;
     error.hidden = false;
   };
-  const setUserEmail = (session) => {
-    document.querySelectorAll("[data-user-email]").forEach((node) => {
-      node.textContent = session?.user?.user_metadata?.full_name || session?.user?.email || "Administrador";
-    });
-  };
   const utentesSessionCachePrefix = "central-utentes-session:";
   const utentesSessionCacheKey = (session) => \`\${utentesSessionCachePrefix}\${session?.user?.id || "anon"}\`;
   const clearUtentesSessionCache = () => {
@@ -1009,7 +1003,6 @@ await writeFile(
     } catch (error) {
       showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }
-    setUserEmail(session);
     wireUtentesLinks(client);
   });
 })();`,

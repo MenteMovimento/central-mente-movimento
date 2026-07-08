@@ -1370,7 +1370,6 @@ function App() {
         permissions: normalizeCentralPermissions(null),
       }
     : profile
-  const currentRole: Profile['role'] = effectiveProfile?.role ?? 'member'
   const currentProfileId = isDemoMode ? 'demo-admin' : profile?.id
   const isAuthenticated = isDemoMode || Boolean(session)
   const canManageDevices = isAuthenticated && hasCentralPermission(effectiveProfile, 'dispositivos', 'edit')
@@ -3276,8 +3275,6 @@ function App() {
             </span>
             <span className="portal-brand-copy">
               <strong>MenteMovimento</strong>
-              <span>{t.administratorLabel}</span>
-              <b>{localizedRoleLabels[currentRole]}</b>
             </span>
           </a>
 
