@@ -549,6 +549,13 @@ button:disabled {
     var(--panel-soft);
 }
 
+.insight-card-secondary {
+  border-color: rgb(148, 161, 157, 0.36);
+  background:
+    linear-gradient(135deg, rgba(99, 99, 99, 0.13), rgba(7, 27, 77, 0.04)),
+    var(--panel-soft);
+}
+
 .insight-card-primary.has-alert {
   border-color: var(--danger-line);
   background:
