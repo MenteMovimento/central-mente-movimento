@@ -276,7 +276,7 @@ p {
 
 .topbar2 {
   border-bottom: 1px solid var(--line);
-  background: #07131f;
+  background: var(--bg);
 }
 
 .topbar-inner {
@@ -655,6 +655,10 @@ body.dark-mode .session-chip,
 body.dark-mode .dashboard-account-name,
 body.dark-mode .icon-link {
   background: var(--panel);
+}
+
+body.dark-mode .topbar2 {
+  background: #07131f;
 }
 
 body.dark-mode .topnav-link:hover,
