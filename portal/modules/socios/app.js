@@ -1002,7 +1002,6 @@ function applyLanguage(language = loadStoredLanguage(), persist = true) {
   updateLanguageOptions();
 
   if (state.profile) {
-    elements.userRole.textContent = roleLabel(state.profile.role);
     render();
     renderAppUsers();
     renderHistory();
