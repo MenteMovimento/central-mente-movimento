@@ -595,26 +595,67 @@ p {
   justify-content: flex-end;
 }
 
-.dashboard-account-name {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  max-width: 220px;
-  overflow: hidden;
-  padding: 0 12px;
+.dashboard-user-menu-wrap {
+  position: relative;
+}
+
+.dashboard-user-menu-wrap summary {
+  list-style: none;
+}
+
+.dashboard-user-menu-wrap summary::-webkit-details-marker {
+  display: none;
+}
+
+.dashboard-user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  gap: 10px;
+  width: min(280px, calc(100vw - 32px));
+  padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #f8fbfa;
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.dashboard-account-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   font-weight: 850;
-  line-height: 1.1;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .dashboard-account-name[hidden] {
   display: none;
+}
+
+.dashboard-logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(35, 119, 107, 0.22);
+  border-radius: 6px;
+  background: #f8fbfa;
+  color: var(--text);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.dashboard-logout-button:hover {
+  border-color: rgba(35, 119, 107, 0.42);
+  background: #e8f4f1;
 }
 
 .topnav-link {
@@ -652,7 +693,8 @@ body.dark-mode .timetable-cell,
 body.dark-mode .central-admin-panel,
 body.dark-mode .secondary-button,
 body.dark-mode .session-chip,
-body.dark-mode .dashboard-account-name,
+body.dark-mode .dashboard-user-menu,
+body.dark-mode .dashboard-logout-button,
 body.dark-mode .icon-link {
   background: var(--panel);
 }
@@ -671,6 +713,10 @@ body.dark-mode .area-nav-link.active {
 }
 
 body.dark-mode .menu-item:hover {
+  background: #12263c;
+}
+
+body.dark-mode .dashboard-logout-button:hover {
   background: #12263c;
 }
 

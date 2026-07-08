@@ -608,14 +608,30 @@ def module_cards():
     return "\n".join(cards)
 
 
-def topbar(active_id="", show_account_name=False, account_name=""):
+def topbar(active_id="", show_account_menu=False, account_name=""):
     area_links = []
     account_name = (account_name or "").strip()
-    account_chip = (
-        f'<span class="dashboard-account-name" title="{html.escape(account_name, quote=True)}">{html.escape(account_name)}</span>'
-        if show_account_name and account_name
-        else ""
-    )
+    account_menu = ""
+    if show_account_menu:
+        account_menu = f"""
+          <details class="dashboard-user-menu-wrap">
+            <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+              <i data-lucide="user-round"></i>
+            </summary>
+            <div class="dashboard-user-menu" role="menu">
+              <strong class="dashboard-account-name" title="{html.escape(account_name, quote=True)}">{html.escape(account_name)}</strong>
+              <a class="dashboard-logout-button" href="/logout" role="menuitem" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+                <i data-lucide="log-out"></i>
+                <span data-i18n="nav.logout">Terminar sessao</span>
+              </a>
+            </div>
+          </details>
+        """
+    account_action = account_menu or """
+          <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+            <i data-lucide="log-out"></i>
+          </a>
+        """
     for module in MODULES:
         active = " active" if module["id"] == active_id else ""
         area_links.append(
@@ -642,7 +658,6 @@ def topbar(active_id="", show_account_name=False, account_name=""):
           {''.join(area_links)}
         </nav>
         <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
-          {account_chip}
           <details class="global-menu-wrap">
             <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
               <i data-lucide="menu"></i>
@@ -670,9 +685,7 @@ def topbar(active_id="", show_account_name=False, account_name=""):
               </button>
             </div>
           </details>
-          <a class="icon-link" href="/logout" title="Terminar sessao" aria-label="Terminar sessao" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
-            <i data-lucide="log-out"></i>
-          </a>
+          {account_action}
         </div>
       </div>
     </header>
@@ -884,7 +897,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_html(
                 render_template(
                     "dashboard.html",
-                    TOPBAR=topbar(show_account_name=True, account_name=account_name),
+                    TOPBAR=topbar(show_account_menu=True, account_name=account_name),
                     MODULE_CARDS=module_cards(),
                     MODULES_JSON=html.escape(json.dumps(MODULES, ensure_ascii=False), quote=True),
                 )

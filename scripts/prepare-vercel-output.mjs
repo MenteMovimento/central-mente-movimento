@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260708-dashboard-account-name'
+const assetVersion = '20260708-dashboard-user-menu'
 
 const authPendingHead = `<script>
       (() => {
@@ -199,7 +199,21 @@ const atividadesManualsDialog = () => `
   </div>
 </dialog>`
 
-const topbar = (activeId = '', { showAccountName = false } = {}) => `
+const dashboardUserMenu = () => `
+      <details class="dashboard-user-menu-wrap">
+        <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+          <i data-lucide="user-round"></i>
+        </summary>
+        <div class="dashboard-user-menu" role="menu">
+          <strong class="dashboard-account-name" data-dashboard-account-name hidden></strong>
+          <a class="dashboard-logout-button" href="/logout" role="menuitem" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+            <i data-lucide="log-out"></i>
+            <span data-i18n="nav.logout">Terminar sessão</span>
+          </a>
+        </div>
+      </details>`
+
+const topbar = (activeId = '', { showAccountMenu = false } = {}) => `
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand-block brand-link" href="/dashboard">
@@ -229,7 +243,6 @@ const topbar = (activeId = '', { showAccountName = false } = {}) => `
       </a>
     </nav>
     <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
-      ${showAccountName ? '<span class="dashboard-account-name" data-dashboard-account-name hidden></span>' : ''}
       <details class="global-menu-wrap">
         <summary class="icon-link menu-trigger" title="Abrir menu" aria-label="Abrir menu" data-i18n-title="nav.openMenu" data-i18n-aria-label="nav.openMenu">
           <i data-lucide="menu"></i>
@@ -238,9 +251,9 @@ const topbar = (activeId = '', { showAccountName = false } = {}) => `
 ${topbarMenu(activeId)}
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+      ${showAccountMenu ? dashboardUserMenu() : `<a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
         <i data-lucide="log-out"></i>
-      </a>
+      </a>`}
     </div>
   </div>
 </header>
@@ -410,7 +423,7 @@ const dashboardPage = pageShell({
   title: 'MenteMovimento',
   page: 'dashboard',
   body: `
-${topbar('', { showAccountName: true })}
+${topbar('', { showAccountMenu: true })}
 <main class="dashboard">
   <section class="dashboard-heading" aria-label="Gestão da associação">
     <div>
