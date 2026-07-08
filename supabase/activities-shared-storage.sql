@@ -1,6 +1,43 @@
 -- Central MenteMovimento - agenda partilhada de atividades
 -- Executar no SQL Editor do Supabase do projeto de producao.
 
+create schema if not exists private;
+
+alter table public.app_users
+add column if not exists permissions jsonb not null default '{}'::jsonb;
+
+create or replace function private.jsonb_bool(value jsonb, path text[])
+returns boolean
+language sql
+immutable
+as $$
+  select case jsonb_extract_path_text(coalesce(value, '{}'::jsonb), variadic path)
+    when 'true' then true
+    when 'false' then false
+    else null
+  end
+$$;
+
+create or replace function private.current_app_permission(area text, action text)
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(
+    private.jsonb_bool(app_users.permissions, array[area, action]),
+    false
+  )
+  from public.app_users
+  where app_users.id = auth.uid()
+    and app_users.active = true
+  limit 1
+$$;
+
+grant usage on schema private to authenticated;
+grant execute on function private.current_app_permission(text, text) to authenticated;
+
 update public.app_users
 set permissions = jsonb_set(
   coalesce(permissions, '{}'::jsonb),
