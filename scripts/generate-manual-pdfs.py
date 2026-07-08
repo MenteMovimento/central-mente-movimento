@@ -1131,7 +1131,7 @@ def main():
 
     build_pdf(
         OUTPUTS["atividades_user"],
-        "Manual do Utilizador - Gestao de Atividades",
+        "Manual do Utilizador - Gestão de Atividades",
         "Guia pratico para criar, consultar, organizar e imprimir o horario semanal de atividades.",
         "Administradores e utilizadores autorizados",
         "Gestao de Atividades",
@@ -1140,7 +1140,7 @@ def main():
     )
     build_pdf(
         OUTPUTS["atividades_dev"],
-        "Manual do Programador - Gestao de Atividades",
+        "Manual do Programador - Gestão de Atividades",
         "Guia tecnico para manutencao do modulo de atividades dentro da Central MenteMovimento.",
         "Programadores e responsaveis tecnicos",
         "Gestao de Atividades",
