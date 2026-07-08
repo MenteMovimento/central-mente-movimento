@@ -2034,7 +2034,7 @@ function updateDashboardInsights(overdueMembers, paidMembers) {
     elements.quotaInsightTitle.textContent = t("insight.baseReady");
     elements.quotaInsightDetail.textContent = t("insight.baseReadyDetail");
   } else if (overdueCount > 0) {
-    elements.quotaInsightTitle.textContent = `${overdueCount} ${overdueCount === 1 ? t("insight.overdueSingular") : t("insight.overduePlural")}`;
+    elements.quotaInsightTitle.textContent = `${overdueCount} ${overdueCount === 1}`;
     elements.quotaInsightDetail.textContent = t("insight.overdueDetail");
   } else {
     elements.quotaInsightTitle.textContent = t("insight.noOverdue");
