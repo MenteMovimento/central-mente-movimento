@@ -575,7 +575,7 @@ textarea:focus {
   top: 0;
   z-index: 20;
   border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  background: var(--bg);
   backdrop-filter: blur(14px);
 }
 
