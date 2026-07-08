@@ -282,6 +282,7 @@ p {
   width: min(1840px, calc(100% - 48px));
   min-height: 96px;
   margin: 0 auto;
+  background: var(--bg)
 }
 
 .brand-block h1 {
