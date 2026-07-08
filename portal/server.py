@@ -73,7 +73,7 @@ MODULES = [
     },
     {
         "id": "atividades",
-        "name": "Gestao de Atividades",
+        "name": "Gestão de Atividades",
         "label": "Atividades",
         "path": "/area/atividades",
         "schema": "atividades",

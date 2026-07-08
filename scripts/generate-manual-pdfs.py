@@ -1134,8 +1134,8 @@ def main():
         "Manual do Utilizador - Gestão de Atividades",
         "Guia pratico para criar, consultar, organizar e imprimir o horario semanal de atividades.",
         "Administradores e utilizadores autorizados",
-        "Gestao de Atividades",
-        ATIVIDADES_USER + user_extra_sections("Gestao de Atividades", "atividades", has_import_export=False, has_attachments=False),
+        "Gestão de Atividades",
+        ATIVIDADES_USER + user_extra_sections("Gestão de Atividades", "atividades", has_import_export=False, has_attachments=False),
         updated_at="07/07/2026",
     )
     build_pdf(
@@ -1143,10 +1143,10 @@ def main():
         "Manual do Programador - Gestão de Atividades",
         "Guia tecnico para manutencao do modulo de atividades dentro da Central MenteMovimento.",
         "Programadores e responsaveis tecnicos",
-        "Gestao de Atividades",
+        "Gestão de Atividades",
         ATIVIDADES_DEV
         + dev_extra_sections(
-            "Gestao de Atividades",
+            "Gestão de Atividades",
             [
                 "portal/modules/atividades/page.mjs - estrutura da pagina, historico e paginas de fallback dos manuais.",
                 "portal/static/app.js - calendario semanal, ordenacao por arrasto, dialogos, historico e impressao.",
