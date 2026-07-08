@@ -98,7 +98,6 @@ export const atividadesHistoryPageContent = () => `<main class="global-shell">
     </a>
     <p class="eyebrow">Atividades</p>
     <h2>Hist&oacute;rico de Atividades</h2>
-    <p class="global-copy">Registo apenas das a&ccedil;&otilde;es feitas na agenda de atividades deste browser.</p>
     <div class="activity-history-list" data-activities-history>
       <p class="activity-empty-state">Sem a&ccedil;&otilde;es registadas.</p>
     </div>
