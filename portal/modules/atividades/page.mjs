@@ -97,7 +97,7 @@ export const atividadesHistoryPageContent = () => `<main class="global-shell">
       <span>Voltar</span>
     </a>
     <p class="eyebrow">Atividades</p>
-    <h2>Hist&oacute;rico de Atividades</h2>
+    <h2>Histórico de Alterações</h2>
     <div class="activity-history-list" data-activities-history>
       <p class="activity-empty-state">Sem a&ccedil;&otilde;es registadas.</p>
     </div>
