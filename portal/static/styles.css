@@ -271,7 +271,7 @@ p {
 
 .topbar {
   border-bottom: 1px solid var(--line);
-  background: var(--bg)
+  background: #07131f
 }
 
 .topbar-inner {
