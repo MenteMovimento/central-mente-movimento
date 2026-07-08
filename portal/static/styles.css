@@ -274,6 +274,11 @@ p {
   background: var(--panel);
 }
 
+.topbar-atividades {
+  border-bottom: 1px solid var(--line);
+  background: #07131f;
+}
+
 .topbar-inner {
   display: grid;
   grid-template-columns: minmax(270px, auto) minmax(300px, 1fr) auto;
