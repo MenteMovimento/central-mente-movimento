@@ -52,8 +52,14 @@ const errorMessage = (error) => {
 const clientErrorMessage = (error) => {
   const message = errorMessage(error)
   const normalized = message.toLowerCase()
-  if (error?.code === '42P01' || normalized.includes('does not exist')) {
-    return 'A tabela de atividades ainda nao existe no Supabase. Execute o SQL do modulo Atividades.'
+  if (
+    error?.code === '42P01' ||
+    error?.code === 'PGRST205' ||
+    normalized.includes('does not exist') ||
+    normalized.includes('schema cache') ||
+    normalized.includes('could not find the table')
+  ) {
+    return 'Faltam tabelas de atividades no Supabase. Execute o SQL do modulo Atividades e volte a tentar.'
   }
   if (normalized.includes('permission denied')) {
     return 'Sem permissao para guardar nas tabelas de atividades.'
