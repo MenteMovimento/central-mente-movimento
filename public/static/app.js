@@ -2013,7 +2013,7 @@ const activityPrintDocument = () => {
     thead tr { height: 18mm; }
     thead th { background: #e6f2ef; border-bottom: 2.5px solid #7fa39b; padding: 1.4mm 1.8mm; text-align: center; vertical-align: middle; }
     thead th.time-head,
-    tbody th { width: 28mm; }
+    tbody th { width: 15mm; }
     tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
     tbody tr.activity-row { height: 77mm; }
     tbody tr.lunch-row { height: 12mm; }
