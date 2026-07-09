@@ -117,7 +117,7 @@ const translations = {
       light: "Tema claro",
     },
     app: {
-      title: "Gestão de Sócios",
+      title: "Gestão de Sócios | MenteMovimento",
       setupTitle: "Configuração necessária",
       setupText: "Configure o Supabase em config.js antes de publicar ou usar a app em produção.",
       setupLink: "Ver instruções",
@@ -333,7 +333,7 @@ const translations = {
       light: "Light mode",
     },
     app: {
-      title: "Member Management",
+      title: "Member Management | MenteMovimento",
       setupTitle: "Setup required",
       setupText: "Configure Supabase in config.js before publishing or using the app in production.",
       setupLink: "View instructions",
