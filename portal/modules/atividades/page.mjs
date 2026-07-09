@@ -97,7 +97,7 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </label>
           <label class="activity-field">
             <span data-i18n="activities.end">Fim</span>
-            <select name="end">
+            <select name="end" required>
               ${activityTimeOptions(activityEndTimes)}
             </select>
           </label>
