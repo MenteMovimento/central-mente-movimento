@@ -356,7 +356,7 @@ const translations = {
     "users.subtitle": "Create new access and edit permissions for existing users.",
     "users.refresh": "Refresh",
     "users.createTitle": "Create user",
-    "users.createHint": "The ID is created automatically in Supabase Auth.",
+    "users.createHint": "The user is added automatically to the association Database.",
     "users.editTitle": "Edit user",
     "users.editHint": "Choose a user in the list to edit.",
     "users.name": "Name",
