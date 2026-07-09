@@ -43,6 +43,7 @@ import {
   Trash2,
   Upload,
   UserPlus,
+  UserRound,
   UsersRound,
   X,
 } from 'lucide-react'
@@ -1355,9 +1356,11 @@ function App() {
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false)
   const [isLanguageDialogOpen, setIsLanguageDialogOpen] = useState(false)
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false)
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
   const csvInputRef = useRef<HTMLInputElement | null>(null)
   const attachmentInputRef = useRef<HTMLInputElement | null>(null)
   const toolsMenuRef = useRef<HTMLDivElement | null>(null)
+  const accountMenuRef = useRef<HTMLDivElement | null>(null)
 
   const isDemoMode = !isSupabaseConfigured
   const effectiveProfile: Profile | null = isDemoMode
@@ -1382,6 +1385,10 @@ function App() {
   const signupCooldownRemaining = getRemainingSeconds(signupCooldownUntil, authClock)
   const resendCooldownRemaining = getRemainingSeconds(resendCooldownUntil, authClock)
   const t = translations[language]
+  const accountDisplayName =
+    stripOuterWhitespace(effectiveProfile?.full_name ?? '') ||
+    stripOuterWhitespace(effectiveProfile?.email ?? '') ||
+    stripOuterWhitespace(session?.user.email ?? '')
   const localizedRoleLabels = roleLabels[language]
   const localizedStatusLabels = statusLabels[language]
   const manualSections = manualSectionsByLanguage[language]
@@ -1772,18 +1779,21 @@ function App() {
   }, [isManualOpen])
 
   useEffect(() => {
-    if (!isToolsMenuOpen) return undefined
+    if (!isToolsMenuOpen && !isAccountMenuOpen) return undefined
 
     const handlePointerDown = (event: MouseEvent) => {
-      if (toolsMenuRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node
+      if (toolsMenuRef.current?.contains(target) || accountMenuRef.current?.contains(target)) {
         return
       }
       setIsToolsMenuOpen(false)
+      setIsAccountMenuOpen(false)
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsToolsMenuOpen(false)
+        setIsAccountMenuOpen(false)
       }
     }
 
@@ -1794,7 +1804,7 @@ function App() {
       document.removeEventListener('mousedown', handlePointerDown)
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isToolsMenuOpen])
+  }, [isToolsMenuOpen, isAccountMenuOpen])
 
   const filteredDevices = useMemo(() => {
     const query = stripOuterWhitespace(searchTerm).toLowerCase()
@@ -3306,7 +3316,10 @@ function App() {
                 aria-controls="portal-tools-menu"
                 aria-expanded={isToolsMenuOpen}
                 title={t.openMenu}
-                onClick={() => setIsToolsMenuOpen((current) => !current)}
+                onClick={() => {
+                  setIsToolsMenuOpen((current) => !current)
+                  setIsAccountMenuOpen(false)
+                }}
               >
                 <Menu aria-hidden="true" />
               </button>
@@ -3343,9 +3356,31 @@ function App() {
                 </div>
               )}
             </div>
-            <button type="button" className="icon-button portal-icon-button" onClick={handleSignOut} title={t.signOut}>
-              <LogOut aria-hidden="true" />
-            </button>
+            <div className="portal-menu-wrap" ref={accountMenuRef}>
+              <button
+                type="button"
+                className="icon-button portal-icon-button portal-menu-button"
+                aria-label="Conta"
+                aria-controls="portal-account-menu"
+                aria-expanded={isAccountMenuOpen}
+                title={accountDisplayName || 'Conta'}
+                onClick={() => {
+                  setIsAccountMenuOpen((current) => !current)
+                  setIsToolsMenuOpen(false)
+                }}
+              >
+                <UserRound aria-hidden="true" />
+              </button>
+              {isAccountMenuOpen && (
+                <div className="portal-menu portal-account-menu" id="portal-account-menu" role="menu">
+                  {accountDisplayName && <strong className="portal-account-name">{accountDisplayName}</strong>}
+                  <button type="button" className="portal-menu-item portal-account-logout" onClick={handleSignOut} role="menuitem">
+                    <LogOut aria-hidden="true" />
+                    <span>{t.signOut}</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>

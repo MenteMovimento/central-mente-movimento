@@ -157,10 +157,19 @@
               </button>
             </div>
           </div>
-          <button class="icon-link" id="logoutBtn" type="button" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
-            <i data-lucide="log-out"></i>
-            <span class="icon-label">Terminar sessão</span>
-          </button>
+          <details class="account-menu-wrap">
+            <summary class="icon-link account-menu-trigger" title="Conta" aria-label="Conta">
+              <i data-lucide="user-round"></i>
+              <span class="icon-label">Conta</span>
+            </summary>
+            <div class="account-menu" role="menu">
+              <strong class="account-menu-name" id="accountMenuName"></strong>
+              <button class="account-logout-button" id="logoutBtn" type="button" role="menuitem" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+                <i data-lucide="log-out"></i>
+                <span>Terminar sessão</span>
+              </button>
+            </div>
+          </details>
           <div class="action-stack topbar-legacy-actions" aria-hidden="true">
             <div class="action-row">
               <button class="secondary-button admin-manager-action" id="legacyAdminManagerBtn" type="button" hidden>

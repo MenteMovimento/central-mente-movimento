@@ -918,6 +918,9 @@ class PortalHandler(BaseHTTPRequestHandler):
             if not self.is_authenticated():
                 self.redirect(f"/login?next={quote(request_path)}")
                 return
+            user = self.current_user() or {}
+            profile = self.current_profile() or {}
+            account_name = profile.get("full_name") or user.get("email") or ""
             area_id = request_path.removeprefix("/area/").strip("/")
             module = find_module(area_id)
             if not module:
@@ -926,7 +929,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.send_html(
                 render_template(
                     "area.html",
-                    TOPBAR=topbar(module["id"]),
+                    TOPBAR=topbar(module["id"], show_account_menu=True, account_name=account_name),
                     AREA_NAME=html.escape(module["name"]),
                     AREA_LABEL=html.escape(module["label"]),
                     AREA_DETAIL=html.escape(module["detail"]),
@@ -945,11 +948,14 @@ class PortalHandler(BaseHTTPRequestHandler):
             if not self.is_authenticated():
                 self.redirect("/login")
                 return
+            user = self.current_user() or {}
+            profile = self.current_profile() or {}
+            account_name = profile.get("full_name") or user.get("email") or ""
             page = GLOBAL_PAGES[global_page_id]
             self.send_html(
                 render_template(
                     "global.html",
-                    TOPBAR=topbar(),
+                    TOPBAR=topbar(show_account_menu=True, account_name=account_name),
                     PAGE_TITLE=html.escape(page["title"]),
                     PAGE_ICON=html.escape(page["icon"]),
                     PAGE_EYEBROW=html.escape(page["eyebrow"]),
@@ -1147,14 +1153,16 @@ class PortalHandler(BaseHTTPRequestHandler):
         if not user:
             self.redirect(f"/login?next={quote('/area/utentes/')}")
             return
+        profile = self.current_profile()
+        account_name = (profile or {}).get("full_name") or user.get("email") or ""
 
         try:
-            utentes_token = ensure_utentes_session(user, self.current_profile())
+            utentes_token = ensure_utentes_session(user, profile)
         except Exception as error:
             self.send_html(
                 render_template(
                     "area.html",
-                    TOPBAR=topbar("utentes"),
+                    TOPBAR=topbar("utentes", show_account_menu=True, account_name=account_name),
                     AREA_NAME="Gestão de Utentes",
                     AREA_LABEL="Utentes",
                     AREA_DETAIL=html.escape(str(error)),
@@ -1263,10 +1271,13 @@ class PortalHandler(BaseHTTPRequestHandler):
             data = response.read()
             response_headers = response.getheaders()
         except OSError:
+            user = self.current_user() or {}
+            profile = self.current_profile() or {}
+            account_name = profile.get("full_name") or user.get("email") or ""
             self.send_html(
                 render_template(
                     "area.html",
-                    TOPBAR=topbar("dispositivos"),
+                    TOPBAR=topbar("dispositivos", show_account_menu=True, account_name=account_name),
                     AREA_NAME="Cibersegurança",
                     AREA_LABEL="Cibersegurança",
                     AREA_DETAIL="O módulo de Cibersegurança ainda não está ligado. Reinicie com .\\start-local.ps1.",

@@ -697,6 +697,7 @@ const elements = {
   accessUserId: document.querySelector("#accessUserId"),
   accessUserName: document.querySelector("#accessUserName"),
   accessUserRole: document.querySelector("#accessUserRole"),
+  accountMenuName: document.querySelector("#accountMenuName"),
   adminDialog: document.querySelector("#adminDialog"),
   adminManagerBtn: document.querySelector("#adminManagerBtn"),
   appShell: document.querySelector("#appShell"),
@@ -1089,6 +1090,7 @@ function updateStaticLanguageText() {
   setAttributeText("#toolsMenuBtn", "aria-label", "app.menu");
   setAttributeText("#logoutBtn", "title", "app.logout");
   setAttributeText("#logoutBtn", "aria-label", "app.logout");
+  setText("#logoutBtn span", "app.logout");
   setText("#importBtn span", "app.import");
   setText("#exportJsonBtn span", "app.export");
   setText("#historyBtn span", "app.history");
@@ -1438,6 +1440,8 @@ function showApp() {
   elements.setupView.hidden = true;
   elements.authView.hidden = true;
   elements.appShell.hidden = false;
+  const accountName = state.profile.full_name || state.profile.email || state.user.email || "";
+  if (elements.accountMenuName) elements.accountMenuName.textContent = accountName;
   if (elements.userEmail) elements.userEmail.textContent = state.profile.full_name || state.profile.email || state.user.email || "";
   if (elements.userRole) elements.userRole.textContent = roleLabel(state.profile.role);
   applyPermissions();

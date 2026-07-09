@@ -2328,12 +2328,25 @@ html:not([data-central-auth-pending="true"]) .central-auth-loading {
     position: relative;
 }
 
+.central-account-wrap {
+    position: relative;
+}
+
 .central-menu-button {
     list-style: none;
     cursor: pointer;
 }
 
+.central-account-button {
+    list-style: none;
+    cursor: pointer;
+}
+
 .central-menu-button::-webkit-details-marker {
+    display: none;
+}
+
+.central-account-button::-webkit-details-marker {
     display: none;
 }
 
@@ -2374,6 +2387,36 @@ html:not([data-central-auth-pending="true"]) .central-auth-loading {
 
 .central-menu-item:hover {
     color: var(--brand-dark);
+    background: var(--focus);
+}
+
+.central-account-menu {
+    gap: 10px;
+    padding: 12px;
+}
+
+.central-account-name {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--text);
+    font-size: 0.98rem;
+    font-weight: 850;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.central-account-menu .central-menu-item {
+    justify-content: center;
+    min-height: 42px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel);
+}
+
+.central-account-menu .central-menu-item:hover {
+    border-color: var(--brand);
     background: var(--focus);
 }
 
@@ -5000,6 +5043,8 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
 def render_header(current_user):
     new_button = ""
     history_button = ""
+    account_label = "Account" if user_language(current_user) == "en" else "Conta"
+    account_name = current_user.get("nome") or current_user.get("email") or ""
     theme_icon = SUN_ICON if current_user.get("tema") == "escuro" else MOON_ICON
     theme_label = tr(current_user, "light") if current_user.get("tema") == "escuro" else tr(current_user, "dark")
     if can_edit_utentes(current_user):
@@ -5061,10 +5106,19 @@ def render_header(current_user):
                         </button>
                     </div>
                 </details>
-                <a class="central-icon-link" href="/logout" aria-label="{esc(tr(current_user, "logout"))}" title="{esc(tr(current_user, "logout"))}">
-                    {LOGOUT_ICON}
-                    <span>{esc(tr(current_user, "logout"))}</span>
-                </a>
+                <details class="central-account-wrap">
+                    <summary class="central-icon-link central-account-button" aria-label="{esc(account_label)}" title="{esc(account_label)}">
+                        {USER_ROUND_ICON}
+                        <span>{esc(account_label)}</span>
+                    </summary>
+                    <div class="central-menu central-account-menu" role="menu">
+                        <strong class="central-account-name" title="{esc(account_name)}">{esc(account_name)}</strong>
+                        <a class="central-menu-item central-account-logout" href="/logout" role="menuitem" aria-label="{esc(tr(current_user, "logout"))}" title="{esc(tr(current_user, "logout"))}">
+                            {LOGOUT_ICON}
+                            <span>{esc(tr(current_user, "logout"))}</span>
+                        </a>
+                    </div>
+                </details>
             </div>
         </div>
     </header>
@@ -5379,6 +5433,14 @@ USERS_ICON = """
     <path d="M18 21a8 8 0 0 0-16 0"></path>
     <circle cx="10" cy="8" r="5"></circle>
     <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"></path>
+</svg>
+"""
+
+
+USER_ROUND_ICON = """
+<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="8" r="5"></circle>
+    <path d="M20 21a8 8 0 0 0-16 0"></path>
 </svg>
 """
 

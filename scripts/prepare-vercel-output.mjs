@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260708-dashboard-user-menu'
+const assetVersion = '20260709-account-menu-all-tabs'
 
 const authPendingHead = `<script>
       (() => {
@@ -213,7 +213,7 @@ const dashboardUserMenu = () => `
         </div>
       </details>`
 
-const topbar = (activeId = '', { showAccountMenu = false } = {}) => `
+const topbar = (activeId = '', { showAccountMenu = true } = {}) => `
 <header class="topbar">
   <div class="topbar-inner">
     <a class="brand-block brand-link" href="/dashboard">

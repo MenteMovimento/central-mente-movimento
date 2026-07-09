@@ -417,6 +417,71 @@ button:disabled {
   box-shadow: 0 18px 42px rgba(21, 35, 34, 0.16);
 }
 
+.account-menu-wrap {
+  position: relative;
+}
+
+.account-menu-trigger {
+  cursor: pointer;
+  list-style: none;
+}
+
+.account-menu-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 24;
+  display: grid;
+  gap: 10px;
+  width: min(280px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: 0 18px 42px rgba(21, 35, 34, 0.16);
+}
+
+.account-menu-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(10, 180, 125, 0.24);
+  border-radius: 6px;
+  background: #f8fbfa;
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.account-logout-button:hover {
+  border-color: rgba(10, 180, 125, 0.42);
+  background: var(--accent-soft);
+}
+
+.account-logout-button svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+}
+
 .menu-item {
   display: flex;
   align-items: center;

@@ -746,6 +746,36 @@ textarea:focus {
   background: var(--surface-strong);
 }
 
+.portal-account-menu {
+  gap: 10px;
+  padding: 12px;
+}
+
+.portal-account-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-account-menu .portal-menu-item {
+  justify-content: center;
+  min-height: 42px;
+  border: 1px solid color-mix(in srgb, var(--brand-cyan) 24%, var(--border));
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.portal-account-menu .portal-menu-item:hover {
+  border-color: color-mix(in srgb, var(--brand-cyan) 42%, var(--border));
+  background: var(--surface-strong);
+}
+
 .portal-menu-value {
   margin-left: auto;
   color: var(--brand-blue-strong);
