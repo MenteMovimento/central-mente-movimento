@@ -2015,7 +2015,6 @@ const activityPrintDocument = () => {
     thead th.time-head,
     tbody th { width: 15mm; }
     tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
-    tbody tr.activity-row { height: auto; }
     th strong, th small { display: block; }
     th strong { font-size: 10px; line-height: 1.1; text-transform: uppercase; }
     th small { color: #506560; font-size: 8px; font-weight: 700; margin-top: 0.5mm; }
