@@ -1648,10 +1648,11 @@ function App() {
 
   useEffect(() => {
     document.documentElement.lang = language === 'pt' ? 'pt-PT' : 'en'
+    document.title = `${t.appTitle} | MenteMovimento`
     window.localStorage.setItem(centralLanguageStorageKey, language)
     window.localStorage.setItem(languageStorageKey, language)
     window.localStorage.setItem(legacySociosLanguageStorageKey, language)
-  }, [language])
+  }, [language, t.appTitle])
 
   useEffect(() => {
     const syncGlobalTheme = (event: StorageEvent) => {

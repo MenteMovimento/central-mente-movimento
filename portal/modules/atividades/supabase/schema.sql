@@ -71,6 +71,15 @@ create table if not exists public.activities_monitors (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.activities_catalog (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  active boolean not null default true,
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.activities_schedule (
   id uuid primary key default gen_random_uuid(),
   week_start date not null,
@@ -108,9 +117,17 @@ on public.activities_history(created_at desc);
 create index if not exists activities_monitors_active_name_idx
 on public.activities_monitors(active, name);
 
+create index if not exists activities_catalog_active_name_idx
+on public.activities_catalog(active, name);
+
 drop trigger if exists activities_monitors_touch_updated_at on public.activities_monitors;
 create trigger activities_monitors_touch_updated_at
 before update on public.activities_monitors
+for each row execute function private.touch_updated_at();
+
+drop trigger if exists activities_catalog_touch_updated_at on public.activities_catalog;
+create trigger activities_catalog_touch_updated_at
+before update on public.activities_catalog
 for each row execute function private.touch_updated_at();
 
 drop trigger if exists activities_schedule_touch_updated_at on public.activities_schedule;
@@ -119,8 +136,39 @@ before update on public.activities_schedule
 for each row execute function private.touch_updated_at();
 
 alter table public.activities_monitors enable row level security;
+alter table public.activities_catalog enable row level security;
 alter table public.activities_schedule enable row level security;
 alter table public.activities_history enable row level security;
+
+drop policy if exists "authorized users read activity catalog" on public.activities_catalog;
+drop policy if exists "authorized users create activity catalog" on public.activities_catalog;
+drop policy if exists "authorized users update activity catalog" on public.activities_catalog;
+drop policy if exists "authorized users delete activity catalog" on public.activities_catalog;
+
+create policy "authorized users read activity catalog"
+on public.activities_catalog
+for select
+to authenticated
+using (private.current_app_permission('atividades', 'view'));
+
+create policy "authorized users create activity catalog"
+on public.activities_catalog
+for insert
+to authenticated
+with check (private.current_app_permission('atividades', 'edit'));
+
+create policy "authorized users update activity catalog"
+on public.activities_catalog
+for update
+to authenticated
+using (private.current_app_permission('atividades', 'edit'))
+with check (private.current_app_permission('atividades', 'edit'));
+
+create policy "authorized users delete activity catalog"
+on public.activities_catalog
+for delete
+to authenticated
+using (private.current_app_permission('atividades', 'edit'));
 
 drop policy if exists "authorized users read activity monitors" on public.activities_monitors;
 drop policy if exists "authorized users create activity monitors" on public.activities_monitors;
@@ -199,5 +247,12 @@ with check (
   private.current_app_permission('atividades', 'edit')
   or private.current_app_permission('atividades', 'export')
 );
+
+grant usage on schema public to authenticated;
+grant usage on schema private to authenticated;
+grant select, insert, update, delete on public.activities_catalog to authenticated;
+grant select, insert, update, delete on public.activities_monitors to authenticated;
+grant select, insert, update, delete on public.activities_schedule to authenticated;
+grant select, insert, update on public.activities_history to authenticated;
 
 notify pgrst, 'reload schema';

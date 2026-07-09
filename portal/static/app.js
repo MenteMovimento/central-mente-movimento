@@ -464,7 +464,7 @@ const translateStaticContent = (language) => {
 
   const titleKey = document.body?.dataset.titleKey;
   if (titleKey) {
-    document.title = `${getTranslation(titleKey, language)} - ${getTranslation("app.title", language)}`;
+    document.title = `${getTranslation(titleKey, language)} | ${getTranslation("app.title", language)}`;
   } else if (document.body?.dataset.centralPage === "dashboard") {
     document.title = getTranslation("app.title", language);
   }
@@ -626,6 +626,190 @@ const wireActivitiesManualsDialog = () => {
   });
 };
 
+const activitiesCatalogElements = () => ({
+  dialog: document.querySelector("[data-activities-catalog-dialog]"),
+  openButtons: document.querySelectorAll("[data-activities-catalog-toggle]"),
+  closeButtons: document.querySelectorAll("[data-activities-catalog-close]"),
+  form: document.querySelector("[data-activities-catalog-form]"),
+  input: document.querySelector("[data-activities-catalog-form] input[name='name']"),
+  list: document.querySelector("[data-activities-catalog-list]"),
+  error: document.querySelector("[data-activities-catalog-error]"),
+  datalist: document.querySelector("[data-activity-name-options]"),
+});
+
+const setActivitiesCatalogFeedback = (message = "", kind = "error") => {
+  const { error } = activitiesCatalogElements();
+  if (!error) return;
+  error.textContent = message;
+  error.hidden = !message;
+  error.classList.toggle("is-success", kind === "success");
+};
+
+const renderActivityNameOptions = () => {
+  const { datalist } = activitiesCatalogElements();
+  if (!datalist) return;
+  datalist.innerHTML = activitiesState.activityNames
+    .map((activity) => `<option value="${escapeHtml(activity.name)}"></option>`)
+    .join("");
+};
+
+const renderActivitiesCatalogList = () => {
+  const { list } = activitiesCatalogElements();
+  if (!list) return;
+  if (!activitiesState.activityNames.length) {
+    list.innerHTML = `<p class="activity-empty-state">Sem atividades registadas.</p>`;
+    renderActivityNameOptions();
+    refreshIcons();
+    return;
+  }
+  list.innerHTML = activitiesState.activityNames
+    .map(
+      (activity) => `
+        <article class="activities-monitor-row">
+          <strong>${escapeHtml(activity.name)}</strong>
+          <button class="icon-link danger-link" type="button" data-activity-name-delete="${escapeHtml(activity.id)}" title="Remover atividade" aria-label="Remover atividade">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </article>
+      `,
+    )
+    .join("");
+  renderActivityNameOptions();
+  refreshIcons();
+};
+
+const loadActivitiesCatalog = async () => {
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const { data, error } = await client
+    .from(activitiesCatalogTableName)
+    .select("id,name,active")
+    .eq("active", true)
+    .order("name", { ascending: true });
+  if (error) throw error;
+  activitiesState.activityNames = Array.isArray(data)
+    ? data
+      .map((row) => ({
+        id: String(row?.id || ""),
+        name: String(row?.name || "").trim(),
+      }))
+      .filter((activity) => activity.id && activity.name)
+    : [];
+  renderActivitiesCatalogList();
+  return activitiesState.activityNames;
+};
+
+const ensureActivityNameRemote = async (name) => {
+  const activityName = String(name || "").trim();
+  if (!activityName) return null;
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const { data, error } = await client
+    .from(activitiesCatalogTableName)
+    .upsert({ name: activityName, active: true }, { onConflict: "name" })
+    .select("id,name,active")
+    .single();
+  if (error) throw error;
+  if (data?.id && data?.name) {
+    const nextActivity = { id: String(data.id), name: String(data.name).trim() };
+    activitiesState.activityNames = [
+      nextActivity,
+      ...activitiesState.activityNames.filter((activity) => activity.id !== nextActivity.id && activity.name !== nextActivity.name),
+    ].sort((left, right) => left.name.localeCompare(right.name, getLanguage() === "en" ? "en" : "pt"));
+    renderActivitiesCatalogList();
+    return nextActivity;
+  }
+  return null;
+};
+
+const deleteActivityNameRemote = async (id) => {
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const { error } = await client
+    .from(activitiesCatalogTableName)
+    .update({ active: false })
+    .eq("id", id);
+  if (error) throw error;
+  activitiesState.activityNames = activitiesState.activityNames.filter((activity) => activity.id !== id);
+  renderActivitiesCatalogList();
+};
+
+const openActivitiesCatalogDialog = () => {
+  const { dialog, input } = activitiesCatalogElements();
+  if (!dialog) return;
+  closeToolsMenus();
+  setActivitiesCatalogFeedback("");
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+  void loadActivitiesCatalog().catch((error) => {
+    console.warn("Nao foi possivel carregar atividades.", error);
+    setActivitiesCatalogFeedback(getTranslation("activities.localOnly"));
+  });
+  refreshIcons();
+  window.setTimeout(() => input?.focus(), 0);
+};
+
+const closeActivitiesCatalogDialog = () => {
+  const { dialog, form } = activitiesCatalogElements();
+  if (!dialog) return;
+  form?.reset();
+  setActivitiesCatalogFeedback("");
+  if (dialog.open && typeof dialog.close === "function") {
+    dialog.close();
+  } else {
+    dialog.removeAttribute("open");
+  }
+};
+
+const handleActivityCatalogSubmit = async (event) => {
+  event.preventDefault();
+  const { form, input } = activitiesCatalogElements();
+  const name = String(input?.value || "").trim();
+  if (!name) return;
+  const submitButton = form?.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
+    await ensureActivityNameRemote(name);
+    form?.reset();
+    setActivitiesCatalogFeedback("Atividade guardada.", "success");
+    input?.focus();
+  } catch (error) {
+    console.warn("Nao foi possivel guardar atividade.", error);
+    setActivitiesCatalogFeedback("Nao foi possivel guardar a atividade.");
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+};
+
+const wireActivitiesCatalogDialog = () => {
+  const { dialog, openButtons, closeButtons, form, list } = activitiesCatalogElements();
+  if (!dialog || dialog.dataset.activitiesCatalogWired === "true") return;
+  dialog.dataset.activitiesCatalogWired = "true";
+  openButtons.forEach((button) => {
+    button.addEventListener("click", openActivitiesCatalogDialog);
+  });
+  closeButtons.forEach((button) => {
+    button.addEventListener("click", closeActivitiesCatalogDialog);
+  });
+  form?.addEventListener("submit", handleActivityCatalogSubmit);
+  list?.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("[data-activity-name-delete]");
+    const id = button?.dataset.activityNameDelete || "";
+    if (!id) return;
+    void deleteActivityNameRemote(id).catch((error) => {
+      console.warn("Nao foi possivel remover atividade.", error);
+      setActivitiesCatalogFeedback("Nao foi possivel remover a atividade.");
+    });
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeActivitiesCatalogDialog();
+  });
+};
+
 const activitiesMonitorsElements = () => ({
   dialog: document.querySelector("[data-activities-monitors-dialog]"),
   openButtons: document.querySelectorAll("[data-activities-monitors-toggle]"),
@@ -778,7 +962,7 @@ const handleActivityMonitorSubmit = async (event) => {
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar monitor.", error);
-    setActivitiesMonitorsFeedback(getTranslation("activities.saveError"));
+    setActivitiesMonitorsFeedback("Nao foi possivel guardar o monitor.");
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
@@ -802,7 +986,7 @@ const wireActivitiesMonitorsDialog = () => {
     if (!id) return;
     void deleteActivityMonitorRemote(id).catch((error) => {
       console.warn("Nao foi possivel remover monitor.", error);
-      setActivitiesMonitorsFeedback(getTranslation("activities.saveError"));
+      setActivitiesMonitorsFeedback("Nao foi possivel remover o monitor.");
     });
   });
   dialog.addEventListener("click", (event) => {
@@ -1114,6 +1298,7 @@ const activitiesMigrationStorageKey = "central-activities-supabase-migrated-v1";
 const activitiesHistoryMigrationStorageKey = "central-activities-history-supabase-migrated-v1";
 const activitiesScheduleTableName = "activities_schedule";
 const activitiesHistoryTableName = "activities_history";
+const activitiesCatalogTableName = "activities_catalog";
 const activitiesMonitorsTableName = "activities_monitors";
 const activitiesDays = [
   { key: "monday" },
@@ -1180,6 +1365,7 @@ const activitiesState = {
   client: null,
   entries: [],
   history: [],
+  activityNames: [],
   monitors: [],
   storageMode: "local",
   selectedWeekStart: weekStartIso(),
@@ -2044,6 +2230,7 @@ const handleActivitySubmit = async (event) => {
       : nextActivityOrderForCell(entry);
   if (submitButton) submitButton.disabled = true;
   try {
+    await ensureActivityNameRemote(entry.title);
     await ensureActivityMonitorRemote(entry.teacher);
     const savedEntry = await saveActivityEntryRemote(entry);
     if (existingIndex >= 0) {
@@ -2327,6 +2514,9 @@ const wireActivitiesCalendar = () => {
       markActivitiesRemoteUnavailable(error);
     })
     .finally(() => renderActivitiesCalendar());
+  void loadActivitiesCatalog().catch((error) => {
+    console.warn("Nao foi possivel carregar lista de atividades.", error);
+  });
   void loadActivityMonitors().catch((error) => {
     console.warn("Nao foi possivel carregar monitores.", error);
   });
@@ -2989,6 +3179,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLanguage(getLanguage(), { persist: true });
   wirePasswordToggle();
   wireActivitiesManualsDialog();
+  wireActivitiesCatalogDialog();
   wireActivitiesMonitorsDialog();
   wireActivitiesCalendar();
   void renderActivitiesHistoryPage();

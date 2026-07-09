@@ -5026,6 +5026,8 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     app_script = translate_static_fragment(APP_SCRIPT) if page_language == "en" else APP_SCRIPT
     default_theme = "dark" if current_user and current_user.get("tema") == "escuro" else "light"
     loading_label = tr(current_user, "loading") if current_user else "A carregar"
+    area_title = tr(current_user, "app_title") if current_user else "Gest\u00e3o de Utentes"
+    browser_title = f"{area_title} | MenteMovimento"
     auth_loading_html = f'<div id="centralAuthLoading" class="central-auth-loading" role="status" aria-label="{esc(loading_label)}"><span aria-hidden="true"></span></div>' if current_user else ""
     manual_dialog_html = render_manual_choice_dialog(current_user) if current_user and not embedded else ""
     frame_dialog_html = render_common_frame_dialog(current_user) if current_user and not embedded else ""
@@ -5034,7 +5036,7 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{esc(title)} - Utentes MenteMovimento</title>
+    <title>{esc(browser_title)}</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png">
     <link rel="shortcut icon" href="/static/favicon.png?v=1" type="image/png">
     <script>document.documentElement.dataset.centralAuthPending = "true";</script>
@@ -5258,12 +5260,14 @@ def render_form(action, title, utente=None, error="", current_user=None):
 def render_login_page(error="", language="pt"):
     error_html = f'<div class="notice">{esc(error)}</div>' if error else ""
     language = normalize_language(language)
+    area_title = "Client Management" if language == "en" else "Gest\u00e3o de Utentes"
+    browser_title = f"{area_title} | MenteMovimento"
     page = f"""<!doctype html>
 <html lang="{language}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Entrar - Utentes MenteMovimento</title>
+    <title>{esc(browser_title)}</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png">
     <link rel="shortcut icon" href="/static/favicon.png?v=1" type="image/png">
     <style>{STYLE}</style>

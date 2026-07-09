@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260709-activity-monitors-db'
+const assetVersion = '20260709-activity-catalog-db'
 
 const authPendingHead = `<script>
       (() => {
@@ -142,10 +142,10 @@ const moduleCards = `
 const topbarMenu = (activeId = '') =>
   activeId === 'atividades'
     ? `
-          <a class="menu-item" href="/area/atividades/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
             <i data-lucide="calendar-days"></i>
             <span>Atividades</span>
-          </a>
+          </button>
           <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
             <i data-lucide="users-round"></i>
             <span>Monitores</span>
@@ -203,6 +203,35 @@ const atividadesManualsDialog = () => `
           <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
         </span>
       </a>
+    </div>
+  </div>
+</dialog>`
+
+const atividadesCatalogDialog = () => `
+<dialog class="activities-manual-dialog activities-monitors-dialog" data-activities-catalog-dialog aria-labelledby="activitiesCatalogTitle">
+  <div class="activities-manual-panel activities-monitors-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesCatalogTitle">Atividades</h2>
+        <p>Crie e consulte os nomes das atividades usadas no horário.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <form class="activities-monitor-form" data-activities-catalog-form>
+      <label class="activity-field">
+        <span>Nome da atividade</span>
+        <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <button class="primary-button" type="submit">
+        <i data-lucide="save"></i>
+        <span>Guardar</span>
+      </button>
+    </form>
+    <p class="form-error activity-error" data-activities-catalog-error role="alert" hidden></p>
+    <div class="activities-monitor-list" data-activities-catalog-list>
+      <p class="activity-empty-state">Sem atividades registadas.</p>
     </div>
   </div>
 </dialog>`
@@ -294,7 +323,7 @@ ${topbarMenu(activeId)}
     </div>
   </div>
 </header>
-${activeId === 'atividades' ? `${atividadesManualsDialog()}${atividadesMonitorsDialog()}` : ''}`
+${activeId === 'atividades' ? `${atividadesManualsDialog()}${atividadesCatalogDialog()}${atividadesMonitorsDialog()}` : ''}`
 
 const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
 <html lang="pt">
@@ -1460,6 +1489,7 @@ await cp(sociosSource, sociosOutput, {
 const sociosIndexPath = path.join(sociosOutput, 'index.html')
 let sociosIndex = await readFile(sociosIndexPath, 'utf8')
 sociosIndex = sociosIndex
+  .replace(/<title>.*?<\/title>/, '<title>Gestão de Sócios | MenteMovimento</title>')
   .replace(
     '</title>',
     `</title>\n    ${authPendingHead}`,
@@ -1492,6 +1522,7 @@ await cp(dispositivosDist, dispositivosOutput, { recursive: true })
 const dispositivosIndexPath = path.join(dispositivosOutput, 'index.html')
 let dispositivosIndex = await readFile(dispositivosIndexPath, 'utf8')
 dispositivosIndex = dispositivosIndex
+  .replace(/<title>.*?<\/title>/, '<title>Cibersegurança | MenteMovimento</title>')
   .replace(
     '</title>',
     `</title>\n    ${authPendingHead}`,

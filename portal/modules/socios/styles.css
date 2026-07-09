@@ -466,7 +466,7 @@ button:disabled {
   padding: 0 12px;
   border: 1px solid rgba(10, 180, 125, 0.24);
   border-radius: 6px;
-  background: #f8fbfa;
+  background: var(--input-bg);
   color: var(--ink);
   font-weight: 850;
 }

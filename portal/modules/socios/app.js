@@ -910,8 +910,8 @@ function applyOrganizationName() {
     !configuredName ||
     normalizedConfiguredName === normalise("Gestão de Sócios") ||
     (normalizedConfiguredName.includes("gest") && normalizedConfiguredName.includes("socio"));
-  const name = usesDefaultName ? t("app.title") : configuredName;
-  document.title = name;
+  const name = usesDefaultName ? "MenteMovimento" : configuredName;
+  document.title = t("app.title");
   if (elements.appTitle) elements.appTitle.textContent = name;
   elements.authTitle.textContent = name;
 }
