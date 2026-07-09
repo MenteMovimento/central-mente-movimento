@@ -1308,8 +1308,22 @@ const activitiesDays = [
   { key: "friday" },
 ];
 const defaultActivityPeriods = [
-  ["09:00", "12:30"],
-  ["13:30", "17:00"],
+  ["09:00", "09:30"],
+  ["09:30", "10:00"],
+  ["10:00", "10:30"],
+  ["10:30", "11:00"],
+  ["11:00", "11:30"],
+  ["11:30", "12:00"],
+  ["12:00", "12:30"],
+  ["12:30", "13:00"],
+  ["13:00", "13:30"],
+  ["13:30", "14:00"],
+  ["14:00", "14:30"],
+  ["14:30", "15:00"],
+  ["15:00", "15:30"],
+  ["15:30", "16:00"],
+  ["16:00", "16:30"],
+  ["16:30", "17:00"],
 ];
 const activityLunchPeriod = ["12:30", "13:30"];
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -2349,7 +2363,7 @@ const activityPrintDocument = () => {
         .join("");
       const periodRow = `<tr class="activity-row"><th>${periodText}</th>${cells}</tr>`;
       const lunchRow = `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
-      return `${periodRow}${isActivityLunchAnchor(period) ? lunchRow : ""}`;
+      return periodRow;
     })
     .join("");
   return `<!doctype html>
