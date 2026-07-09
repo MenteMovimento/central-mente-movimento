@@ -172,6 +172,51 @@ const saveOption = async (adminClient, kind, name) => {
   return optionPayload(data)
 }
 
+const updateOption = async (adminClient, kind, id, name) => {
+  const { table } = OPTION_KINDS[kind]
+  const optionId = String(id ?? '').trim()
+  const cleanName = String(name ?? '').trim()
+  if (!optionId || !cleanName) {
+    const error = new Error('Opcao invalida.')
+    error.status = 400
+    throw error
+  }
+
+  const { data: existingOption, error: existingError } = await adminClient
+    .from(table)
+    .select('id,name')
+    .eq('id', optionId)
+    .maybeSingle()
+
+  if (existingError) throw existingError
+  if (!existingOption) {
+    const error = new Error('Opcao nao encontrada.')
+    error.status = 404
+    throw error
+  }
+
+  const { data, error } = await adminClient
+    .from(table)
+    .update({ name: cleanName, active: true })
+    .eq('id', optionId)
+    .select('id,name,active')
+    .single()
+
+  if (error) throw error
+  if (existingOption.name && existingOption.name !== cleanName) {
+    const scheduleColumn = kind === 'activities' ? 'title' : 'teacher'
+    const { error: scheduleError } = await adminClient
+      .from('activities_schedule')
+      .update({ [scheduleColumn]: cleanName })
+      .eq(scheduleColumn, existingOption.name)
+
+    if (scheduleError && !['42P01', 'PGRST205'].includes(scheduleError.code)) {
+      throw scheduleError
+    }
+  }
+  return optionPayload(data)
+}
+
 const deleteOption = async (adminClient, kind, id) => {
   const { table } = OPTION_KINDS[kind]
   const optionId = String(id ?? '').trim()
@@ -219,6 +264,12 @@ export default async function handler(request, response) {
       return
     }
 
+    if (request.method === 'PATCH') {
+      await getAuthorizedUser(adminClient, request, 'edit')
+      sendJson(response, 200, { item: await updateOption(adminClient, kind, body.id, body.name) })
+      return
+    }
+
     if (request.method === 'DELETE') {
       await getAuthorizedUser(adminClient, request, 'edit')
       await deleteOption(adminClient, kind, body.id ?? queryValue(request, 'id'))
@@ -226,7 +277,7 @@ export default async function handler(request, response) {
       return
     }
 
-    response.setHeader('Allow', 'GET, POST, DELETE')
+    response.setHeader('Allow', 'GET, POST, PATCH, DELETE')
     sendJson(response, 405, { error: 'Metodo nao permitido.' })
   } catch (error) {
     sendJson(response, error.status ?? 500, { error: clientErrorMessage(error) })

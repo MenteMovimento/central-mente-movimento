@@ -1648,10 +1648,18 @@ body.dark-mode .central-admin-forms {
 }
 
 .activities-monitor-row strong {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.activities-monitor-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
 }
 
 .activity-error {
@@ -1717,6 +1725,10 @@ body.dark-mode .central-admin-forms {
 .timetable-head {
   min-height: 64px;
   background: #f4f8f7;
+}
+
+.timetable-row:not(.timetable-head):not(.timetable-lunch-row) {
+  min-height: 180px;
 }
 
 .timetable-time-cell,

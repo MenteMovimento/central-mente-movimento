@@ -103,6 +103,7 @@ const translations = {
     "activities.confirmDelete": "Remover esta atividade?",
     "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o monitor.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
+    "activities.validationLunch": "A atividade nao pode ficar no periodo de almoco.",
     "activities.saved": "Atividade guardada.",
     "activities.deleted": "Atividade removida.",
     "activities.cleared": "Semana limpa.",
@@ -296,6 +297,7 @@ const translations = {
     "activities.confirmDelete": "Remove this activity?",
     "activities.validationRequired": "Fill in the day, time, activity name and monitor.",
     "activities.validationTime": "The end time must be after the start time.",
+    "activities.validationLunch": "The activity cannot be scheduled during lunch.",
     "activities.saved": "Activity saved.",
     "activities.deleted": "Activity removed.",
     "activities.cleared": "Week cleared.",
@@ -696,9 +698,14 @@ const renderActivitiesCatalogList = () => {
       (activity) => `
         <article class="activities-monitor-row">
           <strong>${escapeHtml(activity.name)}</strong>
-          <button class="icon-link danger-link" type="button" data-activity-name-delete="${escapeHtml(activity.id)}" title="Remover atividade" aria-label="Remover atividade">
-            <i data-lucide="trash-2"></i>
-          </button>
+          <div class="activities-monitor-actions">
+            <button class="icon-link" type="button" data-activity-name-edit="${escapeHtml(activity.id)}" title="Editar atividade" aria-label="Editar atividade">
+              <i data-lucide="pencil"></i>
+            </button>
+            <button class="icon-link danger-link" type="button" data-activity-name-delete="${escapeHtml(activity.id)}" title="Remover atividade" aria-label="Remover atividade">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </div>
         </article>
       `,
     )
@@ -774,13 +781,55 @@ const ensureActivityNameRemote = async (name) => {
   return null;
 };
 
+const updateActivityNameRemote = async (id, name) => {
+  const activityName = String(name || "").trim();
+  if (!id || !activityName) return null;
+  const previousName = activitiesState.activityNames.find((activity) => activity.id === id)?.name || "";
+  const { item: data } = await activitiesOptionsRequest("activities", {
+    method: "PATCH",
+    body: { id, name: activityName },
+  });
+  if (data?.id && data?.name) {
+    const nextActivity = { id: String(data.id), name: String(data.name).trim() };
+    activitiesState.activityNames = [
+      nextActivity,
+      ...activitiesState.activityNames.filter((activity) => activity.id !== nextActivity.id),
+    ].sort((left, right) => left.name.localeCompare(right.name, getLanguage() === "en" ? "en" : "pt"));
+    if (previousName && previousName !== nextActivity.name) {
+      activitiesState.entries = activitiesState.entries.map((entry) =>
+        entry.title === previousName ? { ...entry, title: nextActivity.name } : entry,
+      );
+      renderActivitiesCalendar();
+    }
+    renderActivitiesCatalogList();
+    return nextActivity;
+  }
+  return null;
+};
+
 const deleteActivityNameRemote = async (id) => {
   await activitiesOptionsRequest("activities", {
     method: "DELETE",
     body: { id },
   });
+  if (activitiesState.editingActivityNameId === id) {
+    const { form } = activitiesCatalogElements();
+    activitiesState.editingActivityNameId = "";
+    form?.reset();
+  }
   activitiesState.activityNames = activitiesState.activityNames.filter((activity) => activity.id !== id);
   renderActivitiesCatalogList();
+};
+
+const editActivityNameOption = (id) => {
+  const { input } = activitiesCatalogElements();
+  const activity = activitiesState.activityNames.find((item) => item.id === id);
+  if (!input || !activity) return;
+  activitiesState.editingActivityNameId = activity.id;
+  input.value = activity.name;
+  setActivitiesCatalogFeedback("");
+  input.focus();
+  input.select();
 };
 
 const openActivitiesCatalogDialog = () => {
@@ -805,6 +854,7 @@ const closeActivitiesCatalogDialog = () => {
   const { dialog, form } = activitiesCatalogElements();
   if (!dialog) return;
   form?.reset();
+  activitiesState.editingActivityNameId = "";
   setActivitiesCatalogFeedback("");
   if (dialog.open && typeof dialog.close === "function") {
     dialog.close();
@@ -821,9 +871,15 @@ const handleActivityCatalogSubmit = async (event) => {
   const submitButton = form?.querySelector('button[type="submit"]');
   if (submitButton) submitButton.disabled = true;
   try {
-    await ensureActivityNameRemote(name);
+    if (activitiesState.editingActivityNameId) {
+      await updateActivityNameRemote(activitiesState.editingActivityNameId, name);
+      activitiesState.editingActivityNameId = "";
+      setActivitiesCatalogFeedback("Atividade atualizada.", "success");
+    } else {
+      await ensureActivityNameRemote(name);
+      setActivitiesCatalogFeedback("Atividade guardada.", "success");
+    }
     form?.reset();
-    setActivitiesCatalogFeedback("Atividade guardada.", "success");
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar atividade.", error);
@@ -846,6 +902,12 @@ const wireActivitiesCatalogDialog = () => {
   form?.addEventListener("submit", handleActivityCatalogSubmit);
   list?.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const editButton = target?.closest("[data-activity-name-edit]");
+    const editId = editButton?.dataset.activityNameEdit || "";
+    if (editId) {
+      editActivityNameOption(editId);
+      return;
+    }
     const button = target?.closest("[data-activity-name-delete]");
     const id = button?.dataset.activityNameDelete || "";
     if (!id) return;
@@ -897,9 +959,14 @@ const renderActivityMonitorsList = () => {
       (monitor) => `
         <article class="activities-monitor-row">
           <strong>${escapeHtml(monitor.name)}</strong>
-          <button class="icon-link danger-link" type="button" data-activities-monitor-delete="${escapeHtml(monitor.id)}" title="Remover monitor" aria-label="Remover monitor">
-            <i data-lucide="trash-2"></i>
-          </button>
+          <div class="activities-monitor-actions">
+            <button class="icon-link" type="button" data-activities-monitor-edit="${escapeHtml(monitor.id)}" title="Editar monitor" aria-label="Editar monitor">
+              <i data-lucide="pencil"></i>
+            </button>
+            <button class="icon-link danger-link" type="button" data-activities-monitor-delete="${escapeHtml(monitor.id)}" title="Remover monitor" aria-label="Remover monitor">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </div>
         </article>
       `,
     )
@@ -941,13 +1008,55 @@ const ensureActivityMonitorRemote = async (name) => {
   return null;
 };
 
+const updateActivityMonitorRemote = async (id, name) => {
+  const monitorName = String(name || "").trim();
+  if (!id || !monitorName) return null;
+  const previousName = activitiesState.monitors.find((monitor) => monitor.id === id)?.name || "";
+  const { item: data } = await activitiesOptionsRequest("monitors", {
+    method: "PATCH",
+    body: { id, name: monitorName },
+  });
+  if (data?.id && data?.name) {
+    const nextMonitor = { id: String(data.id), name: String(data.name).trim() };
+    activitiesState.monitors = [
+      nextMonitor,
+      ...activitiesState.monitors.filter((monitor) => monitor.id !== nextMonitor.id),
+    ].sort((left, right) => left.name.localeCompare(right.name, getLanguage() === "en" ? "en" : "pt"));
+    if (previousName && previousName !== nextMonitor.name) {
+      activitiesState.entries = activitiesState.entries.map((entry) =>
+        entry.teacher === previousName ? { ...entry, teacher: nextMonitor.name } : entry,
+      );
+      renderActivitiesCalendar();
+    }
+    renderActivityMonitorsList();
+    return nextMonitor;
+  }
+  return null;
+};
+
 const deleteActivityMonitorRemote = async (id) => {
   await activitiesOptionsRequest("monitors", {
     method: "DELETE",
     body: { id },
   });
+  if (activitiesState.editingMonitorId === id) {
+    const { form } = activitiesMonitorsElements();
+    activitiesState.editingMonitorId = "";
+    form?.reset();
+  }
   activitiesState.monitors = activitiesState.monitors.filter((monitor) => monitor.id !== id);
   renderActivityMonitorsList();
+};
+
+const editActivityMonitorOption = (id) => {
+  const { input } = activitiesMonitorsElements();
+  const monitor = activitiesState.monitors.find((item) => item.id === id);
+  if (!input || !monitor) return;
+  activitiesState.editingMonitorId = monitor.id;
+  input.value = monitor.name;
+  setActivitiesMonitorsFeedback("");
+  input.focus();
+  input.select();
 };
 
 const refreshActivityOptionLists = async () => {
@@ -981,6 +1090,7 @@ const closeActivitiesMonitorsDialog = () => {
   const { dialog, form } = activitiesMonitorsElements();
   if (!dialog) return;
   form?.reset();
+  activitiesState.editingMonitorId = "";
   setActivitiesMonitorsFeedback("");
   if (dialog.open && typeof dialog.close === "function") {
     dialog.close();
@@ -997,9 +1107,15 @@ const handleActivityMonitorSubmit = async (event) => {
   const submitButton = form?.querySelector('button[type="submit"]');
   if (submitButton) submitButton.disabled = true;
   try {
-    await ensureActivityMonitorRemote(name);
+    if (activitiesState.editingMonitorId) {
+      await updateActivityMonitorRemote(activitiesState.editingMonitorId, name);
+      activitiesState.editingMonitorId = "";
+      setActivitiesMonitorsFeedback("Monitor atualizado.", "success");
+    } else {
+      await ensureActivityMonitorRemote(name);
+      setActivitiesMonitorsFeedback("Monitor guardado.", "success");
+    }
     form?.reset();
-    setActivitiesMonitorsFeedback("Monitor guardado.", "success");
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar monitor.", error);
@@ -1022,6 +1138,12 @@ const wireActivitiesMonitorsDialog = () => {
   form?.addEventListener("submit", handleActivityMonitorSubmit);
   list?.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const editButton = target?.closest("[data-activities-monitor-edit]");
+    const editId = editButton?.dataset.activitiesMonitorEdit || "";
+    if (editId) {
+      editActivityMonitorOption(editId);
+      return;
+    }
     const button = target?.closest("[data-activities-monitor-delete]");
     const id = button?.dataset.activitiesMonitorDelete || "";
     if (!id) return;
@@ -1349,22 +1471,8 @@ const activitiesDays = [
   { key: "friday" },
 ];
 const defaultActivityPeriods = [
-  ["09:00", "09:30"],
-  ["09:30", "10:00"],
-  ["10:00", "10:30"],
-  ["10:30", "11:00"],
-  ["11:00", "11:30"],
-  ["11:30", "12:00"],
-  ["12:00", "12:30"],
-  ["12:30", "13:00"],
-  ["13:00", "13:30"],
-  ["13:30", "14:00"],
-  ["14:00", "14:30"],
-  ["14:30", "15:00"],
-  ["15:00", "15:30"],
-  ["15:30", "16:00"],
-  ["16:00", "16:30"],
-  ["16:30", "17:00"],
+  ["09:00", "12:30"],
+  ["13:30", "17:00"],
 ];
 const activityLunchPeriod = ["12:30", "13:30"];
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -1422,6 +1530,8 @@ const activitiesState = {
   history: [],
   activityNames: [],
   monitors: [],
+  editingActivityNameId: "",
+  editingMonitorId: "",
   storageMode: "local",
   selectedWeekStart: weekStartIso(),
   draggedActivityId: "",
@@ -1821,6 +1931,13 @@ const periodContainsActivity = ([start, end], entry) => {
   return entry.start >= start && activityEnd <= end;
 };
 
+const activityOverlapsPeriod = ([start, end], entry) => {
+  const activityEnd = entry.end || entry.start;
+  return entry.start >= start && entry.start < end
+    ? true
+    : entry.start < end && activityEnd > start;
+};
+
 const activityDisplayPeriod = (entry) =>
   defaultActivityPeriods.find((period) => periodContainsActivity(period, entry)) || [entry.start, entry.end || ""];
 
@@ -2155,7 +2272,7 @@ const renderActivitiesCalendar = () => {
                 .join("")}
             </div>
           `;
-          return periodRow;
+          return isActivityLunchAnchor(period) ? `${periodRow}${renderActivityLunchRow()}` : periodRow;
         })
         .join("")}
     </div>
@@ -2216,6 +2333,9 @@ const validateActivityPayload = (payload) => {
   }
   if (payload.end && payload.end <= payload.start) {
     return getTranslation("activities.validationTime");
+  }
+  if (activityOverlapsPeriod(activityLunchPeriod, payload)) {
+    return getTranslation("activities.validationLunch");
   }
   return "";
 };
@@ -2410,7 +2530,7 @@ const activityPrintDocument = () => {
         .join("");
       const periodRow = `<tr class="activity-row"><th>${periodText}</th>${cells}</tr>`;
       const lunchRow = `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
-      return periodRow;
+      return isActivityLunchAnchor(period) ? `${periodRow}${lunchRow}` : periodRow;
     })
     .join("");
   return `<!doctype html>
