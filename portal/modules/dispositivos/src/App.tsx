@@ -859,7 +859,7 @@ const translations = {
     saveChanges: 'Guardar alteracoes',
     search: 'Pesquisar',
     signIn: 'Entrar',
-    signOut: 'Sair',
+    signOut: 'Terminar Sessão',
     systemUser: 'Sistema',
     sortAscending: 'Ordenacao crescente',
     sortBy: 'Ordenar por',

@@ -4142,7 +4142,7 @@ TRANSLATIONS = {
         "history": "Historico",
         "manual": "Manuais",
         "change_language": "Idioma",
-        "logout": "Sair",
+        "logout": "Terminar Sessão",
         "dark": "Tema escuro",
         "light": "Tema claro",
         "back": "Voltar",
