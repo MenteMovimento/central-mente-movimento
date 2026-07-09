@@ -90,15 +90,14 @@ export const atividadesPageContent = () => `<main class="global-shell activities
             </select>
           </label>
           <label class="activity-field">
-            <span data-i18n="activities.start">In&iacute;cio</span>
+            <span data-i18n="activities.start">Inicio</span>
             <select name="start" required>
-              ${activityTimeOptions(activityStartTimes, '09:00')}
+              ${activityTimeOptions(activityStartTimes)}
             </select>
           </label>
           <label class="activity-field">
             <span data-i18n="activities.end">Fim</span>
             <select name="end">
-              <option value="">--:--</option>
               ${activityTimeOptions(activityEndTimes)}
             </select>
           </label>
