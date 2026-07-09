@@ -102,7 +102,7 @@ const moduleCards = `
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="id-card"></i></span>
   </div>
-  <h2 data-i18n="module.socios.title">Gestão de Sócios</h2>
+  <h2 data-i18n="module.socios.title">Sócios</h2>
   <a class="module-action" href="/area/socios/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar</span>
@@ -112,7 +112,7 @@ const moduleCards = `
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="heart-handshake"></i></span>
   </div>
-  <h2 data-i18n="module.utentes.title">Gestão de Utentes</h2>
+  <h2 data-i18n="module.utentes.title">Utentes</h2>
   <a class="module-action" href="/area/utentes/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar</span>
@@ -132,7 +132,7 @@ const moduleCards = `
   <div class="module-topline">
     <span class="module-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
   </div>
-  <h2 data-i18n="module.atividades.title">Gest&atilde;o de Atividades</h2>
+  <h2 data-i18n="module.atividades.title">Atividades</h2>
   <a class="module-action" href="/area/atividades/">
     <i data-lucide="arrow-right"></i>
     <span data-i18n="module.enter">Entrar</span>
@@ -492,7 +492,7 @@ ${topbar('', { showAccountMenu: true })}
 <main class="dashboard">
   <section class="dashboard-heading" aria-label="Gestão da associação">
     <div>
-      <p class="eyebrow" data-i18n="dashboard.eyebrow">Gestão da associação</p>
+      <p class="eyebrow-dashboard" data-i18n="dashboard.eyebrow">Gestão da associação</p>
     </div>
   </section>
   <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
