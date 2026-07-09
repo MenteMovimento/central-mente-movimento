@@ -2068,7 +2068,6 @@ const renderActivitiesCalendar = () => {
             const dayDate = addDaysToIso(activitiesState.selectedWeekStart, index);
             return `
               <div class="timetable-day-head" role="columnheader">
-                <span>${escapeHtml(getTranslation(`activities.dayShort.${day.key}`))}</span>
                 <strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong>
                 <small>${escapeHtml(formatActivityDate(dayDate))}</small>
               </div>
