@@ -2016,10 +2016,6 @@ const activityPrintDocument = () => {
     tbody th { width: 15mm; }
     tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
     tbody tr.activity-row { height: auto; }
-    tbody tr.lunch-row { height: 12mm; }
-    tbody tr.lunch-row th, tbody tr.lunch-row td { border-bottom: 2px solid #8fb2ab; border-top: 2px solid #8fb2ab; }
-    .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 12px; font-weight: 900; text-align: center; vertical-align: middle; }
-    .lunch-row td { text-transform: uppercase; }
     th strong, th small { display: block; }
     th strong { font-size: 10px; line-height: 1.1; text-transform: uppercase; }
     th small { color: #506560; font-size: 8px; font-weight: 700; margin-top: 0.5mm; }
