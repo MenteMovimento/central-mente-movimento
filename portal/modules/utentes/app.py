@@ -2026,6 +2026,59 @@ tr:last-child td {
     white-space: pre-wrap;
 }
 
+@media print {
+    :root,
+    .dark-theme {
+        color-scheme: light;
+        --bg: #ffffff;
+        --panel: #ffffff;
+        --text: #111111;
+        --muted: #444444;
+        --line: #b8c8c2;
+        --brand: #1f766b;
+        --brand-dark: #1f766b;
+        --focus: #ffffff;
+        --shadow: none;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #111111 !important;
+    }
+
+    .central-header,
+    .edit-title,
+    .notice,
+    .central-auth-loading,
+    .tab-list {
+        display: none !important;
+    }
+
+    main {
+        padding: 0 !important;
+    }
+
+    .panel,
+    .tabs-panel,
+    .tab-content {
+        border: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+
+    .tabs-panel {
+        overflow: visible !important;
+    }
+
+    input,
+    textarea,
+    select,
+    .readonly-field {
+        background: #ffffff !important;
+        color: #111111 !important;
+    }
+}
+
 @media (max-width: 760px) {
     .topbar,
     .toolbar,
@@ -4177,6 +4230,7 @@ TRANSLATIONS = {
         "dark": "Tema escuro",
         "light": "Tema claro",
         "back": "Voltar",
+        "print": "Imprimir",
         "close": "Fechar",
         "refresh": "Atualizar",
         "name": "Nome",
@@ -4274,6 +4328,7 @@ TRANSLATIONS = {
         "dark": "Dark theme",
         "light": "Light theme",
         "back": "Back",
+        "print": "Print",
         "close": "Close",
         "refresh": "Refresh",
         "name": "Name",
@@ -8147,6 +8202,10 @@ def render_protecao_dados_form(utente_id, readonly=False):
     """
 
 
+def render_print_page_button(current_user):
+    return f'<button class="button secondary print-page-button" type="button" onclick="window.print()">{esc(tr(current_user, "print"))}</button>'
+
+
 def render_edit_page(utente, active_tab=None, error="", notice="", current_user=None):
     active_tab = normalize_tab_key(active_tab)
     if not can_view_tab(current_user, active_tab):
@@ -8193,6 +8252,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
                 </div>
         """
     error_html = f'<div class="notice">{esc(error)}</div>' if error else ""
+    print_button = render_print_page_button(current_user)
 
     if active_tab == "protecao_dados":
         content = f"""
@@ -8200,6 +8260,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     <div class="edit-title">
         <div class="title-actions">
             <span class="autosave-status" data-autosave-status aria-live="polite"></span>
+            {print_button}
             <a class="button secondary" href="/">Voltar</a>
             {save_button}
         </div>
@@ -8226,6 +8287,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     <div class="edit-title">
         <div class="title-actions">
             <span class="autosave-status" data-autosave-status aria-live="polite"></span>
+            {print_button}
             <a class="button secondary" href="/">Voltar</a>
             {save_button}
         </div>
@@ -8291,10 +8353,12 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
                 <div class="readonly-field readonly-text">{esc(tab_content) or "Sem informação registada."}</div>
             </div>
         """
+    print_button = render_print_page_button(current_user)
     content = f"""
 <div class="edit-layout">
     <div class="edit-title">
         <div class="title-actions">
+            {print_button}
             <a class="button secondary" href="/">Voltar</a>
         </div>
     </div>

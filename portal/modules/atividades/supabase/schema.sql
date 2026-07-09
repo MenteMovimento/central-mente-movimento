@@ -14,7 +14,7 @@ as $$
   end
 $$;
 
-create or replace function private.default_app_permission(role text, area text, action text)
+create or replace function private.default_app_permission(role public.app_role, area text, action text)
 returns boolean
 language sql
 immutable

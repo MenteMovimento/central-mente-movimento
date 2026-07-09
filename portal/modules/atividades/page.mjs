@@ -103,13 +103,15 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </label>
           <label class="activity-field activity-field-wide">
             <span data-i18n="activities.name">Nome da atividade</span>
-            <input type="text" name="title" list="activityNameOptions" autocomplete="off" required />
-            <datalist id="activityNameOptions" data-activity-name-options></datalist>
+            <select name="title" data-activity-name-options required>
+              <option value="" data-i18n="activities.selectActivity">Selecionar atividade</option>
+            </select>
           </label>
           <label class="activity-field">
             <span data-i18n="activities.teacher">Monitor</span>
-            <input type="text" name="teacher" list="activityMonitorOptions" autocomplete="off" required />
-            <datalist id="activityMonitorOptions" data-activity-monitor-options></datalist>
+            <select name="teacher" data-activity-monitor-options required>
+              <option value="" data-i18n="activities.selectMonitor">Selecionar monitor</option>
+            </select>
           </label>
           <div class="activity-form-actions">
             <button class="primary-button" type="submit">

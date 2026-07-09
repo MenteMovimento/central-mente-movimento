@@ -86,6 +86,8 @@ const translations = {
     "activities.end": "Fim",
     "activities.name": "Nome da atividade",
     "activities.teacher": "Monitor",
+    "activities.selectActivity": "Selecionar atividade",
+    "activities.selectMonitor": "Selecionar monitor",
     "activities.save": "Guardar",
     "activities.update": "Atualizar",
     "activities.clear": "Limpar",
@@ -276,6 +278,8 @@ const translations = {
     "activities.end": "End",
     "activities.name": "Activity name",
     "activities.teacher": "Monitor",
+    "activities.selectActivity": "Select activity",
+    "activities.selectMonitor": "Select monitor",
     "activities.save": "Save",
     "activities.update": "Update",
     "activities.clear": "Clear",
@@ -492,6 +496,10 @@ const applyLanguage = (language, { persist = false } = {}) => {
   translateStaticContent(language);
   translateStatusChips(language);
   window.__CENTRAL_RENDER_ACTIVITIES?.();
+  if (document.querySelector("[data-activities-calendar]")) {
+    renderActivityNameOptions();
+    renderActivityMonitorOptions();
+  }
   document.querySelectorAll("[data-language-toggle]").forEach((button) => {
     const label = getTranslation(language === "pt" ? "language.ptLabel" : "language.enLabel", language);
     button.setAttribute("title", label);
@@ -634,7 +642,7 @@ const activitiesCatalogElements = () => ({
   input: document.querySelector("[data-activities-catalog-form] input[name='name']"),
   list: document.querySelector("[data-activities-catalog-list]"),
   error: document.querySelector("[data-activities-catalog-error]"),
-  datalist: document.querySelector("[data-activity-name-options]"),
+  select: document.querySelector("[data-activity-name-options]"),
 });
 
 const setActivitiesCatalogFeedback = (message = "", kind = "error") => {
@@ -645,12 +653,33 @@ const setActivitiesCatalogFeedback = (message = "", kind = "error") => {
   error.classList.toggle("is-success", kind === "success");
 };
 
+const renderActivitySelectOptions = (select, items, placeholderKey) => {
+  if (!select) return;
+  const currentValue = String(select.value || "");
+  const knownValues = new Set(items.map((item) => item.name));
+  const options = [
+    `<option value="">${escapeHtml(getTranslation(placeholderKey))}</option>`,
+    ...items.map((item) => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`),
+  ];
+  if (currentValue && !knownValues.has(currentValue)) {
+    options.push(`<option value="${escapeHtml(currentValue)}">${escapeHtml(currentValue)}</option>`);
+  }
+  select.innerHTML = options.join("");
+  select.value = currentValue && [...select.options].some((option) => option.value === currentValue) ? currentValue : "";
+};
+
 const renderActivityNameOptions = () => {
-  const { datalist } = activitiesCatalogElements();
-  if (!datalist) return;
-  datalist.innerHTML = activitiesState.activityNames
-    .map((activity) => `<option value="${escapeHtml(activity.name)}"></option>`)
-    .join("");
+  const { select } = activitiesCatalogElements();
+  renderActivitySelectOptions(select, activitiesState.activityNames, "activities.selectActivity");
+};
+
+const setActivitySelectValue = (select, value) => {
+  if (!select) return;
+  const nextValue = String(value || "");
+  if (nextValue && ![...select.options].some((option) => option.value === nextValue)) {
+    select.append(new Option(nextValue, nextValue));
+  }
+  select.value = nextValue;
 };
 
 const renderActivitiesCatalogList = () => {
@@ -818,7 +847,7 @@ const activitiesMonitorsElements = () => ({
   input: document.querySelector("[data-activities-monitor-form] input[name='name']"),
   list: document.querySelector("[data-activities-monitor-list]"),
   error: document.querySelector("[data-activities-monitors-error]"),
-  datalist: document.querySelector("[data-activity-monitor-options]"),
+  select: document.querySelector("[data-activity-monitor-options]"),
 });
 
 const setActivitiesMonitorsFeedback = (message = "", kind = "error") => {
@@ -830,11 +859,8 @@ const setActivitiesMonitorsFeedback = (message = "", kind = "error") => {
 };
 
 const renderActivityMonitorOptions = () => {
-  const { datalist } = activitiesMonitorsElements();
-  if (!datalist) return;
-  datalist.innerHTML = activitiesState.monitors
-    .map((monitor) => `<option value="${escapeHtml(monitor.name)}"></option>`)
-    .join("");
+  const { select } = activitiesMonitorsElements();
+  renderActivitySelectOptions(select, activitiesState.monitors, "activities.selectMonitor");
 };
 
 const renderActivityMonitorsList = () => {
@@ -916,6 +942,15 @@ const deleteActivityMonitorRemote = async (id) => {
   if (error) throw error;
   activitiesState.monitors = activitiesState.monitors.filter((monitor) => monitor.id !== id);
   renderActivityMonitorsList();
+};
+
+const refreshActivityOptionLists = async () => {
+  const results = await Promise.allSettled([loadActivitiesCatalog(), loadActivityMonitors()]);
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      console.warn("Nao foi possivel carregar opcoes de atividades.", result.reason);
+    }
+  });
 };
 
 const openActivitiesMonitorsDialog = () => {
@@ -2211,6 +2246,13 @@ const saveActivityOrderRemote = async (entries) => {
   if (error) throw error;
 };
 
+const rememberActivityListsRemote = async (entry) => {
+  await Promise.allSettled([
+    ensureActivityNameRemote(entry.title),
+    ensureActivityMonitorRemote(entry.teacher),
+  ]);
+};
+
 const handleActivitySubmit = async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -2243,9 +2285,8 @@ const handleActivitySubmit = async (event) => {
       : nextActivityOrderForCell(entry);
   if (submitButton) submitButton.disabled = true;
   try {
-    await ensureActivityNameRemote(entry.title);
-    await ensureActivityMonitorRemote(entry.teacher);
     const savedEntry = await saveActivityEntryRemote(entry);
+    await rememberActivityListsRemote(savedEntry);
     if (existingIndex >= 0) {
       activitiesState.entries.splice(existingIndex, 1, savedEntry);
     } else {
@@ -2278,8 +2319,8 @@ const fillActivityForm = (entry) => {
   form.elements.day.value = entry.day;
   form.elements.start.value = entry.start;
   form.elements.end.value = entry.end;
-  form.elements.title.value = entry.title;
-  form.elements.teacher.value = entry.teacher;
+  setActivitySelectValue(form.elements.title, entry.title);
+  setActivitySelectValue(form.elements.teacher, entry.teacher);
 };
 
 const viewActivity = (id) => {
@@ -2522,17 +2563,13 @@ const wireActivitiesCalendar = () => {
       markActivitiesRemoteUnavailable(error);
     })
     .finally(() => renderActivitiesCalendar());
-  void loadActivitiesCatalog().catch((error) => {
-    console.warn("Nao foi possivel carregar lista de atividades.", error);
-  });
-  void loadActivityMonitors().catch((error) => {
-    console.warn("Nao foi possivel carregar monitores.", error);
-  });
+  void refreshActivityOptionLists();
   form.addEventListener("submit", handleActivitySubmit);
   createBtn?.addEventListener("click", () => {
     const shouldOpen = !isActivityFormOpen();
     if (shouldOpen) {
       resetActivitiesForm();
+      void refreshActivityOptionLists();
     }
     setActivityFormOpen(shouldOpen);
     if (shouldOpen) {
