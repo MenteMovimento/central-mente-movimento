@@ -707,15 +707,42 @@ const renderActivitiesCatalogList = () => {
   refreshIcons();
 };
 
-const loadActivitiesCatalog = async () => {
+const activityOptionErrorMessage = (error, fallback) => {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error?.message === "string" && error.message) return error.message;
+  return fallback;
+};
+
+const getActivitiesAccessToken = async () => {
   const client = createActivitiesClient();
   if (!client) throw new Error(getTranslation("activities.localOnly"));
-  const { data, error } = await client
-    .from(activitiesCatalogTableName)
-    .select("id,name,active")
-    .eq("active", true)
-    .order("name", { ascending: true });
+  const { data, error } = await client.auth.getSession();
   if (error) throw error;
+  const token = data?.session?.access_token || "";
+  if (!token) throw new Error("Sessao em falta.");
+  return token;
+};
+
+const activitiesOptionsRequest = async (kind, { method = "GET", body = null } = {}) => {
+  const token = await getActivitiesAccessToken();
+  const isGet = method === "GET";
+  const response = await fetch(`/api/activities-options${isGet ? `?kind=${encodeURIComponent(kind)}` : ""}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(isGet ? {} : { "Content-Type": "application/json" }),
+    },
+    body: isGet ? undefined : JSON.stringify({ kind, ...(body || {}) }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error || "Nao foi possivel guardar na base de dados.");
+  }
+  return payload;
+};
+
+const loadActivitiesCatalog = async () => {
+  const { items: data } = await activitiesOptionsRequest("activities");
   activitiesState.activityNames = Array.isArray(data)
     ? data
       .map((row) => ({
@@ -731,14 +758,10 @@ const loadActivitiesCatalog = async () => {
 const ensureActivityNameRemote = async (name) => {
   const activityName = String(name || "").trim();
   if (!activityName) return null;
-  const client = createActivitiesClient();
-  if (!client) throw new Error(getTranslation("activities.localOnly"));
-  const { data, error } = await client
-    .from(activitiesCatalogTableName)
-    .upsert({ name: activityName, active: true }, { onConflict: "name" })
-    .select("id,name,active")
-    .single();
-  if (error) throw error;
+  const { item: data } = await activitiesOptionsRequest("activities", {
+    method: "POST",
+    body: { name: activityName },
+  });
   if (data?.id && data?.name) {
     const nextActivity = { id: String(data.id), name: String(data.name).trim() };
     activitiesState.activityNames = [
@@ -752,13 +775,10 @@ const ensureActivityNameRemote = async (name) => {
 };
 
 const deleteActivityNameRemote = async (id) => {
-  const client = createActivitiesClient();
-  if (!client) throw new Error(getTranslation("activities.localOnly"));
-  const { error } = await client
-    .from(activitiesCatalogTableName)
-    .update({ active: false })
-    .eq("id", id);
-  if (error) throw error;
+  await activitiesOptionsRequest("activities", {
+    method: "DELETE",
+    body: { id },
+  });
   activitiesState.activityNames = activitiesState.activityNames.filter((activity) => activity.id !== id);
   renderActivitiesCatalogList();
 };
@@ -775,7 +795,7 @@ const openActivitiesCatalogDialog = () => {
   }
   void loadActivitiesCatalog().catch((error) => {
     console.warn("Nao foi possivel carregar atividades.", error);
-    setActivitiesCatalogFeedback(getTranslation("activities.localOnly"));
+    setActivitiesCatalogFeedback(activityOptionErrorMessage(error, getTranslation("activities.localOnly")));
   });
   refreshIcons();
   window.setTimeout(() => input?.focus(), 0);
@@ -807,7 +827,7 @@ const handleActivityCatalogSubmit = async (event) => {
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar atividade.", error);
-    setActivitiesCatalogFeedback("Nao foi possivel guardar a atividade.");
+    setActivitiesCatalogFeedback(activityOptionErrorMessage(error, "Nao foi possivel guardar a atividade."));
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
@@ -831,7 +851,7 @@ const wireActivitiesCatalogDialog = () => {
     if (!id) return;
     void deleteActivityNameRemote(id).catch((error) => {
       console.warn("Nao foi possivel remover atividade.", error);
-      setActivitiesCatalogFeedback("Nao foi possivel remover a atividade.");
+      setActivitiesCatalogFeedback(activityOptionErrorMessage(error, "Nao foi possivel remover a atividade."));
     });
   });
   dialog.addEventListener("click", (event) => {
@@ -889,14 +909,7 @@ const renderActivityMonitorsList = () => {
 };
 
 const loadActivityMonitors = async () => {
-  const client = createActivitiesClient();
-  if (!client) throw new Error(getTranslation("activities.localOnly"));
-  const { data, error } = await client
-    .from(activitiesMonitorsTableName)
-    .select("id,name,active")
-    .eq("active", true)
-    .order("name", { ascending: true });
-  if (error) throw error;
+  const { items: data } = await activitiesOptionsRequest("monitors");
   activitiesState.monitors = Array.isArray(data)
     ? data
       .map((row) => ({
@@ -912,14 +925,10 @@ const loadActivityMonitors = async () => {
 const ensureActivityMonitorRemote = async (name) => {
   const monitorName = String(name || "").trim();
   if (!monitorName) return null;
-  const client = createActivitiesClient();
-  if (!client) throw new Error(getTranslation("activities.localOnly"));
-  const { data, error } = await client
-    .from(activitiesMonitorsTableName)
-    .upsert({ name: monitorName, active: true }, { onConflict: "name" })
-    .select("id,name,active")
-    .single();
-  if (error) throw error;
+  const { item: data } = await activitiesOptionsRequest("monitors", {
+    method: "POST",
+    body: { name: monitorName },
+  });
   if (data?.id && data?.name) {
     const nextMonitor = { id: String(data.id), name: String(data.name).trim() };
     activitiesState.monitors = [
@@ -933,13 +942,10 @@ const ensureActivityMonitorRemote = async (name) => {
 };
 
 const deleteActivityMonitorRemote = async (id) => {
-  const client = createActivitiesClient();
-  if (!client) throw new Error(getTranslation("activities.localOnly"));
-  const { error } = await client
-    .from(activitiesMonitorsTableName)
-    .update({ active: false })
-    .eq("id", id);
-  if (error) throw error;
+  await activitiesOptionsRequest("monitors", {
+    method: "DELETE",
+    body: { id },
+  });
   activitiesState.monitors = activitiesState.monitors.filter((monitor) => monitor.id !== id);
   renderActivityMonitorsList();
 };
@@ -965,7 +971,7 @@ const openActivitiesMonitorsDialog = () => {
   }
   void loadActivityMonitors().catch((error) => {
     console.warn("Nao foi possivel carregar monitores.", error);
-    setActivitiesMonitorsFeedback(getTranslation("activities.localOnly"));
+    setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.localOnly")));
   });
   refreshIcons();
   window.setTimeout(() => input?.focus(), 0);
@@ -997,7 +1003,7 @@ const handleActivityMonitorSubmit = async (event) => {
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar monitor.", error);
-    setActivitiesMonitorsFeedback("Nao foi possivel guardar o monitor.");
+    setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel guardar o monitor."));
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
@@ -1021,7 +1027,7 @@ const wireActivitiesMonitorsDialog = () => {
     if (!id) return;
     void deleteActivityMonitorRemote(id).catch((error) => {
       console.warn("Nao foi possivel remover monitor.", error);
-      setActivitiesMonitorsFeedback("Nao foi possivel remover o monitor.");
+      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel remover o monitor."));
     });
   });
   dialog.addEventListener("click", (event) => {
