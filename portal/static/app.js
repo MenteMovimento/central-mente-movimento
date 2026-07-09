@@ -2100,7 +2100,7 @@ const renderActivitiesCalendar = () => {
                 .join("")}
             </div>
           `;
-          return `${periodRow}${isActivityLunchAnchor(period) ? renderActivityLunchRow() : ""}`;
+          return periodRow;
         })
         .join("")}
     </div>
