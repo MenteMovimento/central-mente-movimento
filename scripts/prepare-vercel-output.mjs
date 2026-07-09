@@ -398,6 +398,7 @@ const centralUsersDialog = `
 
       <form class="central-admin-form" id="centralEditUserForm">
         <div class="form-section-title">
+          <i data-lucide="user-plus"></i>
           <h3 data-i18n="users.editTitle">Editar utilizador</h3>
           <p id="centralEditingUserHint" data-i18n="users.editHint">Escolha um utilizador na lista para editar.</p>
         </div>
