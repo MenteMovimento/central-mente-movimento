@@ -438,7 +438,7 @@ ${centralUsersDialog}`,
 })
 
 const atividadesPage = pageShell({
-  title: 'Gest&atilde;o de Atividades - MenteMovimento',
+  title: 'Gestão de Atividades | MenteMovimento',
   page: 'atividades',
   titleKey: 'module.atividades.title',
   body: `
@@ -448,7 +448,7 @@ ${centralUsersDialog}`,
 })
 
 const atividadesHistoryPage = pageShell({
-  title: 'Hist&oacute;rico de Atividades - MenteMovimento',
+  title: 'Histórico de Atividades | MenteMovimento',
   page: 'atividades-historico',
   body: `
 ${topbar('atividades')}
@@ -456,7 +456,7 @@ ${atividadesHistoryPageContent()}`,
 })
 
 const atividadesUserManualPage = pageShell({
-  title: 'Manual de Utilizador - Atividades - MenteMovimento',
+  title: 'Manual de Utilizador - Atividades | MenteMovimento',
   page: 'atividades-manual-utilizador',
   body: `
 ${topbar('atividades')}
@@ -464,7 +464,7 @@ ${atividadesUserManualPageContent()}`,
 })
 
 const atividadesDeveloperManualPage = pageShell({
-  title: 'Manual de Programador - Atividades - MenteMovimento',
+  title: 'Manual de Programador - Atividades | MenteMovimento',
   page: 'atividades-manual-programador',
   body: `
 ${topbar('atividades')}
@@ -472,7 +472,7 @@ ${atividadesDeveloperManualPageContent()}`,
 })
 
 const logoutPage = pageShell({
-  title: 'A sair - MenteMovimento',
+  title: 'A sair | MenteMovimento',
   page: 'logout',
   body: '<main class="login-shell"><section class="login-panel"><h1>A terminar sessão...</h1><p class="login-copy">Aguarde um momento.</p></section></main>',
 }).replace('<body data-central-page="logout">', '<body class="login-page" data-central-page="logout">')
@@ -480,7 +480,7 @@ const logoutPage = pageShell({
 const globalPage = ({ file, key, title, icon, copy, items }) => ({
   file,
   html: pageShell({
-    title: `${title} - MenteMovimento`,
+    title: `${title} | MenteMovimento`,
     page: 'dashboard',
     titleKey: `${key}.title`,
     body: `
