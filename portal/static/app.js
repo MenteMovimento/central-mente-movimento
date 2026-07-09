@@ -1713,7 +1713,7 @@ const renderActivitySlot = (entry) => `
     <div class="activity-slot-main">
       <time>${escapeHtml(activityTimeText(entry))}</time>
       <strong>${escapeHtml(entry.title)}</strong>
-      <span><i data-lucide="graduation-cap"></i>${escapeHtml(entry.teacher)}</span>
+      <span><i data-lucide="user-round"></i>${escapeHtml(entry.teacher)}</span>
     </div>
     <div class="activity-slot-actions">
       <button class="icon-link" type="button" data-activity-action="view" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="view" title="${escapeHtml(getTranslation("activities.view"))}" aria-label="${escapeHtml(getTranslation("activities.view"))}">
@@ -1734,7 +1734,7 @@ const renderActivityPreviewSlot = (entry) => `
     <div class="activity-slot-main">
       <time>${escapeHtml(activityTimeText(entry))}</time>
       <strong>${escapeHtml(entry.title)}</strong>
-      <span><i data-lucide="graduation-cap"></i>${escapeHtml(entry.teacher)}</span>
+      <span><i data-lucide="user-round"></i>${escapeHtml(entry.teacher)}</span>
     </div>
     <div class="activity-slot-actions activity-slot-preview-actions">
       <span class="icon-link" aria-hidden="true"><i data-lucide="eye"></i></span>
