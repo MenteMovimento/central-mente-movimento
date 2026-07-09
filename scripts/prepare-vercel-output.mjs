@@ -350,6 +350,7 @@ const centralUsersDialog = `
   <section class="central-admin-panel" aria-label="Utilizadores">
     <div class="central-admin-head">
       <div>
+        <i data-lucide="users"></i>
         <h2 data-i18n="users.title">Utilizadores</h2>
         <p data-i18n="users.subtitle">Crie acessos novos e edite permissões de utilizadores existentes.</p>
       </div>
