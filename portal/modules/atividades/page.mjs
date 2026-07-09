@@ -1,3 +1,44 @@
+const activityStartTimes = [
+  '09:00',
+  '09:30',
+  '10:00',
+  '10:30',
+  '11:00',
+  '11:30',
+  '12:00',
+  '12:30',
+  '13:00',
+  '13:30',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+]
+
+const activityEndTimes = [
+  '09:30',
+  '10:00',
+  '10:30',
+  '11:00',
+  '11:30',
+  '12:00',
+  '12:30',
+  '13:00',
+  '13:30',
+  '14:00',
+  '14:30',
+  '15:00',
+  '15:30',
+  '16:00',
+  '16:30',
+  '17:00',
+]
+
+const activityTimeOptions = (times, selected = '') =>
+  times.map((time) => `<option value="${time}"${time === selected ? ' selected' : ''}>${time}</option>`).join('')
+
 export const atividadesPageContent = () => `<main class="global-shell activities-shell">
   <section class="activities-workspace area-indigo" data-activities-calendar>
     <div class="activities-toolbar">
@@ -50,19 +91,25 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </label>
           <label class="activity-field">
             <span data-i18n="activities.start">In&iacute;cio</span>
-            <input type="time" name="start" value="09:00" required />
+            <select name="start" required>
+              ${activityTimeOptions(activityStartTimes, '09:00')}
+            </select>
           </label>
           <label class="activity-field">
             <span data-i18n="activities.end">Fim</span>
-            <input type="time" name="end" />
+            <select name="end">
+              <option value="">--:--</option>
+              ${activityTimeOptions(activityEndTimes)}
+            </select>
           </label>
           <label class="activity-field activity-field-wide">
             <span data-i18n="activities.name">Nome da atividade</span>
             <input type="text" name="title" autocomplete="off" required />
           </label>
           <label class="activity-field">
-            <span data-i18n="activities.teacher">Professor</span>
-            <input type="text" name="teacher" autocomplete="off" required />
+            <span data-i18n="activities.teacher">Monitor</span>
+            <input type="text" name="teacher" list="activityMonitorOptions" autocomplete="off" required />
+            <datalist id="activityMonitorOptions" data-activity-monitor-options></datalist>
           </label>
           <div class="activity-form-actions">
             <button class="primary-button" type="submit">
@@ -116,7 +163,7 @@ export const atividadesUserManualPageContent = () => `<main class="global-shell"
     <div class="activity-manual-grid">
       <article class="activity-manual-section">
         <h3>Criar atividade</h3>
-        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e o professor, e grave.</p>
+        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e o monitor, e grave.</p>
       </article>
       <article class="activity-manual-section">
         <h3>Consultar e editar</h3>
@@ -149,8 +196,8 @@ export const atividadesDeveloperManualPageContent = () => `<main class="global-s
         <p>A marca&ccedil;&atilde;o da &aacute;rea est&aacute; em <code>portal/modules/atividades/page.mjs</code>. A gera&ccedil;&atilde;o das p&aacute;ginas continua em <code>scripts/prepare-vercel-output.mjs</code>.</p>
       </article>
       <article class="activity-manual-section">
-        <h3>Dados locais</h3>
-        <p>As atividades e o hist&oacute;rico usam <code>localStorage</code>, mantendo a agenda edit&aacute;vel sem base de dados pr&oacute;pria.</p>
+        <h3>Base de dados</h3>
+        <p>As atividades, os monitores e o hist&oacute;rico usam tabelas Supabase definidas em <code>portal/modules/atividades/supabase/schema.sql</code>.</p>
       </article>
       <article class="activity-manual-section">
         <h3>Permiss&otilde;es</h3>

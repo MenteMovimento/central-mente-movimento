@@ -698,6 +698,7 @@ const elements = {
   accessUserName: document.querySelector("#accessUserName"),
   accessUserRole: document.querySelector("#accessUserRole"),
   accountMenuName: document.querySelector("#accountMenuName"),
+  accountMenuWrap: document.querySelector(".account-menu-wrap"),
   adminDialog: document.querySelector("#adminDialog"),
   adminManagerBtn: document.querySelector("#adminManagerBtn"),
   appShell: document.querySelector("#appShell"),
@@ -2337,7 +2338,14 @@ function closeToolsMenu() {
   }
 }
 
+function closeAccountMenu() {
+  if (elements.accountMenuWrap?.open) {
+    elements.accountMenuWrap.open = false;
+  }
+}
+
 function toggleToolsMenu() {
+  closeAccountMenu();
   setToolsMenuOpen(elements.toolsMenu.hidden);
 }
 
@@ -3776,16 +3784,19 @@ function wireEvents() {
   });
 
   document.addEventListener("click", (event) => {
-    if (elements.toolsMenu.hidden || elements.toolsMenu.contains(event.target) || elements.toolsMenuBtn.contains(event.target)) {
-      return;
+    if (!elements.toolsMenu.hidden && !elements.toolsMenu.contains(event.target) && !elements.toolsMenuBtn.contains(event.target)) {
+      closeToolsMenu();
     }
 
-    closeToolsMenu();
+    if (elements.accountMenuWrap?.open && !elements.accountMenuWrap.contains(event.target)) {
+      closeAccountMenu();
+    }
   });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeToolsMenu();
+      closeAccountMenu();
     }
   });
 }

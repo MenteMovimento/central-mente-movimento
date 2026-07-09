@@ -763,6 +763,11 @@ body.dark-mode .timetable-lunch-cell {
   background: #12263c;
 }
 
+body.dark-mode .activities-manual-dialog {
+  background: #081827;
+  color: #dcecf4;
+}
+
 body.dark-mode .activity-slot {
   background: #101f34;
   border-color: rgba(152, 169, 165, 0.34);
@@ -780,6 +785,31 @@ body.dark-mode .timetable-lunch-cell {
 body.dark-mode .activity-error.is-success {
   background: #102f2c;
   color: #72e5bf;
+}
+
+body.dark-mode .activity-manual-section,
+body.dark-mode .activity-empty-state,
+body.dark-mode .activity-history-table-wrap,
+body.dark-mode .activities-monitor-row {
+  background: #081827;
+  border-color: #24445c;
+  color: #dcecf4;
+}
+
+body.dark-mode .activity-history-table th {
+  background: #12263c;
+  color: #dff7f0;
+}
+
+body.dark-mode .activity-history-table td {
+  border-color: #24445c;
+  color: #dcecf4;
+}
+
+body.dark-mode .activity-history-table td:last-child,
+body.dark-mode .activity-manual-section p,
+body.dark-mode .activity-empty-state {
+  color: #b9c9d8;
 }
 
 body.dark-mode .central-users-table th,
@@ -1577,6 +1607,42 @@ body.dark-mode .central-admin-forms {
 .activity-form-actions .secondary-button {
   width: auto;
   padding: 0 14px;
+}
+
+.activities-monitor-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.activities-monitor-form .primary-button {
+  width: auto;
+  padding: 0 16px;
+}
+
+.activities-monitor-list {
+  display: grid;
+  gap: 10px;
+}
+
+.activities-monitor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 50px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.activities-monitor-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .activity-error {

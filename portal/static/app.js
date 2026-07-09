@@ -69,7 +69,7 @@ const translations = {
     "module.atividades.title": "Gest\u00e3o de Atividades",
     "module.atividades.detail": "Planeamento e registo de atividades",
     "activities.eyebrow": "Hor\u00e1rio semanal",
-    "activities.copy": "Planeie as atividades da semana por dia, hora e professor.",
+    "activities.copy": "Planeie as atividades da semana por dia, hora e monitor.",
     "activities.createButton": "Criar Atividade",
     "activities.closeCreateButton": "Fechar",
     "activities.form.addTitle": "Adicionar atividade",
@@ -85,7 +85,7 @@ const translations = {
     "activities.start": "In\u00edcio",
     "activities.end": "Fim",
     "activities.name": "Nome da atividade",
-    "activities.teacher": "Professor",
+    "activities.teacher": "Monitor",
     "activities.save": "Guardar",
     "activities.update": "Atualizar",
     "activities.clear": "Limpar",
@@ -99,12 +99,12 @@ const translations = {
     "activities.dragHandle": "Arrastar para ordenar",
     "activities.dropHere": "Largar aqui",
     "activities.confirmDelete": "Remover esta atividade?",
-    "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o professor.",
+    "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o monitor.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
     "activities.saved": "Atividade guardada.",
     "activities.deleted": "Atividade removida.",
     "activities.cleared": "Semana limpa.",
-    "activities.localOnly": "Agenda partilhada indisponivel. As alteracoes ficam apenas neste browser ate configurar o Supabase.",
+    "activities.localOnly": "Base de dados de atividades indisponivel. As alteracoes nao foram guardadas.",
     "activities.saveError": "Nao foi possivel guardar a atividade partilhada.",
     "activities.historyEmpty": "Sem a\u00e7\u00f5es registadas.",
     "activities.historyAction": "A\u00e7\u00e3o",
@@ -117,7 +117,7 @@ const translations = {
     "activities.historyReordered": "Reordenada",
     "activities.historyPrinted": "Semana impressa",
     "activities.historyWeek": "Semana: {week}",
-    "activities.historyTeacher": "Professor: {teacher}",
+    "activities.historyTeacher": "Monitor: {teacher}",
     "activities.historyTime": "Hora: {time}",
     "activities.count.one": "1 atividade",
     "activities.count.other": "{count} atividades",
@@ -259,7 +259,7 @@ const translations = {
     "module.atividades.title": "Activity Management",
     "module.atividades.detail": "Activity planning and records",
     "activities.eyebrow": "Weekly timetable",
-    "activities.copy": "Plan the week's activities by day, time and teacher.",
+    "activities.copy": "Plan the week's activities by day, time and monitor.",
     "activities.createButton": "Create Activity",
     "activities.closeCreateButton": "Close",
     "activities.form.addTitle": "Add activity",
@@ -275,7 +275,7 @@ const translations = {
     "activities.start": "Start",
     "activities.end": "End",
     "activities.name": "Activity name",
-    "activities.teacher": "Teacher",
+    "activities.teacher": "Monitor",
     "activities.save": "Save",
     "activities.update": "Update",
     "activities.clear": "Clear",
@@ -290,12 +290,12 @@ const translations = {
     "activities.dragHandle": "Drag to reorder",
     "activities.dropHere": "Drop here",
     "activities.confirmDelete": "Remove this activity?",
-    "activities.validationRequired": "Fill in the day, time, activity name and teacher.",
+    "activities.validationRequired": "Fill in the day, time, activity name and monitor.",
     "activities.validationTime": "The end time must be after the start time.",
     "activities.saved": "Activity saved.",
     "activities.deleted": "Activity removed.",
     "activities.cleared": "Week cleared.",
-    "activities.localOnly": "Shared timetable unavailable. Changes stay only in this browser until Supabase is configured.",
+    "activities.localOnly": "Activities database unavailable. Changes were not saved.",
     "activities.saveError": "Could not save the shared activity.",
     "activities.historyEmpty": "No actions registered.",
     "activities.historyAction": "Action",
@@ -308,7 +308,7 @@ const translations = {
     "activities.historyReordered": "Reordered",
     "activities.historyPrinted": "Week printed",
     "activities.historyWeek": "Week: {week}",
-    "activities.historyTeacher": "Teacher: {teacher}",
+    "activities.historyTeacher": "Monitor: {teacher}",
     "activities.historyTime": "Time: {time}",
     "activities.count.one": "1 activity",
     "activities.count.other": "{count} activities",
@@ -568,6 +568,9 @@ const closeToolsMenus = () => {
   document.querySelectorAll("details.global-menu-wrap[open]").forEach((menu) => {
     menu.open = false;
   });
+  document.querySelectorAll("details.dashboard-user-menu-wrap[open]").forEach((menu) => {
+    menu.open = false;
+  });
 };
 
 const toggleToolsMenu = (button) => {
@@ -620,6 +623,190 @@ const wireActivitiesManualsDialog = () => {
   });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) closeActivitiesManualsDialog();
+  });
+};
+
+const activitiesMonitorsElements = () => ({
+  dialog: document.querySelector("[data-activities-monitors-dialog]"),
+  openButtons: document.querySelectorAll("[data-activities-monitors-toggle]"),
+  closeButtons: document.querySelectorAll("[data-activities-monitors-close]"),
+  form: document.querySelector("[data-activities-monitor-form]"),
+  input: document.querySelector("[data-activities-monitor-form] input[name='name']"),
+  list: document.querySelector("[data-activities-monitor-list]"),
+  error: document.querySelector("[data-activities-monitors-error]"),
+  datalist: document.querySelector("[data-activity-monitor-options]"),
+});
+
+const setActivitiesMonitorsFeedback = (message = "", kind = "error") => {
+  const { error } = activitiesMonitorsElements();
+  if (!error) return;
+  error.textContent = message;
+  error.hidden = !message;
+  error.classList.toggle("is-success", kind === "success");
+};
+
+const renderActivityMonitorOptions = () => {
+  const { datalist } = activitiesMonitorsElements();
+  if (!datalist) return;
+  datalist.innerHTML = activitiesState.monitors
+    .map((monitor) => `<option value="${escapeHtml(monitor.name)}"></option>`)
+    .join("");
+};
+
+const renderActivityMonitorsList = () => {
+  const { list } = activitiesMonitorsElements();
+  if (!list) return;
+  if (!activitiesState.monitors.length) {
+    list.innerHTML = `<p class="activity-empty-state">Sem monitores registados.</p>`;
+    renderActivityMonitorOptions();
+    refreshIcons();
+    return;
+  }
+  list.innerHTML = activitiesState.monitors
+    .map(
+      (monitor) => `
+        <article class="activities-monitor-row">
+          <strong>${escapeHtml(monitor.name)}</strong>
+          <button class="icon-link danger-link" type="button" data-activities-monitor-delete="${escapeHtml(monitor.id)}" title="Remover monitor" aria-label="Remover monitor">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </article>
+      `,
+    )
+    .join("");
+  renderActivityMonitorOptions();
+  refreshIcons();
+};
+
+const loadActivityMonitors = async () => {
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const { data, error } = await client
+    .from(activitiesMonitorsTableName)
+    .select("id,name,active")
+    .eq("active", true)
+    .order("name", { ascending: true });
+  if (error) throw error;
+  activitiesState.monitors = Array.isArray(data)
+    ? data
+      .map((row) => ({
+        id: String(row?.id || ""),
+        name: String(row?.name || "").trim(),
+      }))
+      .filter((monitor) => monitor.id && monitor.name)
+    : [];
+  renderActivityMonitorsList();
+  return activitiesState.monitors;
+};
+
+const ensureActivityMonitorRemote = async (name) => {
+  const monitorName = String(name || "").trim();
+  if (!monitorName) return null;
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const { data, error } = await client
+    .from(activitiesMonitorsTableName)
+    .upsert({ name: monitorName, active: true }, { onConflict: "name" })
+    .select("id,name,active")
+    .single();
+  if (error) throw error;
+  if (data?.id && data?.name) {
+    const nextMonitor = { id: String(data.id), name: String(data.name).trim() };
+    activitiesState.monitors = [
+      nextMonitor,
+      ...activitiesState.monitors.filter((monitor) => monitor.id !== nextMonitor.id && monitor.name !== nextMonitor.name),
+    ].sort((left, right) => left.name.localeCompare(right.name, getLanguage() === "en" ? "en" : "pt"));
+    renderActivityMonitorsList();
+    return nextMonitor;
+  }
+  return null;
+};
+
+const deleteActivityMonitorRemote = async (id) => {
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const { error } = await client
+    .from(activitiesMonitorsTableName)
+    .update({ active: false })
+    .eq("id", id);
+  if (error) throw error;
+  activitiesState.monitors = activitiesState.monitors.filter((monitor) => monitor.id !== id);
+  renderActivityMonitorsList();
+};
+
+const openActivitiesMonitorsDialog = () => {
+  const { dialog, input } = activitiesMonitorsElements();
+  if (!dialog) return;
+  closeToolsMenus();
+  setActivitiesMonitorsFeedback("");
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+  void loadActivityMonitors().catch((error) => {
+    console.warn("Nao foi possivel carregar monitores.", error);
+    setActivitiesMonitorsFeedback(getTranslation("activities.localOnly"));
+  });
+  refreshIcons();
+  window.setTimeout(() => input?.focus(), 0);
+};
+
+const closeActivitiesMonitorsDialog = () => {
+  const { dialog, form } = activitiesMonitorsElements();
+  if (!dialog) return;
+  form?.reset();
+  setActivitiesMonitorsFeedback("");
+  if (dialog.open && typeof dialog.close === "function") {
+    dialog.close();
+  } else {
+    dialog.removeAttribute("open");
+  }
+};
+
+const handleActivityMonitorSubmit = async (event) => {
+  event.preventDefault();
+  const { form, input } = activitiesMonitorsElements();
+  const name = String(input?.value || "").trim();
+  if (!name) return;
+  const submitButton = form?.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
+    await ensureActivityMonitorRemote(name);
+    form?.reset();
+    setActivitiesMonitorsFeedback("Monitor guardado.", "success");
+    input?.focus();
+  } catch (error) {
+    console.warn("Nao foi possivel guardar monitor.", error);
+    setActivitiesMonitorsFeedback(getTranslation("activities.saveError"));
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
+};
+
+const wireActivitiesMonitorsDialog = () => {
+  const { dialog, openButtons, closeButtons, form, list } = activitiesMonitorsElements();
+  if (!dialog || dialog.dataset.activitiesMonitorsWired === "true") return;
+  dialog.dataset.activitiesMonitorsWired = "true";
+  openButtons.forEach((button) => {
+    button.addEventListener("click", openActivitiesMonitorsDialog);
+  });
+  closeButtons.forEach((button) => {
+    button.addEventListener("click", closeActivitiesMonitorsDialog);
+  });
+  form?.addEventListener("submit", handleActivityMonitorSubmit);
+  list?.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const button = target?.closest("[data-activities-monitor-delete]");
+    const id = button?.dataset.activitiesMonitorDelete || "";
+    if (!id) return;
+    void deleteActivityMonitorRemote(id).catch((error) => {
+      console.warn("Nao foi possivel remover monitor.", error);
+      setActivitiesMonitorsFeedback(getTranslation("activities.saveError"));
+    });
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeActivitiesMonitorsDialog();
   });
 };
 
@@ -927,6 +1114,7 @@ const activitiesMigrationStorageKey = "central-activities-supabase-migrated-v1";
 const activitiesHistoryMigrationStorageKey = "central-activities-history-supabase-migrated-v1";
 const activitiesScheduleTableName = "activities_schedule";
 const activitiesHistoryTableName = "activities_history";
+const activitiesMonitorsTableName = "activities_monitors";
 const activitiesDays = [
   { key: "monday" },
   { key: "tuesday" },
@@ -935,10 +1123,10 @@ const activitiesDays = [
   { key: "friday" },
 ];
 const defaultActivityPeriods = [
-  ["09:00", "12:00"],
-  ["13:00", "17:00"],
+  ["09:00", "12:30"],
+  ["13:30", "17:00"],
 ];
-const activityLunchPeriod = ["12:00", "13:00"];
+const activityLunchPeriod = ["12:30", "13:30"];
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
 
 const dateToIso = (date) => {
@@ -992,6 +1180,7 @@ const activitiesState = {
   client: null,
   entries: [],
   history: [],
+  monitors: [],
   storageMode: "local",
   selectedWeekStart: weekStartIso(),
   draggedActivityId: "",
@@ -1103,13 +1292,7 @@ const readActivitiesFromStorage = () => {
   }
 };
 
-const saveActivities = (entries = activitiesState.entries) => {
-  try {
-    localStorage.setItem(activitiesStorageKey, JSON.stringify(entries));
-  } catch (_error) {
-    // O calendario continua editavel na sessao atual mesmo sem localStorage.
-  }
-};
+const saveActivities = () => {};
 
 const markActivitiesRemoteUnavailable = (error) => {
   activitiesState.storageMode = "local";
@@ -1167,7 +1350,7 @@ const loadActivities = async () => {
   const localEntries = readActivitiesFromStorage();
   const client = createActivitiesClient();
   if (!client) {
-    activitiesState.entries = localEntries;
+    activitiesState.entries = [];
     markActivitiesRemoteUnavailable();
     return;
   }
@@ -1179,7 +1362,7 @@ const loadActivities = async () => {
     .order("start_time", { ascending: true })
     .order("sort_order", { ascending: true });
   if (error) {
-    activitiesState.entries = localEntries;
+    activitiesState.entries = [];
     markActivitiesRemoteUnavailable(error);
     return;
   }
@@ -1222,13 +1405,7 @@ const readActivitiesHistoryFromStorage = () => {
   }
 };
 
-const saveActivitiesHistory = (entries) => {
-  try {
-    localStorage.setItem(activitiesHistoryStorageKey, JSON.stringify(entries.slice(0, 200)));
-  } catch (_error) {
-    // O historico e apenas auxiliar; a agenda continua a funcionar sem ele.
-  }
-};
+const saveActivitiesHistory = () => {};
 
 const activityHistoryEntryFromRow = (row, index = 0) =>
   normalizeActivityHistoryEntry(
@@ -1287,8 +1464,8 @@ const loadActivitiesHistory = async () => {
   const localEntries = readActivitiesHistoryFromStorage();
   const client = createActivitiesClient();
   if (!client) {
-    activitiesState.history = localEntries;
-    return localEntries;
+    activitiesState.history = [];
+    return [];
   }
   const { data, error } = await client
     .from(activitiesHistoryTableName)
@@ -1297,8 +1474,8 @@ const loadActivitiesHistory = async () => {
     .limit(200);
   if (error) {
     console.warn("Historico partilhado de atividades indisponivel.", error);
-    activitiesState.history = localEntries;
-    return localEntries;
+    activitiesState.history = [];
+    return [];
   }
   let remoteEntries = Array.isArray(data)
     ? data.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
@@ -1320,6 +1497,7 @@ const saveActivityHistoryRemote = async (entry) => {
 };
 
 const recordActivityHistory = (action, entry = {}) => {
+  if (activitiesState.storageMode !== "remote") return;
   const item = normalizeActivityEntry(entry, activitiesState.selectedWeekStart, Number(entry.order) || 0);
   const historyEntry = {
     id: activityId(),
@@ -1803,9 +1981,9 @@ const validateActivityPayload = (payload) => {
 };
 
 const saveActivityEntryRemote = async (entry) => {
-  if (activitiesState.storageMode !== "remote") return entry;
+  if (activitiesState.storageMode !== "remote") throw new Error(getTranslation("activities.localOnly"));
   const client = createActivitiesClient();
-  if (!client) return entry;
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
   const { data, error } = await client
     .from(activitiesScheduleTableName)
     .upsert(activityEntryToRow(entry), { onConflict: "id" })
@@ -1816,17 +1994,18 @@ const saveActivityEntryRemote = async (entry) => {
 };
 
 const deleteActivityEntryRemote = async (id) => {
-  if (activitiesState.storageMode !== "remote") return;
+  if (activitiesState.storageMode !== "remote") throw new Error(getTranslation("activities.localOnly"));
   const client = createActivitiesClient();
-  if (!client) return;
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
   const { error } = await client.from(activitiesScheduleTableName).delete().eq("id", id);
   if (error) throw error;
 };
 
 const saveActivityOrderRemote = async (entries) => {
-  if (activitiesState.storageMode !== "remote") return;
+  if (activitiesState.storageMode !== "remote") throw new Error(getTranslation("activities.localOnly"));
   const client = createActivitiesClient();
-  if (!client || !entries.length) return;
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  if (!entries.length) return;
   const { error } = await client
     .from(activitiesScheduleTableName)
     .upsert(entries.map(activityEntryToRow), { onConflict: "id" });
@@ -1865,6 +2044,7 @@ const handleActivitySubmit = async (event) => {
       : nextActivityOrderForCell(entry);
   if (submitButton) submitButton.disabled = true;
   try {
+    await ensureActivityMonitorRemote(entry.teacher);
     const savedEntry = await saveActivityEntryRemote(entry);
     if (existingIndex >= 0) {
       activitiesState.entries.splice(existingIndex, 1, savedEntry);
@@ -2136,17 +2316,20 @@ const wireActivitiesCalendar = () => {
     setActivityFormOpen(isActivityFormOpen());
     renderActivitiesCalendar();
   };
-  activitiesState.entries = readActivitiesFromStorage();
-  activitiesState.history = readActivitiesHistoryFromStorage();
+  activitiesState.entries = [];
+  activitiesState.history = [];
   resetActivitiesForm();
   setActivityFormOpen(false);
   renderActivitiesCalendar();
   void loadActivities()
     .catch((error) => {
-      activitiesState.entries = readActivitiesFromStorage();
+      activitiesState.entries = [];
       markActivitiesRemoteUnavailable(error);
     })
     .finally(() => renderActivitiesCalendar());
+  void loadActivityMonitors().catch((error) => {
+    console.warn("Nao foi possivel carregar monitores.", error);
+  });
   form.addEventListener("submit", handleActivitySubmit);
   createBtn?.addEventListener("click", () => {
     const shouldOpen = !isActivityFormOpen();
@@ -2806,6 +2989,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLanguage(getLanguage(), { persist: true });
   wirePasswordToggle();
   wireActivitiesManualsDialog();
+  wireActivitiesMonitorsDialog();
   wireActivitiesCalendar();
   void renderActivitiesHistoryPage();
   refreshIcons();
@@ -2836,7 +3020,12 @@ document.addEventListener("DOMContentLoaded", () => {
       closeLanguageDialog();
       return;
     }
-    if (event.target.closest("[data-tools-menu]") || event.target.closest("[data-menu-toggle]") || event.target.closest(".global-menu-wrap")) {
+    if (
+      event.target.closest("[data-tools-menu]") ||
+      event.target.closest("[data-menu-toggle]") ||
+      event.target.closest(".global-menu-wrap") ||
+      event.target.closest(".dashboard-user-menu-wrap")
+    ) {
       return;
     }
     closeToolsMenus();

@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260709-account-menu-all-tabs'
+const assetVersion = '20260709-activity-monitors-db'
 
 const authPendingHead = `<script>
       (() => {
@@ -142,6 +142,14 @@ const moduleCards = `
 const topbarMenu = (activeId = '') =>
   activeId === 'atividades'
     ? `
+          <a class="menu-item" href="/area/atividades/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="calendar-days"></i>
+            <span>Atividades</span>
+          </a>
+          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+            <i data-lucide="users-round"></i>
+            <span>Monitores</span>
+          </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
@@ -195,6 +203,35 @@ const atividadesManualsDialog = () => `
           <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
         </span>
       </a>
+    </div>
+  </div>
+</dialog>`
+
+const atividadesMonitorsDialog = () => `
+<dialog class="activities-manual-dialog activities-monitors-dialog" data-activities-monitors-dialog aria-labelledby="activitiesMonitorsTitle">
+  <div class="activities-manual-panel activities-monitors-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesMonitorsTitle">Monitores</h2>
+        <p>Crie e consulte os monitores usados nas atividades.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <form class="activities-monitor-form" data-activities-monitor-form>
+      <label class="activity-field">
+        <span>Nome do monitor</span>
+        <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <button class="primary-button" type="submit">
+        <i data-lucide="save"></i>
+        <span>Guardar</span>
+      </button>
+    </form>
+    <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
+    <div class="activities-monitor-list" data-activities-monitor-list>
+      <p class="activity-empty-state">Sem monitores registados.</p>
     </div>
   </div>
 </dialog>`
@@ -257,7 +294,7 @@ ${topbarMenu(activeId)}
     </div>
   </div>
 </header>
-${activeId === 'atividades' ? atividadesManualsDialog() : ''}`
+${activeId === 'atividades' ? `${atividadesManualsDialog()}${atividadesMonitorsDialog()}` : ''}`
 
 const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
 <html lang="pt">

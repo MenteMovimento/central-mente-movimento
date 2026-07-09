@@ -2706,6 +2706,37 @@ APP_SCRIPT = """
         beginLoading();
     });
 
+    const closeHeaderMenus = () => {
+        document.querySelectorAll(".central-menu-wrap[open], .central-account-wrap[open]").forEach((menu) => {
+            menu.open = false;
+        });
+    };
+    document.querySelectorAll(".central-menu-wrap > summary").forEach((summary) => {
+        summary.addEventListener("click", () => {
+            document.querySelectorAll(".central-account-wrap[open]").forEach((menu) => {
+                menu.open = false;
+            });
+        });
+    });
+    document.querySelectorAll(".central-account-wrap > summary").forEach((summary) => {
+        summary.addEventListener("click", () => {
+            document.querySelectorAll(".central-menu-wrap[open]").forEach((menu) => {
+                menu.open = false;
+            });
+        });
+    });
+    document.addEventListener("click", (event) => {
+        if (event.target.closest(".central-menu-wrap, .central-account-wrap")) {
+            return;
+        }
+        closeHeaderMenus();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeHeaderMenus();
+        }
+    });
+
     const manualDialog = document.getElementById("manualChoiceDialog");
     const openManualDialogButton = document.querySelector("[data-manual-dialog-open]");
     const closeManualDialogButton = document.getElementById("closeManualChoiceDialog");
