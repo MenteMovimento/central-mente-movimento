@@ -367,6 +367,7 @@ const centralUsersDialog = `
     <div class="central-admin-forms">
       <form class="central-admin-form" id="centralCreateUserForm">
         <div class="form-section-title">
+          <i data-lucide="user-plus"></i>
           <h3 data-i18n="users.createTitle">Criar utilizador</h3>
           <p data-i18n="users.createHint">O utilizador é adicionado automaticamente à base de dados da associação.</p>
         </div>
