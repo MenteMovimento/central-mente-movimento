@@ -475,7 +475,7 @@ const translations = {
       title: "Users",
       subtitle: "Create new access accounts and edit existing user permissions.",
       createTitle: "Create user",
-      createHint: "The user is added automatically to the association's Database.",
+      createHint: "The user is added automatically to the association Database.",
       editTitle: "Edit user",
       editHint: "Choose a user from the list to edit.",
       createButton: "Create user",
