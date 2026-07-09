@@ -407,10 +407,6 @@ const centralUsersDialog = `
           <span data-i18n="users.name">Nome</span>
           <input id="centralEditUserName" name="fullName" type="text" autocomplete="name" />
         </label>
-        <label class="field" for="centralEditUserEmail">
-          <span data-i18n="login.email">Email</span>
-          <input id="centralEditUserEmail" name="email" type="email" autocomplete="email" required />
-        </label>
         <label class="remember-field" for="centralEditUserActive">
           <input id="centralEditUserActive" name="active" type="checkbox" checked />
           <span data-i18n="users.active">Ativo</span>
