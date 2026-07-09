@@ -850,6 +850,15 @@ body.dark-mode .central-admin-forms {
   text-transform: uppercase;
 }
 
+.eyebrow-dashboard {
+  margin-bottom: 8px;
+  color: var(--brand-dark);
+  font-size: 1rem;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .dashboard-heading h2 {
   margin-bottom: 0;
   font-size: clamp(1.8rem, 4vw, 3rem);
