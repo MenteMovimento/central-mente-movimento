@@ -3126,7 +3126,7 @@ const fillCentralUserForm = (user) => {
 const validateCentralUser = ({ id, email, fullName, password, requirePassword = false }) => {
   if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
   if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Indique um email válido.";
+  if (!email !== undefined && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return "Indique um email válido.";
   if (requirePassword && (!password || !isStrongPassword(password))) return passwordPolicyMessage;
   return "";
 };
@@ -3185,7 +3185,6 @@ const handleCentralEditUser = async (event) => {
   payload.permissions = collectPermissionGrid("edit");
   const validation = validateCentralUser({
     id: payload.id,
-    email: payload.email,
     fullName: payload.fullName || "",
   });
   if (validation) {
