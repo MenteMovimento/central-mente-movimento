@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260710-activity-three-blocks'
+const assetVersion = '20260710-activity-no-time-column'
 
 const authPendingHead = `<script>
       (() => {
@@ -325,7 +325,27 @@ ${topbarMenu(activeId)}
 </header>
 ${activeId === 'atividades' ? `${atividadesManualsDialog()}${atividadesCatalogDialog()}${atividadesMonitorsDialog()}` : ''}`
 
-const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
+const activityNoTimeColumnStyle = `<style>
+      .school-timetable .timetable-row {
+        grid-template-columns: repeat(5, minmax(165px, 1fr)) !important;
+      }
+
+      .school-timetable .timetable-time-cell {
+        display: none !important;
+      }
+
+      .school-timetable .timetable-lunch-cell {
+        grid-column: 1 / -1 !important;
+        border-left: 0 !important;
+      }
+
+      .school-timetable .timetable-day-head:first-child,
+      .school-timetable .timetable-cell:first-child {
+        border-left: 0 !important;
+      }
+    </style>`
+
+const pageShell = ({ title, body, page, titleKey = '', headExtra = '' }) => `<!doctype html>
 <html lang="pt">
   <head>
     <meta charset="utf-8" />
@@ -334,6 +354,7 @@ const pageShell = ({ title, body, page, titleKey = '' }) => `<!doctype html>
     <title>${title}</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
     <link rel="stylesheet" href="/static/styles.css?v=${assetVersion}" />
+    ${headExtra}
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
     <script src="/static/central-config.js?v=${assetVersion}" defer></script>
@@ -506,6 +527,7 @@ const atividadesPage = pageShell({
   title: 'Gestão de Atividades | MenteMovimento',
   page: 'atividades',
   titleKey: 'module.atividades.title',
+  headExtra: activityNoTimeColumnStyle,
   body: `
 ${topbar('atividades')}
 ${atividadesPageContent()}

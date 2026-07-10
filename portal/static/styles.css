@@ -1713,7 +1713,7 @@ body.dark-mode .central-admin-forms {
 
 .timetable-row {
   display: grid;
-  grid-template-columns: 112px repeat(5, minmax(165px, 1fr));
+  grid-template-columns: repeat(5, minmax(165px, 1fr));
   min-height: 94px;
   border-top: 1px solid var(--line);
 }
@@ -1740,7 +1740,9 @@ body.dark-mode .central-admin-forms {
   padding: 10px;
 }
 
-.timetable-time-cell:first-child {
+.timetable-day-head:first-child,
+.timetable-cell:first-child,
+.timetable-lunch-cell:first-child {
   border-left: 0;
 }
 
@@ -1811,7 +1813,7 @@ body.dark-mode .central-admin-forms {
 }
 
 .timetable-lunch-cell {
-  grid-column: 2 / -1;
+  grid-column: 1 / -1;
   display: grid;
   place-items: center;
   background: #f2f6f5;
