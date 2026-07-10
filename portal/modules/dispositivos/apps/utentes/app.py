@@ -3129,6 +3129,7 @@ def render_page(title, content, notice="", current_user=None):
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{esc(title)} - Utentes MenteMovimento</title>
     <style>{STYLE}</style>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="{body_class}">
     {header_html}
@@ -3137,6 +3138,7 @@ def render_page(title, content, notice="", current_user=None):
         {content}
     </main>
     <script>{app_script}</script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>"""
     return translate_static_html(page, current_user)
