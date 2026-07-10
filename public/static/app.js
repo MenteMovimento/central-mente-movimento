@@ -2040,7 +2040,7 @@ const activityPrintDocument = () => {
       table-layout: fixed;
       width: 100%;
     }
-    col.time-column { width: 15mm; }
+    col.time-column { width: 25mm; }
     th, td { border: 1.2px solid #a3b8b3; padding: 2mm; vertical-align: top; }
     thead { display: table-header-group; }
     thead tr { height: 15mm; }
@@ -2050,9 +2050,11 @@ const activityPrintDocument = () => {
       color: #005f56;
       font-size: 10px;
       line-height: 1.12;
+      min-width: 25mm;
+      padding: 1mm 1.2mm;
       text-align: center;
       vertical-align: middle;
-      white-space: normal;
+      white-space: nowrap;
     }
     tbody tr.activity-row { height: 73mm; break-inside: avoid; page-break-inside: avoid; }
     tbody tr.lunch-row { height: 11mm; break-inside: avoid; page-break-inside: avoid; }
