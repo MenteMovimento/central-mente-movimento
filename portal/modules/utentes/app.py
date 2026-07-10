@@ -5099,6 +5099,7 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     <script src="/static/vendor/supabase.js" defer></script>
     <script src="/static/central-config.js" defer></script>
     <script src="/static/central-module-auth.js" defer></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         (() => {{
             try {{
@@ -5123,6 +5124,7 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     {manual_dialog_html}
     {frame_dialog_html}
     <script>{app_script}</script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>"""
     return translate_static_html(page, current_user)
