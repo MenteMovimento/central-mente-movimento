@@ -1938,8 +1938,12 @@ const activityOverlapsPeriod = ([start, end], entry) => {
     : entry.start < end && activityEnd > start;
 };
 
-const activityDisplayPeriod = (entry) =>
-  defaultActivityPeriods.find((period) => periodContainsActivity(period, entry)) || [entry.start, entry.end || ""];
+const activityDisplayPeriod = (entry) => {
+  const matchingPeriod = defaultActivityPeriods.find((period) => periodContainsActivity(period, entry));
+  if (matchingPeriod) return matchingPeriod;
+  const [morningPeriod, afternoonPeriod] = defaultActivityPeriods;
+  return entry.start < activityLunchPeriod[0] ? morningPeriod : afternoonPeriod;
+};
 
 const activityCellKey = (entry) => `${entry.weekStart}|${entry.day}|${periodKey(activityDisplayPeriod(entry))}`;
 
@@ -1956,17 +1960,7 @@ const nextActivityOrderForCell = (entry) =>
       .map((item) => Number(item.order) || 0),
   ) + 1;
 
-const activityPeriods = (entries) => {
-  const periods = new Map(defaultActivityPeriods.map((period) => [periodKey(period), period]));
-  entries.forEach((entry) => {
-    const period = activityDisplayPeriod(entry);
-    periods.set(periodKey(period), period);
-  });
-  return [...periods.values()].sort(([leftStart, leftEnd], [rightStart, rightEnd]) => {
-    if (leftStart !== rightStart) return leftStart.localeCompare(rightStart);
-    return (leftEnd || "").localeCompare(rightEnd || "");
-  });
-};
+const activityPeriods = () => defaultActivityPeriods;
 
 const setActivitiesFeedback = (message = "", kind = "error") => {
   const { error } = activitiesElements();
