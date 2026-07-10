@@ -1432,6 +1432,19 @@ const activityPeriods = (entries) => {
   });
 };
 
+const isActivityMorningPeriod = ([start]) => start < activityLunchPeriod[0];
+
+const activityScheduleRows = (entries) => {
+  const periods = activityPeriods(entries);
+  const morningPeriods = periods.filter(isActivityMorningPeriod);
+  const afternoonPeriods = periods.filter((period) => !isActivityMorningPeriod(period));
+  return [
+    ...morningPeriods.map((period) => ({ type: "period", period })),
+    { type: "lunch" },
+    ...afternoonPeriods.map((period) => ({ type: "period", period })),
+  ];
+};
+
 const setActivitiesFeedback = (message = "", kind = "error") => {
   const { error } = activitiesElements();
   if (!error) return;
@@ -1581,8 +1594,6 @@ const renderActivityCellEntries = (entries) => entries.map(renderActivitySlot).j
 
 const renderActivityEmptyCell = () => "";
 
-const isActivityLunchAnchor = (period) => periodKey(period) === periodKey(defaultActivityPeriods[0]);
-
 const renderActivityLunchRow = () => `
   <div class="timetable-row timetable-lunch-row" role="row" aria-label="${escapeHtml(getTranslation("activities.lunch"))}">
     <div class="timetable-time-cell timetable-lunch-time" role="rowheader">${escapeHtml(periodTimeText(activityLunchPeriod))}</div>
@@ -1693,7 +1704,7 @@ const renderActivitiesCalendar = () => {
   if (!root || !grid) return;
   updateActivityWeekControls();
   const entries = sortedActivities();
-  const periods = activityPeriods(entries);
+  const scheduleRows = activityScheduleRows(entries);
   grid.classList.toggle("is-empty", entries.length === 0);
   grid.innerHTML = `
     <div class="school-timetable" role="table" aria-label="${escapeHtml(getTranslation("activities.weekTitle"))}">
@@ -1712,8 +1723,10 @@ const renderActivitiesCalendar = () => {
           })
           .join("")}
       </div>
-      ${periods
-        .map((period) => {
+      ${scheduleRows
+        .map((row) => {
+          if (row.type === "lunch") return renderActivityLunchRow();
+          const { period } = row;
           const [start, end] = period;
           const currentPeriodKey = periodKey(period);
           const periodRow = `
@@ -1737,7 +1750,7 @@ const renderActivitiesCalendar = () => {
                 .join("")}
             </div>
           `;
-          return `${periodRow}${isActivityLunchAnchor(period) ? renderActivityLunchRow() : ""}`;
+          return periodRow;
         })
         .join("")}
     </div>
@@ -1949,15 +1962,19 @@ const deleteActivity = async (id) => {
 
 const activityPrintDocument = () => {
   const entries = sortedActivities();
-  const periods = activityPeriods(entries);
+  const scheduleRows = activityScheduleRows(entries);
   const dayHeaders = activitiesDays
     .map((day, index) => {
       const dayDate = addDaysToIso(activitiesState.selectedWeekStart, index);
       return `<th><strong>${escapeHtml(getTranslation(`activities.day.${day.key}`))}</strong><small>${escapeHtml(formatActivityDate(dayDate))}</small></th>`;
     })
     .join("");
-  const rows = periods
-    .map((period) => {
+  const rows = scheduleRows
+    .map((row) => {
+      if (row.type === "lunch") {
+        return `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
+      }
+      const { period } = row;
       const periodText = escapeHtml(periodTimeText(period));
       const currentPeriodKey = periodKey(period);
       const cells = activitiesDays
@@ -1982,8 +1999,7 @@ const activityPrintDocument = () => {
         })
         .join("");
       const periodRow = `<tr class="activity-row"><th>${periodText}</th>${cells}</tr>`;
-      const lunchRow = `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
-      return `${periodRow}${isActivityLunchAnchor(period) ? lunchRow : ""}`;
+      return periodRow;
     })
     .join("");
   return `<!doctype html>
