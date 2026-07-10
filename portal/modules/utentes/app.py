@@ -8214,7 +8214,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         active_tab = first_allowed_tab(current_user)
     tab_sections = allowed_tab_sections(current_user)
     readonly = not can_edit_tab(current_user, active_tab)
-    save_button = "" if readonly else '<button class="button" type="submit" form="edit-utente-form">Guardar</button>'
+    save_button = "" if readonly else '<button class="button" type="submit" form="edit-utente-form"><i data-lucide="save"></i>Guardar</button>'
     tab_links = ""
     for key, label in tab_sections:
         active_class = " active" if key == active_tab else ""
