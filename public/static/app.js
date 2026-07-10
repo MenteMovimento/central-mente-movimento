@@ -1596,7 +1596,6 @@ const renderActivityEmptyCell = () => "";
 
 const renderActivityLunchRow = () => `
   <div class="timetable-row timetable-lunch-row" role="row" aria-label="${escapeHtml(getTranslation("activities.lunch"))}">
-    <div class="timetable-time-cell timetable-lunch-time" role="rowheader">${escapeHtml(periodTimeText(activityLunchPeriod))}</div>
     <div class="timetable-lunch-cell" role="cell" aria-colspan="${activitiesDays.length}">
       ${escapeHtml(getTranslation("activities.lunch"))}
     </div>
@@ -1709,7 +1708,6 @@ const renderActivitiesCalendar = () => {
   grid.innerHTML = `
     <div class="school-timetable" role="table" aria-label="${escapeHtml(getTranslation("activities.weekTitle"))}">
       <div class="timetable-row timetable-head" role="row">
-        <div class="timetable-time-cell" role="columnheader">${escapeHtml(getTranslation("activities.start"))}</div>
         ${activitiesDays
           .map((day, index) => {
             const dayDate = addDaysToIso(activitiesState.selectedWeekStart, index);
@@ -1731,7 +1729,6 @@ const renderActivitiesCalendar = () => {
           const currentPeriodKey = periodKey(period);
           const periodRow = `
             <div class="timetable-row" role="row">
-              <div class="timetable-time-cell" role="rowheader">${escapeHtml(periodTimeText(period))}</div>
               ${activitiesDays
                 .map((day) => {
                   const cellEntries = entries.filter(
@@ -1972,10 +1969,9 @@ const activityPrintDocument = () => {
   const rows = scheduleRows
     .map((row) => {
       if (row.type === "lunch") {
-        return `<tr class="lunch-row"><th>${escapeHtml(periodTimeText(activityLunchPeriod))}</th><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
+        return `<tr class="lunch-row"><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
       }
       const { period } = row;
-      const periodText = escapeHtml(periodTimeText(period));
       const currentPeriodKey = periodKey(period);
       const cells = activitiesDays
         .map((day) => {
@@ -1998,7 +1994,7 @@ const activityPrintDocument = () => {
           return `<td>${content}</td>`;
         })
         .join("");
-      const periodRow = `<tr class="activity-row"><th>${periodText}</th>${cells}</tr>`;
+      const periodRow = `<tr class="activity-row">${cells}</tr>`;
       return periodRow;
     })
     .join("");
@@ -2056,22 +2052,10 @@ const activityPrintDocument = () => {
       table-layout: fixed;
       width: 100%;
     }
-    col.time-column { width: 25mm; }
     th, td { border: 1.2px solid #a3b8b3; padding: 2mm; vertical-align: top; }
     thead { display: table-header-group; }
     thead tr { height: 15mm; }
     thead th { background: #eef5f3; border-bottom: 1.8px solid #7fa39b; padding: 1.2mm 1.6mm; text-align: center; vertical-align: middle; }
-    tbody th {
-      background: #f7faf9;
-      color: #005f56;
-      font-size: 10px;
-      line-height: 1.12;
-      min-width: 25mm;
-      padding: 1mm 1.2mm;
-      text-align: center;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
     tbody tr.activity-row { height: 73mm; break-inside: avoid; page-break-inside: avoid; }
     tbody tr.lunch-row { height: 11mm; break-inside: avoid; page-break-inside: avoid; }
     tbody tr.lunch-row th, tbody tr.lunch-row td { border-bottom: 1.8px solid #8fb2ab; border-top: 1.8px solid #8fb2ab; }
@@ -2096,11 +2080,8 @@ const activityPrintDocument = () => {
       <p>${escapeHtml(activityWeekRangeText())}</p>
     </header>
     <table>
-      <colgroup>
-        <col class="time-column">
-        ${activitiesDays.map(() => "<col>").join("")}
-      </colgroup>
-      <thead><tr><th class="time-head"></th>${dayHeaders}</tr></thead>
+      <colgroup>${activitiesDays.map(() => "<col>").join("")}</colgroup>
+      <thead><tr>${dayHeaders}</tr></thead>
       <tbody>${rows}</tbody>
     </table>
   </main>
