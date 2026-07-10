@@ -2510,15 +2510,20 @@ const activityPrintDocument = () => {
   const rows = scheduleRows
     .map((row) => {
       if (row.type === "lunch") {
-        return `<tr class="lunch-row"><td colspan="${activitiesDays.length}">${escapeHtml(getTranslation("activities.lunch"))}</td></tr>`;
+        const lunchLabelIndex = Math.floor(activitiesDays.length / 2);
+        return `<tr class="lunch-row">${activitiesDays
+          .map((_, index) => `<td>${index === lunchLabelIndex ? escapeHtml(getTranslation("activities.lunch")) : ""}</td>`)
+          .join("")}</tr>`;
       }
       const { period } = row;
       const currentPeriodKey = periodKey(period);
+      let maxCellEntries = 0;
       const cells = activitiesDays
         .map((day) => {
           const cellEntries = entries.filter(
             (entry) => entry.day === day.key && periodKey(activityDisplayPeriod(entry)) === currentPeriodKey,
           );
+          maxCellEntries = Math.max(maxCellEntries, cellEntries.length);
           const content = cellEntries.length
             ? `<div class="activity-list">${cellEntries
               .map(
@@ -2535,7 +2540,8 @@ const activityPrintDocument = () => {
           return `<td>${content}</td>`;
         })
         .join("");
-      const periodRow = `<tr class="activity-row">${cells}</tr>`;
+      const rowHeightMm = Math.max(34, Math.min(66, 22 + Math.max(1, maxCellEntries) * 14));
+      const periodRow = `<tr class="activity-row" style="height:${rowHeightMm}mm">${cells}</tr>`;
       return periodRow;
     })
     .join("");
@@ -2571,9 +2577,9 @@ const activityPrintDocument = () => {
     .print-sheet {
       display: flex;
       flex-direction: column;
-      gap: 3.5mm;
+      gap: 2.5mm;
       min-height: 210mm;
-      padding: 9mm 10mm 8mm;
+      padding: 7mm 9mm 6mm;
       width: 100%;
     }
     header {
@@ -2582,23 +2588,26 @@ const activityPrintDocument = () => {
       display: flex;
       flex: 0 0 auto;
       justify-content: space-between;
-      padding-bottom: 2mm;
+      padding-bottom: 1.6mm;
     }
-    h1 { font-size: 18px; line-height: 1.05; margin: 0; }
+    h1 { font-size: 17px; line-height: 1.05; margin: 0; }
     p { color: #506560; font-size: 10px; font-weight: 800; margin: 0; }
     table {
       border: 1.8px solid #7fa39b;
-      border-collapse: collapse;
-      flex: 1 1 auto;
+      border-collapse: separate;
+      border-spacing: 0;
+      flex: 0 0 auto;
       table-layout: fixed;
       width: 100%;
     }
-    th, td { border: 1.2px solid #a3b8b3; padding: 2mm; vertical-align: top; }
+    th, td { border: 0; border-bottom: 1.4px solid #8fb2ab; border-right: 1.4px solid #8fb2ab; padding: 1.6mm; vertical-align: top; }
+    th:last-child, td:last-child { border-right: 0; }
+    tbody tr:last-child td { border-bottom: 0; }
     thead { display: table-header-group; }
-    thead tr { height: 15mm; }
+    thead tr { height: 12mm; }
     thead th { background: #eef5f3; border-bottom: 1.8px solid #7fa39b; padding: 1.2mm 1.6mm; text-align: center; vertical-align: middle; }
-    tbody tr.activity-row { height: 73mm; break-inside: avoid; page-break-inside: avoid; }
-    tbody tr.lunch-row { height: 11mm; break-inside: avoid; page-break-inside: avoid; }
+    tbody tr.activity-row { break-inside: avoid; page-break-inside: avoid; }
+    tbody tr.lunch-row { height: 8mm; break-inside: avoid; page-break-inside: avoid; }
     tbody tr.lunch-row td { border-bottom: 1.8px solid #8fb2ab; border-top: 1.8px solid #8fb2ab; }
     .lunch-row td { background: #eef4f2; color: #506560; font-size: 11px; font-weight: 900; text-align: center; vertical-align: middle; }
     .lunch-row td { text-transform: uppercase; }
@@ -2606,8 +2615,8 @@ const activityPrintDocument = () => {
     th strong { font-size: 10px; line-height: 1.1; text-transform: uppercase; }
     th small { color: #506560; font-size: 8px; font-weight: 700; margin-top: 0.5mm; }
     td { background: #ffffff; }
-    .activity-list { display: grid; gap: 1.8mm; }
-    article { border: 1px solid #c8d8d4; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.6mm 2mm; }
+    .activity-list { display: grid; gap: 1.3mm; }
+    article { border: 1px solid #c8d8d4; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.2mm 1.6mm; }
     article strong, article span, article small { display: block; overflow-wrap: anywhere; }
     article strong { color: #005f56; font-size: 10px; line-height: 1.15; }
     article span { font-size: 11px; font-weight: 800; line-height: 1.2; margin-top: 0.8mm; }

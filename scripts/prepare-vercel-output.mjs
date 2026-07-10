@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260710-activity-no-time-column'
+const assetVersion = '20260710-activity-print-grid'
 
 const authPendingHead = `<script>
       (() => {
@@ -328,10 +328,6 @@ ${activeId === 'atividades' ? `${atividadesManualsDialog()}${atividadesCatalogDi
 const activityNoTimeColumnStyle = `<style>
       .school-timetable .timetable-row {
         grid-template-columns: repeat(5, minmax(165px, 1fr)) !important;
-      }
-
-      .school-timetable .timetable-time-cell {
-        display: none !important;
       }
 
       .school-timetable .timetable-lunch-cell {
