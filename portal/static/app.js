@@ -3177,7 +3177,7 @@ const fillCentralUserForm = (user) => {
 const validateCentralUser = ({ id, email, fullName, password, requirePassword = false }) => {
   if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
   if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
-  if (!email !== undefined && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return "Indique um email válido.";
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { return "Indique um email válido.";}
   if (requirePassword && (!password || !isStrongPassword(password))) return passwordPolicyMessage;
   return "";
 };
@@ -3189,7 +3189,7 @@ const handleCentralCreateUser = async (event) => {
   const emailValue = form.get("email");
   const payload = {
     fullName: String(form.get("fullName") || "").trim(),
-    email: emailValue ? String(emailValue).trim().toLowerCase() : null,
+    email: emailValue && String(emailValue).trim() ? String(emailValue).trim().toLowerCase() : null,
     password: String(form.get("password") || ""),
   };
   payload.permissions = collectPermissionGrid("create");
@@ -3228,9 +3228,10 @@ const handleCentralEditUser = async (event) => {
   event.preventDefault();
   const elements = centralUsersElements();
   const form = new FormData(event.currentTarget);
+  const emailValue = form.get("email");
   const payload = {
     id: String(form.get("id") || "").trim(),
-    email: emailValue ? String(emailValue).trim().toLowerCase() : null,
+    email: emailValue && String(emailValue).trim() ? String(emailValue).trim().toLowerCase() : null,
     fullName: String(form.get("fullName") || "").trim(),
     active: form.get("active") === "on",
   };
