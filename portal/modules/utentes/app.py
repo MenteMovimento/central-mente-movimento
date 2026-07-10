@@ -2027,6 +2027,11 @@ tr:last-child td {
 }
 
 @media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
     :root,
     .dark-theme {
         color-scheme: light;
@@ -2041,16 +2046,27 @@ tr:last-child td {
         --shadow: none;
     }
 
+    html,
     body {
         background: #ffffff !important;
         color: #111111 !important;
+        font-size: 9.5pt !important;
+        line-height: 1.25 !important;
+    }
+
+    body {
+        padding: 12mm 14mm !important;
     }
 
     .central-header,
     .edit-title,
     .notice,
     .central-auth-loading,
-    .tab-list {
+    .tab-list,
+    .title-actions,
+    .button,
+    .autosave-status,
+    .attachment-actions {
         display: none !important;
     }
 
@@ -2070,12 +2086,116 @@ tr:last-child td {
         overflow: visible !important;
     }
 
+    .edit-layout {
+        gap: 0 !important;
+    }
+
+    .tab-content::before {
+        content: attr(data-print-title);
+        display: block;
+        margin: 0 0 9mm;
+        padding: 0 0 3mm;
+        border-bottom: 2px solid #1f766b;
+        color: #0a5f56;
+        font-size: 20pt;
+        font-weight: 900;
+        line-height: 1.1;
+    }
+
+    .tab-content > * > .form-section:first-child > .section-title:first-child {
+        display: none !important;
+    }
+
+    .form-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        gap: 8px !important;
+        margin-top: 9px !important;
+        padding-top: 9px !important;
+        border-top: 1px solid #d1ded9 !important;
+    }
+
+    .form-section:first-child {
+        border-top: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .section-title {
+        margin: 0 0 2px !important;
+        padding-bottom: 3px;
+        border-bottom: 1px solid #d9e6e1;
+        color: #1f766b !important;
+        font-size: 12pt !important;
+        font-weight: 900 !important;
+        line-height: 1.2 !important;
+    }
+
+    .form-grid,
+    .checkbox-grid,
+    .inline-checks {
+        gap: 7px 9px !important;
+    }
+
+    .field {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        gap: 3px !important;
+    }
+
+    .field label,
+    .check-option {
+        color: #111111 !important;
+        font-size: 8.5pt !important;
+        font-weight: 800 !important;
+        line-height: 1.2 !important;
+    }
+
     input,
     textarea,
     select,
     .readonly-field {
         background: #ffffff !important;
+        border: 1px solid #b8c8c2 !important;
+        border-radius: 4px !important;
         color: #111111 !important;
+        min-height: 26px !important;
+        padding: 5px 7px !important;
+        font-size: 9pt !important;
+        line-height: 1.2 !important;
+    }
+
+    textarea,
+    .readonly-text {
+        min-height: 54px !important;
+    }
+
+    .checkbox-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .check-option {
+        align-items: center !important;
+        min-height: 22px !important;
+    }
+
+    .check-option input {
+        width: 12px !important;
+        height: 12px !important;
+        min-height: 12px !important;
+        padding: 0 !important;
+    }
+
+    .sheet-table,
+    .payment-history-table {
+        font-size: 8.5pt !important;
+    }
+
+    .sheet-table th,
+    .sheet-table td,
+    .payment-history-table th,
+    .payment-history-table td {
+        padding: 4px 5px !important;
     }
 }
 
@@ -2552,6 +2672,18 @@ html:not([data-central-auth-pending="true"]) .central-auth-loading {
 
 APP_SCRIPT = """
 (() => {
+    window.printUtentePage = () => {
+        const originalTitle = document.title;
+        const restoreTitle = () => {
+            document.title = originalTitle;
+            window.removeEventListener("afterprint", restoreTitle);
+        };
+        document.title = " ";
+        window.addEventListener("afterprint", restoreTitle, { once: true });
+        window.print();
+        window.setTimeout(restoreTitle, 1000);
+    };
+
     const globalThemeKeys = ["central-theme", "socios-theme", "mentemovimento-theme"];
     const loadGlobalTheme = () => {
         for (const key of globalThemeKeys) {
@@ -8205,7 +8337,7 @@ def render_protecao_dados_form(utente_id, readonly=False):
 
 
 def render_print_page_button(current_user):
-    return f'<button class="button secondary print-page-button" type="button" onclick="window.print()"><i data-lucide="printer"></i>{esc(tr(current_user, "print"))}</button>'
+    return f'<button class="button secondary print-page-button" type="button" onclick="printUtentePage()"><i data-lucide="printer"></i>{esc(tr(current_user, "print"))}</button>'
 
 
 def render_edit_page(utente, active_tab=None, error="", notice="", current_user=None):
@@ -8213,6 +8345,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     if not can_view_tab(current_user, active_tab):
         active_tab = first_allowed_tab(current_user)
     tab_sections = allowed_tab_sections(current_user)
+    active_label = next((label for key, label in tab_sections if key == active_tab), "")
     readonly = not can_edit_tab(current_user, active_tab)
     save_button = "" if readonly else '<button class="button" type="submit" form="edit-utente-form"><i data-lucide="save"></i>Guardar</button>'
     tab_links = ""
@@ -8276,7 +8409,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         <nav class="tab-list" aria-label="Áreas do utente">
             {tab_links}
         </nav>
-        <div class="tab-content">
+        <div class="tab-content" data-print-title="{esc(active_label)}">
             {tab_body}
         </div>
     </section>
@@ -8302,7 +8435,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
             <nav class="tab-list" aria-label="Áreas do utente">
                 {tab_links}
             </nav>
-            <div class="tab-content">
+            <div class="tab-content" data-print-title="{esc(active_label)}">
                 {tab_body}
             </div>
         </section>
@@ -8317,6 +8450,7 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
     if not can_view_tab(current_user, active_tab):
         active_tab = first_allowed_tab(current_user)
     tab_sections = allowed_tab_sections(current_user)
+    active_label = next((label for key, label in tab_sections if key == active_tab), "")
     tab_links = ""
     for key, label in tab_sections:
         active_class = " active" if key == active_tab else ""
@@ -8368,7 +8502,7 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
         <nav class="tab-list" aria-label="Áreas do utente">
             {tab_links}
         </nav>
-        <div class="tab-content">
+        <div class="tab-content" data-print-title="{esc(active_label)}">
             {tab_body}
         </div>
     </section>
