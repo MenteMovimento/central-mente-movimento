@@ -3116,7 +3116,6 @@ const fillCentralUserForm = (user) => {
   centralUsersState.editingId = user.id;
   elements.editId.value = user.id || "";
   elements.editName.value = user.full_name || "";
-  elements.editEmail.value = user.email || "";
   elements.editActive.checked = Boolean(user.active);
   renderPermissionGrid(elements.editPermissions, "edit", normalizeCentralPermissions(user.permissions));
   elements.editHint.textContent = `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`;
