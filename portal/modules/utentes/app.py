@@ -8203,7 +8203,7 @@ def render_protecao_dados_form(utente_id, readonly=False):
 
 
 def render_print_page_button(current_user):
-    return f'<button class="button secondary print-page-button" type="button" onclick="window.print()">{esc(tr(current_user, "print"))}</button>'
+    return f'<button class="button secondary print-page-button" type="button" onclick="window.print()"><i data-lucide="printer"></i>{esc(tr(current_user, "print"))}</button>'
 
 
 def render_edit_page(utente, active_tab=None, error="", notice="", current_user=None):
