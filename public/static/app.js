@@ -1992,43 +1992,83 @@ const activityPrintDocument = () => {
   <meta charset="utf-8">
   <title></title>
   <style>
-    @page { size: A4 landscape; margin: 10mm; }
+    @page { size: A4 landscape; margin: 0; }
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; } /* remove fixed height + overflow: hidden */
-    body { color: #081614; font-family: Arial, sans-serif; font-size: 10px; }
+    html, body { margin: 0; min-height: 210mm; padding: 0; width: 297mm; }
+    body {
+      background: #ffffff;
+      color: #081614;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body::before,
+    body::after {
+      background: #ffffff;
+      content: "";
+      left: 0;
+      pointer-events: none;
+      position: fixed;
+      right: 0;
+      z-index: 9999;
+    }
+    body::before { height: 8mm; top: 0; }
+    body::after { bottom: 0; height: 7mm; }
     .print-sheet {
       display: flex;
       flex-direction: column;
-      gap: 3mm;
-      padding: 0; /* @page margin now handles this */
+      gap: 3.5mm;
+      min-height: 210mm;
+      padding: 9mm 10mm 8mm;
       width: 100%;
     }
-    header { align-items: end; border-bottom: 2px solid #23776b; display: flex; justify-content: space-between; padding-bottom: 2mm; }
-    h1 { font-size: 20px; line-height: 1.05; margin: 0; }
-    p { color: #506560; font-size: 11px; font-weight: 800; margin: 0; }
-    table { border: 2px solid #7fa39b; border-collapse: collapse; table-layout: fixed; width: 100%; }
-    th, td { border: 1.5px solid #a3b8b3; padding: 2mm; vertical-align: top; }
-    thead { display: table-header-group; } /* repeats header row on every printed page */
-    thead tr { height: 18mm; }
-    thead th { background: #e6f2ef; border-bottom: 2.5px solid #7fa39b; padding: 1.4mm 1.8mm; text-align: center; vertical-align: middle; }
-    thead th.time-head,
-    tbody th { width: 15mm; }
-    tbody th { background: #f5f8f7; color: #005f56; font-size: 11px; text-align: center; vertical-align: middle; white-space: nowrap; }
-    tbody tr.activity-row { height: 40mm; break-inside: avoid; page-break-inside: avoid; } /* natural height, never split mid-row */
-    tbody tr.lunch-row { height: 12mm; break-inside: avoid; page-break-inside: avoid; }
-    tbody tr.lunch-row th, tbody tr.lunch-row td { border-bottom: 2px solid #8fb2ab; border-top: 2px solid #8fb2ab; }
-    .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 12px; font-weight: 900; text-align: center; vertical-align: middle; }
+    header {
+      align-items: end;
+      border-bottom: 2px solid #23776b;
+      display: flex;
+      flex: 0 0 auto;
+      justify-content: space-between;
+      padding-bottom: 2mm;
+    }
+    h1 { font-size: 18px; line-height: 1.05; margin: 0; }
+    p { color: #506560; font-size: 10px; font-weight: 800; margin: 0; }
+    table {
+      border: 1.8px solid #7fa39b;
+      border-collapse: collapse;
+      flex: 1 1 auto;
+      table-layout: fixed;
+      width: 100%;
+    }
+    col.time-column { width: 15mm; }
+    th, td { border: 1.2px solid #a3b8b3; padding: 2mm; vertical-align: top; }
+    thead { display: table-header-group; }
+    thead tr { height: 15mm; }
+    thead th { background: #eef5f3; border-bottom: 1.8px solid #7fa39b; padding: 1.2mm 1.6mm; text-align: center; vertical-align: middle; }
+    tbody th {
+      background: #f7faf9;
+      color: #005f56;
+      font-size: 10px;
+      line-height: 1.12;
+      text-align: center;
+      vertical-align: middle;
+      white-space: normal;
+    }
+    tbody tr.activity-row { height: 73mm; break-inside: avoid; page-break-inside: avoid; }
+    tbody tr.lunch-row { height: 11mm; break-inside: avoid; page-break-inside: avoid; }
+    tbody tr.lunch-row th, tbody tr.lunch-row td { border-bottom: 1.8px solid #8fb2ab; border-top: 1.8px solid #8fb2ab; }
+    .lunch-row th, .lunch-row td { background: #eef4f2; color: #506560; font-size: 11px; font-weight: 900; text-align: center; vertical-align: middle; }
     .lunch-row td { text-transform: uppercase; }
     th strong, th small { display: block; }
-    th strong { font-size: 10px; line-height: 1.1; text-transform: uppercase; }
+    th strong { font-size: 9px; line-height: 1.1; text-transform: uppercase; }
     th small { color: #506560; font-size: 8px; font-weight: 700; margin-top: 0.5mm; }
     td { background: #ffffff; }
-    .activity-list { display: grid; gap: 1.8mm; }
-    article { border: 1px solid #c8d8d4; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.6mm 2mm; }
+    .activity-list { display: grid; gap: 2mm; }
+    article { border: 1px solid #c8d8d4; border-left: 3px solid #23776b; border-radius: 2mm; break-inside: avoid; padding: 1.8mm 2mm; }
     article strong, article span, article small { display: block; overflow-wrap: anywhere; }
-    article strong { color: #005f56; font-size: 10px; line-height: 1.15; }
-    article span { font-size: 11px; font-weight: 800; line-height: 1.2; margin-top: 0.8mm; }
-    article small { color: #506560; font-size: 9px; font-weight: 700; line-height: 1.15; margin-top: 0.8mm; }
+    article strong { color: #005f56; font-size: 9px; line-height: 1.15; }
+    article span { font-size: 10px; font-weight: 800; line-height: 1.18; margin-top: 0.8mm; }
+    article small { color: #506560; font-size: 8px; font-weight: 700; line-height: 1.15; margin-top: 0.8mm; }
   </style>
 </head>
 <body>
@@ -2038,6 +2078,10 @@ const activityPrintDocument = () => {
       <p>${escapeHtml(activityWeekRangeText())}</p>
     </header>
     <table>
+      <colgroup>
+        <col class="time-column">
+        ${activitiesDays.map(() => "<col>").join("")}
+      </colgroup>
       <thead><tr><th class="time-head"></th>${dayHeaders}</tr></thead>
       <tbody>${rows}</tbody>
     </table>
