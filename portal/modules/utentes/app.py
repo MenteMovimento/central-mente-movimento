@@ -5099,7 +5099,7 @@ def render_page(title, content, notice="", current_user=None, embedded=False):
     <script src="/static/vendor/supabase.js" defer></script>
     <script src="/static/central-config.js" defer></script>
     <script src="/static/central-module-auth.js" defer></script>
-    <script src="/static/vendor/lucide.js"></script>
+    <script src="/static/vendor/lucide.min.js"></script>
     <script>
         (() => {{
             try {{
