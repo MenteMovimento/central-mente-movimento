@@ -4,19 +4,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Gest&atilde;o de Atividades - MenteMovimento</title>
+    <title>Gestão de Atividades | MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260708-atividades-supabase" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260710-activity-no-time-column" />
+    <style>
+      .school-timetable .timetable-row {
+        grid-template-columns: repeat(5, minmax(165px, 1fr)) !important;
+      }
+
+      .school-timetable .timetable-time-cell {
+        display: none !important;
+      }
+
+      .school-timetable .timetable-lunch-cell {
+        grid-column: 1 / -1 !important;
+        border-left: 0 !important;
+      }
+
+      .school-timetable .timetable-day-head:first-child,
+      .school-timetable .timetable-cell:first-child {
+        border-left: 0 !important;
+      }
+    </style>
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260708-atividades-supabase" defer></script>
-    <script src="/static/app.js?v=20260708-atividades-supabase" defer></script>
-    <script src="/static/central-auth.js?v=20260708-atividades-supabase" defer></script>
+    <script src="/static/central-config.js?v=20260710-activity-no-time-column" defer></script>
+    <script src="/static/app.js?v=20260710-activity-no-time-column" defer></script>
+    <script src="/static/central-auth.js?v=20260710-activity-no-time-column" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
 
 
-<header class="topbar-atividades">
+<header class="topbar">
   <div class="topbar-inner">
     <a class="brand-block brand-link" href="/dashboard">
       <span class="brand-symbol brand-logo" aria-hidden="true">
@@ -24,7 +43,6 @@
       </span>
       <div>
         <h1>MenteMovimento</h1>
-        <p data-user-email></p>
       </div>
     </a>
     <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
@@ -52,6 +70,14 @@
         </summary>
         <div class="global-tools-menu" role="menu">
 
+          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+            <i data-lucide="calendar-days"></i>
+            <span>Atividades</span>
+          </button>
+          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+            <i data-lucide="users-round"></i>
+            <span>Monitores</span>
+          </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
@@ -62,9 +88,19 @@
           </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
-        <i data-lucide="log-out"></i>
-      </a>
+
+      <details class="dashboard-user-menu-wrap">
+        <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+          <i data-lucide="user-round"></i>
+        </summary>
+        <div class="dashboard-user-menu" role="menu">
+          <strong class="dashboard-account-name" data-dashboard-account-name hidden></strong>
+          <a class="dashboard-logout-button" href="/logout" role="menuitem" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+            <i data-lucide="log-out"></i>
+            <span data-i18n="nav.logout">Terminar sessão</span>
+          </a>
+        </div>
+      </details>
     </div>
   </div>
 </header>
@@ -99,6 +135,60 @@
           <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
         </span>
       </a>
+    </div>
+  </div>
+</dialog>
+<dialog class="activities-manual-dialog activities-monitors-dialog" data-activities-catalog-dialog aria-labelledby="activitiesCatalogTitle">
+  <div class="activities-manual-panel activities-monitors-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesCatalogTitle">Atividades</h2>
+        <p>Crie e consulte os nomes das atividades usadas no horário.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <form class="activities-monitor-form" data-activities-catalog-form>
+      <label class="activity-field">
+        <span>Nome da atividade</span>
+        <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <button class="primary-button" type="submit">
+        <i data-lucide="save"></i>
+        <span>Guardar</span>
+      </button>
+    </form>
+    <p class="form-error activity-error" data-activities-catalog-error role="alert" hidden></p>
+    <div class="activities-monitor-list" data-activities-catalog-list>
+      <p class="activity-empty-state">Sem atividades registadas.</p>
+    </div>
+  </div>
+</dialog>
+<dialog class="activities-manual-dialog activities-monitors-dialog" data-activities-monitors-dialog aria-labelledby="activitiesMonitorsTitle">
+  <div class="activities-manual-panel activities-monitors-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesMonitorsTitle">Monitores</h2>
+        <p>Crie e consulte os monitores usados nas atividades.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <form class="activities-monitor-form" data-activities-monitor-form>
+      <label class="activity-field">
+        <span>Nome do monitor</span>
+        <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <button class="primary-button" type="submit">
+        <i data-lucide="save"></i>
+        <span>Guardar</span>
+      </button>
+    </form>
+    <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
+    <div class="activities-monitor-list" data-activities-monitor-list>
+      <p class="activity-empty-state">Sem monitores registados.</p>
     </div>
   </div>
 </dialog>
@@ -153,20 +243,28 @@
             </select>
           </label>
           <label class="activity-field">
-            <span data-i18n="activities.start">In&iacute;cio</span>
-            <input type="time" name="start" value="09:00" required />
+            <span data-i18n="activities.start">Inicio</span>
+            <select name="start" required>
+              <option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option>
+            </select>
           </label>
           <label class="activity-field">
             <span data-i18n="activities.end">Fim</span>
-            <input type="time" name="end" />
+            <select name="end" required>
+              <option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option>
+            </select>
           </label>
           <label class="activity-field activity-field-wide">
             <span data-i18n="activities.name">Nome da atividade</span>
-            <input type="text" name="title" autocomplete="off" required />
+            <select name="title" data-activity-name-options required>
+              <option value="" data-i18n="activities.selectActivity">Selecionar atividade</option>
+            </select>
           </label>
           <label class="activity-field">
-            <span data-i18n="activities.teacher">Professor</span>
-            <input type="text" name="teacher" autocomplete="off" required />
+            <span data-i18n="activities.teacher">Monitor</span>
+            <select name="teacher" data-activity-monitor-options required>
+              <option value="" data-i18n="activities.selectMonitor">Selecionar monitor</option>
+            </select>
           </label>
           <div class="activity-form-actions">
             <button class="primary-button" type="submit">
@@ -198,6 +296,7 @@
   <section class="central-admin-panel" aria-label="Utilizadores">
     <div class="central-admin-head">
       <div>
+        <i data-lucide="users"></i>
         <h2 data-i18n="users.title">Utilizadores</h2>
         <p data-i18n="users.subtitle">Crie acessos novos e edite permissões de utilizadores existentes.</p>
       </div>
@@ -215,6 +314,7 @@
     <div class="central-admin-forms">
       <form class="central-admin-form" id="centralCreateUserForm">
         <div class="form-section-title">
+          <i data-lucide="user-plus"></i>
           <h3 data-i18n="users.createTitle">Criar utilizador</h3>
           <p data-i18n="users.createHint">O utilizador é adicionado automaticamente à base de dados da associação.</p>
         </div>
@@ -245,6 +345,7 @@
 
       <form class="central-admin-form" id="centralEditUserForm">
         <div class="form-section-title">
+          <i data-lucide="user-pen"></i>
           <h3 data-i18n="users.editTitle">Editar utilizador</h3>
           <p id="centralEditingUserHint" data-i18n="users.editHint">Escolha um utilizador na lista para editar.</p>
         </div>
@@ -252,10 +353,6 @@
         <label class="field" for="centralEditUserName">
           <span data-i18n="users.name">Nome</span>
           <input id="centralEditUserName" name="fullName" type="text" autocomplete="name" />
-        </label>
-        <label class="field" for="centralEditUserEmail">
-          <span data-i18n="login.email">Email</span>
-          <input id="centralEditUserEmail" name="email" type="email" autocomplete="email" required />
         </label>
         <label class="remember-field" for="centralEditUserActive">
           <input id="centralEditUserActive" name="active" type="checkbox" checked />
