@@ -3186,6 +3186,7 @@ const handleCentralCreateUser = async (event) => {
   event.preventDefault();
   const elements = centralUsersElements();
   const form = new FormData(event.currentTarget);
+  const emailValue = form.get("email");
   const payload = {
     fullName: String(form.get("fullName") || "").trim(),
     email: emailValue ? String(emailValue).trim().toLowerCase() : null,
