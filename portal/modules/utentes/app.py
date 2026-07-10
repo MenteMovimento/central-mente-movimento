@@ -4212,7 +4212,7 @@ def language_cookie(language):
 
 TRANSLATIONS = {
     "pt": {
-        "app_title": "Gestão de Utentes",
+        "app_title": "Utentes",
         "user_manager": "Utilizadores",
         "consultation_profile": "Perfil de Consulta",
         "new_client": "+ Novo utente",
