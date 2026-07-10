@@ -2026,6 +2026,11 @@ tr:last-child td {
     white-space: pre-wrap;
 }
 
+.print-field-value,
+.print-control-value {
+    display: none;
+}
+
 @media print {
     @page {
         size: A4 portrait;
@@ -2050,12 +2055,23 @@ tr:last-child td {
     body {
         background: #ffffff !important;
         color: #111111 !important;
-        font-size: 9.5pt !important;
-        line-height: 1.25 !important;
+        font-size: 9pt !important;
+        line-height: 1.22 !important;
+        width: auto !important;
     }
 
     body {
-        padding: 12mm 14mm !important;
+        margin: 0 !important;
+        padding: 9mm 11mm !important;
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-shadow: none !important;
+        text-shadow: none !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .central-header,
@@ -2071,7 +2087,10 @@ tr:last-child td {
     }
 
     main {
+        margin: 0 !important;
+        max-width: none !important;
         padding: 0 !important;
+        width: 100% !important;
     }
 
     .panel,
@@ -2093,11 +2112,11 @@ tr:last-child td {
     .tab-content::before {
         content: attr(data-print-title);
         display: block;
-        margin: 0 0 9mm;
-        padding: 0 0 3mm;
+        margin: 0 0 6mm;
+        padding: 0 0 2.5mm;
         border-bottom: 2px solid #1f766b;
         color: #0a5f56;
-        font-size: 20pt;
+        font-size: 18pt;
         font-weight: 900;
         line-height: 1.1;
     }
@@ -2107,11 +2126,12 @@ tr:last-child td {
     }
 
     .form-section {
-        break-inside: avoid;
-        page-break-inside: avoid;
-        gap: 8px !important;
-        margin-top: 9px !important;
-        padding-top: 9px !important;
+        break-inside: auto;
+        display: block !important;
+        gap: 0 !important;
+        margin-top: 5mm !important;
+        page-break-inside: auto;
+        padding-top: 4mm !important;
         border-top: 1px solid #d1ded9 !important;
     }
 
@@ -2122,25 +2142,54 @@ tr:last-child td {
     }
 
     .section-title {
-        margin: 0 0 2px !important;
-        padding-bottom: 3px;
-        border-bottom: 1px solid #d9e6e1;
-        color: #1f766b !important;
-        font-size: 12pt !important;
+        break-after: avoid;
+        color: #0a5f56 !important;
+        font-size: 11.5pt !important;
         font-weight: 900 !important;
-        line-height: 1.2 !important;
+        line-height: 1.18 !important;
+        margin: 0 0 3mm !important;
+        page-break-after: avoid;
+        padding-bottom: 1.5mm;
+        border-bottom: 1px solid #d9e6e1;
     }
 
-    .form-grid,
+    .form-grid {
+        align-items: start !important;
+        display: grid !important;
+        gap: 3mm 3.5mm !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    }
+
     .checkbox-grid,
     .inline-checks {
-        gap: 7px 9px !important;
+        gap: 2mm 3mm !important;
+    }
+
+    .span-2,
+    .span-3,
+    .span-4 {
+        grid-column: span 2 !important;
+    }
+
+    .span-5,
+    .span-6 {
+        grid-column: span 3 !important;
+    }
+
+    .span-8 {
+        grid-column: span 4 !important;
+    }
+
+    .span-12,
+    .field.full {
+        grid-column: 1 / -1 !important;
     }
 
     .field {
         break-inside: avoid;
+        gap: 1.5mm !important;
+        min-width: 0 !important;
         page-break-inside: avoid;
-        gap: 3px !important;
     }
 
     .field label,
@@ -2151,23 +2200,37 @@ tr:last-child td {
         line-height: 1.2 !important;
     }
 
-    input,
-    textarea,
-    select,
-    .readonly-field {
+    .field > input:not([type="checkbox"]):not([type="radio"]),
+    .field > textarea,
+    .field > select,
+    .field > .readonly-field,
+    .field > .choice-group {
+        display: none !important;
+    }
+
+    .print-field-value,
+    .print-control-value {
         background: #ffffff !important;
         border: 1px solid #b8c8c2 !important;
         border-radius: 4px !important;
         color: #111111 !important;
-        min-height: 26px !important;
-        padding: 5px 7px !important;
+        display: block !important;
         font-size: 9pt !important;
         line-height: 1.2 !important;
+        min-height: 7mm !important;
+        overflow-wrap: anywhere !important;
+        padding: 1.6mm 2mm !important;
+        white-space: pre-wrap !important;
     }
 
-    textarea,
-    .readonly-text {
-        min-height: 54px !important;
+    .print-field-value.is-empty,
+    .print-control-value.is-empty {
+        color: transparent !important;
+    }
+
+    .print-field-value.is-multiline,
+    .print-control-value.is-multiline {
+        min-height: 13mm !important;
     }
 
     .checkbox-grid {
@@ -2176,7 +2239,9 @@ tr:last-child td {
 
     .check-option {
         align-items: center !important;
-        min-height: 22px !important;
+        break-inside: avoid;
+        min-height: 5.5mm !important;
+        page-break-inside: avoid;
     }
 
     .check-option input {
@@ -2186,16 +2251,92 @@ tr:last-child td {
         padding: 0 !important;
     }
 
+    .choice-option {
+        min-height: 5.5mm !important;
+    }
+
+    .medication-wrap,
+    .payment-history-wrap,
+    .utility-table-wrap {
+        overflow: visible !important;
+    }
+
     .sheet-table,
-    .payment-history-table {
-        font-size: 8.5pt !important;
+    .payment-history-table,
+    .attendance-table,
+    .medication-table,
+    .scoring-table {
+        font-size: 7.6pt !important;
+        min-width: 0 !important;
+        table-layout: fixed !important;
+        width: 100% !important;
     }
 
     .sheet-table th,
     .sheet-table td,
     .payment-history-table th,
     .payment-history-table td {
-        padding: 4px 5px !important;
+        overflow-wrap: anywhere !important;
+        padding: 1.8mm 2mm !important;
+        vertical-align: top !important;
+    }
+
+    .sheet-table tr,
+    .payment-history-table tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .sheet-table input:not([type="checkbox"]):not([type="radio"]),
+    .sheet-table textarea,
+    .sheet-table select {
+        display: none !important;
+    }
+
+    .sheet-table .question-cell,
+    .sheet-table .observations-cell,
+    .attendance-table .meta-cell,
+    .attendance-table .text-cell,
+    .medication-table .medicine-name,
+    .medication-table .medicine-notes,
+    .scoring-table .criteria-cell {
+        min-width: 0 !important;
+    }
+
+    .attendance-meta,
+    .sheet-checks {
+        gap: 1.5mm !important;
+    }
+
+    .diagram-toolbar,
+    .diagram-help,
+    .diagram-data {
+        display: none !important;
+    }
+
+    .diagram-wrap {
+        display: grid !important;
+        gap: 3mm !important;
+        grid-template-columns: 1fr !important;
+    }
+
+    .diagram-canvas {
+        min-height: 105mm !important;
+    }
+
+    .diagram-canvas svg {
+        height: 105mm !important;
+    }
+
+    .diagram-legend {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        padding: 2mm !important;
+    }
+
+    .diagram-legend ul {
+        gap: 1.5mm 3mm !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     }
 }
 
@@ -2672,12 +2813,97 @@ html:not([data-central-auth-pending="true"]) .central-auth-loading {
 
 APP_SCRIPT = """
 (() => {
+    const printGeneratedSelector = "[data-print-generated='true']";
+    const cleanupPrintLayout = () => {
+        document.querySelectorAll(printGeneratedSelector).forEach((element) => element.remove());
+    };
+    const readableOptionText = (input) => {
+        const label = input.closest("label");
+        if (!label) {
+            return "";
+        }
+        return Array.from(label.childNodes)
+            .filter((node) => node !== input)
+            .map((node) => node.textContent || "")
+            .join(" ")
+            .replace(/\\s+/g, " ")
+            .trim();
+    };
+    const controlPrintValue = (control) => {
+        if (!control) {
+            return "";
+        }
+        const tag = control.tagName.toLowerCase();
+        const type = (control.getAttribute("type") || "").toLowerCase();
+        if (tag === "select") {
+            const selected = control.selectedOptions && control.selectedOptions[0];
+            return selected ? selected.textContent.trim() : "";
+        }
+        if (type === "checkbox" || type === "radio") {
+            return control.checked ? readableOptionText(control) : "";
+        }
+        return control.value || control.textContent || "";
+    };
+    const fieldPrintValue = (field) => {
+        const choiceGroup = field.querySelector(".choice-group");
+        if (choiceGroup) {
+            return Array.from(choiceGroup.querySelectorAll("input:checked"))
+                .map(readableOptionText)
+                .filter(Boolean)
+                .join(", ");
+        }
+        const readonlyField = field.querySelector(".readonly-field");
+        if (readonlyField) {
+            return readonlyField.textContent.trim();
+        }
+        const control = field.querySelector("textarea, select, input:not([type='hidden']):not([type='checkbox']):not([type='radio'])");
+        return controlPrintValue(control).trim();
+    };
+    const appendPrintValue = (target, value, className, multiline = false) => {
+        const element = document.createElement("div");
+        element.className = className;
+        element.dataset.printGenerated = "true";
+        if (!value) {
+            element.classList.add("is-empty");
+        }
+        if (multiline) {
+            element.classList.add("is-multiline");
+        }
+        element.textContent = value || " ";
+        target.appendChild(element);
+    };
+    const preparePrintLayout = () => {
+        cleanupPrintLayout();
+        document.querySelectorAll(".field").forEach((field) => {
+            if (!field.querySelector("input, textarea, select, .readonly-field")) {
+                return;
+            }
+            const value = fieldPrintValue(field);
+            const multiline = Boolean(field.querySelector("textarea, .readonly-text"));
+            appendPrintValue(field, value, "print-field-value", multiline);
+        });
+        document.querySelectorAll(".sheet-table input:not([type='hidden']):not([type='checkbox']):not([type='radio']), .sheet-table textarea, .sheet-table select").forEach((control) => {
+            if (control.closest(".field")) {
+                return;
+            }
+            const parent = control.parentElement;
+            if (!parent) {
+                return;
+            }
+            appendPrintValue(parent, controlPrintValue(control).trim(), "print-control-value", control.tagName.toLowerCase() === "textarea");
+        });
+    };
+    window.addEventListener("beforeprint", preparePrintLayout);
+    window.addEventListener("afterprint", cleanupPrintLayout);
+
     window.printUtentePage = () => {
         const originalTitle = document.title;
         const restoreTitle = () => {
             document.title = originalTitle;
             window.removeEventListener("afterprint", restoreTitle);
+            cleanupPrintLayout();
         };
+        preparePrintLayout();
         document.title = " ";
         window.addEventListener("afterprint", restoreTitle, { once: true });
         window.print();
