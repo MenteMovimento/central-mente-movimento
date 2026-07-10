@@ -3188,7 +3188,7 @@ const handleCentralCreateUser = async (event) => {
   const form = new FormData(event.currentTarget);
   const payload = {
     fullName: String(form.get("fullName") || "").trim(),
-    email: String(form.get("email") || "").trim().toLowerCase(),
+    email: emailValue ? String(emailValue).trim().toLowerCase() : null,
     password: String(form.get("password") || ""),
   };
   payload.permissions = collectPermissionGrid("create");
@@ -3229,7 +3229,7 @@ const handleCentralEditUser = async (event) => {
   const form = new FormData(event.currentTarget);
   const payload = {
     id: String(form.get("id") || "").trim(),
-    email: String(form.get("email") || "").trim().toLowerCase(),
+    email: emailValue ? String(emailValue).trim().toLowerCase() : null,
     fullName: String(form.get("fullName") || "").trim(),
     active: form.get("active") === "on",
   };
