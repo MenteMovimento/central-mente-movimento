@@ -8263,7 +8263,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         <div class="title-actions">
             <span class="autosave-status" data-autosave-status aria-live="polite"></span>
             {print_button}
-            <a class="button secondary" href="/">Voltar</a>
+            <a class="button secondary" href="/"><i data-lucide="undo-2"></i>Voltar</a>
             {save_button}
         </div>
     </div>
