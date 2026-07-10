@@ -8631,7 +8631,7 @@ def render_list(query="", notice="", current_user=None):
 <div class="toolbar">
     <form class="search-form" method="get" action="/">
         <input name="q" value="{esc(query)}" placeholder="{esc(tr(current_user, "search_by_name"))}">
-        <button class="button secondary" type="submit">{esc(tr(current_user, "search"))}</button>
+        <button class="button secondary" type="submit"><i data-lucide="search"></i>{esc(tr(current_user, "search"))}</button>
         {f"<a class='button secondary' href='/'>{esc(tr(current_user, 'clear'))}</a>" if query else ""}
         <a class="button secondary" href="/estatisticas">{STATS_ICON}{esc(tr(current_user, "statistics"))}</a>
         {backup_button}
