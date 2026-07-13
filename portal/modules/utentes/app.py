@@ -65,11 +65,12 @@ TAB_SECTIONS = [
     ("diagnostica", "Avaliação Diagnóstica Multidisciplinar"),
     ("atendimentos", "Registo de Atendimentos e Acompanhamentos"),
     ("protecao_dados", "Proteção de dados e Termos de Responsabilidade"),
-    ("pagamentos", "Pagamentos e Mensalidades")
+    ("pagamentos", "Pagamentos e Mensalidades"),
+    ("outros", "Outros")
 ]
 
 UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia"}
-UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "protecao_dados"}
+UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "protecao_dados", "outros"}
 CENTRAL_AREA_KEYS = ("socios", "utentes", "dispositivos", "atividades")
 CENTRAL_AREA_ACTIONS = ("view", "edit", "view_sensitive", "edit_sensitive", "export", "delete")
 
@@ -1054,6 +1055,10 @@ main {
     height: 34px;
     max-width: 58px;
     width: 58px;
+}
+
+.legend-symbol svg [stroke="#f3fbf8"] {
+    stroke: #536d67;
 }
 
 .legend-label {
@@ -4602,7 +4607,7 @@ TRANSLATIONS = {
         "loading": "A carregar",
         "toggle_active": "Alterar estado",
         "activate_client": "Ativar utente",
-        "deactivate_client": "Desativar utente",
+        "deactivate_client": "Inativar utente",
         "search_by_name": "Pesquisar por nome",
         "search": "Pesquisar",
         "clear": "Limpar",
@@ -4840,11 +4845,11 @@ EN_STATIC_TRANSLATIONS = {
     "Sem concelho preenchido": "No municipality filled in",
     "Sem dados suficientes": "Not enough data",
     "Ativar utente": "Activate client",
-    "Desativar utente": "Deactivate client",
+    "Inativar utente": "Deactivate client",
     "Utente ativado com sucesso": "Client activated successfully",
     "Utente inativado com sucesso": "Client deactivated successfully",
     "Ativar este utente?": "Activate this client?",
-    "Desativar este utente?": "Deactivate this client?",
+    "Inativar este utente?": "Deactivate this client?",
     "Ativo": "Active",
     "Inativo": "Inactive",
     "Ver": "View",
@@ -7398,6 +7403,16 @@ def render_text_input(data, key, label, span="span-4", input_type="text", readon
     """
 
 
+def render_decimal_input(data, key, label, span="span-4", readonly=False):
+    disabled = "disabled" if readonly else ""
+    return f"""
+    <div class="field {span}">
+        <label for="{key}">{esc(label)}</label>
+        <input id="{key}" name="{key}" type="text" inputmode="decimal" value="{esc(data.get(key))}" {disabled}>
+    </div>
+    """
+
+
 def render_textarea_input(data, key, label, span="span-12", readonly=False):
     disabled = "disabled" if readonly else ""
     return f"""
@@ -7657,7 +7672,7 @@ def render_medication_table(data, readonly=False):
     """
 
 
-def render_referenciacao_form(data, readonly=False):
+def render_referenciacao_form(data, utente_id=None, readonly=False, include_attachments=True):
     readonly_class = " readonly-section" if readonly else ""
     return f"""
     <div class="referenciacao-form{readonly_class}">
@@ -7713,6 +7728,14 @@ def render_referenciacao_form(data, readonly=False):
         {render_checkbox_groups(data, readonly)}
 
         {render_medication_table(data, readonly)}
+        {render_pdf_attachments_panel(
+            utente_id,
+            readonly=readonly,
+            active_tab="referenciacao",
+            upload_title="Anexar folha de referenciação",
+            list_title="Folhas anexadas",
+            wrapper_class="referenciacao-attachments",
+        ) if utente_id and include_attachments else ""}
     </div>
     """
 
@@ -7733,7 +7756,7 @@ def render_pagamentos_form(data, readonly=False, current_user=None):
                 {render_month_select(data, "pag_mensalidade_ate", "Nova mensalidade", "span-4", readonly)}
                 {render_text_input(data, "pag_data", "Dia do pagamento", "span-4", "date", readonly)}
                 {render_select_input(data, "pag_forma", "Forma de pagamento", PAGAMENTO_FORMAS, "span-4", readonly)}
-                {render_text_input(data, "pag_valor", "Valor pago (€)", "span-4", "number", readonly)}
+                {render_decimal_input(data, "pag_valor", "Valor pago (€)", "span-4", readonly)}
                 {render_text_input(data, "pag_referencia", "N.º recibo / referência", "span-8", readonly=readonly)}
                 {render_textarea_input(data, "pag_observacoes", "Observações de pagamento", "span-12", readonly=readonly)}
                 {register_button}
@@ -8504,15 +8527,24 @@ def render_atendimentos_form(data, readonly=False):
     """
 
 
-def render_protecao_dados_form(utente_id, readonly=False):
-    rows = list_pdf_attachments(utente_id)
+def render_pdf_attachments_panel(
+    utente_id,
+    readonly=False,
+    active_tab="protecao_dados",
+    upload_title="Anexar PDF digitalizado",
+    list_title="PDFs deste utente",
+    wrapper_class="protecao-form",
+):
+    active_tab = normalize_tab_key(active_tab)
+    rows = list_pdf_attachments(utente_id, active_tab)
     upload_html = ""
     if not readonly:
         upload_html = f"""
         <section class="form-section">
-            <h4 class="section-title">Anexar PDF digitalizado</h4>
+            <h4 class="section-title">{esc(upload_title)}</h4>
             <form class="pdf-upload-form" method="post" action="/anexos/upload" enctype="multipart/form-data">
                 <input type="hidden" name="utente_id" value="{esc(utente_id)}">
+                <input type="hidden" name="tab" value="{esc(active_tab)}">
                 <input type="file" name="pdf" accept="application/pdf,.pdf" required>
                 <div class="actions">
                     <button class="button" type="submit">Anexar PDF</button>
@@ -8529,6 +8561,7 @@ def render_protecao_dados_form(utente_id, readonly=False):
                 <form method="post" action="/anexos/eliminar" onsubmit="return confirm('Remover este PDF?');">
                     <input type="hidden" name="id" value="{row['id']}">
                     <input type="hidden" name="utente_id" value="{utente_id}">
+                    <input type="hidden" name="tab" value="{esc(active_tab)}">
                     <button class="button danger" type="submit">Remover</button>
                 </form>
                 """
@@ -8550,16 +8583,38 @@ def render_protecao_dados_form(utente_id, readonly=False):
     else:
         items = '<div class="empty">Ainda não existem PDFs anexados neste separador.</div>'
     return f"""
-    <div class="protecao-form">
+    <div class="{esc(wrapper_class)}">
         {upload_html}
         <section class="form-section">
-            <h4 class="section-title">PDFs deste utente</h4>
+            <h4 class="section-title">{esc(list_title)}</h4>
             <div class="attachments-list">
                 {items}
             </div>
         </section>
     </div>
     """
+
+
+def render_protecao_dados_form(utente_id, readonly=False):
+    return render_pdf_attachments_panel(
+        utente_id,
+        readonly=readonly,
+        active_tab="protecao_dados",
+        upload_title="Anexar PDF digitalizado",
+        list_title="PDFs deste utente",
+        wrapper_class="protecao-form",
+    )
+
+
+def render_outros_form(utente_id, readonly=False):
+    return render_pdf_attachments_panel(
+        utente_id,
+        readonly=readonly,
+        active_tab="outros",
+        upload_title="Anexar outros documentos",
+        list_title="Outros anexos deste utente",
+        wrapper_class="outros-form",
+    )
 
 
 def render_print_page_button(current_user):
@@ -8574,6 +8629,8 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     active_label = next((label for key, label in tab_sections if key == active_tab), "")
     readonly = not can_edit_tab(current_user, active_tab)
     save_button = "" if readonly else '<button class="button" type="submit" form="edit-utente-form"><i data-lucide="save"></i>Guardar</button>'
+    if active_tab in {"protecao_dados", "outros"}:
+        save_button = ""
     tab_links = ""
     for key, label in tab_sections:
         active_class = " active" if key == active_tab else ""
@@ -8585,9 +8642,18 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
 
     tab_content = get_tab_content(utente["id"], active_tab)
     ref_data, em_data, ins_data, diag_data, atend_data = load_structured_tab_data(utente["id"])
+    extra_after_form = ""
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
-        tab_body = render_referenciacao_form(ref_data, readonly=readonly)
+        tab_body = render_referenciacao_form(ref_data, utente["id"], readonly=readonly, include_attachments=False)
+        extra_after_form = render_pdf_attachments_panel(
+            utente["id"],
+            readonly=readonly,
+            active_tab="referenciacao",
+            upload_title="Anexar folha de referenciação",
+            list_title="Folhas anexadas",
+            wrapper_class="referenciacao-attachments",
+        )
     elif active_tab == "pagamentos":
         pag_data = load_pagamentos_data(utente["id"])
         tab_body = render_pagamentos_form(pag_data, readonly=readonly, current_user=current_user)
@@ -8605,6 +8671,8 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         tab_body = render_atendimentos_form(atend_data, readonly=readonly)
     elif active_tab == "protecao_dados":
         tab_body = render_protecao_dados_form(utente["id"], readonly=readonly)
+    elif active_tab == "outros":
+        tab_body = render_outros_form(utente["id"], readonly=readonly)
     else:
         tab_body = f"""
                 <div class="field full">
@@ -8615,7 +8683,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     error_html = f'<div class="notice">{esc(error)}</div>' if error else ""
     print_button = render_print_page_button(current_user)
 
-    if active_tab == "protecao_dados":
+    if active_tab in {"protecao_dados", "outros"}:
         content = f"""
 <div class="edit-layout">
     <div class="edit-title">
@@ -8666,6 +8734,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
             </div>
         </section>
     </form>
+    {extra_after_form}
 </div>
 """
     return render_page("Editar utente", content, notice=notice, current_user=current_user)
@@ -8690,7 +8759,7 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
     ref_data, em_data, ins_data, diag_data, atend_data = load_structured_tab_data(utente["id"])
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
-        tab_body = render_referenciacao_form(ref_data, readonly=True)
+        tab_body = render_referenciacao_form(ref_data, utente["id"], readonly=True)
     elif active_tab == "pagamentos":
         pag_data = load_pagamentos_data(utente["id"])
         tab_body = render_pagamentos_form(pag_data, readonly=True, current_user=current_user)
@@ -8708,6 +8777,8 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
         tab_body = render_atendimentos_form(atend_data, readonly=True)
     elif active_tab == "protecao_dados":
         tab_body = render_protecao_dados_form(utente["id"], readonly=True)
+    elif active_tab == "outros":
+        tab_body = render_outros_form(utente["id"], readonly=True)
     else:
         tab_body = f"""
             <div class="field full">
@@ -8790,7 +8861,7 @@ def render_list(query="", notice="", current_user=None):
         payment_info = payment_summary(pagamentos_data, current_user)
         next_payment_label = month_label(payment_info["next_month"], user_language(current_user))
         toggle_action_label = tr(current_user, "deactivate_client" if is_active else "activate_client")
-        toggle_confirm = "Desativar este utente?" if is_active else "Ativar este utente?"
+        toggle_confirm = "Inativar este utente?" if is_active else "Ativar este utente?"
         toggle_icon = USER_X_ICON if is_active else USER_CHECK_ICON
         if can_edit:
             payment_html = f"""
@@ -9175,14 +9246,15 @@ def attachment_path(row):
     return os.path.join(attachment_dir(row["utente_id"]), row["stored_name"])
 
 
-def list_pdf_attachments(utente_id):
+def list_pdf_attachments(utente_id, tab_key="protecao_dados"):
+    tab_key = normalize_tab_key(tab_key)
     if supabase_available():
         return table_select(
             "utente_anexos",
             {
                 "select": "*",
                 "utente_id": f"eq.{utente_id}",
-                "tab_key": "eq.protecao_dados",
+                "tab_key": f"eq.{tab_key}",
                 "order": "created_at.desc,id.desc",
             },
         )
@@ -9191,7 +9263,29 @@ def list_pdf_attachments(utente_id):
             """
             SELECT *
             FROM utente_anexos
-            WHERE utente_id = ? AND tab_key = 'protecao_dados'
+            WHERE utente_id = ? AND tab_key = ?
+            ORDER BY created_at DESC, id DESC
+            """,
+            (utente_id, tab_key),
+        ).fetchall()
+
+
+def list_all_pdf_attachments(utente_id):
+    if supabase_available():
+        return table_select(
+            "utente_anexos",
+            {
+                "select": "*",
+                "utente_id": f"eq.{utente_id}",
+                "order": "created_at.desc,id.desc",
+            },
+        )
+    with get_connection() as conn:
+        return conn.execute(
+            """
+            SELECT *
+            FROM utente_anexos
+            WHERE utente_id = ?
             ORDER BY created_at DESC, id DESC
             """,
             (utente_id,),
@@ -9205,7 +9299,8 @@ def get_pdf_attachment(attachment_id):
         return conn.execute("SELECT * FROM utente_anexos WHERE id = ?", (attachment_id,)).fetchone()
 
 
-def save_pdf_attachment(utente_id, original_name, content, user):
+def save_pdf_attachment(utente_id, original_name, content, user, tab_key="protecao_dados"):
+    tab_key = normalize_tab_key(tab_key)
     if not content:
         raise ValueError("Escolha um ficheiro PDF para anexar.")
     if len(content) > MAX_PDF_BYTES:
@@ -9224,7 +9319,7 @@ def save_pdf_attachment(utente_id, original_name, content, user):
             "utente_anexos",
             {
                 "utente_id": utente_id,
-                "tab_key": "protecao_dados",
+                "tab_key": tab_key,
                 "original_name": safe_name,
                 "stored_name": stored_name,
                 "size_bytes": len(content),
@@ -9247,10 +9342,11 @@ def save_pdf_attachment(utente_id, original_name, content, user):
                 utente_id, tab_key, original_name, stored_name, size_bytes,
                 uploaded_by, uploaded_by_name, created_at
             )
-            VALUES (?, 'protecao_dados', ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 utente_id,
+                tab_key,
                 safe_name,
                 stored_name,
                 len(content),
@@ -9286,7 +9382,7 @@ def delete_utente_record(utente_id):
     if not utente:
         return None
     if supabase_available():
-        for attachment in list_pdf_attachments(utente_id):
+        for attachment in list_all_pdf_attachments(utente_id):
             delete_pdf_attachment(attachment["id"])
         table_delete("utente_abas", {"utente_id": f"eq.{utente_id}"})
         table_delete("utentes", {"id": f"eq.{utente_id}"})
@@ -9380,7 +9476,7 @@ def build_utente_backup_payload(utente):
         )
     pagamentos_data = load_pagamentos_data(utente_id)
     pagamentos = normalize_pagamento_history(pagamentos_data.get("pag_historico"))
-    anexos = [row_dict(row) for row in list_pdf_attachments(utente_id)]
+    anexos = [row_dict(row) for row in list_all_pdf_attachments(utente_id)]
     historico = fetch_utente_history(utente_id)
     return {
         "exportado_em": now(),
@@ -10912,9 +11008,6 @@ class UtentesHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/anexo":
-            if not can_view_tab(user, "protecao_dados"):
-                self.send_error(403, "Sem permissao para abrir anexos")
-                return
             attachment_id = query_params.get("id", [""])[0]
             if not attachment_id.isdigit():
                 self.send_error(404, "PDF não encontrado")
@@ -10922,6 +11015,9 @@ class UtentesHandler(BaseHTTPRequestHandler):
             attachment = get_pdf_attachment(int(attachment_id))
             if not attachment:
                 self.send_error(404, "PDF não encontrado")
+                return
+            if not can_view_tab(user, attachment["tab_key"]):
+                self.send_error(403, "Sem permissao para abrir anexos")
                 return
             self.send_pdf_attachment(attachment)
             return
@@ -11071,7 +11167,8 @@ class UtentesHandler(BaseHTTPRequestHandler):
             admin = self.require_admin()
             if not admin:
                 return
-            if not can_edit_tab(admin, "protecao_dados"):
+            active_tab = normalize_tab_key(field_value(data, "tab") or "protecao_dados")
+            if not can_edit_tab(admin, active_tab):
                 self.redirect(f"/?msg={quote('Sem permissao para editar anexos')}")
                 return
             attachment_id = field_value(data, "id")
@@ -11080,10 +11177,14 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 attachment = get_pdf_attachment(int(attachment_id))
                 if attachment:
                     utente_id = str(attachment["utente_id"])
+                    active_tab = normalize_tab_key(attachment["tab_key"])
+                    if not can_edit_tab(admin, active_tab):
+                        self.redirect(f"/?msg={quote('Sem permissao para editar anexos')}")
+                        return
                     removed = delete_pdf_attachment(int(attachment_id))
                     log_action(admin, "Removeu PDF", "Utente", int(utente_id), removed["original_name"] if removed else "")
             if utente_id.isdigit():
-                self.redirect(f"/editar?id={utente_id}&tab=protecao_dados&msg={quote('PDF removido com sucesso')}")
+                self.redirect(f"/editar?id={utente_id}&tab={active_tab}&msg={quote('PDF removido com sucesso')}")
             else:
                 self.redirect(f"/?msg={quote('PDF removido com sucesso')}")
             return
@@ -11357,13 +11458,15 @@ class UtentesHandler(BaseHTTPRequestHandler):
         admin = self.require_admin()
         if not admin:
             return
-        if not can_edit_tab(admin, "protecao_dados"):
-            self.redirect(f"/?msg={quote('Sem permissao para anexar PDFs')}")
-            return
         utente_id = ""
+        active_tab = "protecao_dados"
         try:
             fields, files = read_multipart(self)
             utente_id = field_value(fields, "utente_id")
+            active_tab = normalize_tab_key(field_value(fields, "tab") or "protecao_dados")
+            if not can_edit_tab(admin, active_tab):
+                self.redirect(f"/?msg={quote('Sem permissao para anexar PDFs')}")
+                return
             if not utente_id.isdigit() or not get_utente(int(utente_id)):
                 raise ValueError("Utente não encontrado.")
             upload = files.get("pdf")
@@ -11374,12 +11477,13 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 upload.get("filename", ""),
                 upload.get("content", b""),
                 admin,
+                active_tab,
             )
             attachment = get_pdf_attachment(attachment_id)
             log_action(admin, "Anexou PDF", "Utente", int(utente_id), attachment["original_name"] if attachment else "")
-            self.redirect(f"/editar?id={utente_id}&tab=protecao_dados&msg={quote('PDF anexado com sucesso')}")
+            self.redirect(f"/editar?id={utente_id}&tab={active_tab}&msg={quote('PDF anexado com sucesso')}")
         except ValueError as exc:
-            target = f"/editar?id={utente_id}&tab=protecao_dados" if utente_id.isdigit() else "/"
+            target = f"/editar?id={utente_id}&tab={active_tab}" if utente_id.isdigit() else "/"
             separator = "&" if "?" in target else "?"
             self.redirect(f"{target}{separator}msg={quote(str(exc))}")
 

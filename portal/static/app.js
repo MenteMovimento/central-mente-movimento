@@ -76,6 +76,7 @@ const translations = {
     "activities.form.editTitle": "Editar atividade",
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
+    "activities.copyPreviousWeek": "Copiar semana anterior",
     "activities.printTitle": "Horário semanal de atividades",
     "activities.printScheduleTitle": "Horário de Atividades",
     "activities.weekPrevious": "Semana anterior",
@@ -95,6 +96,7 @@ const translations = {
     "activities.clear": "Limpar",
     "activities.week": "Segunda a sexta",
     "activities.lunch": "Almo\u00e7o",
+    "activities.defaultLunchMonitor": "Monitor a definir",
     "activities.emptyDay": "Sem atividades",
     "activities.emptyWeek": "Ainda n\u00e3o existem atividades nesta semana.",
     "activities.remove": "Remover",
@@ -107,6 +109,9 @@ const translations = {
     "activities.validationDuplicateMonitors": "Escolha monitores diferentes.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
     "activities.saved": "Atividade guardada.",
+    "activities.copied": "Semana anterior copiada.",
+    "activities.copyEmpty": "Nao existem atividades na semana anterior para copiar.",
+    "activities.copyNoChanges": "A semana atual ja tinha estas atividades.",
     "activities.deleted": "Atividade removida.",
     "activities.cleared": "Semana limpa.",
     "activities.localOnly": "Base de dados de atividades indisponivel. As alteracoes nao foram guardadas.",
@@ -271,6 +276,7 @@ const translations = {
     "activities.form.editTitle": "Edit activity",
     "activities.form.viewTitle": "View activity",
     "activities.printWeek": "Print week",
+    "activities.copyPreviousWeek": "Copy previous week",
     "activities.printTitle": "Weekly activities timetable",
     "activities.printScheduleTitle": "Activities Timetable",
     "activities.weekPrevious": "Previous week",
@@ -291,6 +297,7 @@ const translations = {
     "activities.week": "Monday to Friday",
     "activities.weekTitle": "School timetable",
     "activities.lunch": "Lunch",
+    "activities.defaultLunchMonitor": "Monitor to define",
     "activities.emptyDay": "No activities",
     "activities.emptyWeek": "There are no activities in this week yet.",
     "activities.remove": "Remove",
@@ -303,6 +310,9 @@ const translations = {
     "activities.validationDuplicateMonitors": "Choose different monitors.",
     "activities.validationTime": "The end time must be after the start time.",
     "activities.saved": "Activity saved.",
+    "activities.copied": "Previous week copied.",
+    "activities.copyEmpty": "There are no activities in the previous week to copy.",
+    "activities.copyNoChanges": "The current week already had these activities.",
     "activities.deleted": "Activity removed.",
     "activities.cleared": "Week cleared.",
     "activities.localOnly": "Activities database unavailable. Changes were not saved.",
@@ -1515,6 +1525,10 @@ const defaultActivityPeriods = [
   ["12:00", "13:00"],
   ["13:00", "17:00"],
 ];
+const defaultLunchTitle = "Almo\u00e7o";
+const defaultLunchMonitorName = "Monitor a definir";
+const defaultLunchStart = "12:00";
+const defaultLunchEnd = "13:00";
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
 
 const dateToIso = (date) => {
@@ -1578,6 +1592,7 @@ const activitiesState = {
   dragPreviewCellKey: "",
   dragPreviewIndex: -1,
   dragImageEl: null,
+  defaultLunchPendingWeeks: new Set(),
 };
 
 const activityId = () =>
@@ -1595,7 +1610,9 @@ const activitiesElements = () => ({
   error: document.querySelector("[data-activities-error]"),
   createBtn: document.querySelector("[data-activities-create]"),
   createLabel: document.querySelector("[data-activities-create-label]"),
+  copyPreviousBtn: document.querySelector("[data-activities-copy-previous]"),
   printBtn: document.querySelector("[data-activities-print]"),
+  status: document.querySelector("[data-activities-status]"),
   prevWeekBtn: document.querySelector("[data-activities-week-prev]"),
   nextWeekBtn: document.querySelector("[data-activities-week-next]"),
   weekRange: document.querySelector("[data-activities-week-range]"),
@@ -1671,6 +1688,30 @@ const activityEntryToRow = (entry) => ({
   teacher: entry.teacher,
   sort_order: Number(entry.order) || 0,
 });
+
+const normalizeActivityText = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+const isDefaultLunchEntry = (entry) =>
+  normalizeActivityText(entry?.title) === normalizeActivityText(defaultLunchTitle) &&
+  entry?.start === defaultLunchStart &&
+  entry?.end === defaultLunchEnd;
+
+const isDefaultLunchPlaceholder = (entry) =>
+  isDefaultLunchEntry(entry) && normalizeActivityText(entry?.teacher) === normalizeActivityText(defaultLunchMonitorName);
+
+const sameActivityScheduleSlot = (left, right) =>
+  left?.weekStart === right?.weekStart &&
+  left?.day === right?.day &&
+  left?.start === right?.start &&
+  (left?.end || "") === (right?.end || "") &&
+  normalizeActivityText(left?.title) === normalizeActivityText(right?.title);
+
+const canEditActivities = () => centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "edit");
 
 const readActivitiesFromStorage = () => {
   try {
@@ -1911,8 +1952,8 @@ const recordActivityHistory = (action, entry = {}) => {
 const selectedWeekActivities = () =>
   activitiesState.entries.filter((entry) => entry.weekStart === activitiesState.selectedWeekStart);
 
-const sortedActivities = () =>
-  selectedWeekActivities().sort((left, right) => {
+const sortActivityEntries = (entries) =>
+  [...entries].sort((left, right) => {
     const dayDiff =
       activitiesDays.findIndex((item) => item.key === left.day) -
       activitiesDays.findIndex((item) => item.key === right.day);
@@ -1926,6 +1967,8 @@ const sortedActivities = () =>
     if (left.start !== right.start) return left.start.localeCompare(right.start);
     return left.title.localeCompare(right.title);
   });
+
+const sortedActivities = () => sortActivityEntries(selectedWeekActivities());
 
 const activityCountText = (count) =>
   count === 1
@@ -2000,11 +2043,12 @@ const activityPeriods = () => defaultActivityPeriods;
 const activityScheduleRows = (entries) => activityPeriods(entries).map((period) => ({ type: "period", period }));
 
 const setActivitiesFeedback = (message = "", kind = "error") => {
-  const { error } = activitiesElements();
-  if (!error) return;
-  error.textContent = message;
-  error.hidden = !message;
-  error.classList.toggle("is-success", kind === "success");
+  const { error, status } = activitiesElements();
+  [error, status].filter(Boolean).forEach((node) => {
+    node.textContent = message;
+    node.hidden = !message;
+    node.classList.toggle("is-success", kind === "success");
+  });
 };
 
 const activityWeekRangeTextForWeek = (weekStart) => {
@@ -2388,11 +2432,152 @@ const saveActivityOrderRemote = async (entries) => {
   if (error) throw error;
 };
 
+const upsertActivityEntriesRemote = async (entries) => {
+  if (activitiesState.storageMode !== "remote") throw new Error(getTranslation("activities.localOnly"));
+  const client = createActivitiesClient();
+  if (!client) throw new Error(getTranslation("activities.localOnly"));
+  const validEntries = entries.filter(Boolean);
+  if (!validEntries.length) return [];
+  const { data, error } = await client
+    .from(activitiesScheduleTableName)
+    .upsert(validEntries.map(activityEntryToRow), { onConflict: "id" })
+    .select("id,week_start,day,start_time,end_time,title,teacher,sort_order");
+  if (error) throw error;
+  return Array.isArray(data)
+    ? data.map((row, index) => activityEntryFromRow(row, validEntries[index]?.order || index)).filter(Boolean)
+    : validEntries;
+};
+
+const mergeActivityEntries = (entries) => {
+  const savedIds = new Set(entries.map((entry) => entry.id));
+  activitiesState.entries = [
+    ...activitiesState.entries.filter((entry) => !savedIds.has(entry.id)),
+    ...entries,
+  ];
+  saveActivities();
+};
+
 const rememberActivityListsRemote = async (entry) => {
   await Promise.allSettled([
     ensureActivityNameRemote(entry.title),
     ...splitActivityMonitors(entry.teacher).map((monitor) => ensureActivityMonitorRemote(monitor)),
   ]);
+};
+
+const ensureDefaultLunchForSelectedWeek = async () => {
+  const { root } = activitiesElements();
+  const weekStart = activitiesState.selectedWeekStart;
+  if (!root || activitiesState.storageMode !== "remote" || !canEditActivities()) return false;
+  if (activitiesState.defaultLunchPendingWeeks.has(weekStart)) return false;
+  const missingDays = activitiesDays.filter(
+    (day) =>
+      !activitiesState.entries.some(
+        (entry) => entry.weekStart === weekStart && entry.day === day.key && isDefaultLunchEntry(entry),
+      ),
+  );
+  if (!missingDays.length) return false;
+
+  activitiesState.defaultLunchPendingWeeks.add(weekStart);
+  try {
+    await Promise.allSettled([
+      ensureActivityNameRemote(defaultLunchTitle),
+      ensureActivityMonitorRemote(defaultLunchMonitorName),
+    ]);
+    const entries = missingDays
+      .map((day) => {
+        const entry = normalizeActivityEntry({
+          id: activityId(),
+          weekStart,
+          day: day.key,
+          start: defaultLunchStart,
+          end: defaultLunchEnd,
+          title: defaultLunchTitle,
+          teacher: defaultLunchMonitorName,
+        });
+        if (entry) entry.order = nextActivityOrderForCell(entry);
+        return entry;
+      })
+      .filter(Boolean);
+    const savedEntries = await upsertActivityEntriesRemote(entries);
+    mergeActivityEntries(savedEntries);
+    savedEntries.forEach((entry) => recordActivityHistory("created", entry));
+    renderActivitiesCalendar();
+    return true;
+  } catch (error) {
+    console.warn("Nao foi possivel criar o almoco predefinido.", error);
+    return false;
+  } finally {
+    activitiesState.defaultLunchPendingWeeks.delete(weekStart);
+  }
+};
+
+const copyPreviousWeekActivities = async (button) => {
+  if (!canEditActivities()) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
+  if (activitiesState.storageMode !== "remote") {
+    setActivitiesFeedback(getTranslation("activities.localOnly"));
+    return;
+  }
+  const previousWeekStart = weekStartIso(addDaysToIso(activitiesState.selectedWeekStart, -7));
+  const previousEntries = sortActivityEntries(
+    activitiesState.entries.filter((entry) => entry.weekStart === previousWeekStart),
+  );
+  if (!previousEntries.length) {
+    setActivitiesFeedback(getTranslation("activities.copyEmpty"));
+    return;
+  }
+
+  if (button) button.disabled = true;
+  try {
+    await Promise.allSettled([
+      ensureActivityNameRemote(defaultLunchTitle),
+      ensureActivityMonitorRemote(defaultLunchMonitorName),
+      ...previousEntries.map((entry) => rememberActivityListsRemote(entry)),
+    ]);
+    const entriesToSave = [];
+    previousEntries.forEach((sourceEntry) => {
+      const candidate = normalizeActivityEntry(
+        {
+          ...sourceEntry,
+          id: activityId(),
+          weekStart: activitiesState.selectedWeekStart,
+        },
+        activitiesState.selectedWeekStart,
+        sourceEntry.order,
+      );
+      if (!candidate) return;
+      const existing = activitiesState.entries.find((entry) => sameActivityScheduleSlot(entry, candidate));
+      if (existing) {
+        if (isDefaultLunchPlaceholder(existing) && isDefaultLunchEntry(candidate)) {
+          entriesToSave.push({
+            ...existing,
+            teacher: candidate.teacher,
+            order: Number(sourceEntry.order) || existing.order,
+          });
+        }
+        return;
+      }
+      candidate.order = nextActivityOrderForCell(candidate);
+      entriesToSave.push(candidate);
+    });
+
+    if (!entriesToSave.length) {
+      setActivitiesFeedback(getTranslation("activities.copyNoChanges"));
+      return;
+    }
+    const savedEntries = await upsertActivityEntriesRemote(entriesToSave);
+    mergeActivityEntries(savedEntries);
+    savedEntries.forEach((entry) => recordActivityHistory("created", entry));
+    renderActivitiesCalendar();
+    setActivitiesFeedback(getTranslation("activities.copied"), "success");
+  } catch (error) {
+    console.warn("Erro ao copiar semana anterior.", error);
+    setActivitiesFeedback(getTranslation("activities.saveError"));
+  } finally {
+    if (button) button.disabled = false;
+  }
 };
 
 const handleActivitySubmit = async (event) => {
@@ -2694,6 +2879,7 @@ const changeActivityWeek = (weekOffset) => {
   resetActivitiesForm();
   setActivityFormOpen(false);
   renderActivitiesCalendar();
+  void ensureDefaultLunchForSelectedWeek();
 };
 
 const reorderActivitiesInCell = async (draggedId, targetCellKey, insertionIndex = Number.POSITIVE_INFINITY) => {
@@ -2729,7 +2915,7 @@ const reorderActivitiesInCell = async (draggedId, targetCellKey, insertionIndex 
 };
 
 const wireActivitiesCalendar = () => {
-  const { root, dialog, dialogCloseBtn, form, grid, createBtn, prevWeekBtn, nextWeekBtn, clearBtn, printBtn } = activitiesElements();
+  const { root, dialog, dialogCloseBtn, form, grid, createBtn, copyPreviousBtn, prevWeekBtn, nextWeekBtn, clearBtn, printBtn } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
     setActivitiesFormMode(Boolean(form.elements.id.value));
@@ -2746,8 +2932,14 @@ const wireActivitiesCalendar = () => {
       activitiesState.entries = [];
       markActivitiesRemoteUnavailable(error);
     })
-    .finally(() => renderActivitiesCalendar());
+    .finally(() => {
+      renderActivitiesCalendar();
+      void ensureDefaultLunchForSelectedWeek();
+    });
   void refreshActivityOptionLists();
+  window.addEventListener("central-permissions-ready", () => {
+    void ensureDefaultLunchForSelectedWeek();
+  });
   form.addEventListener("submit", handleActivitySubmit);
   createBtn?.addEventListener("click", () => {
     const shouldOpen = !isActivityFormOpen();
@@ -2762,6 +2954,9 @@ const wireActivitiesCalendar = () => {
   });
   prevWeekBtn?.addEventListener("click", () => changeActivityWeek(-1));
   nextWeekBtn?.addEventListener("click", () => changeActivityWeek(1));
+  copyPreviousBtn?.addEventListener("click", () => {
+    void copyPreviousWeekActivities(copyPreviousBtn);
+  });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
   dialogCloseBtn?.addEventListener("click", () => {

@@ -55,6 +55,10 @@ export const atividadesPageContent = () => `<main class="global-shell activities
         </button>
       </div>
       <div class="activity-toolbar-actions">
+        <button class="secondary-button activity-copy-button" type="button" data-activities-copy-previous data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <i data-lucide="copy"></i>
+          <span data-i18n="activities.copyPreviousWeek">Copiar semana anterior</span>
+        </button>
         <button class="secondary-button activity-print-button" type="button" data-activities-print data-requires-permission-area="atividades" data-requires-permission-action="export">
           <i data-lucide="printer"></i>
           <span data-i18n="activities.printWeek">Imprimir semana</span>
@@ -65,6 +69,7 @@ export const atividadesPageContent = () => `<main class="global-shell activities
         </button>
       </div>
     </div>
+    <p class="form-error activity-error activity-toolbar-feedback" data-activities-status role="status" hidden></p>
 
     <dialog class="activity-dialog" id="activityFormDialog" data-activities-dialog aria-labelledby="activityFormTitle">
       <div class="activity-dialog-panel">

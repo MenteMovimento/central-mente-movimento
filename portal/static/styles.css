@@ -1498,6 +1498,10 @@ body.dark-mode .central-admin-forms {
   padding: 0 16px;
 }
 
+.activity-toolbar-feedback {
+  margin: 14px 0 0;
+}
+
 .activity-dialog {
   width: min(860px, calc(100% - 32px));
   max-height: min(720px, calc(100% - 32px));
