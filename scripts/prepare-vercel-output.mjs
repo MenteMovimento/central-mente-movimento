@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260713-activity-two-monitors'
+const assetVersion = '20260713-activity-lunch-as-activity'
 
 const authPendingHead = `<script>
       (() => {
@@ -328,11 +328,6 @@ ${activeId === 'atividades' ? `${atividadesManualsDialog()}${atividadesCatalogDi
 const activityNoTimeColumnStyle = `<style>
       .school-timetable .timetable-row {
         grid-template-columns: repeat(5, minmax(165px, 1fr)) !important;
-      }
-
-      .school-timetable .timetable-lunch-cell {
-        grid-column: 1 / -1 !important;
-        border-left: 0 !important;
       }
 
       .school-timetable .timetable-day-head:first-child,

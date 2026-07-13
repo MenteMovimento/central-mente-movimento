@@ -106,7 +106,6 @@ const translations = {
     "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o monitor.",
     "activities.validationDuplicateMonitors": "Escolha monitores diferentes.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
-    "activities.validationLunch": "A atividade nao pode ficar no periodo de almoco.",
     "activities.saved": "Atividade guardada.",
     "activities.deleted": "Atividade removida.",
     "activities.cleared": "Semana limpa.",
@@ -303,7 +302,6 @@ const translations = {
     "activities.validationRequired": "Fill in the day, time, activity name and monitor.",
     "activities.validationDuplicateMonitors": "Choose different monitors.",
     "activities.validationTime": "The end time must be after the start time.",
-    "activities.validationLunch": "The activity cannot be scheduled during lunch.",
     "activities.saved": "Activity saved.",
     "activities.deleted": "Activity removed.",
     "activities.cleared": "Week cleared.",
@@ -1513,10 +1511,10 @@ const activitiesDays = [
   { key: "friday" },
 ];
 const defaultActivityPeriods = [
-  ["09:00", "12:30"],
-  ["13:30", "17:00"],
+  ["09:00", "12:00"],
+  ["12:00", "13:00"],
+  ["13:00", "17:00"],
 ];
-const activityLunchPeriod = ["12:30", "13:30"];
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/;
 
 const dateToIso = (date) => {
@@ -1973,18 +1971,13 @@ const periodContainsActivity = ([start, end], entry) => {
   return entry.start >= start && activityEnd <= end;
 };
 
-const activityOverlapsPeriod = ([start, end], entry) => {
-  const activityEnd = entry.end || entry.start;
-  return entry.start >= start && entry.start < end
-    ? true
-    : entry.start < end && activityEnd > start;
-};
-
 const activityDisplayPeriod = (entry) => {
   const matchingPeriod = defaultActivityPeriods.find((period) => periodContainsActivity(period, entry));
   if (matchingPeriod) return matchingPeriod;
-  const [morningPeriod, afternoonPeriod] = defaultActivityPeriods;
-  return entry.start < activityLunchPeriod[0] ? morningPeriod : afternoonPeriod;
+  return (
+    defaultActivityPeriods.find(([_start, end]) => end && entry.start < end) ||
+    defaultActivityPeriods[defaultActivityPeriods.length - 1]
+  );
 };
 
 const activityCellKey = (entry) => `${entry.weekStart}|${entry.day}|${periodKey(activityDisplayPeriod(entry))}`;
@@ -2004,18 +1997,7 @@ const nextActivityOrderForCell = (entry) =>
 
 const activityPeriods = () => defaultActivityPeriods;
 
-const isActivityMorningPeriod = ([start]) => start < activityLunchPeriod[0];
-
-const activityScheduleRows = (entries) => {
-  const periods = activityPeriods(entries);
-  const morningPeriods = periods.filter(isActivityMorningPeriod);
-  const afternoonPeriods = periods.filter((period) => !isActivityMorningPeriod(period));
-  return [
-    ...morningPeriods.map((period) => ({ type: "period", period })),
-    { type: "lunch" },
-    ...afternoonPeriods.map((period) => ({ type: "period", period })),
-  ];
-};
+const activityScheduleRows = (entries) => activityPeriods(entries).map((period) => ({ type: "period", period }));
 
 const setActivitiesFeedback = (message = "", kind = "error") => {
   const { error } = activitiesElements();
@@ -2166,14 +2148,6 @@ const renderActivityCellEntries = (entries) => entries.map(renderActivitySlot).j
 
 const renderActivityEmptyCell = () => "";
 
-const renderActivityLunchRow = () => `
-  <div class="timetable-row timetable-lunch-row" role="row" aria-label="${escapeHtml(getTranslation("activities.lunch"))}">
-    <div class="timetable-lunch-cell" role="cell" aria-colspan="${activitiesDays.length}">
-      ${escapeHtml(getTranslation("activities.lunch"))}
-    </div>
-  </div>
-`;
-
 const currentActivityIndexInCell = (entry) =>
   sortedActivities()
     .filter((item) => activityCellKey(item) === activityCellKey(entry))
@@ -2294,7 +2268,6 @@ const renderActivitiesCalendar = () => {
       </div>
       ${scheduleRows
         .map((row) => {
-          if (row.type === "lunch") return renderActivityLunchRow();
           const { period } = row;
           const [start, end] = period;
           const currentPeriodKey = periodKey(period);
@@ -2379,9 +2352,6 @@ const validateActivityPayload = (payload) => {
   }
   if (payload.end && payload.end <= payload.start) {
     return getTranslation("activities.validationTime");
-  }
-  if (activityOverlapsPeriod(activityLunchPeriod, payload)) {
-    return getTranslation("activities.validationLunch");
   }
   return "";
 };
@@ -2561,12 +2531,6 @@ const activityPrintDocument = () => {
     .join("");
   const rows = scheduleRows
     .map((row) => {
-      if (row.type === "lunch") {
-        const lunchLabelIndex = Math.floor(activitiesDays.length / 2);
-        return `<tr class="lunch-row">${activitiesDays
-          .map((_, index) => `<td>${index === lunchLabelIndex ? escapeHtml(getTranslation("activities.lunch")) : ""}</td>`)
-          .join("")}</tr>`;
-      }
       const { period } = row;
       const currentPeriodKey = periodKey(period);
       let maxCellEntries = 0;
@@ -2659,10 +2623,6 @@ const activityPrintDocument = () => {
     thead tr { height: 12mm; }
     thead th { background: #eef5f3; border-bottom: 1.8px solid #7fa39b; padding: 1.2mm 1.6mm; text-align: center; vertical-align: middle; }
     tbody tr.activity-row { break-inside: avoid; page-break-inside: avoid; }
-    tbody tr.lunch-row { height: 8mm; break-inside: avoid; page-break-inside: avoid; }
-    tbody tr.lunch-row td { border-bottom: 1.8px solid #8fb2ab; border-top: 1.8px solid #8fb2ab; }
-    .lunch-row td { background: #eef4f2; color: #506560; font-size: 11px; font-weight: 900; text-align: center; vertical-align: middle; }
-    .lunch-row td { text-transform: uppercase; }
     th strong, th small { display: block; }
     th strong { font-size: 10px; line-height: 1.1; text-transform: uppercase; }
     th small { color: #506560; font-size: 8px; font-weight: 700; margin-top: 0.5mm; }
