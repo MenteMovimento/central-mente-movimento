@@ -6143,8 +6143,6 @@ MONTH_NAMES_EN = [
 
 PAGAMENTO_ESTADOS = [
     ("pago", "Pago"),
-    ("em_aberto", "Em aberto"),
-    ("parcial", "Parcial"),
     ("isento", "Isento"),
 ]
 
