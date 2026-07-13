@@ -697,7 +697,25 @@ const toggleToolsMenu = (button) => {
   button.setAttribute("aria-expanded", String(shouldOpen));
 };
 
+const closePeerDetailsMenusFromClick = (event) => {
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+  if (!target) return;
+  if (target.closest("details.global-menu-wrap > summary")) {
+    document.querySelectorAll("details.dashboard-user-menu-wrap[open]").forEach((menu) => {
+      menu.open = false;
+    });
+  }
+  if (target.closest("details.dashboard-user-menu-wrap > summary")) {
+    document.querySelectorAll("details.global-menu-wrap[open]").forEach((menu) => {
+      menu.open = false;
+    });
+  }
+};
+
 const wireExclusiveDetailsMenus = () => {
+  if (document.body.dataset.exclusiveDetailsMenusWired === "true") return;
+  document.body.dataset.exclusiveDetailsMenusWired = "true";
+  document.addEventListener("click", closePeerDetailsMenusFromClick, true);
   document.querySelectorAll("details.global-menu-wrap").forEach((details) => {
     details.addEventListener("toggle", () => {
       if (!details.open) return;
@@ -4496,12 +4514,12 @@ const wireCentralUsersDialog = () => {
 document.addEventListener("DOMContentLoaded", () => {
   applyTheme(getTheme());
   applyLanguage(getLanguage(), { persist: true });
+  wireExclusiveDetailsMenus();
   wirePasswordToggle();
   wireActivitiesManualsDialog();
   wireActivitiesCatalogDialog();
   wireActivitiesMonitorsDialog();
   wireActivitiesCalendar();
-  wireExclusiveDetailsMenus();
   void renderActivitiesHistoryPage();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {

@@ -59,13 +59,13 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           <i data-lucide="copy"></i>
           <span data-i18n="activities.copyPreviousWeek">Copiar semana anterior</span>
         </button>
-        <button class="secondary-button activity-print-button" type="button" data-activities-print data-requires-permission-area="atividades" data-requires-permission-action="export">
-          <i data-lucide="printer"></i>
-          <span data-i18n="activities.printWeek">Imprimir semana</span>
-        </button>
         <button class="secondary-button activity-statistics-button" type="button" data-activities-statistics data-requires-permission-area="atividades" data-requires-permission-action="view">
           <i data-lucide="bar-chart-3"></i>
           <span data-i18n="activities.statisticsButton">Estat&iacute;sticas</span>
+        </button>
+        <button class="secondary-button activity-print-button" type="button" data-activities-print data-requires-permission-area="atividades" data-requires-permission-action="export">
+          <i data-lucide="printer"></i>
+          <span data-i18n="activities.printWeek">Imprimir semana</span>
         </button>
         <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false" data-requires-permission-area="atividades" data-requires-permission-action="edit">
           <i data-lucide="calendar-plus"></i>
