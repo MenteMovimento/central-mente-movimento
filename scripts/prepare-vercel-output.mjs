@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260713-activity-copy-week-lunch-default'
+const assetVersion = '20260713-activity-summary'
 
 const authPendingHead = `<script>
       (() => {

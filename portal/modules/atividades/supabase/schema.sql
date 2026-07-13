@@ -108,11 +108,35 @@ create table if not exists public.activities_history (
   created_by uuid references auth.users(id) on delete set null default auth.uid()
 );
 
+create table if not exists public.activities_summaries (
+  id uuid primary key default gen_random_uuid(),
+  activity_id uuid not null references public.activities_schedule(id) on delete cascade,
+  activity_date date not null,
+  activity_title text not null,
+  start_time time not null,
+  end_time time,
+  duration_minutes integer not null default 0,
+  summary text not null default '',
+  attendance jsonb not null default '[]'::jsonb,
+  created_by uuid references auth.users(id) on delete set null default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint activities_summaries_activity_date_unique unique(activity_id, activity_date),
+  constraint activities_summaries_end_after_start check (end_time is null or end_time > start_time),
+  constraint activities_summaries_duration_nonnegative check (duration_minutes >= 0)
+);
+
 create index if not exists activities_schedule_week_day_idx
 on public.activities_schedule(week_start, day, start_time, sort_order);
 
 create index if not exists activities_history_created_at_idx
 on public.activities_history(created_at desc);
+
+create index if not exists activities_summaries_activity_date_idx
+on public.activities_summaries(activity_date, start_time);
+
+create index if not exists activities_summaries_activity_id_idx
+on public.activities_summaries(activity_id);
 
 create index if not exists activities_monitors_active_name_idx
 on public.activities_monitors(active, name);
@@ -135,10 +159,16 @@ create trigger activities_schedule_touch_updated_at
 before update on public.activities_schedule
 for each row execute function private.touch_updated_at();
 
+drop trigger if exists activities_summaries_touch_updated_at on public.activities_summaries;
+create trigger activities_summaries_touch_updated_at
+before update on public.activities_summaries
+for each row execute function private.touch_updated_at();
+
 alter table public.activities_monitors enable row level security;
 alter table public.activities_catalog enable row level security;
 alter table public.activities_schedule enable row level security;
 alter table public.activities_history enable row level security;
+alter table public.activities_summaries enable row level security;
 
 drop policy if exists "authorized users read activity catalog" on public.activities_catalog;
 drop policy if exists "authorized users create activity catalog" on public.activities_catalog;
@@ -248,11 +278,42 @@ with check (
   or private.current_app_permission('atividades', 'export')
 );
 
+drop policy if exists "authorized users read activity summaries" on public.activities_summaries;
+drop policy if exists "authorized users create activity summaries" on public.activities_summaries;
+drop policy if exists "authorized users update activity summaries" on public.activities_summaries;
+drop policy if exists "authorized users delete activity summaries" on public.activities_summaries;
+
+create policy "authorized users read activity summaries"
+on public.activities_summaries
+for select
+to authenticated
+using (private.current_app_permission('atividades', 'view'));
+
+create policy "authorized users create activity summaries"
+on public.activities_summaries
+for insert
+to authenticated
+with check (private.current_app_permission('atividades', 'edit'));
+
+create policy "authorized users update activity summaries"
+on public.activities_summaries
+for update
+to authenticated
+using (private.current_app_permission('atividades', 'edit'))
+with check (private.current_app_permission('atividades', 'edit'));
+
+create policy "authorized users delete activity summaries"
+on public.activities_summaries
+for delete
+to authenticated
+using (private.current_app_permission('atividades', 'edit'));
+
 grant usage on schema public to authenticated;
 grant usage on schema private to authenticated;
 grant select, insert, update, delete on public.activities_catalog to authenticated;
 grant select, insert, update, delete on public.activities_monitors to authenticated;
 grant select, insert, update, delete on public.activities_schedule to authenticated;
 grant select, insert, update on public.activities_history to authenticated;
+grant select, insert, update, delete on public.activities_summaries to authenticated;
 
 notify pgrst, 'reload schema';

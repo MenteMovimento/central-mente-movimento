@@ -76,6 +76,27 @@ const translations = {
     "activities.form.editTitle": "Editar atividade",
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
+    "activities.summaryButton": "Sumário",
+    "activities.summaryTitle": "Sumário da atividade",
+    "activities.summaryActivity": "Atividade",
+    "activities.summarySelectActivity": "Selecionar atividade da semana",
+    "activities.summaryDate": "Data",
+    "activities.summaryStart": "Hora de início",
+    "activities.summaryEnd": "Hora de fim",
+    "activities.summaryDuration": "Duração",
+    "activities.summaryDurationMinutes": "{count} min",
+    "activities.summaryDurationHours": "{hours}h {minutes}min",
+    "activities.summaryText": "Sumário",
+    "activities.summaryPlaceholder": "Escreva o sumário da atividade...",
+    "activities.summaryAttendance": "Presenças",
+    "activities.summaryAttendanceSearch": "Pesquisar utentes",
+    "activities.summaryNoActivity": "Escolha uma atividade para preencher o sumário.",
+    "activities.summaryNoActivitiesWeek": "Sem atividades nesta semana.",
+    "activities.summaryNoUtentes": "Sem utentes disponíveis.",
+    "activities.summaryLoadError": "Não foi possível carregar os dados do sumário.",
+    "activities.summaryUtentesError": "Não foi possível carregar os utentes.",
+    "activities.summarySaved": "Sumário guardado.",
+    "activities.summarySaveError": "Não foi possível guardar o sumário.",
     "activities.copyPreviousWeek": "Copiar semana anterior",
     "activities.printTitle": "Horário semanal de atividades",
     "activities.printScheduleTitle": "Horário de Atividades",
@@ -126,6 +147,7 @@ const translations = {
     "activities.historyDeleted": "Apagada",
     "activities.historyReordered": "Reordenada",
     "activities.historyPrinted": "Semana impressa",
+    "activities.historySummary": "Sumário guardado",
     "activities.historyWeek": "Semana: {week}",
     "activities.historyTeacher": "Monitor: {teacher}",
     "activities.historyTime": "Hora: {time}",
@@ -276,6 +298,27 @@ const translations = {
     "activities.form.editTitle": "Edit activity",
     "activities.form.viewTitle": "View activity",
     "activities.printWeek": "Print week",
+    "activities.summaryButton": "Summary",
+    "activities.summaryTitle": "Activity summary",
+    "activities.summaryActivity": "Activity",
+    "activities.summarySelectActivity": "Select a week activity",
+    "activities.summaryDate": "Date",
+    "activities.summaryStart": "Start time",
+    "activities.summaryEnd": "End time",
+    "activities.summaryDuration": "Duration",
+    "activities.summaryDurationMinutes": "{count} min",
+    "activities.summaryDurationHours": "{hours}h {minutes}min",
+    "activities.summaryText": "Summary",
+    "activities.summaryPlaceholder": "Write the activity summary...",
+    "activities.summaryAttendance": "Attendance",
+    "activities.summaryAttendanceSearch": "Search clients",
+    "activities.summaryNoActivity": "Choose an activity to fill the summary.",
+    "activities.summaryNoActivitiesWeek": "No activities in this week.",
+    "activities.summaryNoUtentes": "No clients available.",
+    "activities.summaryLoadError": "Could not load summary data.",
+    "activities.summaryUtentesError": "Could not load clients.",
+    "activities.summarySaved": "Summary saved.",
+    "activities.summarySaveError": "Could not save the summary.",
     "activities.copyPreviousWeek": "Copy previous week",
     "activities.printTitle": "Weekly activities timetable",
     "activities.printScheduleTitle": "Activities Timetable",
@@ -327,6 +370,7 @@ const translations = {
     "activities.historyDeleted": "Deleted",
     "activities.historyReordered": "Reordered",
     "activities.historyPrinted": "Week printed",
+    "activities.historySummary": "Summary saved",
     "activities.historyWeek": "Week: {week}",
     "activities.historyTeacher": "Monitor: {teacher}",
     "activities.historyTime": "Time: {time}",
@@ -1582,6 +1626,8 @@ const activitiesState = {
   client: null,
   entries: [],
   history: [],
+  summaries: [],
+  utentes: [],
   activityNames: [],
   monitors: [],
   editingActivityNameId: "",
@@ -1593,6 +1639,7 @@ const activitiesState = {
   dragPreviewIndex: -1,
   dragImageEl: null,
   defaultLunchPendingWeeks: new Set(),
+  summaryAttendanceIds: new Set(),
 };
 
 const activityId = () =>
@@ -1612,6 +1659,20 @@ const activitiesElements = () => ({
   createLabel: document.querySelector("[data-activities-create-label]"),
   copyPreviousBtn: document.querySelector("[data-activities-copy-previous]"),
   printBtn: document.querySelector("[data-activities-print]"),
+  summaryBtn: document.querySelector("[data-activities-summary-open]"),
+  summaryDialog: document.querySelector("[data-activities-summary-dialog]"),
+  summaryCloseBtn: document.querySelector("[data-activities-summary-close]"),
+  summaryForm: document.querySelector("[data-activities-summary-form]"),
+  summaryActivitySelect: document.querySelector("[data-summary-activity-select]"),
+  summaryActivityName: document.querySelector("[data-summary-activity-name]"),
+  summaryDate: document.querySelector("[data-summary-date]"),
+  summaryStart: document.querySelector("[data-summary-start]"),
+  summaryEnd: document.querySelector("[data-summary-end]"),
+  summaryDuration: document.querySelector("[data-summary-duration]"),
+  summaryAttendanceList: document.querySelector("[data-summary-attendance-list]"),
+  summaryAttendanceSearch: document.querySelector("[data-summary-attendance-search]"),
+  summaryClearBtn: document.querySelector("[data-summary-clear]"),
+  summaryError: document.querySelector("[data-summary-error]"),
   status: document.querySelector("[data-activities-status]"),
   prevWeekBtn: document.querySelector("[data-activities-week-prev]"),
   nextWeekBtn: document.querySelector("[data-activities-week-next]"),
@@ -1688,6 +1749,109 @@ const activityEntryToRow = (entry) => ({
   teacher: entry.teacher,
   sort_order: Number(entry.order) || 0,
 });
+
+const activityDateForEntry = (entry) => {
+  const dayIndex = activitiesDays.findIndex((day) => day.key === entry?.day);
+  return addDaysToIso(entry?.weekStart || activitiesState.selectedWeekStart, dayIndex >= 0 ? dayIndex : 0);
+};
+
+const activityMinutesFromTime = (time) => {
+  if (!isActivityTime(time)) return null;
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+const activityDurationMinutes = (entry) => {
+  const start = activityMinutesFromTime(entry?.start);
+  const end = activityMinutesFromTime(entry?.end);
+  if (start === null || end === null || end <= start) return 0;
+  return end - start;
+};
+
+const activityDurationText = (minutes) => {
+  const value = Math.max(0, Number(minutes) || 0);
+  if (value < 60) return getTranslation("activities.summaryDurationMinutes").replace("{count}", String(value));
+  const hours = Math.floor(value / 60);
+  const rest = value % 60;
+  return getTranslation("activities.summaryDurationHours")
+    .replace("{hours}", String(hours))
+    .replace("{minutes}", String(rest));
+};
+
+const normalizeActivityUtente = (utente) => {
+  const id = String(utente?.id || "").trim();
+  const name = String(utente?.name || utente?.nome || "").trim();
+  if (!id || !name) return null;
+  return {
+    id,
+    name,
+    number: String(utente?.number || utente?.numero_utente || "").trim(),
+  };
+};
+
+const normalizeActivitySummary = (summary) => {
+  const activityId = String(summary?.activityId || summary?.activity_id || "").trim();
+  const activityDate = String(summary?.activityDate || summary?.activity_date || "").trim();
+  if (!activityId || !dateFromIso(activityDate)) return null;
+  const attendanceSource = Array.isArray(summary?.attendance) ? summary.attendance : [];
+  return {
+    id: String(summary?.id || "").trim(),
+    activityId,
+    activityDate,
+    title: String(summary?.title || summary?.activity_title || "").trim(),
+    start: activityTimeFromRow(summary?.start || summary?.start_time),
+    end: activityTimeFromRow(summary?.end || summary?.end_time),
+    durationMinutes: Math.max(0, Number(summary?.durationMinutes ?? summary?.duration_minutes) || 0),
+    summary: String(summary?.summary || ""),
+    attendance: attendanceSource.map(normalizeActivityUtente).filter(Boolean),
+  };
+};
+
+const activitiesSummariesRequest = async ({ method = "GET", body = null } = {}) => {
+  const token = await getActivitiesAccessToken();
+  const isGet = method === "GET";
+  const query = new URLSearchParams({ weekStart: activitiesState.selectedWeekStart });
+  const response = await fetch(`/api/activities-summaries${isGet ? `?${query.toString()}` : ""}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(isGet ? {} : { "Content-Type": "application/json" }),
+    },
+    body: isGet ? undefined : JSON.stringify(body || {}),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error || getTranslation("activities.summaryLoadError"));
+  }
+  return payload;
+};
+
+const loadActivitySummaryData = async () => {
+  const payload = await activitiesSummariesRequest();
+  activitiesState.summaries = Array.isArray(payload?.summaries)
+    ? payload.summaries.map(normalizeActivitySummary).filter(Boolean)
+    : [];
+  activitiesState.utentes = Array.isArray(payload?.utentes)
+    ? payload.utentes.map(normalizeActivityUtente).filter(Boolean)
+    : [];
+  return payload;
+};
+
+const saveActivitySummaryRemote = async (summary) => {
+  const payload = await activitiesSummariesRequest({
+    method: "POST",
+    body: summary,
+  });
+  const savedSummary = normalizeActivitySummary(payload?.summary);
+  if (!savedSummary) throw new Error(getTranslation("activities.summarySaveError"));
+  activitiesState.summaries = [
+    savedSummary,
+    ...activitiesState.summaries.filter(
+      (item) => item.activityId !== savedSummary.activityId || item.activityDate !== savedSummary.activityDate,
+    ),
+  ];
+  return savedSummary;
+};
 
 const normalizeActivityText = (value) =>
   String(value || "")
@@ -1984,6 +2148,7 @@ const activityHistoryActionLabel = (action) => {
     deleted: "activities.historyDeleted",
     reordered: "activities.historyReordered",
     printed: "activities.historyPrinted",
+    summary: "activities.historySummary",
   };
   return getTranslation(keyByAction[action] || "activities.historyUpdated");
 };
@@ -2003,6 +2168,222 @@ const activityHistoryDetails = (entry) => {
     details.push(getTranslation("activities.historyTeacher").replace("{teacher}", entry.teacher));
   }
   return details.join(" - ");
+};
+
+const setActivitySummaryFeedback = (message = "", kind = "error") => {
+  const { summaryError } = activitiesElements();
+  if (!summaryError) return;
+  summaryError.textContent = message || "";
+  summaryError.hidden = !message;
+  summaryError.classList.toggle("is-success", kind === "success");
+};
+
+const activitySummaryOptionLabel = (entry) => {
+  const entryDate = dateFromIso(activityDateForEntry(entry));
+  const dateText = entryDate ? formatActivityDate(entryDate) : "";
+  return [dateText, activityTimeText(entry), entry.title].filter(Boolean).join(" - ");
+};
+
+const renderActivitySummaryOptions = () => {
+  const { summaryActivitySelect } = activitiesElements();
+  if (!summaryActivitySelect) return;
+  const currentValue = String(summaryActivitySelect.value || "");
+  const entries = sortedActivities();
+  summaryActivitySelect.innerHTML = [
+    `<option value="">${escapeHtml(getTranslation("activities.summarySelectActivity"))}</option>`,
+    ...entries.map((entry) => `<option value="${escapeHtml(entry.id)}">${escapeHtml(activitySummaryOptionLabel(entry))}</option>`),
+  ].join("");
+  const hasCurrentValue = currentValue && entries.some((entry) => entry.id === currentValue);
+  summaryActivitySelect.value = hasCurrentValue ? currentValue : entries[0]?.id || "";
+  summaryActivitySelect.disabled = entries.length === 0;
+};
+
+const selectedActivitySummaryEntry = () => {
+  const { summaryActivitySelect } = activitiesElements();
+  const selectedId = String(summaryActivitySelect?.value || "");
+  return sortedActivities().find((entry) => entry.id === selectedId) || null;
+};
+
+const activitySummaryForEntry = (entry) => {
+  if (!entry) return null;
+  const activityDate = activityDateForEntry(entry);
+  return (
+    activitiesState.summaries.find(
+      (summary) => summary.activityId === entry.id && summary.activityDate === activityDate,
+    ) || null
+  );
+};
+
+const setSummaryMetaText = (selectorNode, value) => {
+  if (selectorNode) selectorNode.textContent = value || "-";
+};
+
+const resetActivitySummaryMeta = () => {
+  const { summaryActivityName, summaryDate, summaryStart, summaryEnd, summaryDuration, summaryForm } = activitiesElements();
+  setSummaryMetaText(summaryActivityName, "-");
+  setSummaryMetaText(summaryDate, "-");
+  setSummaryMetaText(summaryStart, "-");
+  setSummaryMetaText(summaryEnd, "-");
+  setSummaryMetaText(summaryDuration, "-");
+  if (summaryForm?.elements.summary) summaryForm.elements.summary.value = "";
+  activitiesState.summaryAttendanceIds = new Set();
+  renderActivitySummaryAttendance();
+};
+
+const currentActivitySummaryAttendance = () =>
+  activitiesState.utentes
+    .filter((utente) => activitiesState.summaryAttendanceIds.has(utente.id))
+    .map((utente) => ({
+      id: utente.id,
+      name: utente.name,
+      number: utente.number,
+    }));
+
+const renderActivitySummaryAttendance = () => {
+  const { summaryAttendanceList, summaryAttendanceSearch } = activitiesElements();
+  if (!summaryAttendanceList) return;
+  const search = normalizeActivityText(summaryAttendanceSearch?.value || "");
+  const utentes = activitiesState.utentes.filter((utente) => {
+    if (!search) return true;
+    return normalizeActivityText(`${utente.name} ${utente.number}`).includes(search);
+  });
+  if (!activitiesState.utentes.length) {
+    summaryAttendanceList.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.summaryNoUtentes"))}</p>`;
+    return;
+  }
+  if (!utentes.length) {
+    summaryAttendanceList.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.summaryNoUtentes"))}</p>`;
+    return;
+  }
+  summaryAttendanceList.innerHTML = utentes
+    .map(
+      (utente) => `
+        <label class="activity-attendance-option">
+          <input type="checkbox" value="${escapeHtml(utente.id)}"${activitiesState.summaryAttendanceIds.has(utente.id) ? " checked" : ""} />
+          <span>
+            <strong>${escapeHtml(utente.name)}</strong>
+            ${utente.number ? `<small>${escapeHtml(utente.number)}</small>` : ""}
+          </span>
+        </label>
+      `,
+    )
+    .join("");
+};
+
+const fillActivitySummaryForm = (entry) => {
+  const {
+    summaryActivityName,
+    summaryDate,
+    summaryStart,
+    summaryEnd,
+    summaryDuration,
+    summaryForm,
+    summaryAttendanceSearch,
+  } = activitiesElements();
+  if (!entry) {
+    resetActivitySummaryMeta();
+    return;
+  }
+  const activityDate = activityDateForEntry(entry);
+  const activityDateObject = dateFromIso(activityDate);
+  const summary = activitySummaryForEntry(entry);
+  setSummaryMetaText(summaryActivityName, entry.title);
+  setSummaryMetaText(summaryDate, activityDateObject ? formatActivityDate(activityDateObject) : activityDate);
+  setSummaryMetaText(summaryStart, entry.start);
+  setSummaryMetaText(summaryEnd, entry.end || "-");
+  setSummaryMetaText(summaryDuration, activityDurationText(activityDurationMinutes(entry)));
+  if (summaryForm?.elements.summary) summaryForm.elements.summary.value = summary?.summary || "";
+  if (summaryAttendanceSearch) summaryAttendanceSearch.value = "";
+  activitiesState.summaryAttendanceIds = new Set((summary?.attendance || []).map((utente) => utente.id));
+  renderActivitySummaryAttendance();
+  refreshIcons();
+};
+
+const refreshActivitySummaryForm = () => {
+  renderActivitySummaryOptions();
+  fillActivitySummaryForm(selectedActivitySummaryEntry());
+};
+
+const openActivitySummaryDialog = async () => {
+  if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "edit")) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
+  const { summaryDialog } = activitiesElements();
+  if (!summaryDialog) return;
+  closeToolsMenus();
+  setActivityFormOpen(false);
+  setActivitySummaryFeedback("");
+  refreshActivitySummaryForm();
+  if (typeof summaryDialog.showModal === "function") {
+    summaryDialog.showModal();
+  } else {
+    summaryDialog.setAttribute("open", "");
+  }
+  try {
+    await loadActivitySummaryData();
+    refreshActivitySummaryForm();
+  } catch (error) {
+    console.warn("Nao foi possivel carregar sumarios de atividades.", error);
+    setActivitySummaryFeedback(error?.message || getTranslation("activities.summaryLoadError"));
+    renderActivitySummaryAttendance();
+  }
+  refreshIcons();
+};
+
+const closeActivitySummaryDialog = () => {
+  const { summaryDialog, summaryForm, summaryAttendanceSearch } = activitiesElements();
+  if (!summaryDialog) return;
+  summaryForm?.reset();
+  if (summaryAttendanceSearch) summaryAttendanceSearch.value = "";
+  activitiesState.summaryAttendanceIds = new Set();
+  setActivitySummaryFeedback("");
+  if (summaryDialog.open && typeof summaryDialog.close === "function") {
+    summaryDialog.close();
+  } else {
+    summaryDialog.removeAttribute("open");
+  }
+};
+
+const clearActivitySummaryForm = () => {
+  const { summaryForm } = activitiesElements();
+  if (summaryForm?.elements.summary) summaryForm.elements.summary.value = "";
+  activitiesState.summaryAttendanceIds = new Set();
+  renderActivitySummaryAttendance();
+  setActivitySummaryFeedback("");
+};
+
+const handleActivitySummarySubmit = async (event) => {
+  event.preventDefault();
+  const { summaryForm } = activitiesElements();
+  const entry = selectedActivitySummaryEntry();
+  if (!summaryForm || !entry) {
+    setActivitySummaryFeedback(getTranslation("activities.summaryNoActivity"));
+    return;
+  }
+  const submitButton = summaryForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
+    const payload = {
+      activityId: entry.id,
+      activityDate: activityDateForEntry(entry),
+      title: entry.title,
+      start: entry.start,
+      end: entry.end,
+      durationMinutes: activityDurationMinutes(entry),
+      summary: String(summaryForm.elements.summary?.value || "").trim(),
+      attendance: currentActivitySummaryAttendance(),
+    };
+    await saveActivitySummaryRemote(payload);
+    fillActivitySummaryForm(entry);
+    recordActivityHistory("summary", entry);
+    setActivitySummaryFeedback(getTranslation("activities.summarySaved"), "success");
+  } catch (error) {
+    console.warn("Nao foi possivel guardar sumario de atividade.", error);
+    setActivitySummaryFeedback(error?.message || getTranslation("activities.summarySaveError"));
+  } finally {
+    if (submitButton) submitButton.disabled = false;
+  }
 };
 
 const periodKey = ([start, end]) => `${start}|${end || ""}`;
@@ -2878,6 +3259,7 @@ const changeActivityWeek = (weekOffset) => {
   activitiesState.selectedWeekStart = weekStartIso(nextWeek);
   resetActivitiesForm();
   setActivityFormOpen(false);
+  closeActivitySummaryDialog();
   renderActivitiesCalendar();
   void ensureDefaultLunchForSelectedWeek();
 };
@@ -2915,7 +3297,27 @@ const reorderActivitiesInCell = async (draggedId, targetCellKey, insertionIndex 
 };
 
 const wireActivitiesCalendar = () => {
-  const { root, dialog, dialogCloseBtn, form, grid, createBtn, copyPreviousBtn, prevWeekBtn, nextWeekBtn, clearBtn, printBtn } = activitiesElements();
+  const {
+    root,
+    dialog,
+    dialogCloseBtn,
+    form,
+    grid,
+    createBtn,
+    copyPreviousBtn,
+    prevWeekBtn,
+    nextWeekBtn,
+    clearBtn,
+    printBtn,
+    summaryBtn,
+    summaryDialog,
+    summaryCloseBtn,
+    summaryForm,
+    summaryActivitySelect,
+    summaryAttendanceList,
+    summaryAttendanceSearch,
+    summaryClearBtn,
+  } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
     setActivitiesFormMode(Boolean(form.elements.id.value));
@@ -2959,6 +3361,40 @@ const wireActivitiesCalendar = () => {
   });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
+  summaryBtn?.addEventListener("click", () => {
+    void openActivitySummaryDialog();
+  });
+  summaryCloseBtn?.addEventListener("click", closeActivitySummaryDialog);
+  summaryForm?.addEventListener("submit", handleActivitySummarySubmit);
+  summaryActivitySelect?.addEventListener("change", () => {
+    fillActivitySummaryForm(selectedActivitySummaryEntry());
+    setActivitySummaryFeedback("");
+  });
+  summaryAttendanceSearch?.addEventListener("input", () => {
+    renderActivitySummaryAttendance();
+  });
+  summaryAttendanceList?.addEventListener("change", (event) => {
+    const input = event.target instanceof HTMLInputElement ? event.target : event.target?.closest?.("input[type='checkbox']");
+    if (!input || input.type !== "checkbox") return;
+    if (input.checked) {
+      activitiesState.summaryAttendanceIds.add(input.value);
+    } else {
+      activitiesState.summaryAttendanceIds.delete(input.value);
+    }
+  });
+  summaryClearBtn?.addEventListener("click", clearActivitySummaryForm);
+  summaryDialog?.addEventListener("click", (event) => {
+    if (event.target === summaryDialog) closeActivitySummaryDialog();
+  });
+  summaryDialog?.addEventListener("cancel", () => {
+    activitiesState.summaryAttendanceIds = new Set();
+  });
+  summaryDialog?.addEventListener("close", () => {
+    summaryForm?.reset();
+    if (summaryAttendanceSearch) summaryAttendanceSearch.value = "";
+    activitiesState.summaryAttendanceIds = new Set();
+    setActivitySummaryFeedback("");
+  });
   dialogCloseBtn?.addEventListener("click", () => {
     resetActivitiesForm();
     setActivityFormOpen(false);

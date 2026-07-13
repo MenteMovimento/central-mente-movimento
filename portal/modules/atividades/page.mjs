@@ -63,6 +63,10 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           <i data-lucide="printer"></i>
           <span data-i18n="activities.printWeek">Imprimir semana</span>
         </button>
+        <button class="secondary-button activity-summary-button" type="button" data-activities-summary-open data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <i data-lucide="clipboard-list"></i>
+          <span data-i18n="activities.summaryButton">Sum&aacute;rio</span>
+        </button>
         <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false" data-requires-permission-area="atividades" data-requires-permission-action="edit">
           <i data-lucide="calendar-plus"></i>
           <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
@@ -135,6 +139,75 @@ export const atividadesPageContent = () => `<main class="global-shell activities
             </button>
           </div>
           <p class="form-error activity-error" data-activities-error role="alert" hidden></p>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog class="activity-dialog activity-summary-dialog" id="activitySummaryDialog" data-activities-summary-dialog aria-labelledby="activitySummaryTitle">
+      <div class="activity-dialog-panel">
+        <header class="activity-dialog-head">
+          <div class="activity-form-title">
+            <i data-lucide="clipboard-list" aria-hidden="true"></i>
+            <strong id="activitySummaryTitle" data-i18n="activities.summaryTitle">Sum&aacute;rio da atividade</strong>
+          </div>
+          <button class="icon-link" type="button" data-activities-summary-close aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <form class="activity-summary-form" data-activities-summary-form>
+          <label class="activity-field activity-field-wide">
+            <span data-i18n="activities.summaryActivity">Atividade</span>
+            <select name="activityId" data-summary-activity-select required>
+              <option value="" data-i18n="activities.summarySelectActivity">Selecionar atividade da semana</option>
+            </select>
+          </label>
+          <div class="activity-summary-meta" aria-live="polite">
+            <div>
+              <span data-i18n="activities.name">Nome da atividade</span>
+              <strong data-summary-activity-name>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryDate">Data</span>
+              <strong data-summary-date>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryStart">Hora de in&iacute;cio</span>
+              <strong data-summary-start>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryEnd">Hora de fim</span>
+              <strong data-summary-end>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryDuration">Dura&ccedil;&atilde;o</span>
+              <strong data-summary-duration>-</strong>
+            </div>
+          </div>
+          <label class="activity-field activity-field-wide">
+            <span data-i18n="activities.summaryText">Sum&aacute;rio</span>
+            <textarea name="summary" rows="6" data-summary-text data-i18n-placeholder="activities.summaryPlaceholder" placeholder="Escreva o sum&aacute;rio da atividade..."></textarea>
+          </label>
+          <section class="activity-summary-attendance" aria-labelledby="activitySummaryAttendanceTitle">
+            <div class="activity-summary-section-head">
+              <strong id="activitySummaryAttendanceTitle" data-i18n="activities.summaryAttendance">Presen&ccedil;as</strong>
+              <label class="activity-field activity-summary-search">
+                <span data-i18n="activities.summaryAttendanceSearch">Pesquisar utentes</span>
+                <input type="search" data-summary-attendance-search autocomplete="off" />
+              </label>
+            </div>
+            <div class="activity-attendance-list" data-summary-attendance-list></div>
+          </section>
+          <div class="activity-form-actions">
+            <button class="primary-button" type="submit">
+              <i data-lucide="save"></i>
+              <span data-i18n="activities.save">Guardar</span>
+            </button>
+            <button class="secondary-button" type="button" data-summary-clear>
+              <i data-lucide="eraser"></i>
+              <span data-i18n="activities.clear">Limpar</span>
+            </button>
+          </div>
+          <p class="form-error activity-error" data-summary-error role="alert" hidden></p>
         </form>
       </div>
     </dialog>
