@@ -77,6 +77,7 @@ const translations = {
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
     "activities.summaryButton": "Sumário",
+    "activities.summaryAction": "Sumário",
     "activities.summaryTitle": "Sumário da atividade",
     "activities.summaryActivity": "Atividade",
     "activities.summarySelectActivity": "Selecionar atividade da semana",
@@ -299,6 +300,7 @@ const translations = {
     "activities.form.viewTitle": "View activity",
     "activities.printWeek": "Print week",
     "activities.summaryButton": "Summary",
+    "activities.summaryAction": "Summary",
     "activities.summaryTitle": "Activity summary",
     "activities.summaryActivity": "Activity",
     "activities.summarySelectActivity": "Select a week activity",
@@ -1659,7 +1661,6 @@ const activitiesElements = () => ({
   createLabel: document.querySelector("[data-activities-create-label]"),
   copyPreviousBtn: document.querySelector("[data-activities-copy-previous]"),
   printBtn: document.querySelector("[data-activities-print]"),
-  summaryBtn: document.querySelector("[data-activities-summary-open]"),
   summaryDialog: document.querySelector("[data-activities-summary-dialog]"),
   summaryCloseBtn: document.querySelector("[data-activities-summary-close]"),
   summaryForm: document.querySelector("[data-activities-summary-form]"),
@@ -2184,10 +2185,10 @@ const activitySummaryOptionLabel = (entry) => {
   return [dateText, activityTimeText(entry), entry.title].filter(Boolean).join(" - ");
 };
 
-const renderActivitySummaryOptions = () => {
+const renderActivitySummaryOptions = (preferredId = "") => {
   const { summaryActivitySelect } = activitiesElements();
   if (!summaryActivitySelect) return;
-  const currentValue = String(summaryActivitySelect.value || "");
+  const currentValue = String(preferredId || summaryActivitySelect.value || "");
   const entries = sortedActivities();
   summaryActivitySelect.innerHTML = [
     `<option value="">${escapeHtml(getTranslation("activities.summarySelectActivity"))}</option>`,
@@ -2299,12 +2300,12 @@ const fillActivitySummaryForm = (entry) => {
   refreshIcons();
 };
 
-const refreshActivitySummaryForm = () => {
-  renderActivitySummaryOptions();
+const refreshActivitySummaryForm = (preferredId = "") => {
+  renderActivitySummaryOptions(preferredId);
   fillActivitySummaryForm(selectedActivitySummaryEntry());
 };
 
-const openActivitySummaryDialog = async () => {
+const openActivitySummaryDialog = async (activityId = "") => {
   if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "edit")) {
     showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
     return;
@@ -2314,7 +2315,7 @@ const openActivitySummaryDialog = async () => {
   closeToolsMenus();
   setActivityFormOpen(false);
   setActivitySummaryFeedback("");
-  refreshActivitySummaryForm();
+  refreshActivitySummaryForm(activityId);
   if (typeof summaryDialog.showModal === "function") {
     summaryDialog.showModal();
   } else {
@@ -2322,7 +2323,7 @@ const openActivitySummaryDialog = async () => {
   }
   try {
     await loadActivitySummaryData();
-    refreshActivitySummaryForm();
+    refreshActivitySummaryForm(activityId);
   } catch (error) {
     console.warn("Nao foi possivel carregar sumarios de atividades.", error);
     setActivitySummaryFeedback(error?.message || getTranslation("activities.summaryLoadError"));
@@ -2533,6 +2534,9 @@ const renderActivitySlot = (entry) => `
       <button class="icon-link" type="button" data-activity-action="view" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="view" title="${escapeHtml(getTranslation("activities.view"))}" aria-label="${escapeHtml(getTranslation("activities.view"))}">
         <i data-lucide="eye"></i>
       </button>
+      <button class="icon-link" type="button" data-activity-action="summary" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.summaryAction"))}" aria-label="${escapeHtml(getTranslation("activities.summaryAction"))}">
+        <i data-lucide="clipboard-list"></i>
+      </button>
       <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
         <i data-lucide="pencil"></i>
       </button>
@@ -2552,6 +2556,7 @@ const renderActivityPreviewSlot = (entry) => `
     </div>
     <div class="activity-slot-actions activity-slot-preview-actions">
       <span class="icon-link" aria-hidden="true"><i data-lucide="eye"></i></span>
+      <span class="icon-link" aria-hidden="true"><i data-lucide="clipboard-list"></i></span>
       <span class="icon-link" aria-hidden="true"><i data-lucide="pencil"></i></span>
       <span class="icon-link danger-link" aria-hidden="true"><i data-lucide="trash-2"></i></span>
     </div>
@@ -3309,7 +3314,6 @@ const wireActivitiesCalendar = () => {
     nextWeekBtn,
     clearBtn,
     printBtn,
-    summaryBtn,
     summaryDialog,
     summaryCloseBtn,
     summaryForm,
@@ -3361,9 +3365,6 @@ const wireActivitiesCalendar = () => {
   });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
-  summaryBtn?.addEventListener("click", () => {
-    void openActivitySummaryDialog();
-  });
   summaryCloseBtn?.addEventListener("click", closeActivitySummaryDialog);
   summaryForm?.addEventListener("submit", handleActivitySummarySubmit);
   summaryActivitySelect?.addEventListener("change", () => {
@@ -3428,6 +3429,10 @@ const wireActivitiesCalendar = () => {
     }
     if (button.dataset.activityAction === "edit") {
       editActivity(id);
+      return;
+    }
+    if (button.dataset.activityAction === "summary") {
+      void openActivitySummaryDialog(id);
       return;
     }
     if (button.dataset.activityAction === "delete") {

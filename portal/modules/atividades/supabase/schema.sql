@@ -81,7 +81,7 @@ create table if not exists public.activities_catalog (
 );
 
 create table if not exists public.activities_schedule (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key default gen_random_uuid()::text,
   week_start date not null,
   day text not null check (day in ('monday', 'tuesday', 'wednesday', 'thursday', 'friday')),
   start_time time not null,
@@ -110,7 +110,7 @@ create table if not exists public.activities_history (
 
 create table if not exists public.activities_summaries (
   id uuid primary key default gen_random_uuid(),
-  activity_id uuid not null references public.activities_schedule(id) on delete cascade,
+  activity_id text not null references public.activities_schedule(id) on delete cascade,
   activity_date date not null,
   activity_title text not null,
   start_time time not null,

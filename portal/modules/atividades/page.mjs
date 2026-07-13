@@ -63,10 +63,6 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           <i data-lucide="printer"></i>
           <span data-i18n="activities.printWeek">Imprimir semana</span>
         </button>
-        <button class="secondary-button activity-summary-button" type="button" data-activities-summary-open data-requires-permission-area="atividades" data-requires-permission-action="edit">
-          <i data-lucide="clipboard-list"></i>
-          <span data-i18n="activities.summaryButton">Sum&aacute;rio</span>
-        </button>
         <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false" data-requires-permission-area="atividades" data-requires-permission-action="edit">
           <i data-lucide="calendar-plus"></i>
           <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
@@ -155,7 +151,7 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </button>
         </header>
         <form class="activity-summary-form" data-activities-summary-form>
-          <label class="activity-field activity-field-wide">
+          <label class="activity-field activity-field-wide" data-summary-activity-picker hidden>
             <span data-i18n="activities.summaryActivity">Atividade</span>
             <select name="activityId" data-summary-activity-select required>
               <option value="" data-i18n="activities.summarySelectActivity">Selecionar atividade da semana</option>
