@@ -697,6 +697,25 @@ const toggleToolsMenu = (button) => {
   button.setAttribute("aria-expanded", String(shouldOpen));
 };
 
+const wireExclusiveDetailsMenus = () => {
+  document.querySelectorAll("details.global-menu-wrap").forEach((details) => {
+    details.addEventListener("toggle", () => {
+      if (!details.open) return;
+      document.querySelectorAll("details.dashboard-user-menu-wrap[open]").forEach((menu) => {
+        menu.open = false;
+      });
+    });
+  });
+  document.querySelectorAll("details.dashboard-user-menu-wrap").forEach((details) => {
+    details.addEventListener("toggle", () => {
+      if (!details.open) return;
+      document.querySelectorAll("details.global-menu-wrap[open]").forEach((menu) => {
+        menu.open = false;
+      });
+    });
+  });
+};
+
 const activitiesManualsElements = () => ({
   dialog: document.querySelector("[data-activities-manuals-dialog]"),
   openButtons: document.querySelectorAll("[data-activities-manuals-toggle]"),
@@ -1706,6 +1725,7 @@ const activitiesElements = () => ({
   copyPreviousBtn: document.querySelector("[data-activities-copy-previous]"),
   printBtn: document.querySelector("[data-activities-print]"),
   statisticsBtn: document.querySelector("[data-activities-statistics]"),
+  statisticsBtns: document.querySelectorAll("[data-activities-statistics]"),
   statisticsDialog: document.querySelector("[data-activities-statistics-dialog]"),
   statisticsCloseBtn: document.querySelector("[data-activities-statistics-close]"),
   statisticsMonthInput: document.querySelector("[data-activities-statistics-month]"),
@@ -3725,7 +3745,7 @@ const wireActivitiesCalendar = () => {
     nextWeekBtn,
     clearBtn,
     printBtn,
-    statisticsBtn,
+    statisticsBtns,
     statisticsDialog,
     statisticsCloseBtn,
     statisticsMonthInput,
@@ -3782,7 +3802,9 @@ const wireActivitiesCalendar = () => {
   });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
-  statisticsBtn?.addEventListener("click", openActivityStatisticsDialog);
+  statisticsBtns?.forEach((button) => {
+    button.addEventListener("click", openActivityStatisticsDialog);
+  });
   statisticsCloseBtn?.addEventListener("click", closeActivityStatisticsDialog);
   statisticsRefreshBtn?.addEventListener("click", () => {
     void loadActivityStatistics();
@@ -4479,6 +4501,7 @@ document.addEventListener("DOMContentLoaded", () => {
   wireActivitiesCatalogDialog();
   wireActivitiesMonitorsDialog();
   wireActivitiesCalendar();
+  wireExclusiveDetailsMenus();
   void renderActivitiesHistoryPage();
   refreshIcons();
   if (document.querySelector("[data-module-status]")) {
