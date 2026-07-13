@@ -76,6 +76,7 @@ const translations = {
     "activities.form.editTitle": "Editar atividade",
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
+    "activities.printSummary": "Imprimir",
     "activities.summaryButton": "Sumário",
     "activities.summaryAction": "Sumário",
     "activities.summaryTitle": "Sumário da atividade",
@@ -299,6 +300,7 @@ const translations = {
     "activities.form.editTitle": "Edit activity",
     "activities.form.viewTitle": "View activity",
     "activities.printWeek": "Print week",
+    "activities.printSummary": "Print",
     "activities.summaryButton": "Summary",
     "activities.summaryAction": "Summary",
     "activities.summaryTitle": "Activity summary",
@@ -1663,6 +1665,7 @@ const activitiesElements = () => ({
   printBtn: document.querySelector("[data-activities-print]"),
   summaryDialog: document.querySelector("[data-activities-summary-dialog]"),
   summaryCloseBtn: document.querySelector("[data-activities-summary-close]"),
+  summaryPrintBtn: document.querySelector("[data-activities-summary-print]"),
   summaryForm: document.querySelector("[data-activities-summary-form]"),
   summaryActivitySelect: document.querySelector("[data-summary-activity-select]"),
   summaryActivityName: document.querySelector("[data-summary-activity-name]"),
@@ -1755,6 +1758,8 @@ const activityDateForEntry = (entry) => {
   const dayIndex = activitiesDays.findIndex((day) => day.key === entry?.day);
   return addDaysToIso(entry?.weekStart || activitiesState.selectedWeekStart, dayIndex >= 0 ? dayIndex : 0);
 };
+
+const activityDateIsoForEntry = (entry) => dateToIso(activityDateForEntry(entry));
 
 const activityMinutesFromTime = (time) => {
   if (!isActivityTime(time)) return null;
@@ -2180,7 +2185,7 @@ const setActivitySummaryFeedback = (message = "", kind = "error") => {
 };
 
 const activitySummaryOptionLabel = (entry) => {
-  const entryDate = dateFromIso(activityDateForEntry(entry));
+  const entryDate = activityDateForEntry(entry);
   const dateText = entryDate ? formatActivityDate(entryDate) : "";
   return [dateText, activityTimeText(entry), entry.title].filter(Boolean).join(" - ");
 };
@@ -2190,13 +2195,17 @@ const renderActivitySummaryOptions = (preferredId = "") => {
   if (!summaryActivitySelect) return;
   const currentValue = String(preferredId || summaryActivitySelect.value || "");
   const entries = sortedActivities();
-  summaryActivitySelect.innerHTML = [
-    `<option value="">${escapeHtml(getTranslation("activities.summarySelectActivity"))}</option>`,
-    ...entries.map((entry) => `<option value="${escapeHtml(entry.id)}">${escapeHtml(activitySummaryOptionLabel(entry))}</option>`),
-  ].join("");
   const hasCurrentValue = currentValue && entries.some((entry) => entry.id === currentValue);
-  summaryActivitySelect.value = hasCurrentValue ? currentValue : entries[0]?.id || "";
-  summaryActivitySelect.disabled = entries.length === 0;
+  if (summaryActivitySelect instanceof HTMLSelectElement) {
+    summaryActivitySelect.innerHTML = [
+      `<option value="">${escapeHtml(getTranslation("activities.summarySelectActivity"))}</option>`,
+      ...entries.map((entry) => `<option value="${escapeHtml(entry.id)}">${escapeHtml(activitySummaryOptionLabel(entry))}</option>`),
+    ].join("");
+    summaryActivitySelect.value = hasCurrentValue ? currentValue : "";
+    summaryActivitySelect.disabled = entries.length === 0;
+    return;
+  }
+  summaryActivitySelect.value = hasCurrentValue ? currentValue : "";
 };
 
 const selectedActivitySummaryEntry = () => {
@@ -2207,7 +2216,7 @@ const selectedActivitySummaryEntry = () => {
 
 const activitySummaryForEntry = (entry) => {
   if (!entry) return null;
-  const activityDate = activityDateForEntry(entry);
+  const activityDate = activityDateIsoForEntry(entry);
   return (
     activitiesState.summaries.find(
       (summary) => summary.activityId === entry.id && summary.activityDate === activityDate,
@@ -2263,7 +2272,6 @@ const renderActivitySummaryAttendance = () => {
           <input type="checkbox" value="${escapeHtml(utente.id)}"${activitiesState.summaryAttendanceIds.has(utente.id) ? " checked" : ""} />
           <span>
             <strong>${escapeHtml(utente.name)}</strong>
-            ${utente.number ? `<small>${escapeHtml(utente.number)}</small>` : ""}
           </span>
         </label>
       `,
@@ -2286,10 +2294,9 @@ const fillActivitySummaryForm = (entry) => {
     return;
   }
   const activityDate = activityDateForEntry(entry);
-  const activityDateObject = dateFromIso(activityDate);
   const summary = activitySummaryForEntry(entry);
   setSummaryMetaText(summaryActivityName, entry.title);
-  setSummaryMetaText(summaryDate, activityDateObject ? formatActivityDate(activityDateObject) : activityDate);
+  setSummaryMetaText(summaryDate, formatActivityDate(activityDate));
   setSummaryMetaText(summaryStart, entry.start);
   setSummaryMetaText(summaryEnd, entry.end || "-");
   setSummaryMetaText(summaryDuration, activityDurationText(activityDurationMinutes(entry)));
@@ -2367,7 +2374,7 @@ const handleActivitySummarySubmit = async (event) => {
   try {
     const payload = {
       activityId: entry.id,
-      activityDate: activityDateForEntry(entry),
+      activityDate: activityDateIsoForEntry(entry),
       title: entry.title,
       start: entry.start,
       end: entry.end,
@@ -3222,13 +3229,153 @@ const activityPrintDocument = () => {
 </html>`;
 };
 
-const printActivityWeek = () => {
-  recordActivityHistory("printed", {
-    title: activityWeekRangeText(),
-    weekStart: activitiesState.selectedWeekStart,
-  });
+const activitySummaryPrintDocument = (entry) => {
+  const { summaryForm } = activitiesElements();
+  const attendance = currentActivitySummaryAttendance();
+  const summaryText = String(summaryForm?.elements.summary?.value || "").trim();
+  const activityDate = activityDateForEntry(entry);
+  const attendanceContent = attendance.length
+    ? `<ul>${attendance.map((utente) => `<li>${escapeHtml(utente.name)}</li>`).join("")}</ul>`
+    : `<p class="empty">${escapeHtml(getTranslation("activities.summaryNoUtentes"))}</p>`;
+  return `<!doctype html>
+<html lang="${escapeHtml(getLanguage() === "en" ? "en" : "pt")}">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 297mm; padding: 0; width: 210mm; }
+    body {
+      background: #ffffff;
+      color: #081614;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body::before,
+    body::after {
+      background: #ffffff;
+      content: "";
+      left: 0;
+      pointer-events: none;
+      position: fixed;
+      right: 0;
+      z-index: 9999;
+    }
+    body::before { height: 8mm; top: 0; }
+    body::after { bottom: 0; height: 7mm; }
+    .print-sheet {
+      display: grid;
+      gap: 7mm;
+      padding: 12mm 14mm 10mm;
+      width: 100%;
+    }
+    header {
+      border-bottom: 2px solid #23776b;
+      display: flex;
+      justify-content: space-between;
+      gap: 10mm;
+      padding-bottom: 3mm;
+    }
+    h1 { font-size: 22px; line-height: 1.15; margin: 0; }
+    .date { color: #506560; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .meta {
+      border: 1.4px solid #9bb9b2;
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 100%;
+    }
+    .meta th,
+    .meta td {
+      border: 1.4px solid #9bb9b2;
+      padding: 3mm;
+      text-align: left;
+      vertical-align: top;
+    }
+    .meta th {
+      background: #eef5f3;
+      color: #506560;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    .meta td {
+      font-size: 14px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+    section { display: grid; gap: 2mm; }
+    h2 {
+      color: #005f56;
+      font-size: 15px;
+      margin: 0;
+    }
+    .summary-box {
+      border: 1.4px solid #9bb9b2;
+      border-radius: 2mm;
+      min-height: 52mm;
+      padding: 4mm;
+      white-space: pre-wrap;
+    }
+    ul {
+      border: 1.4px solid #9bb9b2;
+      border-radius: 2mm;
+      columns: 2;
+      list-style-position: inside;
+      margin: 0;
+      padding: 4mm;
+    }
+    li { break-inside: avoid; font-size: 12px; margin-bottom: 1.5mm; }
+    .empty {
+      border: 1.4px solid #9bb9b2;
+      border-radius: 2mm;
+      color: #506560;
+      margin: 0;
+      padding: 4mm;
+    }
+  </style>
+</head>
+<body>
+  <main class="print-sheet">
+    <header>
+      <h1>${escapeHtml(getTranslation("activities.summaryTitle"))}</h1>
+      <p class="date">${escapeHtml(formatActivityDate(activityDate))}</p>
+    </header>
+    <table class="meta">
+      <thead>
+        <tr>
+          <th>${escapeHtml(getTranslation("activities.name"))}</th>
+          <th>${escapeHtml(getTranslation("activities.summaryStart"))}</th>
+          <th>${escapeHtml(getTranslation("activities.summaryEnd"))}</th>
+          <th>${escapeHtml(getTranslation("activities.summaryDuration"))}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${escapeHtml(entry.title)}</td>
+          <td>${escapeHtml(entry.start)}</td>
+          <td>${escapeHtml(entry.end || "-")}</td>
+          <td>${escapeHtml(activityDurationText(activityDurationMinutes(entry)))}</td>
+        </tr>
+      </tbody>
+    </table>
+    <section>
+      <h2>${escapeHtml(getTranslation("activities.summaryText"))}</h2>
+      <div class="summary-box">${escapeHtml(summaryText || "-")}</div>
+    </section>
+    <section>
+      <h2>${escapeHtml(getTranslation("activities.summaryAttendance"))}</h2>
+      ${attendanceContent}
+    </section>
+  </main>
+</body>
+</html>`;
+};
+
+const printActivityHtmlDocument = (html, title = getTranslation("activities.printTitle")) => {
   const printFrame = document.createElement("iframe");
-  printFrame.title = getTranslation("activities.printTitle");
+  printFrame.title = title;
   printFrame.setAttribute("aria-hidden", "true");
   printFrame.style.position = "fixed";
   printFrame.style.right = "0";
@@ -3249,7 +3396,7 @@ const printActivityWeek = () => {
     window.setTimeout(() => printFrame.remove(), 500);
   };
   frameDocument.open();
-  frameDocument.write(activityPrintDocument());
+  frameDocument.write(html);
   frameDocument.close();
   frameWindow.addEventListener("afterprint", cleanup, { once: true });
   window.setTimeout(() => {
@@ -3257,6 +3404,24 @@ const printActivityWeek = () => {
     frameWindow.print();
     window.setTimeout(cleanup, 10000);
   }, 150);
+};
+
+const printActivityWeek = () => {
+  recordActivityHistory("printed", {
+    title: activityWeekRangeText(),
+    weekStart: activitiesState.selectedWeekStart,
+  });
+  printActivityHtmlDocument(activityPrintDocument(), getTranslation("activities.printTitle"));
+};
+
+const printActivitySummary = () => {
+  const entry = selectedActivitySummaryEntry();
+  if (!entry) {
+    setActivitySummaryFeedback(getTranslation("activities.summaryNoActivity"));
+    return;
+  }
+  recordActivityHistory("summary_printed", entry);
+  printActivityHtmlDocument(activitySummaryPrintDocument(entry), getTranslation("activities.summaryTitle"));
 };
 
 const changeActivityWeek = (weekOffset) => {
@@ -3316,6 +3481,7 @@ const wireActivitiesCalendar = () => {
     printBtn,
     summaryDialog,
     summaryCloseBtn,
+    summaryPrintBtn,
     summaryForm,
     summaryActivitySelect,
     summaryAttendanceList,
@@ -3366,6 +3532,7 @@ const wireActivitiesCalendar = () => {
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
   summaryCloseBtn?.addEventListener("click", closeActivitySummaryDialog);
+  summaryPrintBtn?.addEventListener("click", printActivitySummary);
   summaryForm?.addEventListener("submit", handleActivitySummarySubmit);
   summaryActivitySelect?.addEventListener("change", () => {
     fillActivitySummaryForm(selectedActivitySummaryEntry());

@@ -1552,6 +1552,19 @@ body.dark-mode .central-admin-forms {
   flex: 0 0 auto;
 }
 
+.activity-dialog-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.activity-summary-print-button {
+  width: auto;
+  min-height: 42px;
+  padding: 0 14px;
+}
+
 .activity-form {
   display: grid;
   grid-template-columns: minmax(170px, 1fr) minmax(120px, 0.7fr) minmax(120px, 0.7fr) minmax(220px, 1.4fr) minmax(180px, 1fr) auto;

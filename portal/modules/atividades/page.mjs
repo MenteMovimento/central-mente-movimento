@@ -146,17 +146,18 @@ export const atividadesPageContent = () => `<main class="global-shell activities
             <i data-lucide="clipboard-list" aria-hidden="true"></i>
             <strong id="activitySummaryTitle" data-i18n="activities.summaryTitle">Sum&aacute;rio da atividade</strong>
           </div>
-          <button class="icon-link" type="button" data-activities-summary-close aria-label="Fechar">
-            <i data-lucide="x"></i>
-          </button>
+          <div class="activity-dialog-actions">
+            <button class="secondary-button activity-summary-print-button" type="button" data-activities-summary-print data-requires-permission-area="atividades" data-requires-permission-action="export">
+              <i data-lucide="printer"></i>
+              <span data-i18n="activities.printSummary">Imprimir</span>
+            </button>
+            <button class="icon-link" type="button" data-activities-summary-close aria-label="Fechar">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
         </header>
         <form class="activity-summary-form" data-activities-summary-form>
-          <label class="activity-field activity-field-wide" data-summary-activity-picker hidden>
-            <span data-i18n="activities.summaryActivity">Atividade</span>
-            <select name="activityId" data-summary-activity-select required>
-              <option value="" data-i18n="activities.summarySelectActivity">Selecionar atividade da semana</option>
-            </select>
-          </label>
+          <input type="hidden" name="activityId" data-summary-activity-select />
           <div class="activity-summary-meta" aria-live="polite">
             <div>
               <span data-i18n="activities.name">Nome da atividade</span>
