@@ -63,6 +63,10 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           <i data-lucide="printer"></i>
           <span data-i18n="activities.printWeek">Imprimir semana</span>
         </button>
+        <button class="secondary-button activity-statistics-button" type="button" data-activities-statistics data-requires-permission-area="atividades" data-requires-permission-action="view">
+          <i data-lucide="bar-chart-3"></i>
+          <span data-i18n="activities.statisticsButton">Estat&iacute;sticas</span>
+        </button>
         <button class="primary-button activity-create-button" type="button" data-activities-create aria-controls="activityFormPanel" aria-expanded="false" data-requires-permission-area="atividades" data-requires-permission-action="edit">
           <i data-lucide="calendar-plus"></i>
           <span data-activities-create-label data-i18n="activities.createButton">Criar Atividade</span>
@@ -206,6 +210,36 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </div>
           <p class="form-error activity-error" data-summary-error role="alert" hidden></p>
         </form>
+      </div>
+    </dialog>
+
+    <dialog class="activity-dialog activity-statistics-dialog" id="activityStatisticsDialog" data-activities-statistics-dialog aria-labelledby="activityStatisticsTitle">
+      <div class="activity-dialog-panel">
+        <header class="activity-dialog-head">
+          <div class="activity-form-title">
+            <i data-lucide="bar-chart-3" aria-hidden="true"></i>
+            <strong id="activityStatisticsTitle" data-i18n="activities.statisticsTitle">Estat&iacute;sticas de atividades</strong>
+          </div>
+          <button class="icon-link" type="button" data-activities-statistics-close aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <div class="activity-statistics-panel">
+          <div class="activity-statistics-controls">
+            <label class="activity-field">
+              <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
+              <input type="month" data-activities-statistics-month />
+            </label>
+            <button class="secondary-button" type="button" data-activities-statistics-refresh>
+              <i data-lucide="refresh-cw"></i>
+              <span data-i18n="activities.statisticsRefresh">Atualizar</span>
+            </button>
+          </div>
+          <p class="form-error activity-error" data-activities-statistics-error role="alert" hidden></p>
+          <div data-activities-statistics-content>
+            <p class="activity-empty-state" data-i18n="activities.statisticsEmpty">Escolha um m&ecirc;s para consultar as estat&iacute;sticas.</p>
+          </div>
+        </div>
       </div>
     </dialog>
 

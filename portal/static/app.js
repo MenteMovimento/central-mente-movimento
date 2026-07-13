@@ -70,6 +70,7 @@ const translations = {
     "module.atividades.detail": "Planeamento e registo de atividades",
     "activities.eyebrow": "Hor\u00e1rio semanal",
     "activities.copy": "Planeie as atividades da semana por dia, hora e monitor.",
+    "activities.loading": "A carregar...",
     "activities.createButton": "Criar Atividade",
     "activities.closeCreateButton": "Fechar",
     "activities.form.addTitle": "Adicionar atividade",
@@ -77,6 +78,26 @@ const translations = {
     "activities.form.viewTitle": "Ver atividade",
     "activities.printWeek": "Imprimir semana",
     "activities.printSummary": "Imprimir",
+    "activities.statisticsButton": "Estatísticas",
+    "activities.statisticsTitle": "Estatísticas de atividades",
+    "activities.statisticsMonth": "Mês",
+    "activities.statisticsRefresh": "Atualizar",
+    "activities.statisticsEmpty": "Escolha um mês para consultar as estatísticas.",
+    "activities.statisticsLoadError": "Não foi possível carregar as estatísticas de atividades.",
+    "activities.statisticsActivities": "Atividades no mês",
+    "activities.statisticsAverage": "Média de utentes/atividade",
+    "activities.statisticsSummaries": "Sumários registados",
+    "activities.statisticsVolume": "Volume total",
+    "activities.statisticsAttendanceTitle": "Assiduidade por utente",
+    "activities.statisticsVolumeTitle": "Volume por atividade",
+    "activities.statisticsUser": "Utente",
+    "activities.statisticsAttendance": "Presenças",
+    "activities.statisticsAssiduity": "Assiduidade",
+    "activities.statisticsSessions": "Sessões",
+    "activities.statisticsPeople": "Pessoas",
+    "activities.statisticsDuration": "Duração",
+    "activities.statisticsNoRows": "Sem dados registados neste mês.",
+    "activities.statisticsPersonHours": "horas-pessoa",
     "activities.summaryButton": "Sumário",
     "activities.summaryAction": "Sumário",
     "activities.summaryTitle": "Sumário da atividade",
@@ -294,6 +315,7 @@ const translations = {
     "module.atividades.detail": "Activity planning and records",
     "activities.eyebrow": "Weekly timetable",
     "activities.copy": "Plan the week's activities by day, time and monitor.",
+    "activities.loading": "Loading...",
     "activities.createButton": "Create Activity",
     "activities.closeCreateButton": "Close",
     "activities.form.addTitle": "Add activity",
@@ -301,6 +323,26 @@ const translations = {
     "activities.form.viewTitle": "View activity",
     "activities.printWeek": "Print week",
     "activities.printSummary": "Print",
+    "activities.statisticsButton": "Statistics",
+    "activities.statisticsTitle": "Activity statistics",
+    "activities.statisticsMonth": "Month",
+    "activities.statisticsRefresh": "Refresh",
+    "activities.statisticsEmpty": "Choose a month to view statistics.",
+    "activities.statisticsLoadError": "Could not load activity statistics.",
+    "activities.statisticsActivities": "Monthly activities",
+    "activities.statisticsAverage": "Average clients/activity",
+    "activities.statisticsSummaries": "Registered summaries",
+    "activities.statisticsVolume": "Total volume",
+    "activities.statisticsAttendanceTitle": "Attendance by client",
+    "activities.statisticsVolumeTitle": "Volume by activity",
+    "activities.statisticsUser": "Client",
+    "activities.statisticsAttendance": "Attendances",
+    "activities.statisticsAssiduity": "Attendance",
+    "activities.statisticsSessions": "Sessions",
+    "activities.statisticsPeople": "People",
+    "activities.statisticsDuration": "Duration",
+    "activities.statisticsNoRows": "No data registered in this month.",
+    "activities.statisticsPersonHours": "person-hours",
     "activities.summaryButton": "Summary",
     "activities.summaryAction": "Summary",
     "activities.summaryTitle": "Activity summary",
@@ -1663,6 +1705,13 @@ const activitiesElements = () => ({
   createLabel: document.querySelector("[data-activities-create-label]"),
   copyPreviousBtn: document.querySelector("[data-activities-copy-previous]"),
   printBtn: document.querySelector("[data-activities-print]"),
+  statisticsBtn: document.querySelector("[data-activities-statistics]"),
+  statisticsDialog: document.querySelector("[data-activities-statistics-dialog]"),
+  statisticsCloseBtn: document.querySelector("[data-activities-statistics-close]"),
+  statisticsMonthInput: document.querySelector("[data-activities-statistics-month]"),
+  statisticsRefreshBtn: document.querySelector("[data-activities-statistics-refresh]"),
+  statisticsContent: document.querySelector("[data-activities-statistics-content]"),
+  statisticsError: document.querySelector("[data-activities-statistics-error]"),
   summaryDialog: document.querySelector("[data-activities-summary-dialog]"),
   summaryCloseBtn: document.querySelector("[data-activities-summary-close]"),
   summaryPrintBtn: document.querySelector("[data-activities-summary-print]"),
@@ -1857,6 +1906,203 @@ const saveActivitySummaryRemote = async (summary) => {
     ),
   ];
   return savedSummary;
+};
+
+const activityMonthValue = (value = activitiesState.selectedWeekStart) => {
+  const date = value instanceof Date ? value : dateFromIso(String(value || ""));
+  return dateToIso(date || new Date()).slice(0, 7);
+};
+
+const formatActivityMonth = (month) => {
+  const [year, monthNumber] = String(month || "").split("-").map(Number);
+  if (!year || !monthNumber) return String(month || "");
+  return new Intl.DateTimeFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, monthNumber - 1, 1));
+};
+
+const formatActivityNumber = (value, maximumFractionDigits = 0) =>
+  new Intl.NumberFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
+    maximumFractionDigits,
+  }).format(Number(value) || 0);
+
+const formatActivityPercentage = (value) => `${formatActivityNumber(value, 1)}%`;
+
+const formatActivityVolume = (minutes) => {
+  const hours = (Number(minutes) || 0) / 60;
+  return `${formatActivityNumber(hours, 1)} ${getTranslation("activities.statisticsPersonHours")}`;
+};
+
+const activitiesStatisticsRequest = async (month) => {
+  const token = await getActivitiesAccessToken();
+  const query = new URLSearchParams({ month });
+  const response = await fetch(`/api/activities-statistics?${query.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(payload?.error || getTranslation("activities.statisticsLoadError"));
+  }
+  return payload?.statistics || null;
+};
+
+const setActivityStatisticsFeedback = (message = "") => {
+  const { statisticsError } = activitiesElements();
+  if (!statisticsError) return;
+  statisticsError.textContent = message || "";
+  statisticsError.hidden = !message;
+};
+
+const statisticsTableEmptyRow = (colspan) =>
+  `<tr><td colspan="${colspan}">${escapeHtml(getTranslation("activities.statisticsNoRows"))}</td></tr>`;
+
+const renderActivityStatistics = (statistics) => {
+  const { statisticsContent } = activitiesElements();
+  if (!statisticsContent) return;
+  if (!statistics) {
+    statisticsContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.statisticsEmpty"))}</p>`;
+    return;
+  }
+  const totals = statistics.totals || {};
+  const attendanceRows = Array.isArray(statistics.attendance) && statistics.attendance.length
+    ? statistics.attendance
+      .map(
+        (row) => `
+          <tr>
+            <td><strong>${escapeHtml(row.name || "-")}</strong></td>
+            <td>${escapeHtml(`${formatActivityNumber(row.present)} / ${formatActivityNumber(row.total)}`)}</td>
+            <td>${escapeHtml(formatActivityPercentage(row.percentage))}</td>
+          </tr>
+        `,
+      )
+      .join("")
+    : statisticsTableEmptyRow(3);
+  const volumeRows = Array.isArray(statistics.volumeByActivity) && statistics.volumeByActivity.length
+    ? statistics.volumeByActivity
+      .map(
+        (row) => `
+          <tr>
+            <td><strong>${escapeHtml(row.title || "-")}</strong></td>
+            <td>${escapeHtml(formatActivityNumber(row.sessions))}</td>
+            <td>${escapeHtml(formatActivityNumber(row.attendance))}</td>
+            <td>${escapeHtml(activityDurationText(row.durationMinutes))}</td>
+            <td>${escapeHtml(formatActivityVolume(row.volumeMinutes))}</td>
+          </tr>
+        `,
+      )
+      .join("")
+    : statisticsTableEmptyRow(5);
+
+  statisticsContent.innerHTML = `
+    <div class="activity-statistics-month">${escapeHtml(formatActivityMonth(statistics.month))}</div>
+    <div class="activity-statistics-cards">
+      <div>
+        <span>${escapeHtml(getTranslation("activities.statisticsActivities"))}</span>
+        <strong>${escapeHtml(formatActivityNumber(totals.activities))}</strong>
+      </div>
+      <div>
+        <span>${escapeHtml(getTranslation("activities.statisticsAverage"))}</span>
+        <strong>${escapeHtml(formatActivityNumber(totals.averageAttendance, 1))}</strong>
+      </div>
+      <div>
+        <span>${escapeHtml(getTranslation("activities.statisticsSummaries"))}</span>
+        <strong>${escapeHtml(formatActivityNumber(totals.summaries))}</strong>
+      </div>
+      <div>
+        <span>${escapeHtml(getTranslation("activities.statisticsVolume"))}</span>
+        <strong>${escapeHtml(formatActivityVolume(totals.volumeMinutes))}</strong>
+      </div>
+    </div>
+    <section class="activity-statistics-section">
+      <h3>${escapeHtml(getTranslation("activities.statisticsAttendanceTitle"))}</h3>
+      <div class="activity-statistics-table-wrap">
+        <table class="activity-statistics-table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(getTranslation("activities.statisticsUser"))}</th>
+              <th>${escapeHtml(getTranslation("activities.statisticsAttendance"))}</th>
+              <th>${escapeHtml(getTranslation("activities.statisticsAssiduity"))}</th>
+            </tr>
+          </thead>
+          <tbody>${attendanceRows}</tbody>
+        </table>
+      </div>
+    </section>
+    <section class="activity-statistics-section">
+      <h3>${escapeHtml(getTranslation("activities.statisticsVolumeTitle"))}</h3>
+      <div class="activity-statistics-table-wrap">
+        <table class="activity-statistics-table">
+          <thead>
+            <tr>
+              <th>${escapeHtml(getTranslation("activities.name"))}</th>
+              <th>${escapeHtml(getTranslation("activities.statisticsSessions"))}</th>
+              <th>${escapeHtml(getTranslation("activities.statisticsPeople"))}</th>
+              <th>${escapeHtml(getTranslation("activities.statisticsDuration"))}</th>
+              <th>${escapeHtml(getTranslation("activities.statisticsVolume"))}</th>
+            </tr>
+          </thead>
+          <tbody>${volumeRows}</tbody>
+        </table>
+      </div>
+    </section>
+  `;
+  refreshIcons();
+};
+
+const loadActivityStatistics = async () => {
+  const { statisticsMonthInput, statisticsRefreshBtn, statisticsContent } = activitiesElements();
+  const month = String(statisticsMonthInput?.value || activityMonthValue()).trim();
+  if (statisticsMonthInput && !statisticsMonthInput.value) {
+    statisticsMonthInput.value = month;
+  }
+  if (statisticsRefreshBtn) statisticsRefreshBtn.disabled = true;
+  setActivityStatisticsFeedback("");
+  if (statisticsContent) {
+    statisticsContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.loading"))}</p>`;
+  }
+  try {
+    renderActivityStatistics(await activitiesStatisticsRequest(month));
+  } catch (error) {
+    console.warn("Nao foi possivel carregar estatisticas de atividades.", error);
+    setActivityStatisticsFeedback(error?.message || getTranslation("activities.statisticsLoadError"));
+    renderActivityStatistics(null);
+  } finally {
+    if (statisticsRefreshBtn) statisticsRefreshBtn.disabled = false;
+  }
+};
+
+const openActivityStatisticsDialog = () => {
+  if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "view")) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
+  const { statisticsDialog, statisticsMonthInput } = activitiesElements();
+  if (!statisticsDialog) return;
+  closeToolsMenus();
+  setActivityFormOpen(false);
+  closeActivitySummaryDialog();
+  if (statisticsMonthInput) statisticsMonthInput.value = activityMonthValue();
+  setActivityStatisticsFeedback("");
+  if (typeof statisticsDialog.showModal === "function") {
+    statisticsDialog.showModal();
+  } else {
+    statisticsDialog.setAttribute("open", "");
+  }
+  void loadActivityStatistics();
+};
+
+const closeActivityStatisticsDialog = () => {
+  const { statisticsDialog } = activitiesElements();
+  if (!statisticsDialog) return;
+  setActivityStatisticsFeedback("");
+  if (statisticsDialog.open && typeof statisticsDialog.close === "function") {
+    statisticsDialog.close();
+  } else {
+    statisticsDialog.removeAttribute("open");
+  }
 };
 
 const normalizeActivityText = (value) =>
@@ -3479,6 +3725,11 @@ const wireActivitiesCalendar = () => {
     nextWeekBtn,
     clearBtn,
     printBtn,
+    statisticsBtn,
+    statisticsDialog,
+    statisticsCloseBtn,
+    statisticsMonthInput,
+    statisticsRefreshBtn,
     summaryDialog,
     summaryCloseBtn,
     summaryPrintBtn,
@@ -3531,6 +3782,20 @@ const wireActivitiesCalendar = () => {
   });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
+  statisticsBtn?.addEventListener("click", openActivityStatisticsDialog);
+  statisticsCloseBtn?.addEventListener("click", closeActivityStatisticsDialog);
+  statisticsRefreshBtn?.addEventListener("click", () => {
+    void loadActivityStatistics();
+  });
+  statisticsMonthInput?.addEventListener("change", () => {
+    void loadActivityStatistics();
+  });
+  statisticsDialog?.addEventListener("click", (event) => {
+    if (event.target === statisticsDialog) closeActivityStatisticsDialog();
+  });
+  statisticsDialog?.addEventListener("close", () => {
+    setActivityStatisticsFeedback("");
+  });
   summaryCloseBtn?.addEventListener("click", closeActivitySummaryDialog);
   summaryPrintBtn?.addEventListener("click", printActivitySummary);
   summaryForm?.addEventListener("submit", handleActivitySummarySubmit);

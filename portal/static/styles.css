@@ -752,10 +752,13 @@ body.dark-mode .field select,
 body.dark-mode .branch-card,
 body.dark-mode .activity-form,
 body.dark-mode .activity-summary-form,
+body.dark-mode .activity-statistics-panel,
 body.dark-mode .activity-field input,
 body.dark-mode .activity-field select,
 body.dark-mode .activity-field textarea,
 body.dark-mode .activity-summary-meta > div,
+body.dark-mode .activity-statistics-cards > div,
+body.dark-mode .activity-statistics-table-wrap,
 body.dark-mode .activity-attendance-list,
 body.dark-mode .activity-attendance-option {
   background: #081827;
@@ -812,7 +815,17 @@ body.dark-mode .activity-history-table th {
   color: #dff7f0;
 }
 
+body.dark-mode .activity-statistics-table th {
+  background: #12263c;
+  color: #dff7f0;
+}
+
 body.dark-mode .activity-history-table td {
+  border-color: #24445c;
+  color: #dcecf4;
+}
+
+body.dark-mode .activity-statistics-table td {
   border-color: #24445c;
   color: #dcecf4;
 }
@@ -1709,6 +1722,10 @@ body.dark-mode .central-admin-forms {
   width: min(980px, calc(100% - 32px));
 }
 
+.activity-statistics-dialog {
+  width: min(1040px, calc(100% - 32px));
+}
+
 .activity-summary-form {
   display: grid;
   gap: 18px;
@@ -1812,6 +1829,109 @@ body.dark-mode .central-admin-forms {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.activity-statistics-panel {
+  display: grid;
+  gap: 18px;
+  background: #f8fbfa;
+  padding: 22px;
+}
+
+.activity-statistics-controls {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.activity-statistics-controls .activity-field {
+  width: min(240px, 100%);
+}
+
+.activity-statistics-controls .secondary-button {
+  width: auto;
+  padding: 0 14px;
+}
+
+.activity-statistics-month {
+  color: var(--brand-dark);
+  font-weight: 900;
+  text-transform: capitalize;
+}
+
+.activity-statistics-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.activity-statistics-cards > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.activity-statistics-cards span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.activity-statistics-cards strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 1.25rem;
+}
+
+.activity-statistics-section {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-statistics-section h3 {
+  margin: 0;
+  color: var(--brand-dark);
+  font-size: 1rem;
+}
+
+.activity-statistics-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.activity-statistics-table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+}
+
+.activity-statistics-table th,
+.activity-statistics-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.activity-statistics-table th {
+  background: #eef5f3;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.activity-statistics-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 .activity-attendance-option small {
@@ -2278,6 +2398,10 @@ body.dark-mode .central-admin-forms {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .activity-statistics-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .activity-summary-section-head {
     align-items: stretch;
     flex-direction: column;
@@ -2326,6 +2450,7 @@ body.dark-mode .central-admin-forms {
   }
 
   .activity-summary-meta,
+  .activity-statistics-cards,
   .activity-attendance-list {
     grid-template-columns: 1fr;
   }
