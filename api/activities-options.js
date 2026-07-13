@@ -93,6 +93,58 @@ const optionPayload = (row) => ({
   active: row?.active !== false,
 })
 
+const splitActivityMonitors = (value) =>
+  String(value || '')
+    .split(/\s*\/\s*/)
+    .map((monitor) => monitor.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+
+const joinActivityMonitors = (monitors) => {
+  const cleanMonitors = []
+  monitors
+    .map((monitor) => String(monitor || '').trim())
+    .filter(Boolean)
+    .forEach((monitor) => {
+      if (!cleanMonitors.includes(monitor) && cleanMonitors.length < 2) {
+        cleanMonitors.push(monitor)
+      }
+    })
+  return cleanMonitors.join(' / ')
+}
+
+const renameMonitorInSchedule = async (adminClient, previousName, nextName) => {
+  const { data: rows, error } = await adminClient
+    .from('activities_schedule')
+    .select('id,teacher')
+    .ilike('teacher', `%${previousName}%`)
+
+  if (error) {
+    if (['42P01', 'PGRST205'].includes(error.code)) return
+    throw error
+  }
+
+  const updates = Array.isArray(rows)
+    ? rows
+        .map((row) => {
+          const teacher = joinActivityMonitors(
+            splitActivityMonitors(row.teacher).map((monitor) => (monitor === previousName ? nextName : monitor)),
+          )
+          return teacher && teacher !== row.teacher ? { id: row.id, teacher } : null
+        })
+        .filter(Boolean)
+    : []
+
+  for (const update of updates) {
+    const { error: updateError } = await adminClient
+      .from('activities_schedule')
+      .update({ teacher: update.teacher })
+      .eq('id', update.id)
+
+    if (updateError) throw updateError
+  }
+}
+
 const getAuthorizedUser = async (adminClient, request, action) => {
   const token = getBearerToken(request)
   if (!token) {
@@ -204,14 +256,18 @@ const updateOption = async (adminClient, kind, id, name) => {
 
   if (error) throw error
   if (existingOption.name && existingOption.name !== cleanName) {
-    const scheduleColumn = kind === 'activities' ? 'title' : 'teacher'
-    const { error: scheduleError } = await adminClient
-      .from('activities_schedule')
-      .update({ [scheduleColumn]: cleanName })
-      .eq(scheduleColumn, existingOption.name)
+    if (kind === 'monitors') {
+      await renameMonitorInSchedule(adminClient, existingOption.name, cleanName)
+    } else {
+      const scheduleColumn = 'title'
+      const { error: scheduleError } = await adminClient
+        .from('activities_schedule')
+        .update({ [scheduleColumn]: cleanName })
+        .eq(scheduleColumn, existingOption.name)
 
-    if (scheduleError && !['42P01', 'PGRST205'].includes(scheduleError.code)) {
-      throw scheduleError
+      if (scheduleError && !['42P01', 'PGRST205'].includes(scheduleError.code)) {
+        throw scheduleError
+      }
     }
   }
   return optionPayload(data)

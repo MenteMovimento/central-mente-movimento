@@ -86,8 +86,10 @@ const translations = {
     "activities.end": "Fim",
     "activities.name": "Nome da atividade",
     "activities.teacher": "Monitor",
+    "activities.teacherSecond": "2.\u00ba monitor",
     "activities.selectActivity": "Selecionar atividade",
     "activities.selectMonitor": "Selecionar monitor",
+    "activities.selectSecondMonitor": "Sem segundo monitor",
     "activities.save": "Guardar",
     "activities.update": "Atualizar",
     "activities.clear": "Limpar",
@@ -102,6 +104,7 @@ const translations = {
     "activities.dropHere": "Largar aqui",
     "activities.confirmDelete": "Remover esta atividade?",
     "activities.validationRequired": "Preencha o dia, a hora, o nome da atividade e o monitor.",
+    "activities.validationDuplicateMonitors": "Escolha monitores diferentes.",
     "activities.validationTime": "A hora de fim tem de ser depois da hora de in\u00edcio.",
     "activities.validationLunch": "A atividade nao pode ficar no periodo de almoco.",
     "activities.saved": "Atividade guardada.",
@@ -279,8 +282,10 @@ const translations = {
     "activities.end": "End",
     "activities.name": "Activity name",
     "activities.teacher": "Monitor",
+    "activities.teacherSecond": "2nd monitor",
     "activities.selectActivity": "Select activity",
     "activities.selectMonitor": "Select monitor",
+    "activities.selectSecondMonitor": "No second monitor",
     "activities.save": "Save",
     "activities.update": "Update",
     "activities.clear": "Clear",
@@ -296,6 +301,7 @@ const translations = {
     "activities.dropHere": "Drop here",
     "activities.confirmDelete": "Remove this activity?",
     "activities.validationRequired": "Fill in the day, time, activity name and monitor.",
+    "activities.validationDuplicateMonitors": "Choose different monitors.",
     "activities.validationTime": "The end time must be after the start time.",
     "activities.validationLunch": "The activity cannot be scheduled during lunch.",
     "activities.saved": "Activity saved.",
@@ -670,6 +676,34 @@ const renderActivitySelectOptions = (select, items, placeholderKey) => {
   select.value = currentValue && [...select.options].some((option) => option.value === currentValue) ? currentValue : "";
 };
 
+const activityMonitorSeparator = " / ";
+
+const splitActivityMonitors = (value) =>
+  String(value || "")
+    .split(/\s*\/\s*/)
+    .map((monitor) => monitor.trim())
+    .filter(Boolean)
+    .slice(0, 2);
+
+const joinActivityMonitors = (...values) => {
+  const monitors = [];
+  values
+    .flat()
+    .map((monitor) => String(monitor || "").trim())
+    .filter(Boolean)
+    .forEach((monitor) => {
+      if (!monitors.includes(monitor) && monitors.length < 2) {
+        monitors.push(monitor);
+      }
+    });
+  return monitors.join(activityMonitorSeparator);
+};
+
+const replaceActivityMonitorName = (value, previousName, nextName) => {
+  const monitors = splitActivityMonitors(value).map((monitor) => (monitor === previousName ? nextName : monitor));
+  return joinActivityMonitors(monitors);
+};
+
 const renderActivityNameOptions = () => {
   const { select } = activitiesCatalogElements();
   renderActivitySelectOptions(select, activitiesState.activityNames, "activities.selectActivity");
@@ -930,6 +964,7 @@ const activitiesMonitorsElements = () => ({
   list: document.querySelector("[data-activities-monitor-list]"),
   error: document.querySelector("[data-activities-monitors-error]"),
   select: document.querySelector("[data-activity-monitor-options]"),
+  selects: document.querySelectorAll("[data-activity-monitor-options]"),
 });
 
 const setActivitiesMonitorsFeedback = (message = "", kind = "error") => {
@@ -941,8 +976,14 @@ const setActivitiesMonitorsFeedback = (message = "", kind = "error") => {
 };
 
 const renderActivityMonitorOptions = () => {
-  const { select } = activitiesMonitorsElements();
-  renderActivitySelectOptions(select, activitiesState.monitors, "activities.selectMonitor");
+  const { selects } = activitiesMonitorsElements();
+  selects.forEach((select) => {
+    renderActivitySelectOptions(
+      select,
+      activitiesState.monitors,
+      select.dataset.activityMonitorPlaceholder || "activities.selectMonitor",
+    );
+  });
 };
 
 const renderActivityMonitorsList = () => {
@@ -1023,9 +1064,10 @@ const updateActivityMonitorRemote = async (id, name) => {
       ...activitiesState.monitors.filter((monitor) => monitor.id !== nextMonitor.id),
     ].sort((left, right) => left.name.localeCompare(right.name, getLanguage() === "en" ? "en" : "pt"));
     if (previousName && previousName !== nextMonitor.name) {
-      activitiesState.entries = activitiesState.entries.map((entry) =>
-        entry.teacher === previousName ? { ...entry, teacher: nextMonitor.name } : entry,
-      );
+      activitiesState.entries = activitiesState.entries.map((entry) => {
+        const teacher = replaceActivityMonitorName(entry.teacher, previousName, nextMonitor.name);
+        return teacher !== entry.teacher ? { ...entry, teacher } : entry;
+      });
       renderActivitiesCalendar();
     }
     renderActivityMonitorsList();
@@ -2379,7 +2421,7 @@ const saveActivityOrderRemote = async (entries) => {
 const rememberActivityListsRemote = async (entry) => {
   await Promise.allSettled([
     ensureActivityNameRemote(entry.title),
-    ensureActivityMonitorRemote(entry.teacher),
+    ...splitActivityMonitors(entry.teacher).map((monitor) => ensureActivityMonitorRemote(monitor)),
   ]);
 };
 
@@ -2388,6 +2430,12 @@ const handleActivitySubmit = async (event) => {
   const form = event.currentTarget;
   const submitButton = form.querySelector('button[type="submit"]');
   const data = new FormData(form);
+  const primaryMonitor = String(data.get("teacher") || "").trim();
+  const secondaryMonitor = String(data.get("teacher2") || "").trim();
+  if (secondaryMonitor && primaryMonitor === secondaryMonitor) {
+    setActivitiesFeedback(getTranslation("activities.validationDuplicateMonitors"));
+    return;
+  }
   const payload = {
     id: String(data.get("id") || "").trim(),
     weekStart: activitiesState.selectedWeekStart,
@@ -2395,7 +2443,7 @@ const handleActivitySubmit = async (event) => {
     start: String(data.get("start") || "").trim(),
     end: String(data.get("end") || "").trim(),
     title: String(data.get("title") || "").trim(),
-    teacher: String(data.get("teacher") || "").trim(),
+    teacher: joinActivityMonitors(primaryMonitor, secondaryMonitor),
   };
   const validation = validateActivityPayload(payload);
   if (validation) {
@@ -2450,7 +2498,11 @@ const fillActivityForm = (entry) => {
   form.elements.start.value = entry.start;
   form.elements.end.value = entry.end;
   setActivitySelectValue(form.elements.title, entry.title);
-  setActivitySelectValue(form.elements.teacher, entry.teacher);
+  const [primaryMonitor = "", secondaryMonitor = ""] = splitActivityMonitors(entry.teacher);
+  setActivitySelectValue(form.elements.teacher, primaryMonitor);
+  if (form.elements.teacher2) {
+    setActivitySelectValue(form.elements.teacher2, secondaryMonitor);
+  }
 };
 
 const viewActivity = (id) => {

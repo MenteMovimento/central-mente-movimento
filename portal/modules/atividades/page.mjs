@@ -109,8 +109,14 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </label>
           <label class="activity-field">
             <span data-i18n="activities.teacher">Monitor</span>
-            <select name="teacher" data-activity-monitor-options required>
+            <select name="teacher" data-activity-monitor-options data-activity-monitor-placeholder="activities.selectMonitor" required>
               <option value="" data-i18n="activities.selectMonitor">Selecionar monitor</option>
+            </select>
+          </label>
+          <label class="activity-field">
+            <span data-i18n="activities.teacherSecond">2.º monitor</span>
+            <select name="teacher2" data-activity-monitor-options data-activity-monitor-placeholder="activities.selectSecondMonitor">
+              <option value="" data-i18n="activities.selectSecondMonitor">Sem segundo monitor</option>
             </select>
           </label>
           <div class="activity-form-actions">
@@ -165,7 +171,7 @@ export const atividadesUserManualPageContent = () => `<main class="global-shell"
     <div class="activity-manual-grid">
       <article class="activity-manual-section">
         <h3>Criar atividade</h3>
-        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e o monitor, e grave.</p>
+        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e at&eacute; dois monitores, e grave.</p>
       </article>
       <article class="activity-manual-section">
         <h3>Consultar e editar</h3>
