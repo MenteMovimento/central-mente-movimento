@@ -6,19 +6,10 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Gestão de Atividades | MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260710-activity-no-time-column" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260713-activity-statistics-toolbar" />
     <style>
       .school-timetable .timetable-row {
         grid-template-columns: repeat(5, minmax(165px, 1fr)) !important;
-      }
-
-      .school-timetable .timetable-time-cell {
-        display: none !important;
-      }
-
-      .school-timetable .timetable-lunch-cell {
-        grid-column: 1 / -1 !important;
-        border-left: 0 !important;
       }
 
       .school-timetable .timetable-day-head:first-child,
@@ -28,12 +19,12 @@
     </style>
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260710-activity-no-time-column" defer></script>
-    <script src="/static/app.js?v=20260710-activity-no-time-column" defer></script>
-    <script src="/static/central-auth.js?v=20260710-activity-no-time-column" defer></script>
+    <script src="/static/central-config.js?v=20260713-activity-statistics-toolbar" defer></script>
+    <script src="/static/app.js?v=20260713-activity-statistics-toolbar" defer></script>
+    <script src="/static/central-auth.js?v=20260713-activity-statistics-toolbar" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
-
+    
 
 <header class="topbar">
   <div class="topbar-inner">
@@ -78,6 +69,10 @@
             <i data-lucide="users-round"></i>
             <span>Monitores</span>
           </button>
+          <button class="menu-item" type="button" data-activities-statistics role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="bar-chart-3"></i>
+            <span data-i18n="activities.statisticsButton">Estat&iacute;sticas</span>
+          </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
@@ -88,7 +83,7 @@
           </button>
         </div>
       </details>
-
+      
       <details class="dashboard-user-menu-wrap">
         <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
           <i data-lucide="user-round"></i>
@@ -208,6 +203,14 @@
         </button>
       </div>
       <div class="activity-toolbar-actions">
+        <button class="secondary-button activity-copy-button" type="button" data-activities-copy-previous data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <i data-lucide="copy"></i>
+          <span data-i18n="activities.copyPreviousWeek">Copiar semana anterior</span>
+        </button>
+        <button class="secondary-button activity-statistics-button" type="button" data-activities-statistics data-requires-permission-area="atividades" data-requires-permission-action="view">
+          <i data-lucide="bar-chart-3"></i>
+          <span data-i18n="activities.statisticsButton">Estat&iacute;sticas</span>
+        </button>
         <button class="secondary-button activity-print-button" type="button" data-activities-print data-requires-permission-area="atividades" data-requires-permission-action="export">
           <i data-lucide="printer"></i>
           <span data-i18n="activities.printWeek">Imprimir semana</span>
@@ -218,6 +221,7 @@
         </button>
       </div>
     </div>
+    <p class="form-error activity-error activity-toolbar-feedback" data-activities-status role="status" hidden></p>
 
     <dialog class="activity-dialog" id="activityFormDialog" data-activities-dialog aria-labelledby="activityFormTitle">
       <div class="activity-dialog-panel">
@@ -262,8 +266,14 @@
           </label>
           <label class="activity-field">
             <span data-i18n="activities.teacher">Monitor</span>
-            <select name="teacher" data-activity-monitor-options required>
+            <select name="teacher" data-activity-monitor-options data-activity-monitor-placeholder="activities.selectMonitor" required>
               <option value="" data-i18n="activities.selectMonitor">Selecionar monitor</option>
+            </select>
+          </label>
+          <label class="activity-field">
+            <span data-i18n="activities.teacherSecond">2.º monitor</span>
+            <select name="teacher2" data-activity-monitor-options data-activity-monitor-placeholder="activities.selectSecondMonitor">
+              <option value="" data-i18n="activities.selectSecondMonitor">Sem segundo monitor</option>
             </select>
           </label>
           <div class="activity-form-actions">
@@ -278,6 +288,106 @@
           </div>
           <p class="form-error activity-error" data-activities-error role="alert" hidden></p>
         </form>
+      </div>
+    </dialog>
+
+    <dialog class="activity-dialog activity-summary-dialog" id="activitySummaryDialog" data-activities-summary-dialog aria-labelledby="activitySummaryTitle">
+      <div class="activity-dialog-panel">
+        <header class="activity-dialog-head">
+          <div class="activity-form-title">
+            <i data-lucide="clipboard-list" aria-hidden="true"></i>
+            <strong id="activitySummaryTitle" data-i18n="activities.summaryTitle">Sum&aacute;rio da atividade</strong>
+          </div>
+          <div class="activity-dialog-actions">
+            <button class="secondary-button activity-summary-print-button" type="button" data-activities-summary-print data-requires-permission-area="atividades" data-requires-permission-action="export">
+              <i data-lucide="printer"></i>
+              <span data-i18n="activities.printSummary">Imprimir</span>
+            </button>
+            <button class="icon-link" type="button" data-activities-summary-close aria-label="Fechar">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+        </header>
+        <form class="activity-summary-form" data-activities-summary-form>
+          <input type="hidden" name="activityId" data-summary-activity-select />
+          <div class="activity-summary-meta" aria-live="polite">
+            <div>
+              <span data-i18n="activities.name">Nome da atividade</span>
+              <strong data-summary-activity-name>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryDate">Data</span>
+              <strong data-summary-date>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryStart">Hora de in&iacute;cio</span>
+              <strong data-summary-start>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryEnd">Hora de fim</span>
+              <strong data-summary-end>-</strong>
+            </div>
+            <div>
+              <span data-i18n="activities.summaryDuration">Dura&ccedil;&atilde;o</span>
+              <strong data-summary-duration>-</strong>
+            </div>
+          </div>
+          <label class="activity-field activity-field-wide">
+            <span data-i18n="activities.summaryText">Sum&aacute;rio</span>
+            <textarea name="summary" rows="6" data-summary-text data-i18n-placeholder="activities.summaryPlaceholder" placeholder="Escreva o sum&aacute;rio da atividade..."></textarea>
+          </label>
+          <section class="activity-summary-attendance" aria-labelledby="activitySummaryAttendanceTitle">
+            <div class="activity-summary-section-head">
+              <strong id="activitySummaryAttendanceTitle" data-i18n="activities.summaryAttendance">Presen&ccedil;as</strong>
+              <label class="activity-field activity-summary-search">
+                <span data-i18n="activities.summaryAttendanceSearch">Pesquisar utentes</span>
+                <input type="search" data-summary-attendance-search autocomplete="off" />
+              </label>
+            </div>
+            <div class="activity-attendance-list" data-summary-attendance-list></div>
+          </section>
+          <div class="activity-form-actions">
+            <button class="primary-button" type="submit">
+              <i data-lucide="save"></i>
+              <span data-i18n="activities.save">Guardar</span>
+            </button>
+            <button class="secondary-button" type="button" data-summary-clear>
+              <i data-lucide="eraser"></i>
+              <span data-i18n="activities.clear">Limpar</span>
+            </button>
+          </div>
+          <p class="form-error activity-error" data-summary-error role="alert" hidden></p>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog class="activity-dialog activity-statistics-dialog" id="activityStatisticsDialog" data-activities-statistics-dialog aria-labelledby="activityStatisticsTitle">
+      <div class="activity-dialog-panel">
+        <header class="activity-dialog-head">
+          <div class="activity-form-title">
+            <i data-lucide="bar-chart-3" aria-hidden="true"></i>
+            <strong id="activityStatisticsTitle" data-i18n="activities.statisticsTitle">Estat&iacute;sticas de atividades</strong>
+          </div>
+          <button class="icon-link" type="button" data-activities-statistics-close aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </header>
+        <div class="activity-statistics-panel">
+          <div class="activity-statistics-controls">
+            <label class="activity-field">
+              <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
+              <input type="month" data-activities-statistics-month />
+            </label>
+            <button class="secondary-button" type="button" data-activities-statistics-refresh>
+              <i data-lucide="refresh-cw"></i>
+              <span data-i18n="activities.statisticsRefresh">Atualizar</span>
+            </button>
+          </div>
+          <p class="form-error activity-error" data-activities-statistics-error role="alert" hidden></p>
+          <div data-activities-statistics-content>
+            <p class="activity-empty-state" data-i18n="activities.statisticsEmpty">Escolha um m&ecirc;s para consultar as estat&iacute;sticas.</p>
+          </div>
+        </div>
       </div>
     </dialog>
 

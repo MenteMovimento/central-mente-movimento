@@ -4,17 +4,18 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Manual de Utilizador - Atividades - MenteMovimento</title>
+    <title>Manual de Utilizador - Atividades | MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260707-atividades-pdf-print" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260713-activity-statistics-toolbar" />
+    
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260707-atividades-pdf-print" defer></script>
-    <script src="/static/app.js?v=20260707-atividades-pdf-print" defer></script>
-    <script src="/static/central-auth.js?v=20260707-atividades-pdf-print" defer></script>
+    <script src="/static/central-config.js?v=20260713-activity-statistics-toolbar" defer></script>
+    <script src="/static/app.js?v=20260713-activity-statistics-toolbar" defer></script>
+    <script src="/static/central-auth.js?v=20260713-activity-statistics-toolbar" defer></script>
   </head>
   <body data-central-page="atividades-manual-utilizador">
-
+    
 
 <header class="topbar">
   <div class="topbar-inner">
@@ -24,7 +25,6 @@
       </span>
       <div>
         <h1>MenteMovimento</h1>
-        <p data-user-email>Administrador</p>
       </div>
     </a>
     <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
@@ -38,7 +38,7 @@
       </a>
       <a class="topnav-link" href="/area/dispositivos/">
         <i data-lucide="monitor-cog"></i>
-        <span data-i18n="nav.dispositivos">Dispositivos</span>
+        <span data-i18n="nav.dispositivos">Cibersegurança</span>
       </a>
       <a class="topnav-link active" href="/area/atividades/">
         <i data-lucide="calendar-days"></i>
@@ -52,6 +52,18 @@
         </summary>
         <div class="global-tools-menu" role="menu">
 
+          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+            <i data-lucide="calendar-days"></i>
+            <span>Atividades</span>
+          </button>
+          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+            <i data-lucide="users-round"></i>
+            <span>Monitores</span>
+          </button>
+          <button class="menu-item" type="button" data-activities-statistics role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
+            <i data-lucide="bar-chart-3"></i>
+            <span data-i18n="activities.statisticsButton">Estat&iacute;sticas</span>
+          </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
@@ -62,9 +74,19 @@
           </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
-        <i data-lucide="log-out"></i>
-      </a>
+      
+      <details class="dashboard-user-menu-wrap">
+        <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+          <i data-lucide="user-round"></i>
+        </summary>
+        <div class="dashboard-user-menu" role="menu">
+          <strong class="dashboard-account-name" data-dashboard-account-name hidden></strong>
+          <a class="dashboard-logout-button" href="/logout" role="menuitem" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+            <i data-lucide="log-out"></i>
+            <span data-i18n="nav.logout">Terminar sessão</span>
+          </a>
+        </div>
+      </details>
     </div>
   </div>
 </header>
@@ -102,6 +124,60 @@
     </div>
   </div>
 </dialog>
+<dialog class="activities-manual-dialog activities-monitors-dialog" data-activities-catalog-dialog aria-labelledby="activitiesCatalogTitle">
+  <div class="activities-manual-panel activities-monitors-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesCatalogTitle">Atividades</h2>
+        <p>Crie e consulte os nomes das atividades usadas no horário.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <form class="activities-monitor-form" data-activities-catalog-form>
+      <label class="activity-field">
+        <span>Nome da atividade</span>
+        <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <button class="primary-button" type="submit">
+        <i data-lucide="save"></i>
+        <span>Guardar</span>
+      </button>
+    </form>
+    <p class="form-error activity-error" data-activities-catalog-error role="alert" hidden></p>
+    <div class="activities-monitor-list" data-activities-catalog-list>
+      <p class="activity-empty-state">Sem atividades registadas.</p>
+    </div>
+  </div>
+</dialog>
+<dialog class="activities-manual-dialog activities-monitors-dialog" data-activities-monitors-dialog aria-labelledby="activitiesMonitorsTitle">
+  <div class="activities-manual-panel activities-monitors-panel">
+    <header class="activities-manual-head">
+      <div>
+        <h2 id="activitiesMonitorsTitle">Monitores</h2>
+        <p>Crie e consulte os monitores usados nas atividades.</p>
+      </div>
+      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar">
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+    <form class="activities-monitor-form" data-activities-monitor-form>
+      <label class="activity-field">
+        <span>Nome do monitor</span>
+        <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <button class="primary-button" type="submit">
+        <i data-lucide="save"></i>
+        <span>Guardar</span>
+      </button>
+    </form>
+    <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
+    <div class="activities-monitor-list" data-activities-monitor-list>
+      <p class="activity-empty-state">Sem monitores registados.</p>
+    </div>
+  </div>
+</dialog>
 <main class="global-shell">
   <section class="global-panel activity-document-panel">
     <a class="secondary-button activity-back-link" href="/area/atividades/">
@@ -114,7 +190,7 @@
     <div class="activity-manual-grid">
       <article class="activity-manual-section">
         <h3>Criar atividade</h3>
-        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e o professor, e grave.</p>
+        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e at&eacute; dois monitores, e grave.</p>
       </article>
       <article class="activity-manual-section">
         <h3>Consultar e editar</h3>
