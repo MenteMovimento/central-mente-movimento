@@ -466,11 +466,11 @@ main {
 
 .tab-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
     gap: 8px;
     border-bottom: 1px solid var(--line);
     background: #f8fbfa;
-    padding: 12px 14px;
+    padding: 12px;
 }
 
 .dark-theme .tab-list {
@@ -490,11 +490,17 @@ main {
     line-height: 1.25;
     min-width: 0;
     overflow: hidden;
-    padding: 7px 10px;
+    padding: 7px 8px;
     text-align: center;
     text-decoration: none;
     text-overflow: ellipsis;
     white-space: normal;
+}
+
+@media (min-width: 1180px) {
+    .tab-list {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
 }
 
 .dark-theme .tab-link {
