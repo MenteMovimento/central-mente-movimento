@@ -70,8 +70,8 @@ TAB_SECTIONS = [
     ("pagamentos", "Pagamentos e Mensalidades")
 ]
 
-UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia"}
-UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "protecao_dados", "outros"}
+UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia", "protecao_dados"}
+UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "outros"}
 CENTRAL_AREA_KEYS = ("socios", "utentes", "dispositivos", "atividades")
 CENTRAL_AREA_ACTIONS = ("view", "edit", "view_sensitive", "edit_sensitive", "export", "delete")
 
@@ -453,6 +453,26 @@ main {
 .edit-title h2 {
     margin: 0;
     font-size: 1.25rem;
+}
+
+.utente-context-title {
+    display: grid;
+    gap: 4px;
+}
+
+.utente-context-title span {
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.utente-context-title h1 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 2.1rem;
+    font-weight: 900;
+    line-height: 1.1;
 }
 
 .stats-page-title {
@@ -3412,9 +3432,12 @@ APP_SCRIPT = """
             attrs.stroke = "#d64545";
             attrs["stroke-width"] = "3";
         }
-        if (edge.type === "close" || edge.type === "strong") {
+        if (edge.type === "close" || edge.type === "strong" || edge.type === "very_close" || edge.type === "extreme_dependency") {
             attrs.stroke = "#12805c";
             attrs["stroke-width"] = "4";
+        }
+        if (edge.type === "very_close" || edge.type === "extreme_dependency") {
+            attrs["stroke-width"] = "2.6";
         }
         if (edge.type === "resource_to") {
             attrs["marker-end"] = "url(#arrow-end)";
@@ -3583,21 +3606,39 @@ APP_SCRIPT = """
             } else {
                 path = `M ${source.x},${source.y} L ${target.x},${target.y}`;
             }
-            const element = svgElement("path", { d: path, ...lineAttrs(edge) });
-            element.classList.add("diagram-edge");
-            if (state.selectedEdge === edge.id) {
-                element.classList.add("selected");
-            }
-            element.addEventListener("click", (event) => {
-                event.stopPropagation();
-                if (readonly) {
-                    return;
+            const addEdgePath = (edgePath) => {
+                const element = svgElement("path", { d: edgePath, ...lineAttrs(edge) });
+                element.classList.add("diagram-edge");
+                if (state.selectedEdge === edge.id) {
+                    element.classList.add("selected");
                 }
-                state.selectedEdge = edge.id;
-                state.selectedNodes = [];
-                renderDiagram(state);
-            });
-            svg.appendChild(element);
+                element.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    if (readonly) {
+                        return;
+                    }
+                    state.selectedEdge = edge.id;
+                    state.selectedNodes = [];
+                    renderDiagram(state);
+                });
+                svg.appendChild(element);
+            };
+            if (edge.type === "very_close" || edge.type === "extreme_dependency") {
+                const dx = target.x - source.x;
+                const dy = target.y - source.y;
+                const length = Math.hypot(dx, dy) || 1;
+                const normalX = -dy / length;
+                const normalY = dx / length;
+                const offsets = edge.type === "very_close" ? [-5, 5] : [-7, 0, 7];
+                offsets.forEach((offset) => {
+                    addEdgePath(
+                        `M ${source.x + normalX * offset},${source.y + normalY * offset} ` +
+                        `L ${target.x + normalX * offset},${target.y + normalY * offset}`
+                    );
+                });
+            } else {
+                addEdgePath(path);
+            }
             const midX = (source.x + target.x) / 2;
             const midY = (source.y + target.y) / 2;
             if (edge.type === "separated") {
@@ -3623,12 +3664,18 @@ APP_SCRIPT = """
                     : svgElement("rect", { class: "node-shape", x: "-66", y: "-30", width: "132", height: "60", rx: "8", fill: "#eef6ff", stroke: "#2f5f9f", "stroke-width": "2.2" });
             } else if (node.type === "female") {
                 shape = svgElement("circle", { class: "node-shape", r: "28", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
+            } else if (node.type === "pregnant" || node.type === "abortion") {
+                shape = svgElement("polygon", { class: "node-shape", points: "0,-32 32,28 -32,28", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
             } else if (node.type === "unknown") {
                 shape = svgElement("polygon", { class: "node-shape", points: "0,-32 32,0 0,32 -32,0", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
             } else {
                 shape = svgElement("rect", { class: "node-shape", x: "-28", y: "-28", width: "56", height: "56", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
             }
             group.appendChild(shape);
+            if (node.type === "abortion") {
+                group.appendChild(svgElement("line", { x1: "-31", y1: "-31", x2: "31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
+                group.appendChild(svgElement("line", { x1: "31", y1: "-31", x2: "-31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
+            }
             if (node.deceased) {
                 group.appendChild(svgElement("line", { x1: "-31", y1: "-31", x2: "31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
                 group.appendChild(svgElement("line", { x1: "31", y1: "-31", x2: "-31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
@@ -4693,7 +4740,7 @@ TRANSLATIONS = {
         "monthly_fee": "Mensalidade",
         "paid_until": "Pago até",
         "no_monthly_fee": "Sem mensalidade",
-        "pay_fee": "Pagar quota",
+        "pay_fee": "Pagar mensalidade",
         "quick_payment": "Pagamento rápido",
         "cancel_payment": "Cancelar pagamento",
         "cancel_payment_confirm": "Cancelar este pagamento?",
@@ -8216,7 +8263,8 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
         toolbar = """
             <button class="button secondary" type="button" data-diagram-add="male">Homem</button>
             <button class="button secondary" type="button" data-diagram-add="female">Mulher</button>
-            <button class="button secondary" type="button" data-diagram-add="unknown">Outro</button>
+            <button class="button secondary" type="button" data-diagram-add="pregnant">Mulher grávida</button>
+            <button class="button secondary" type="button" data-diagram-add="abortion">Aborto</button>
             <select data-diagram-relation>
                 <option value="marriage">Casamento</option>
                 <option value="union">União/Coabitação</option>
@@ -8224,6 +8272,8 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
                 <option value="separated">Separação</option>
                 <option value="divorced">Divórcio</option>
                 <option value="close">Relação próxima</option>
+                <option value="very_close">Ligação muito próxima</option>
+                <option value="extreme_dependency">Dependência extrema</option>
                 <option value="conflict">Conflito</option>
                 <option value="cutoff">Corte/distanciamento</option>
             </select>
@@ -8231,8 +8281,10 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
         legend = """
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="17" y="5" width="24" height="24" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Homem</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="13" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Mulher</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><polygon points="29,3 43,17 29,31 15,17" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Outro</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="17" y="5" width="24" height="24" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="15" y1="3" x2="43" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="43" y1="3" x2="15" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Falecido</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="17" y="5" width="24" height="24" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="15" y1="3" x2="43" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="43" y1="3" x2="15" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Homem falecido</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="13" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="15" y1="3" x2="43" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="43" y1="3" x2="15" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Mulher falecida</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><polygon points="29,4 45,30 13,30" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Mulher grávida</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><polygon points="29,4 45,30 13,30" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="14" y1="3" x2="44" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="44" y1="3" x2="14" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Aborto</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Casamento</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="7 5"/></svg></span><span class="legend-label">União</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><path d="M10 8 H48 M29 8 V27 M20 27 H38" fill="none" stroke="#f3fbf8" stroke-width="2.6"/></svg></span><span class="legend-label">Filiação</span></li>
@@ -8240,6 +8292,8 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3"/><line x1="24" y1="6" x2="30" y2="28" stroke="#f3fbf8" stroke-width="3"/><line x1="34" y1="6" x2="40" y2="28" stroke="#f3fbf8" stroke-width="3"/></svg></span><span class="legend-label">Divórcio</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><path d="M6 17 L12 9 L18 25 L24 9 L30 25 L36 9 L42 25 L52 17" fill="none" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Conflito</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="5"/></svg></span><span class="legend-label">Próxima</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="13" x2="51" y2="13" stroke="#12b886" stroke-width="3"/><line x1="7" y1="21" x2="51" y2="21" stroke="#12b886" stroke-width="3"/></svg></span><span class="legend-label">Muito próxima</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="10" x2="51" y2="10" stroke="#12b886" stroke-width="2.6"/><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="2.6"/><line x1="7" y1="24" x2="51" y2="24" stroke="#12b886" stroke-width="2.6"/></svg></span><span class="legend-label">Dependência extrema</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="3 6"/></svg></span><span class="legend-label">Corte</span></li>
         """
     else:
@@ -8727,6 +8781,12 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
         """
     error_html = f'<div class="notice">{esc(error)}</div>' if error else ""
     print_button = render_print_page_button(current_user)
+    utente_name_title = f"""
+    <div class="utente-context-title">
+        <span>Utente em edição</span>
+        <h1>{esc(utente.get("nome") or "Utente sem nome")}</h1>
+    </div>
+"""
 
     if active_tab in {"protecao_dados", "outros"}:
         content = f"""
@@ -8739,6 +8799,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
             {save_button}
         </div>
     </div>
+    {utente_name_title}
     {error_html}
     <form id="edit-utente-form" method="post" action="/editar">
         <input type="hidden" name="id" value="{esc(utente.get('id'))}">
@@ -8766,6 +8827,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
             {save_button}
         </div>
     </div>
+    {utente_name_title}
     {error_html}
     <form id="edit-utente-form" class="edit-layout" method="post" action="/editar">
         <input type="hidden" name="id" value="{esc(utente.get('id'))}">
