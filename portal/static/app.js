@@ -85,6 +85,8 @@ const translations = {
     "activities.statisticsPeriodAnnual": "Anual",
     "activities.statisticsMonth": "Mês",
     "activities.statisticsYear": "Ano",
+    "activities.statisticsActivity": "Atividade",
+    "activities.statisticsAllActivities": "Todas",
     "activities.statisticsRefresh": "Atualizar",
     "activities.statisticsEmpty": "Escolha o período para consultar as estatísticas.",
     "activities.statisticsLoadError": "Não foi possível carregar as estatísticas de atividades.",
@@ -335,6 +337,8 @@ const translations = {
     "activities.statisticsPeriodAnnual": "Annual",
     "activities.statisticsMonth": "Month",
     "activities.statisticsYear": "Year",
+    "activities.statisticsActivity": "Activity",
+    "activities.statisticsAllActivities": "All",
     "activities.statisticsRefresh": "Refresh",
     "activities.statisticsEmpty": "Choose a period to view statistics.",
     "activities.statisticsLoadError": "Could not load activity statistics.",
@@ -1723,6 +1727,7 @@ const activitiesState = {
   utentes: [],
   activityNames: [],
   monitors: [],
+  statistics: null,
   editingActivityNameId: "",
   editingMonitorId: "",
   storageMode: "local",
@@ -1756,10 +1761,13 @@ const activitiesElements = () => ({
   statisticsBtns: document.querySelectorAll("[data-activities-statistics]"),
   statisticsDialog: document.querySelector("[data-activities-statistics-dialog]"),
   statisticsCloseBtn: document.querySelector("[data-activities-statistics-close]"),
+  statisticsPrintBtn: document.querySelector("[data-activities-statistics-print]"),
   statisticsPeriodSelect: document.querySelector("[data-activities-statistics-period]"),
+  statisticsMonthField: document.querySelector("[data-activities-statistics-month-field]"),
   statisticsMonthInput: document.querySelector("[data-activities-statistics-month]"),
   statisticsYearField: document.querySelector("[data-activities-statistics-year-field]"),
   statisticsYearInput: document.querySelector("[data-activities-statistics-year]"),
+  statisticsActivitySelect: document.querySelector("[data-activities-statistics-activity]"),
   statisticsRefreshBtn: document.querySelector("[data-activities-statistics-refresh]"),
   statisticsContent: document.querySelector("[data-activities-statistics-content]"),
   statisticsError: document.querySelector("[data-activities-statistics-error]"),
@@ -2009,6 +2017,31 @@ const fillActivityStatisticsSelectOptions = () => {
   }
 };
 
+const activityStatisticsActivityOptions = () => {
+  const names = [
+    ...activitiesState.activityNames.map((activity) => activity.name),
+    ...activitiesState.entries.map((entry) => entry.title),
+  ]
+    .map((name) => String(name || "").trim())
+    .filter(Boolean);
+  const uniqueNames = [...new Set(names)]
+    .sort((left, right) => left.localeCompare(right, getLanguage() === "en" ? "en" : "pt"));
+  return [
+    `<option value="">${escapeHtml(getTranslation("activities.statisticsAllActivities"))}</option>`,
+    ...uniqueNames.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`),
+  ].join("");
+};
+
+const fillActivityStatisticsActivityOptions = () => {
+  const { statisticsActivitySelect } = activitiesElements();
+  if (!statisticsActivitySelect) return;
+  const currentValue = statisticsActivitySelect.value || "";
+  statisticsActivitySelect.innerHTML = activityStatisticsActivityOptions();
+  statisticsActivitySelect.value = Array.from(statisticsActivitySelect.options).some((option) => option.value === currentValue)
+    ? currentValue
+    : "";
+};
+
 const formatActivityMonth = (month) => {
   const [year, monthNumber] = String(month || "").split("-").map(Number);
   if (!year || !monthNumber) return String(month || "");
@@ -2023,6 +2056,12 @@ const formatActivityStatisticsPeriod = (statistics) => {
   return formatActivityMonth(statistics?.month);
 };
 
+const activityStatisticsDisplayTitle = (statistics) => {
+  const periodLabel = formatActivityStatisticsPeriod(statistics);
+  const activityFilter = String(statistics?.activity || "").trim();
+  return activityFilter ? `${periodLabel} - ${activityFilter}` : periodLabel;
+};
+
 const formatActivityNumber = (value, maximumFractionDigits = 0) =>
   new Intl.NumberFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
     maximumFractionDigits,
@@ -2035,9 +2074,10 @@ const formatActivityVolume = (minutes) => {
   return `${formatActivityNumber(hours, 1)} ${getTranslation("activities.statisticsPersonHours")}`;
 };
 
-const activitiesStatisticsRequest = async ({ period = "month", month = "", year = "" } = {}) => {
+const activitiesStatisticsRequest = async ({ period = "month", month = "", year = "", activity = "" } = {}) => {
   const token = await getActivitiesAccessToken();
   const query = new URLSearchParams({ period });
+  if (activity) query.set("activity", activity);
   if (period === "year") {
     query.set("year", year);
   } else {
@@ -2068,6 +2108,7 @@ const statisticsTableEmptyRow = (colspan) =>
 const renderActivityStatistics = (statistics) => {
   const { statisticsContent } = activitiesElements();
   if (!statisticsContent) return;
+  activitiesState.statistics = statistics || null;
   if (!statistics) {
     statisticsContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.statisticsEmpty"))}</p>`;
     return;
@@ -2108,7 +2149,7 @@ const renderActivityStatistics = (statistics) => {
       : getTranslation("activities.statisticsActivities");
 
   statisticsContent.innerHTML = `
-    <div class="activity-statistics-month">${escapeHtml(formatActivityStatisticsPeriod(statistics))}</div>
+    <div class="activity-statistics-month">${escapeHtml(activityStatisticsDisplayTitle(statistics))}</div>
     <div class="activity-statistics-cards">
       <div>
         <span>${escapeHtml(activitiesLabel)}</span>
@@ -2169,12 +2210,16 @@ const activityStatisticsPeriodValue = () => {
 };
 
 const syncActivityStatisticsPeriodControls = () => {
-  const { statisticsPeriodSelect, statisticsMonthInput, statisticsYearField, statisticsYearInput } = activitiesElements();
+  const { statisticsPeriodSelect, statisticsMonthField, statisticsMonthInput, statisticsYearField, statisticsYearInput } = activitiesElements();
   fillActivityStatisticsSelectOptions();
+  fillActivityStatisticsActivityOptions();
   const period = statisticsPeriodSelect?.value === "year" ? "year" : "month";
+  if (statisticsMonthField) {
+    statisticsMonthField.hidden = period === "year";
+    statisticsMonthField.style.display = period === "year" ? "none" : "";
+  }
   if (statisticsMonthInput) {
-    statisticsMonthInput.hidden = period === "year";
-    statisticsMonthInput.closest(".activity-field")?.toggleAttribute("hidden", period === "year");
+    statisticsMonthInput.hidden = false;
     if (!statisticsMonthInput.value) statisticsMonthInput.value = activityMonthNumberValue();
   }
   if (statisticsYearField) statisticsYearField.hidden = false;
@@ -2182,12 +2227,13 @@ const syncActivityStatisticsPeriodControls = () => {
 };
 
 const loadActivityStatistics = async () => {
-  const { statisticsMonthInput, statisticsYearInput, statisticsRefreshBtn, statisticsContent } = activitiesElements();
+  const { statisticsMonthInput, statisticsYearInput, statisticsActivitySelect, statisticsRefreshBtn, statisticsContent } = activitiesElements();
   syncActivityStatisticsPeriodControls();
   const period = activityStatisticsPeriodValue();
   const year = String(statisticsYearInput?.value || activityYearValue()).trim();
   const monthNumber = String(statisticsMonthInput?.value || activityMonthNumberValue()).trim();
   const month = `${year}-${monthNumber}`;
+  const activity = String(statisticsActivitySelect?.value || "").trim();
   if (statisticsMonthInput && !statisticsMonthInput.value) {
     statisticsMonthInput.value = monthNumber;
   }
@@ -2200,7 +2246,7 @@ const loadActivityStatistics = async () => {
     statisticsContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.loading"))}</p>`;
   }
   try {
-    renderActivityStatistics(await activitiesStatisticsRequest({ period, month, year }));
+    renderActivityStatistics(await activitiesStatisticsRequest({ period, month, year, activity }));
   } catch (error) {
     console.warn("Nao foi possivel carregar estatisticas de atividades.", error);
     setActivityStatisticsFeedback(error?.message || getTranslation("activities.statisticsLoadError"));
@@ -2210,19 +2256,24 @@ const loadActivityStatistics = async () => {
   }
 };
 
-const openActivityStatisticsDialog = () => {
+const openActivityStatisticsDialog = async () => {
   if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "view")) {
     showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
     return;
   }
-  const { statisticsDialog, statisticsMonthInput, statisticsYearInput } = activitiesElements();
+  const { statisticsDialog, statisticsMonthInput, statisticsYearInput, statisticsActivitySelect } = activitiesElements();
   if (!statisticsDialog) return;
   closeToolsMenus();
   setActivityFormOpen(false);
   closeActivitySummaryDialog();
+  await loadActivitiesCatalog().catch((error) => {
+    console.warn("Nao foi possivel carregar lista de atividades para estatisticas.", error);
+  });
   fillActivityStatisticsSelectOptions();
+  fillActivityStatisticsActivityOptions();
   if (statisticsMonthInput) statisticsMonthInput.value = activityMonthNumberValue();
   if (statisticsYearInput) statisticsYearInput.value = activityYearValue();
+  if (statisticsActivitySelect) statisticsActivitySelect.value = "";
   syncActivityStatisticsPeriodControls();
   setActivityStatisticsFeedback("");
   if (typeof statisticsDialog.showModal === "function") {
@@ -3614,6 +3665,202 @@ const activityPrintDocument = () => {
 </html>`;
 };
 
+const activityStatisticsPrintDocument = (statistics) => {
+  const totals = statistics?.totals || {};
+  const activitiesLabel =
+    statistics?.period === "year"
+      ? getTranslation("activities.statisticsActivitiesYear")
+      : getTranslation("activities.statisticsActivities");
+  const attendanceRows = Array.isArray(statistics?.attendance) && statistics.attendance.length
+    ? statistics.attendance
+      .map(
+        (row) => `
+          <tr>
+            <td>${escapeHtml(row.name || "-")}</td>
+            <td>${escapeHtml(`${formatActivityNumber(row.present)} / ${formatActivityNumber(row.total)}`)}</td>
+            <td>${escapeHtml(formatActivityPercentage(row.percentage))}</td>
+          </tr>
+        `,
+      )
+      .join("")
+    : `<tr><td colspan="3">${escapeHtml(getTranslation("activities.statisticsNoRows"))}</td></tr>`;
+  const volumeRows = Array.isArray(statistics?.volumeByActivity) && statistics.volumeByActivity.length
+    ? statistics.volumeByActivity
+      .map(
+        (row) => `
+          <tr>
+            <td>${escapeHtml(row.title || "-")}</td>
+            <td>${escapeHtml(formatActivityNumber(row.sessions))}</td>
+            <td>${escapeHtml(formatActivityNumber(row.attendance))}</td>
+            <td>${escapeHtml(activityDurationText(row.durationMinutes))}</td>
+            <td>${escapeHtml(formatActivityVolume(row.volumeMinutes))}</td>
+          </tr>
+        `,
+      )
+      .join("")
+    : `<tr><td colspan="5">${escapeHtml(getTranslation("activities.statisticsNoRows"))}</td></tr>`;
+
+  return `<!doctype html>
+<html lang="${escapeHtml(getLanguage() === "en" ? "en" : "pt")}">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+    @page { size: A4 portrait; margin: 0; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 297mm; padding: 0; width: 210mm; }
+    body {
+      background: #ffffff;
+      color: #081614;
+      font-family: Arial, sans-serif;
+      font-size: 10.5px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body::before,
+    body::after {
+      background: #ffffff;
+      content: "";
+      left: 0;
+      pointer-events: none;
+      position: fixed;
+      right: 0;
+      z-index: 9999;
+    }
+    body::before { height: 8mm; top: 0; }
+    body::after { bottom: 0; height: 7mm; }
+    .print-sheet {
+      display: grid;
+      gap: 5mm;
+      padding: 12mm 12mm 10mm;
+      width: 100%;
+    }
+    header {
+      align-items: end;
+      border-bottom: 2px solid #23776b;
+      display: flex;
+      gap: 8mm;
+      justify-content: space-between;
+      padding-bottom: 3mm;
+    }
+    h1 { font-size: 19px; line-height: 1.12; margin: 0; }
+    header p {
+      color: #005f56;
+      font-size: 12px;
+      font-weight: 900;
+      margin: 0;
+      text-align: right;
+      text-transform: capitalize;
+    }
+    .cards {
+      display: grid;
+      gap: 2.5mm;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .card {
+      border: 1.2px solid #9bb9b2;
+      border-radius: 2mm;
+      display: grid;
+      gap: 2mm;
+      min-height: 18mm;
+      padding: 3mm;
+    }
+    .card span {
+      color: #506560;
+      font-size: 8.5px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .card strong {
+      font-size: 17px;
+      line-height: 1;
+    }
+    section { display: grid; gap: 2mm; }
+    h2 {
+      color: #005f56;
+      font-size: 13px;
+      margin: 0;
+    }
+    table {
+      border: 1.2px solid #9bb9b2;
+      border-collapse: collapse;
+      table-layout: fixed;
+      width: 100%;
+    }
+    th,
+    td {
+      border-bottom: 1.2px solid #c5d7d1;
+      padding: 2.3mm;
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+    th {
+      background: #eef5f3;
+      color: #506560;
+      font-size: 8.5px;
+      text-transform: uppercase;
+    }
+    tr:last-child td { border-bottom: 0; }
+  </style>
+</head>
+<body>
+  <main class="print-sheet">
+    <header>
+      <h1>${escapeHtml(getTranslation("activities.statisticsTitle"))}</h1>
+      <p>${escapeHtml(activityStatisticsDisplayTitle(statistics))}</p>
+    </header>
+    <div class="cards">
+      <div class="card">
+        <span>${escapeHtml(activitiesLabel)}</span>
+        <strong>${escapeHtml(formatActivityNumber(totals.activities))}</strong>
+      </div>
+      <div class="card">
+        <span>${escapeHtml(getTranslation("activities.statisticsAverage"))}</span>
+        <strong>${escapeHtml(formatActivityNumber(totals.averageAttendance, 1))}</strong>
+      </div>
+      <div class="card">
+        <span>${escapeHtml(getTranslation("activities.statisticsSummaries"))}</span>
+        <strong>${escapeHtml(formatActivityNumber(totals.summaries))}</strong>
+      </div>
+      <div class="card">
+        <span>${escapeHtml(getTranslation("activities.statisticsVolume"))}</span>
+        <strong>${escapeHtml(formatActivityVolume(totals.volumeMinutes))}</strong>
+      </div>
+    </div>
+    <section>
+      <h2>${escapeHtml(getTranslation("activities.statisticsAttendanceTitle"))}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>${escapeHtml(getTranslation("activities.statisticsUser"))}</th>
+            <th>${escapeHtml(getTranslation("activities.statisticsAttendance"))}</th>
+            <th>${escapeHtml(getTranslation("activities.statisticsAssiduity"))}</th>
+          </tr>
+        </thead>
+        <tbody>${attendanceRows}</tbody>
+      </table>
+    </section>
+    <section>
+      <h2>${escapeHtml(getTranslation("activities.statisticsVolumeTitle"))}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>${escapeHtml(getTranslation("activities.name"))}</th>
+            <th>${escapeHtml(getTranslation("activities.statisticsSessions"))}</th>
+            <th>${escapeHtml(getTranslation("activities.statisticsPeople"))}</th>
+            <th>${escapeHtml(getTranslation("activities.statisticsDuration"))}</th>
+            <th>${escapeHtml(getTranslation("activities.statisticsVolume"))}</th>
+          </tr>
+        </thead>
+        <tbody>${volumeRows}</tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>`;
+};
+
 const activitySummaryPrintDocument = (entry) => {
   const { summaryForm } = activitiesElements();
   const attendance = currentActivitySummaryAttendance();
@@ -3809,6 +4056,14 @@ const printActivitySummary = () => {
   printActivityHtmlDocument(activitySummaryPrintDocument(entry), getTranslation("activities.summaryTitle"));
 };
 
+const printActivityStatistics = () => {
+  if (!activitiesState.statistics) {
+    setActivityStatisticsFeedback(getTranslation("activities.statisticsEmpty"));
+    return;
+  }
+  printActivityHtmlDocument(activityStatisticsPrintDocument(activitiesState.statistics), getTranslation("activities.statisticsTitle"));
+};
+
 const changeActivityWeek = (weekOffset) => {
   const nextWeek = addDaysToIso(activitiesState.selectedWeekStart, weekOffset * 7);
   activitiesState.selectedWeekStart = weekStartIso(nextWeek);
@@ -3867,9 +4122,11 @@ const wireActivitiesCalendar = () => {
     statisticsBtns,
     statisticsDialog,
     statisticsCloseBtn,
+    statisticsPrintBtn,
     statisticsPeriodSelect,
     statisticsMonthInput,
     statisticsYearInput,
+    statisticsActivitySelect,
     statisticsRefreshBtn,
     summaryDialog,
     summaryCloseBtn,
@@ -3924,9 +4181,12 @@ const wireActivitiesCalendar = () => {
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
   statisticsBtns?.forEach((button) => {
-    button.addEventListener("click", openActivityStatisticsDialog);
+    button.addEventListener("click", () => {
+      void openActivityStatisticsDialog();
+    });
   });
   statisticsCloseBtn?.addEventListener("click", closeActivityStatisticsDialog);
+  statisticsPrintBtn?.addEventListener("click", printActivityStatistics);
   statisticsRefreshBtn?.addEventListener("click", () => {
     void loadActivityStatistics();
   });
@@ -3938,6 +4198,9 @@ const wireActivitiesCalendar = () => {
     void loadActivityStatistics();
   });
   statisticsYearInput?.addEventListener("change", () => {
+    void loadActivityStatistics();
+  });
+  statisticsActivitySelect?.addEventListener("change", () => {
     void loadActivityStatistics();
   });
   statisticsDialog?.addEventListener("click", (event) => {

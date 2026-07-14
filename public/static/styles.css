@@ -1565,6 +1565,13 @@ body.dark-mode .central-admin-forms {
   flex: 0 0 auto;
 }
 
+.activity-dialog-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
 .activity-dialog-actions {
   display: inline-flex;
   align-items: center;
@@ -1572,7 +1579,8 @@ body.dark-mode .central-admin-forms {
   flex: 0 0 auto;
 }
 
-.activity-summary-print-button {
+.activity-summary-print-button,
+.activity-statistics-print-button {
   width: auto;
   min-height: 42px;
   padding: 0 14px;

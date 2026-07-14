@@ -220,9 +220,15 @@ export const atividadesPageContent = () => `<main class="global-shell activities
             <i data-lucide="bar-chart-3" aria-hidden="true"></i>
             <strong id="activityStatisticsTitle" data-i18n="activities.statisticsTitle">Estat&iacute;sticas de atividades</strong>
           </div>
-          <button class="icon-link" type="button" data-activities-statistics-close aria-label="Fechar">
-            <i data-lucide="x"></i>
-          </button>
+          <div class="activity-dialog-head-actions">
+            <button class="secondary-button activity-statistics-print-button" type="button" data-activities-statistics-print data-requires-permission-area="atividades" data-requires-permission-action="export">
+              <i data-lucide="printer"></i>
+              <span data-i18n="activities.printSummary">Imprimir</span>
+            </button>
+            <button class="icon-link" type="button" data-activities-statistics-close aria-label="Fechar">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
         </header>
         <div class="activity-statistics-panel">
           <div class="activity-statistics-controls">
@@ -233,7 +239,7 @@ export const atividadesPageContent = () => `<main class="global-shell activities
                 <option value="year" data-i18n="activities.statisticsPeriodAnnual">Anual</option>
               </select>
             </label>
-            <label class="activity-field">
+            <label class="activity-field" data-activities-statistics-month-field>
               <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
               <select data-activities-statistics-month></select>
             </label>
@@ -241,10 +247,10 @@ export const atividadesPageContent = () => `<main class="global-shell activities
               <span data-i18n="activities.statisticsYear">Ano</span>
               <select data-activities-statistics-year></select>
             </label>
-            <button class="secondary-button" type="button" data-activities-statistics-refresh>
-              <i data-lucide="refresh-cw"></i>
-              <span data-i18n="activities.statisticsRefresh">Atualizar</span>
-            </button>
+            <label class="activity-field">
+              <span data-i18n="activities.statisticsActivity">Atividade</span>
+              <select data-activities-statistics-activity></select>
+            </label>
           </div>
           <p class="form-error activity-error" data-activities-statistics-error role="alert" hidden></p>
           <div data-activities-statistics-content>

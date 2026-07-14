@@ -221,7 +221,7 @@ const normalizeAttendance = (attendance) => {
   return result
 }
 
-const listMonthData = async (adminClient, bounds) => {
+const listMonthData = async (adminClient, bounds, activityFilter = '') => {
   const [scheduleResult, summariesResult, utentesResult] = await Promise.all([
     adminClient
       .from('activities_schedule')
@@ -258,6 +258,7 @@ const listMonthData = async (adminClient, bounds) => {
       end: cleanTime(row?.end_time),
     }))
     .filter((row) => row.id && row.date >= bounds.start && row.date <= bounds.end)
+    .filter((row) => !activityFilter || row.title === activityFilter)
 
   const summaries = (Array.isArray(summariesResult.data) ? summariesResult.data : [])
     .map((row) => ({
@@ -271,6 +272,7 @@ const listMonthData = async (adminClient, bounds) => {
       attendance: normalizeAttendance(row?.attendance),
     }))
     .filter((row) => row.activityId && row.date >= bounds.start && row.date <= bounds.end)
+    .filter((row) => !activityFilter || row.title === activityFilter)
 
   const utentes = (Array.isArray(utentesResult.data) ? utentesResult.data : [])
     .map((row) => ({
@@ -283,7 +285,7 @@ const listMonthData = async (adminClient, bounds) => {
   return { activities, summaries, utentes }
 }
 
-const buildStatistics = ({ activities, summaries, utentes }, bounds) => {
+const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFilter = '') => {
   const attendanceCounts = new Map()
   const peopleById = new Map(utentes.map((utente) => [utente.id, { ...utente, present: 0 }]))
   const volumeByActivity = new Map()
@@ -348,6 +350,7 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds) => {
     year: bounds.year,
     periodStart: bounds.start,
     periodEnd: bounds.end,
+    activity: activityFilter || null,
     totals: {
       activities: activities.length,
       summaries: summaries.length,
@@ -379,9 +382,10 @@ export default async function handler(request, response) {
     const period = String(queryValue(request, 'period') || 'month').trim() === 'year' ? 'year' : 'month'
     const month = String(queryValue(request, 'month') || '').trim()
     const year = String(queryValue(request, 'year') || '').trim()
+    const activity = String(queryValue(request, 'activity') || '').trim()
     const bounds = statisticsBounds({ period, month, year })
-    const data = await listMonthData(adminClient, bounds)
-    sendJson(response, 200, { statistics: buildStatistics(data, bounds) })
+    const data = await listMonthData(adminClient, bounds, activity)
+    sendJson(response, 200, { statistics: buildStatistics(data, bounds, activity) })
   } catch (error) {
     sendJson(response, error.status ?? 500, { error: clientErrorMessage(error) })
   }

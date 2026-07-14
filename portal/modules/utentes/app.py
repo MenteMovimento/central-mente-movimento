@@ -454,6 +454,18 @@ main {
     font-size: 1.25rem;
 }
 
+.stats-page-title {
+    justify-content: space-between;
+}
+
+.stats-page-title > div {
+    margin-right: auto;
+}
+
+.stats-print-heading {
+    display: none;
+}
+
 .title-actions {
     display: flex;
     align-items: center;
@@ -2118,6 +2130,17 @@ tr:last-child td {
 
     .edit-layout {
         gap: 0 !important;
+    }
+
+    .stats-print-heading {
+        display: block !important;
+        margin: 0 0 6mm;
+        padding: 0 0 2.5mm;
+        border-bottom: 2px solid #1f766b;
+        color: #0a5f56;
+        font-size: 18pt;
+        font-weight: 900;
+        line-height: 1.1;
     }
 
     .tab-content::before {
@@ -9088,14 +9111,16 @@ def render_statistics_page(current_user):
         """
     content = f"""
 <div class="edit-layout">
-    <div class="edit-title">
+    <div class="edit-title stats-page-title">
         <div>
             <h2>Estatísticas de utentes</h2>
         </div>
         <div class="title-actions">
+            {render_print_page_button(current_user)}
             <a class="button secondary" href="/">Voltar</a>
         </div>
     </div>
+    <h2 class="stats-print-heading">Estatísticas de utentes</h2>
     <section class="stats-grid">
         <article class="stat-card">
             <span>{esc(tr(current_user, "average_stay"))}</span>
