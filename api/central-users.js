@@ -3,7 +3,7 @@ import {
   canManageUsers,
   mapCentralPermissionsToDeviceRole,
   normalizePermissions,
-} from './_permissions.js'
+} from '../api-lib/permissions.js'
 
 // The database still requires this enum for legacy integrations. Access is decided only by permissions.
 const LEGACY_ROLE = 'viewer'

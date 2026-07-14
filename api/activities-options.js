@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { hasPermission, normalizePermissions } from './_permissions.js'
+import { hasPermission, normalizePermissions } from '../api-lib/permissions.js'
 
 const OPTION_KINDS = {
   activities: {

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { canManageUsers, fullPermissions } from './_permissions.js'
+import { canManageUsers, fullPermissions } from '../api-lib/permissions.js'
 
 const sendJson = (response, status, body) => {
   response.status(status).json(body)

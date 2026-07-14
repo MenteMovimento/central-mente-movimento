@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { hasPermission, normalizePermissions } from './_permissions.js'
+import { hasPermission, normalizePermissions } from '../api-lib/permissions.js'
 
 const summaryColumns =
   'id, activity_id, activity_date, activity_title, start_time, end_time, duration_minutes, summary, attendance, created_at, updated_at'

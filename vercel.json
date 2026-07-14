@@ -208,6 +208,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/admin-users",
+      "destination": "/api/central-users"
+    },
+    {
       "source": "/area/utentes",
       "destination": "/api/utentes-app.py"
     },
