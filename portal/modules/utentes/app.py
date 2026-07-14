@@ -460,13 +460,6 @@ main {
     gap: 4px;
 }
 
-.utente-context-title span {
-    color: var(--muted);
-    font-size: 0.82rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
 .utente-context-title h1 {
     margin: 0;
     color: var(--ink);
@@ -8783,7 +8776,6 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     print_button = render_print_page_button(current_user)
     utente_name_title = f"""
     <div class="utente-context-title">
-        <span>Utente em edição</span>
         <h1>{esc(utente.get("nome") or "Utente sem nome")}</h1>
     </div>
 """
