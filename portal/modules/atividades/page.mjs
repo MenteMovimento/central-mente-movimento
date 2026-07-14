@@ -227,8 +227,19 @@ export const atividadesPageContent = () => `<main class="global-shell activities
         <div class="activity-statistics-panel">
           <div class="activity-statistics-controls">
             <label class="activity-field">
+              <span data-i18n="activities.statisticsPeriod">Per&iacute;odo</span>
+              <select data-activities-statistics-period>
+                <option value="month" data-i18n="activities.statisticsPeriodMonthly">Mensal</option>
+                <option value="year" data-i18n="activities.statisticsPeriodAnnual">Anual</option>
+              </select>
+            </label>
+            <label class="activity-field">
               <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
               <input type="month" data-activities-statistics-month />
+            </label>
+            <label class="activity-field" data-activities-statistics-year-field hidden>
+              <span data-i18n="activities.statisticsYear">Ano</span>
+              <input type="number" min="2000" max="2100" step="1" data-activities-statistics-year />
             </label>
             <button class="secondary-button" type="button" data-activities-statistics-refresh>
               <i data-lucide="refresh-cw"></i>
@@ -237,7 +248,7 @@ export const atividadesPageContent = () => `<main class="global-shell activities
           </div>
           <p class="form-error activity-error" data-activities-statistics-error role="alert" hidden></p>
           <div data-activities-statistics-content>
-            <p class="activity-empty-state" data-i18n="activities.statisticsEmpty">Escolha um m&ecirc;s para consultar as estat&iacute;sticas.</p>
+            <p class="activity-empty-state" data-i18n="activities.statisticsEmpty">Escolha o per&iacute;odo para consultar as estat&iacute;sticas.</p>
           </div>
         </div>
       </div>

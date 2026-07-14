@@ -58,6 +58,7 @@ const clientErrorMessage = (error) => {
 
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/
 const monthPattern = /^\d{4}-\d{2}$/
+const yearPattern = /^\d{4}$/
 
 const dateFromIso = (value) => {
   if (!dateIsoPattern.test(value || '')) return null
@@ -123,7 +124,25 @@ const dayOffsets = {
 
 const scheduleDate = (row) => addDaysToIso(String(row?.week_start ?? ''), dayOffsets[row?.day] ?? 0)
 
-const monthBounds = (month) => {
+const statisticsBounds = ({ period, month, year: requestedYear }) => {
+  if (period === 'year') {
+    if (!yearPattern.test(requestedYear || '')) {
+      const error = new Error('Ano invalido.')
+      error.status = 400
+      throw error
+    }
+    const yearNumber = Number(requestedYear)
+    const start = new Date(yearNumber, 0, 1)
+    const end = new Date(yearNumber, 11, 31)
+    return {
+      period: 'year',
+      year: requestedYear,
+      start: dateToIso(start),
+      end: dateToIso(end),
+      scheduleStart: weekStartIso(start),
+    }
+  }
+
   if (!monthPattern.test(month || '')) {
     const error = new Error('Mes invalido.')
     error.status = 400
@@ -133,7 +152,9 @@ const monthBounds = (month) => {
   const start = new Date(year, monthNumber - 1, 1)
   const end = new Date(year, monthNumber, 0)
   return {
+    period: 'month',
     month,
+    year: String(year),
     start: dateToIso(start),
     end: dateToIso(end),
     scheduleStart: weekStartIso(start),
@@ -322,9 +343,11 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds) => {
     .sort((left, right) => right.present - left.present || left.name.localeCompare(right.name, 'pt'))
 
   return {
-    month: bounds.month,
-    monthStart: bounds.start,
-    monthEnd: bounds.end,
+    period: bounds.period,
+    month: bounds.month ?? null,
+    year: bounds.year,
+    periodStart: bounds.start,
+    periodEnd: bounds.end,
     totals: {
       activities: activities.length,
       summaries: summaries.length,
@@ -353,8 +376,10 @@ export default async function handler(request, response) {
 
   try {
     await getAuthorizedUser(adminClient, request)
+    const period = String(queryValue(request, 'period') || 'month').trim() === 'year' ? 'year' : 'month'
     const month = String(queryValue(request, 'month') || '').trim()
-    const bounds = monthBounds(month)
+    const year = String(queryValue(request, 'year') || '').trim()
+    const bounds = statisticsBounds({ period, month, year })
     const data = await listMonthData(adminClient, bounds)
     sendJson(response, 200, { statistics: buildStatistics(data, bounds) })
   } catch (error) {

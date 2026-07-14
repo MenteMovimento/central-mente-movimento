@@ -80,11 +80,16 @@ const translations = {
     "activities.printSummary": "Imprimir",
     "activities.statisticsButton": "Estatísticas",
     "activities.statisticsTitle": "Estatísticas de atividades",
+    "activities.statisticsPeriod": "Período",
+    "activities.statisticsPeriodMonthly": "Mensal",
+    "activities.statisticsPeriodAnnual": "Anual",
     "activities.statisticsMonth": "Mês",
+    "activities.statisticsYear": "Ano",
     "activities.statisticsRefresh": "Atualizar",
-    "activities.statisticsEmpty": "Escolha um mês para consultar as estatísticas.",
+    "activities.statisticsEmpty": "Escolha o período para consultar as estatísticas.",
     "activities.statisticsLoadError": "Não foi possível carregar as estatísticas de atividades.",
     "activities.statisticsActivities": "Atividades no mês",
+    "activities.statisticsActivitiesYear": "Atividades no ano",
     "activities.statisticsAverage": "Média de utentes/atividade",
     "activities.statisticsSummaries": "Sumários registados",
     "activities.statisticsVolume": "Volume total",
@@ -96,7 +101,7 @@ const translations = {
     "activities.statisticsSessions": "Sessões",
     "activities.statisticsPeople": "Pessoas",
     "activities.statisticsDuration": "Duração",
-    "activities.statisticsNoRows": "Sem dados registados neste mês.",
+    "activities.statisticsNoRows": "Sem dados registados neste período.",
     "activities.statisticsPersonHours": "horas-pessoa",
     "activities.summaryButton": "Sumário",
     "activities.summaryAction": "Sumário",
@@ -325,11 +330,16 @@ const translations = {
     "activities.printSummary": "Print",
     "activities.statisticsButton": "Statistics",
     "activities.statisticsTitle": "Activity statistics",
+    "activities.statisticsPeriod": "Period",
+    "activities.statisticsPeriodMonthly": "Monthly",
+    "activities.statisticsPeriodAnnual": "Annual",
     "activities.statisticsMonth": "Month",
+    "activities.statisticsYear": "Year",
     "activities.statisticsRefresh": "Refresh",
-    "activities.statisticsEmpty": "Choose a month to view statistics.",
+    "activities.statisticsEmpty": "Choose a period to view statistics.",
     "activities.statisticsLoadError": "Could not load activity statistics.",
     "activities.statisticsActivities": "Monthly activities",
+    "activities.statisticsActivitiesYear": "Annual activities",
     "activities.statisticsAverage": "Average clients/activity",
     "activities.statisticsSummaries": "Registered summaries",
     "activities.statisticsVolume": "Total volume",
@@ -341,7 +351,7 @@ const translations = {
     "activities.statisticsSessions": "Sessions",
     "activities.statisticsPeople": "People",
     "activities.statisticsDuration": "Duration",
-    "activities.statisticsNoRows": "No data registered in this month.",
+    "activities.statisticsNoRows": "No data registered in this period.",
     "activities.statisticsPersonHours": "person-hours",
     "activities.summaryButton": "Summary",
     "activities.summaryAction": "Summary",
@@ -1746,7 +1756,10 @@ const activitiesElements = () => ({
   statisticsBtns: document.querySelectorAll("[data-activities-statistics]"),
   statisticsDialog: document.querySelector("[data-activities-statistics-dialog]"),
   statisticsCloseBtn: document.querySelector("[data-activities-statistics-close]"),
+  statisticsPeriodSelect: document.querySelector("[data-activities-statistics-period]"),
   statisticsMonthInput: document.querySelector("[data-activities-statistics-month]"),
+  statisticsYearField: document.querySelector("[data-activities-statistics-year-field]"),
+  statisticsYearInput: document.querySelector("[data-activities-statistics-year]"),
   statisticsRefreshBtn: document.querySelector("[data-activities-statistics-refresh]"),
   statisticsContent: document.querySelector("[data-activities-statistics-content]"),
   statisticsError: document.querySelector("[data-activities-statistics-error]"),
@@ -1951,6 +1964,11 @@ const activityMonthValue = (value = activitiesState.selectedWeekStart) => {
   return dateToIso(date || new Date()).slice(0, 7);
 };
 
+const activityYearValue = (value = activitiesState.selectedWeekStart) => {
+  const date = value instanceof Date ? value : dateFromIso(String(value || ""));
+  return String((date || new Date()).getFullYear());
+};
+
 const formatActivityMonth = (month) => {
   const [year, monthNumber] = String(month || "").split("-").map(Number);
   if (!year || !monthNumber) return String(month || "");
@@ -1958,6 +1976,11 @@ const formatActivityMonth = (month) => {
     month: "long",
     year: "numeric",
   }).format(new Date(year, monthNumber - 1, 1));
+};
+
+const formatActivityStatisticsPeriod = (statistics) => {
+  if (statistics?.period === "year") return String(statistics.year || "");
+  return formatActivityMonth(statistics?.month);
 };
 
 const formatActivityNumber = (value, maximumFractionDigits = 0) =>
@@ -1972,9 +1995,14 @@ const formatActivityVolume = (minutes) => {
   return `${formatActivityNumber(hours, 1)} ${getTranslation("activities.statisticsPersonHours")}`;
 };
 
-const activitiesStatisticsRequest = async (month) => {
+const activitiesStatisticsRequest = async ({ period = "month", month = "", year = "" } = {}) => {
   const token = await getActivitiesAccessToken();
-  const query = new URLSearchParams({ month });
+  const query = new URLSearchParams({ period });
+  if (period === "year") {
+    query.set("year", year);
+  } else {
+    query.set("month", month);
+  }
   const response = await fetch(`/api/activities-statistics?${query.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -2034,11 +2062,16 @@ const renderActivityStatistics = (statistics) => {
       .join("")
     : statisticsTableEmptyRow(5);
 
+  const activitiesLabel =
+    statistics.period === "year"
+      ? getTranslation("activities.statisticsActivitiesYear")
+      : getTranslation("activities.statisticsActivities");
+
   statisticsContent.innerHTML = `
-    <div class="activity-statistics-month">${escapeHtml(formatActivityMonth(statistics.month))}</div>
+    <div class="activity-statistics-month">${escapeHtml(formatActivityStatisticsPeriod(statistics))}</div>
     <div class="activity-statistics-cards">
       <div>
-        <span>${escapeHtml(getTranslation("activities.statisticsActivities"))}</span>
+        <span>${escapeHtml(activitiesLabel)}</span>
         <strong>${escapeHtml(formatActivityNumber(totals.activities))}</strong>
       </div>
       <div>
@@ -2090,11 +2123,34 @@ const renderActivityStatistics = (statistics) => {
   refreshIcons();
 };
 
+const activityStatisticsPeriodValue = () => {
+  const { statisticsPeriodSelect } = activitiesElements();
+  return statisticsPeriodSelect?.value === "year" ? "year" : "month";
+};
+
+const syncActivityStatisticsPeriodControls = () => {
+  const { statisticsPeriodSelect, statisticsMonthInput, statisticsYearField, statisticsYearInput } = activitiesElements();
+  const period = statisticsPeriodSelect?.value === "year" ? "year" : "month";
+  if (statisticsMonthInput) {
+    statisticsMonthInput.hidden = period === "year";
+    statisticsMonthInput.closest(".activity-field")?.toggleAttribute("hidden", period === "year");
+    if (!statisticsMonthInput.value) statisticsMonthInput.value = activityMonthValue();
+  }
+  if (statisticsYearField) statisticsYearField.hidden = period !== "year";
+  if (statisticsYearInput && !statisticsYearInput.value) statisticsYearInput.value = activityYearValue();
+};
+
 const loadActivityStatistics = async () => {
-  const { statisticsMonthInput, statisticsRefreshBtn, statisticsContent } = activitiesElements();
+  const { statisticsMonthInput, statisticsYearInput, statisticsRefreshBtn, statisticsContent } = activitiesElements();
+  syncActivityStatisticsPeriodControls();
+  const period = activityStatisticsPeriodValue();
   const month = String(statisticsMonthInput?.value || activityMonthValue()).trim();
+  const year = String(statisticsYearInput?.value || activityYearValue()).trim();
   if (statisticsMonthInput && !statisticsMonthInput.value) {
     statisticsMonthInput.value = month;
+  }
+  if (statisticsYearInput && !statisticsYearInput.value) {
+    statisticsYearInput.value = year;
   }
   if (statisticsRefreshBtn) statisticsRefreshBtn.disabled = true;
   setActivityStatisticsFeedback("");
@@ -2102,7 +2158,7 @@ const loadActivityStatistics = async () => {
     statisticsContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.loading"))}</p>`;
   }
   try {
-    renderActivityStatistics(await activitiesStatisticsRequest(month));
+    renderActivityStatistics(await activitiesStatisticsRequest({ period, month, year }));
   } catch (error) {
     console.warn("Nao foi possivel carregar estatisticas de atividades.", error);
     setActivityStatisticsFeedback(error?.message || getTranslation("activities.statisticsLoadError"));
@@ -2123,6 +2179,7 @@ const openActivityStatisticsDialog = () => {
   setActivityFormOpen(false);
   closeActivitySummaryDialog();
   if (statisticsMonthInput) statisticsMonthInput.value = activityMonthValue();
+  syncActivityStatisticsPeriodControls();
   setActivityStatisticsFeedback("");
   if (typeof statisticsDialog.showModal === "function") {
     statisticsDialog.showModal();
@@ -3766,7 +3823,9 @@ const wireActivitiesCalendar = () => {
     statisticsBtns,
     statisticsDialog,
     statisticsCloseBtn,
+    statisticsPeriodSelect,
     statisticsMonthInput,
+    statisticsYearInput,
     statisticsRefreshBtn,
     summaryDialog,
     summaryCloseBtn,
@@ -3827,7 +3886,14 @@ const wireActivitiesCalendar = () => {
   statisticsRefreshBtn?.addEventListener("click", () => {
     void loadActivityStatistics();
   });
+  statisticsPeriodSelect?.addEventListener("change", () => {
+    syncActivityStatisticsPeriodControls();
+    void loadActivityStatistics();
+  });
   statisticsMonthInput?.addEventListener("change", () => {
+    void loadActivityStatistics();
+  });
+  statisticsYearInput?.addEventListener("change", () => {
     void loadActivityStatistics();
   });
   statisticsDialog?.addEventListener("click", (event) => {
