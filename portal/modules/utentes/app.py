@@ -455,11 +455,20 @@ main {
 }
 
 .stats-page-title {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     justify-content: space-between;
+    justify-self: stretch;
+    width: 100%;
 }
 
 .stats-page-title > div {
-    margin-right: auto;
+    margin-right: 0;
+}
+
+.stats-page-title .title-actions {
+    justify-self: end;
 }
 
 .stats-print-heading {
@@ -2419,6 +2428,14 @@ tr:last-child td {
     .edit-title {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .stats-page-title {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-page-title .title-actions {
+        justify-self: stretch;
     }
 
     .title-actions {
