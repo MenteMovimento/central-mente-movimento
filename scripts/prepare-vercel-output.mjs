@@ -150,10 +150,6 @@ const topbarMenu = (activeId = '') =>
             <i data-lucide="users-round"></i>
             <span>Monitores</span>
           </button>
-          <button class="menu-item" type="button" data-activities-statistics role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
-            <i data-lucide="bar-chart-3"></i>
-            <span data-i18n="activities.statisticsButton">Estat&iacute;sticas</span>
-          </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
             <span>Hist&oacute;rico</span>
