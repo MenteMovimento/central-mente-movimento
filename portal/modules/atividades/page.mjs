@@ -235,11 +235,11 @@ export const atividadesPageContent = () => `<main class="global-shell activities
             </label>
             <label class="activity-field">
               <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
-              <input type="month" data-activities-statistics-month />
+              <select data-activities-statistics-month></select>
             </label>
-            <label class="activity-field" data-activities-statistics-year-field hidden>
+            <label class="activity-field" data-activities-statistics-year-field>
               <span data-i18n="activities.statisticsYear">Ano</span>
-              <input type="number" min="2000" max="2100" step="1" data-activities-statistics-year />
+              <select data-activities-statistics-year></select>
             </label>
             <button class="secondary-button" type="button" data-activities-statistics-refresh>
               <i data-lucide="refresh-cw"></i>

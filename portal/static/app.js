@@ -1969,6 +1969,46 @@ const activityYearValue = (value = activitiesState.selectedWeekStart) => {
   return String((date || new Date()).getFullYear());
 };
 
+const activityMonthNumberValue = (value = activitiesState.selectedWeekStart) => activityMonthValue(value).slice(5, 7);
+
+const activityStatisticsMonthOptions = () => {
+  const formatter = new Intl.DateTimeFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", { month: "long" });
+  return Array.from({ length: 12 }, (_, index) => {
+    const month = String(index + 1).padStart(2, "0");
+    const label = formatter.format(new Date(2026, index, 1));
+    return `<option value="${month}">${escapeHtml(label.charAt(0).toUpperCase() + label.slice(1))}</option>`;
+  }).join("");
+};
+
+const activityStatisticsYearOptions = () => {
+  const selectedYear = Number(activityYearValue());
+  const currentYear = new Date().getFullYear();
+  const startYear = Math.min(2020, selectedYear);
+  const endYear = Math.max(currentYear + 5, selectedYear);
+  return Array.from({ length: endYear - startYear + 1 }, (_, index) => {
+    const year = String(startYear + index);
+    return `<option value="${year}">${year}</option>`;
+  }).join("");
+};
+
+const fillActivityStatisticsSelectOptions = () => {
+  const { statisticsMonthInput, statisticsYearInput } = activitiesElements();
+  const language = getLanguage();
+  if (statisticsMonthInput && statisticsMonthInput.dataset.optionsLanguage !== language) {
+    const currentValue = statisticsMonthInput.value || activityMonthNumberValue();
+    statisticsMonthInput.innerHTML = activityStatisticsMonthOptions();
+    statisticsMonthInput.dataset.optionsLanguage = language;
+    statisticsMonthInput.value = currentValue;
+  }
+  if (statisticsYearInput) {
+    const currentValue = statisticsYearInput.value || activityYearValue();
+    const hasCurrentOption = Array.from(statisticsYearInput.options).some((option) => option.value === currentValue);
+    if (statisticsYearInput.options.length && hasCurrentOption) return;
+    statisticsYearInput.innerHTML = activityStatisticsYearOptions();
+    statisticsYearInput.value = currentValue;
+  }
+};
+
 const formatActivityMonth = (month) => {
   const [year, monthNumber] = String(month || "").split("-").map(Number);
   if (!year || !monthNumber) return String(month || "");
@@ -2130,13 +2170,14 @@ const activityStatisticsPeriodValue = () => {
 
 const syncActivityStatisticsPeriodControls = () => {
   const { statisticsPeriodSelect, statisticsMonthInput, statisticsYearField, statisticsYearInput } = activitiesElements();
+  fillActivityStatisticsSelectOptions();
   const period = statisticsPeriodSelect?.value === "year" ? "year" : "month";
   if (statisticsMonthInput) {
     statisticsMonthInput.hidden = period === "year";
     statisticsMonthInput.closest(".activity-field")?.toggleAttribute("hidden", period === "year");
-    if (!statisticsMonthInput.value) statisticsMonthInput.value = activityMonthValue();
+    if (!statisticsMonthInput.value) statisticsMonthInput.value = activityMonthNumberValue();
   }
-  if (statisticsYearField) statisticsYearField.hidden = period !== "year";
+  if (statisticsYearField) statisticsYearField.hidden = false;
   if (statisticsYearInput && !statisticsYearInput.value) statisticsYearInput.value = activityYearValue();
 };
 
@@ -2144,10 +2185,11 @@ const loadActivityStatistics = async () => {
   const { statisticsMonthInput, statisticsYearInput, statisticsRefreshBtn, statisticsContent } = activitiesElements();
   syncActivityStatisticsPeriodControls();
   const period = activityStatisticsPeriodValue();
-  const month = String(statisticsMonthInput?.value || activityMonthValue()).trim();
   const year = String(statisticsYearInput?.value || activityYearValue()).trim();
+  const monthNumber = String(statisticsMonthInput?.value || activityMonthNumberValue()).trim();
+  const month = `${year}-${monthNumber}`;
   if (statisticsMonthInput && !statisticsMonthInput.value) {
-    statisticsMonthInput.value = month;
+    statisticsMonthInput.value = monthNumber;
   }
   if (statisticsYearInput && !statisticsYearInput.value) {
     statisticsYearInput.value = year;
@@ -2173,12 +2215,14 @@ const openActivityStatisticsDialog = () => {
     showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
     return;
   }
-  const { statisticsDialog, statisticsMonthInput } = activitiesElements();
+  const { statisticsDialog, statisticsMonthInput, statisticsYearInput } = activitiesElements();
   if (!statisticsDialog) return;
   closeToolsMenus();
   setActivityFormOpen(false);
   closeActivitySummaryDialog();
-  if (statisticsMonthInput) statisticsMonthInput.value = activityMonthValue();
+  fillActivityStatisticsSelectOptions();
+  if (statisticsMonthInput) statisticsMonthInput.value = activityMonthNumberValue();
+  if (statisticsYearInput) statisticsYearInput.value = activityYearValue();
   syncActivityStatisticsPeriodControls();
   setActivityStatisticsFeedback("");
   if (typeof statisticsDialog.showModal === "function") {

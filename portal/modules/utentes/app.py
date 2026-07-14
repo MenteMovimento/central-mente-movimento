@@ -65,8 +65,8 @@ TAB_SECTIONS = [
     ("diagnostica", "Avaliação Diagnóstica Multidisciplinar"),
     ("atendimentos", "Registo de Atendimentos e Acompanhamentos"),
     ("protecao_dados", "Proteção de dados e Termos de Responsabilidade"),
-    ("pagamentos", "Pagamentos e Mensalidades"),
-    ("outros", "Outros")
+    ("outros", "Outros"),
+    ("pagamentos", "Pagamentos e Mensalidades")
 ]
 
 UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia"}

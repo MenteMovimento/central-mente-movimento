@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Gestão de Atividades | MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260714-activity-statistics-periods" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260714-activity-statistics-selects" />
     <style>
       .school-timetable .timetable-row {
         grid-template-columns: repeat(5, minmax(165px, 1fr)) !important;
@@ -19,9 +19,9 @@
     </style>
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260714-activity-statistics-periods" defer></script>
-    <script src="/static/app.js?v=20260714-activity-statistics-periods" defer></script>
-    <script src="/static/central-auth.js?v=20260714-activity-statistics-periods" defer></script>
+    <script src="/static/central-config.js?v=20260714-activity-statistics-selects" defer></script>
+    <script src="/static/app.js?v=20260714-activity-statistics-selects" defer></script>
+    <script src="/static/central-auth.js?v=20260714-activity-statistics-selects" defer></script>
   </head>
   <body data-central-page="atividades" data-title-key="module.atividades.title">
     
@@ -379,11 +379,11 @@
             </label>
             <label class="activity-field">
               <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
-              <input type="month" data-activities-statistics-month />
+              <select data-activities-statistics-month></select>
             </label>
-            <label class="activity-field" data-activities-statistics-year-field hidden>
+            <label class="activity-field" data-activities-statistics-year-field>
               <span data-i18n="activities.statisticsYear">Ano</span>
-              <input type="number" min="2000" max="2100" step="1" data-activities-statistics-year />
+              <select data-activities-statistics-year></select>
             </label>
             <button class="secondary-button" type="button" data-activities-statistics-refresh>
               <i data-lucide="refresh-cw"></i>
