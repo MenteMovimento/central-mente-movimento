@@ -19,6 +19,7 @@ import re
 import secrets
 import shutil
 import sqlite3
+import unicodedata
 import zipfile
 from datetime import datetime, timedelta
 
@@ -9037,11 +9038,148 @@ def utente_start_date(utente, ref_data, ins_data):
     return None
 
 
+UTENTES_AGE_GROUPS = [
+    ("18-25", 18, 25),
+    ("26-35", 26, 35),
+    ("36-45", 36, 45),
+    ("46-55", 46, 55),
+    ("56-65", 56, 65),
+]
+
+
+UTENTES_REFERENCING_ENTITIES = [
+    ("SAAS São João da Madeira", ["saas sao joao da madeira", "saas sao joao"]),
+    ("ULSEDV", ["ulsedv"]),
+    ("Auto-referenciação", ["auto referenciacao", "auto-referenciacao", "autorreferenciacao", "auto refernciacao"]),
+]
+
+
+UTENTES_REFERRAL_REASONS = [
+    ("Ativação Comportamental", ["motivo_ativacao", "ativacao comportamental"]),
+    ("Integração Sócio-Ocupacional", ["integracao socio ocupacional", "socio ocupacional", "socio-ocupacional"]),
+    ("Isolamento Social", ["motivo_isolamento", "isolamento social", "reducao do isolamento social"]),
+    ("Treino de Competências Sociais", ["motivo_competencias_sociais", "treino de competencias sociais"]),
+    ("Adesão terapêutica", ["adesao terapeutica", "adesao terapentica", "sem adesao terapeutica"]),
+    ("Gestão de Ansiedade e Stress", ["gestao de ansiedade e stress", "ansiedade e stress"]),
+    ("Integração Laboral", ["motivo_laboral", "integracao laboral", "laboral comunidade"]),
+    ("Sem informação", ["sem informacao"]),
+]
+
+
+UTENTES_DIAGNOSIS_OPTIONS = [
+    ("Esquizofrenia", ["esquizofrenia"]),
+    ("Perturbação Depressiva", ["perturbacao depressiva", "depressiva", "depressao"]),
+    ("Perturbação de ansiedade", ["perturbacao de ansiedade", "ansiedade"]),
+    ("Psicose", ["psicose"]),
+]
+
+
+def normalize_stats_text(value):
+    normalized = unicodedata.normalize("NFKD", str(value or ""))
+    without_marks = "".join(char for char in normalized if not unicodedata.combining(char))
+    return re.sub(r"\s+", " ", without_marks).casefold().strip()
+
+
+def stats_haystack_from_mapping(mapping):
+    parts = []
+    if not isinstance(mapping, dict):
+        return ""
+    for key, value in mapping.items():
+        text_value = str(value or "").strip()
+        if not text_value:
+            continue
+        if text_value == "1":
+            parts.append(key)
+        else:
+            parts.append(text_value)
+    return normalize_stats_text(" ".join(parts))
+
+
+def stats_haystack_from_selected_keys(mapping, prefixes=(), exact_keys=()):
+    if not isinstance(mapping, dict):
+        return ""
+    selected = {}
+    for key, value in mapping.items():
+        if key in exact_keys or any(key.startswith(prefix) for prefix in prefixes):
+            selected[key] = value
+    return stats_haystack_from_mapping(selected)
+
+
+def option_matches_text(haystack, aliases):
+    return any(normalize_stats_text(alias) in haystack for alias in aliases)
+
+
+def stats_rows_from_counts(counts, denominator):
+    return [
+        {
+            "name": name,
+            "count": count,
+            "percentage": round((count / denominator) * 100, 1) if denominator else 0,
+        }
+        for name, count in counts.items()
+    ]
+
+
+def utente_age_for_stats(row, ref_data, today):
+    birth_date = parse_stored_date(row["data_nascimento"]) or parse_stored_date(ref_data.get("data_nascimento"))
+    if birth_date:
+        return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+    try:
+        return int(str(ref_data.get("idade") or "").strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def render_stats_distribution_section(title, rows, first_header="Categoria"):
+    rows_html = ""
+    for item in rows:
+        percentage = item["percentage"]
+        rows_html += f"""
+        <tr>
+            <td>{esc(item["name"])}</td>
+            <td>{item["count"]}</td>
+            <td>
+                <div class="percentage-cell">
+                    <span>{percentage:g}%</span>
+                    <span class="percentage-bar"><span style="width: {percentage:g}%"></span></span>
+                </div>
+            </td>
+        </tr>
+        """
+    if not rows_html:
+        rows_html = """
+        <tr>
+            <td colspan="3">Sem dados suficientes</td>
+        </tr>
+        """
+    return f"""
+    <section class="panel table-wrap">
+        <div class="section-heading">
+            <h3>{esc(title)}</h3>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>{esc(first_header)}</th>
+                    <th>Total</th>
+                    <th>Percentagem</th>
+                </tr>
+            </thead>
+            <tbody>{rows_html}</tbody>
+        </table>
+    </section>
+"""
+
+
 def calculate_utentes_statistics():
     rows = fetch_utentes()
     today = datetime.now().date()
     permanence_days = []
     municipality_counts = {}
+    age_group_counts = {label: 0 for label, _minimum, _maximum in UTENTES_AGE_GROUPS}
+    entity_counts = {label: 0 for label, _aliases in UTENTES_REFERENCING_ENTITIES}
+    reason_counts = {label: 0 for label, _aliases in UTENTES_REFERRAL_REASONS}
+    diagnosis_counts = {label: 0 for label, _aliases in UTENTES_DIAGNOSIS_OPTIONS}
     active_count = 0
     inactive_count = 0
     payment_scope_count = 0
@@ -9072,6 +9210,47 @@ def calculate_utentes_statistics():
         if not municipality:
             municipality = "Sem concelho preenchido"
         municipality_counts[municipality] = municipality_counts.get(municipality, 0) + 1
+        age = utente_age_for_stats(row, ref_data, today)
+        if age is not None:
+            for label, minimum, maximum in UTENTES_AGE_GROUPS:
+                if minimum <= age <= maximum:
+                    age_group_counts[label] += 1
+                    break
+
+        entity_text = normalize_stats_text(ref_data.get("entidade"))
+        for label, aliases in UTENTES_REFERENCING_ENTITIES:
+            if option_matches_text(entity_text, aliases):
+                entity_counts[label] += 1
+                break
+
+        reason_haystack = stats_haystack_from_selected_keys(ref_data, prefixes=("motivo_",))
+        has_any_reason_data = any(
+            key.startswith("motivo_") and str(value or "").strip()
+            for key, value in ref_data.items()
+        )
+        for label, aliases in UTENTES_REFERRAL_REASONS:
+            if label == "Sem informação":
+                continue
+            if option_matches_text(reason_haystack, aliases):
+                reason_counts[label] += 1
+        if option_matches_text(reason_haystack, ["sem informacao"]) or not has_any_reason_data:
+            reason_counts["Sem informação"] += 1
+
+        diag_data = load_diagnostica_data(row["id"])
+        diagnosis_haystack = normalize_stats_text(
+            " ".join(
+                [
+                    ref_data.get("diagnostico_atual") or "",
+                    diag_data.get("diag_historia_doenca") or "",
+                    diag_data.get("diag_antecedentes_pessoais") or "",
+                    diag_data.get("diag_antecedentes_familiares") or "",
+                    diag_data.get("diag_informacoes_relevantes") or "",
+                ]
+            )
+        )
+        for label, aliases in UTENTES_DIAGNOSIS_OPTIONS:
+            if option_matches_text(diagnosis_haystack, aliases):
+                diagnosis_counts[label] += 1
 
     total = len(rows)
     average_days = round(sum(permanence_days) / len(permanence_days)) if permanence_days else None
@@ -9101,6 +9280,10 @@ def calculate_utentes_statistics():
         "overdue_percentage": overdue_percentage,
         "average_payment_delay": average_payment_delay,
         "municipalities": municipalities,
+        "age_groups": stats_rows_from_counts(age_group_counts, total),
+        "referencing_entities": stats_rows_from_counts(entity_counts, total),
+        "referral_reasons": stats_rows_from_counts(reason_counts, total),
+        "diagnoses": stats_rows_from_counts(diagnosis_counts, total),
     }
 
 
@@ -9126,6 +9309,10 @@ def render_statistics_page(current_user):
             <td colspan="3">Sem dados suficientes</td>
         </tr>
         """
+    age_group_section = render_stats_distribution_section("Distribuição por idade", stats["age_groups"], "Faixa etária")
+    entity_section = render_stats_distribution_section("Entidade referenciadora", stats["referencing_entities"], "Entidade")
+    reason_section = render_stats_distribution_section("Motivo do encaminhamento", stats["referral_reasons"], "Motivo")
+    diagnosis_section = render_stats_distribution_section("Diagnóstico", stats["diagnoses"], "Diagnóstico")
     content = f"""
 <div class="edit-layout">
     <div class="edit-title stats-page-title">
@@ -9171,6 +9358,10 @@ def render_statistics_page(current_user):
             <small>{esc(tr(current_user, "fees_overdue"))}</small>
         </article>
     </section>
+    {age_group_section}
+    {entity_section}
+    {reason_section}
+    {diagnosis_section}
     <section class="panel table-wrap">
         <div class="section-heading">
             <h3>Distribuição por concelho</h3>
