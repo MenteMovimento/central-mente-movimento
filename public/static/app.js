@@ -1343,14 +1343,10 @@ const syncActivityMonitorHoursControls = () => {
   const { hoursPeriodSelect, hoursMonthField, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
   if (!hoursPeriodSelect || !hoursMonthInput || !hoursYearInput) return;
   if (!hoursMonthInput.options.length) {
-    hoursMonthInput.innerHTML = activityStatisticsMonthOptions()
-      .map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`)
-      .join("");
+    hoursMonthInput.innerHTML = activityStatisticsMonthOptions();
   }
   if (!hoursYearInput.options.length) {
-    hoursYearInput.innerHTML = activityStatisticsYearOptions()
-      .map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}</option>`)
-      .join("");
+    hoursYearInput.innerHTML = activityStatisticsYearOptions();
   }
   const currentMonth = activityMonthNumberValue();
   const currentYear = activityYearValue();
