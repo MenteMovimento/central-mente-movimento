@@ -3960,7 +3960,7 @@ APP_SCRIPT = """
             primary.addEventListener("click", () => {
                 const node = findNode(state, state.selectedNodes[0]);
                 if (!node) {
-                    alert("Seleciona a personagem principal.");
+                    alert("Seleciona a pessoa índice.");
                     return;
                 }
                 state.data.nodes.forEach((item) => {
@@ -8451,6 +8451,8 @@ def render_diagram_editor(data, key, title, kind, readonly=False, primary_label=
         legend = """
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="17" y="5" width="24" height="24" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Homem</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="13" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Mulher</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="14" y="2" width="30" height="30" fill="#fff" stroke="#12805c" stroke-width="2.4"/><rect x="19" y="7" width="20" height="20" fill="none" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Homem - pessoa índice</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="16" fill="#fff" stroke="#12805c" stroke-width="2.4"/><circle cx="29" cy="17" r="11" fill="none" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Mulher - pessoa índice</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="17" y="5" width="24" height="24" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="15" y1="3" x2="43" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="43" y1="3" x2="15" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Homem falecido</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="13" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/><line x1="15" y1="3" x2="43" y2="31" stroke="#ff6b5f" stroke-width="3"/><line x1="43" y1="3" x2="15" y2="31" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Mulher falecida</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><polygon points="29,4 45,30 13,30" fill="#fff" stroke="#f3fbf8" stroke-width="2.4"/></svg></span><span class="legend-label">Mulher grávida</span></li>
@@ -8494,7 +8496,7 @@ def render_diagram_editor(data, key, title, kind, readonly=False, primary_label=
             {toolbar}
             <button class="button secondary" type="button" data-diagram-connect>Ligar selecionados</button>
             <button class="button secondary" type="button" data-diagram-edit>Editar selecionado</button>
-            {"<button class='button secondary' type='button' data-diagram-primary>Personagem principal</button>" if kind == "genograma" else ""}
+            {"<button class='button secondary' type='button' data-diagram-primary>Pessoa índice</button>" if kind == "genograma" else ""}
             {"<button class='button secondary' type='button' data-diagram-deceased>Falecido</button>" if kind == "genograma" else ""}
             <button class="button danger" type="button" data-diagram-delete>Apagar selecionado</button>
         </div>
