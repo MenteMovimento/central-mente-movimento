@@ -1358,6 +1358,10 @@ const editActivityMonitorOption = (id) => {
   input.select();
 };
 
+const activityCurrentMonthNumberValue = () => String(new Date().getMonth() + 1).padStart(2, "0");
+
+const activityCurrentYearValue = () => String(new Date().getFullYear());
+
 const syncActivityMonitorHoursControls = () => {
   const { hoursPeriodSelect, hoursMonthField, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
   if (!hoursPeriodSelect || !hoursMonthInput || !hoursYearInput) return;
@@ -1367,8 +1371,8 @@ const syncActivityMonitorHoursControls = () => {
   if (!hoursYearInput.options.length) {
     hoursYearInput.innerHTML = activityStatisticsYearOptions();
   }
-  const currentMonth = activityMonthNumberValue();
-  const currentYear = activityYearValue();
+  const currentMonth = activityCurrentMonthNumberValue();
+  const currentYear = activityCurrentYearValue();
   if (!hoursMonthInput.value) hoursMonthInput.value = currentMonth;
   if (!hoursYearInput.value) hoursYearInput.value = currentYear;
   const isYear = hoursPeriodSelect.value === "year";
@@ -1376,6 +1380,15 @@ const syncActivityMonitorHoursControls = () => {
     hoursMonthField.hidden = isYear;
     hoursMonthField.style.display = isYear ? "none" : "";
   }
+};
+
+const resetActivityMonitorHoursControlsToCurrent = () => {
+  const { hoursPeriodSelect, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
+  syncActivityMonitorHoursControls();
+  if (hoursPeriodSelect) hoursPeriodSelect.value = "month";
+  if (hoursMonthInput) hoursMonthInput.value = activityCurrentMonthNumberValue();
+  if (hoursYearInput) hoursYearInput.value = activityCurrentYearValue();
+  syncActivityMonitorHoursControls();
 };
 
 const loadActivityMonitorHours = async () => {
@@ -1415,7 +1428,7 @@ const openActivitiesMonitorsDialog = () => {
   setActivitiesMonitorsFeedback("");
   fillActivityMonitorForm(null);
   setActivityMonitorFormOpen(false);
-  syncActivityMonitorHoursControls();
+  resetActivityMonitorHoursControlsToCurrent();
   if (typeof dialog.showModal === "function") {
     dialog.showModal();
   } else {
