@@ -798,10 +798,17 @@ body.dark-mode .activity-history-table-wrap,
 body.dark-mode .activity-summary-meta > div,
 body.dark-mode .activity-attendance-list,
 body.dark-mode .activity-attendance-option,
+body.dark-mode .activities-monitor-hours-controls,
 body.dark-mode .activities-monitor-row {
   background: #081827;
   border-color: #24445c;
   color: #dcecf4;
+}
+
+body.dark-mode .activities-monitor-hours {
+  background: #102f2c;
+  border-color: #2d6f64;
+  color: #72e5bf;
 }
 
 body.dark-mode .activity-summary-meta strong,
@@ -1681,9 +1688,33 @@ body.dark-mode .central-admin-forms {
   align-items: end;
 }
 
+.activities-monitor-form-expanded {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.activities-monitor-form-expanded .activity-field-wide {
+  grid-column: 1 / -1;
+}
+
 .activities-monitor-form .primary-button {
   width: auto;
   padding: 0 16px;
+  justify-self: start;
+}
+
+.activities-monitor-hours-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(22, 128, 117, 0.05);
+}
+
+.activities-monitor-hours-controls .activity-field {
+  min-width: 180px;
 }
 
 .activities-monitor-list {
@@ -1693,7 +1724,7 @@ body.dark-mode .central-admin-forms {
 
 .activities-monitor-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   min-height: 50px;
@@ -1703,11 +1734,43 @@ body.dark-mode .central-admin-forms {
   background: #ffffff;
 }
 
-.activities-monitor-row strong {
+.activities-monitor-info {
   flex: 1 1 auto;
   min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.activities-monitor-info strong {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activities-monitor-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.activities-monitor-description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.activities-monitor-hours {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(22, 128, 117, 0.08);
+  color: var(--brand);
+  font-size: 0.9rem;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -1716,6 +1779,21 @@ body.dark-mode .central-admin-forms {
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .activities-monitor-form-expanded {
+    grid-template-columns: 1fr;
+  }
+
+  .activities-monitor-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .activities-monitor-actions {
+    justify-content: flex-start;
+  }
 }
 
 .activity-error {

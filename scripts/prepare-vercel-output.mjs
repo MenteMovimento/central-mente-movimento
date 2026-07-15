@@ -44,7 +44,7 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260714-activity-statistics-filter-print'
+const assetVersion = '20260715-monitor-profiles-hours'
 
 const authPendingHead = `<script>
       (() => {
@@ -248,10 +248,37 @@ const atividadesMonitorsDialog = () => `
         <i data-lucide="x"></i>
       </button>
     </header>
-    <form class="activities-monitor-form" data-activities-monitor-form>
+    <form class="activities-monitor-form activities-monitor-form-expanded" data-activities-monitor-form>
       <label class="activity-field">
         <span>Nome do monitor</span>
         <input type="text" name="name" autocomplete="off" required />
+      </label>
+      <label class="activity-field">
+        <span>Telemóvel</span>
+        <input type="tel" name="phone" autocomplete="off" />
+      </label>
+      <label class="activity-field">
+        <span>Email</span>
+        <input type="email" name="email" autocomplete="off" />
+      </label>
+      <label class="activity-field">
+        <span>NIF</span>
+        <input type="text" name="nif" inputmode="numeric" autocomplete="off" />
+      </label>
+      <label class="activity-field">
+        <span>Voluntariado</span>
+        <select name="volunteer">
+          <option value="false">Não</option>
+          <option value="true">Sim</option>
+        </select>
+      </label>
+      <label class="activity-field">
+        <span>Profissão</span>
+        <input type="text" name="profession" autocomplete="off" />
+      </label>
+      <label class="activity-field activity-field-wide">
+        <span>Descrição de atividade</span>
+        <textarea name="activityDescription" rows="3"></textarea>
       </label>
       <button class="primary-button" type="submit">
         <i data-lucide="save"></i>
@@ -259,6 +286,23 @@ const atividadesMonitorsDialog = () => `
       </button>
     </form>
     <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
+    <section class="activities-monitor-hours-controls" aria-label="Horas dos monitores">
+      <label class="activity-field">
+        <span>Horas</span>
+        <select data-activities-monitor-hours-period>
+          <option value="month">Mensal</option>
+          <option value="year">Anual</option>
+        </select>
+      </label>
+      <label class="activity-field" data-activities-monitor-hours-month-field>
+        <span>Mês</span>
+        <select data-activities-monitor-hours-month></select>
+      </label>
+      <label class="activity-field">
+        <span>Ano</span>
+        <select data-activities-monitor-hours-year></select>
+      </label>
+    </section>
     <div class="activities-monitor-list" data-activities-monitor-list>
       <p class="activity-empty-state">Sem monitores registados.</p>
     </div>

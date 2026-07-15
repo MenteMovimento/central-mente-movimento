@@ -65,11 +65,24 @@ $$;
 create table if not exists public.activities_monitors (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
+  phone text not null default '',
+  email text not null default '',
+  nif text not null default '',
+  volunteer boolean not null default false,
+  profession text not null default '',
+  activity_description text not null default '',
   active boolean not null default true,
   created_by uuid references auth.users(id) on delete set null default auth.uid(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.activities_monitors add column if not exists phone text not null default '';
+alter table public.activities_monitors add column if not exists email text not null default '';
+alter table public.activities_monitors add column if not exists nif text not null default '';
+alter table public.activities_monitors add column if not exists volunteer boolean not null default false;
+alter table public.activities_monitors add column if not exists profession text not null default '';
+alter table public.activities_monitors add column if not exists activity_description text not null default '';
 
 create table if not exists public.activities_catalog (
   id uuid primary key default gen_random_uuid(),

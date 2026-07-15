@@ -1110,6 +1110,16 @@ const activitiesMonitorsElements = () => ({
   closeButtons: document.querySelectorAll("[data-activities-monitors-close]"),
   form: document.querySelector("[data-activities-monitor-form]"),
   input: document.querySelector("[data-activities-monitor-form] input[name='name']"),
+  phoneInput: document.querySelector("[data-activities-monitor-form] input[name='phone']"),
+  emailInput: document.querySelector("[data-activities-monitor-form] input[name='email']"),
+  nifInput: document.querySelector("[data-activities-monitor-form] input[name='nif']"),
+  volunteerInput: document.querySelector("[data-activities-monitor-form] select[name='volunteer']"),
+  professionInput: document.querySelector("[data-activities-monitor-form] input[name='profession']"),
+  descriptionInput: document.querySelector("[data-activities-monitor-form] textarea[name='activityDescription']"),
+  hoursPeriodSelect: document.querySelector("[data-activities-monitor-hours-period]"),
+  hoursMonthField: document.querySelector("[data-activities-monitor-hours-month-field]"),
+  hoursMonthInput: document.querySelector("[data-activities-monitor-hours-month]"),
+  hoursYearInput: document.querySelector("[data-activities-monitor-hours-year]"),
   list: document.querySelector("[data-activities-monitor-list]"),
   error: document.querySelector("[data-activities-monitors-error]"),
   select: document.querySelector("[data-activity-monitor-options]"),
@@ -1135,6 +1145,47 @@ const renderActivityMonitorOptions = () => {
   });
 };
 
+const normalizeActivityMonitor = (row) => ({
+  id: String(row?.id || ""),
+  name: String(row?.name || "").trim(),
+  phone: String(row?.phone || "").trim(),
+  email: String(row?.email || "").trim(),
+  nif: String(row?.nif || "").trim(),
+  volunteer: row?.volunteer === true || String(row?.volunteer || "").toLowerCase() === "true",
+  profession: String(row?.profession || "").trim(),
+  activityDescription: String(row?.activityDescription || row?.activity_description || "").trim(),
+});
+
+const monitorPayloadFromValue = (value) => {
+  if (typeof value === "string") {
+    return { name: value.trim() };
+  }
+  return {
+    name: String(value?.name || "").trim(),
+    phone: String(value?.phone || "").trim(),
+    email: String(value?.email || "").trim(),
+    nif: String(value?.nif || "").trim(),
+    volunteer: value?.volunteer === true || String(value?.volunteer || "").toLowerCase() === "true",
+    profession: String(value?.profession || "").trim(),
+    activityDescription: String(value?.activityDescription || value?.activity_description || "").trim(),
+  };
+};
+
+const activityMonitorHoursText = (monitorName) => {
+  const normalizedName = String(monitorName || "").trim().toLowerCase();
+  const entry = activitiesState.monitorHours.find((item) => String(item.name || "").trim().toLowerCase() === normalizedName);
+  return activityDurationText(entry?.durationMinutes || 0);
+};
+
+const activityMonitorDetails = (monitor) => {
+  const details = [`Voluntariado: ${monitor.volunteer ? "Sim" : "Nao"}`];
+  if (monitor.phone) details.push(`Tel.: ${monitor.phone}`);
+  if (monitor.email) details.push(monitor.email);
+  if (monitor.nif) details.push(`NIF: ${monitor.nif}`);
+  if (monitor.profession) details.push(`Profissao: ${monitor.profession}`);
+  return details;
+};
+
 const renderActivityMonitorsList = () => {
   const { list } = activitiesMonitorsElements();
   if (!list) return;
@@ -1146,9 +1197,18 @@ const renderActivityMonitorsList = () => {
   }
   list.innerHTML = activitiesState.monitors
     .map(
-      (monitor) => `
+      (monitor) => {
+        const details = activityMonitorDetails(monitor);
+        return `
         <article class="activities-monitor-row">
-          <strong>${escapeHtml(monitor.name)}</strong>
+          <div class="activities-monitor-info">
+            <strong>${escapeHtml(monitor.name)}</strong>
+            <div class="activities-monitor-meta">
+              ${details.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
+            </div>
+            ${monitor.activityDescription ? `<p class="activities-monitor-description">${escapeHtml(monitor.activityDescription)}</p>` : ""}
+          </div>
+          <span class="activities-monitor-hours">Horas: ${escapeHtml(activityMonitorHoursText(monitor.name))}</span>
           <div class="activities-monitor-actions">
             <button class="icon-link" type="button" data-activities-monitor-edit="${escapeHtml(monitor.id)}" title="Editar monitor" aria-label="Editar monitor">
               <i data-lucide="pencil"></i>
@@ -1158,7 +1218,8 @@ const renderActivityMonitorsList = () => {
             </button>
           </div>
         </article>
-      `,
+      `;
+      },
     )
     .join("");
   renderActivityMonitorOptions();
@@ -1169,25 +1230,22 @@ const loadActivityMonitors = async () => {
   const { items: data } = await activitiesOptionsRequest("monitors");
   activitiesState.monitors = Array.isArray(data)
     ? data
-      .map((row) => ({
-        id: String(row?.id || ""),
-        name: String(row?.name || "").trim(),
-      }))
+      .map(normalizeActivityMonitor)
       .filter((monitor) => monitor.id && monitor.name)
     : [];
   renderActivityMonitorsList();
   return activitiesState.monitors;
 };
 
-const ensureActivityMonitorRemote = async (name) => {
-  const monitorName = String(name || "").trim();
-  if (!monitorName) return null;
+const ensureActivityMonitorRemote = async (value) => {
+  const payload = monitorPayloadFromValue(value);
+  if (!payload.name) return null;
   const { item: data } = await activitiesOptionsRequest("monitors", {
     method: "POST",
-    body: { name: monitorName },
+    body: payload,
   });
   if (data?.id && data?.name) {
-    const nextMonitor = { id: String(data.id), name: String(data.name).trim() };
+    const nextMonitor = normalizeActivityMonitor(data);
     activitiesState.monitors = [
       nextMonitor,
       ...activitiesState.monitors.filter((monitor) => monitor.id !== nextMonitor.id && monitor.name !== nextMonitor.name),
@@ -1198,16 +1256,16 @@ const ensureActivityMonitorRemote = async (name) => {
   return null;
 };
 
-const updateActivityMonitorRemote = async (id, name) => {
-  const monitorName = String(name || "").trim();
-  if (!id || !monitorName) return null;
+const updateActivityMonitorRemote = async (id, value) => {
+  const payload = monitorPayloadFromValue(value);
+  if (!id || !payload.name) return null;
   const previousName = activitiesState.monitors.find((monitor) => monitor.id === id)?.name || "";
   const { item: data } = await activitiesOptionsRequest("monitors", {
     method: "PATCH",
-    body: { id, name: monitorName },
+    body: { id, ...payload },
   });
   if (data?.id && data?.name) {
-    const nextMonitor = { id: String(data.id), name: String(data.name).trim() };
+    const nextMonitor = normalizeActivityMonitor(data);
     activitiesState.monitors = [
       nextMonitor,
       ...activitiesState.monitors.filter((monitor) => monitor.id !== nextMonitor.id),
@@ -1239,15 +1297,88 @@ const deleteActivityMonitorRemote = async (id) => {
   renderActivityMonitorsList();
 };
 
+const activityMonitorFormPayload = () => {
+  const elements = activitiesMonitorsElements();
+  return {
+    name: String(elements.input?.value || "").trim(),
+    phone: String(elements.phoneInput?.value || "").trim(),
+    email: String(elements.emailInput?.value || "").trim(),
+    nif: String(elements.nifInput?.value || "").trim(),
+    volunteer: String(elements.volunteerInput?.value || "false") === "true",
+    profession: String(elements.professionInput?.value || "").trim(),
+    activityDescription: String(elements.descriptionInput?.value || "").trim(),
+  };
+};
+
+const fillActivityMonitorForm = (monitor = null) => {
+  const { form, input, phoneInput, emailInput, nifInput, volunteerInput, professionInput, descriptionInput } = activitiesMonitorsElements();
+  if (!form) return;
+  if (!monitor) {
+    form.reset();
+    activitiesState.editingMonitorId = "";
+    if (volunteerInput) volunteerInput.value = "false";
+    return;
+  }
+  activitiesState.editingMonitorId = monitor.id;
+  if (input) input.value = monitor.name || "";
+  if (phoneInput) phoneInput.value = monitor.phone || "";
+  if (emailInput) emailInput.value = monitor.email || "";
+  if (nifInput) nifInput.value = monitor.nif || "";
+  if (volunteerInput) volunteerInput.value = monitor.volunteer ? "true" : "false";
+  if (professionInput) professionInput.value = monitor.profession || "";
+  if (descriptionInput) descriptionInput.value = monitor.activityDescription || "";
+};
+
 const editActivityMonitorOption = (id) => {
   const { input } = activitiesMonitorsElements();
   const monitor = activitiesState.monitors.find((item) => item.id === id);
   if (!input || !monitor) return;
-  activitiesState.editingMonitorId = monitor.id;
-  input.value = monitor.name;
+  fillActivityMonitorForm(monitor);
   setActivitiesMonitorsFeedback("");
   input.focus();
   input.select();
+};
+
+const syncActivityMonitorHoursControls = () => {
+  const { hoursPeriodSelect, hoursMonthField, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
+  if (!hoursPeriodSelect || !hoursMonthInput || !hoursYearInput) return;
+  if (!hoursMonthInput.options.length) {
+    hoursMonthInput.innerHTML = activityStatisticsMonthOptions()
+      .map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`)
+      .join("");
+  }
+  if (!hoursYearInput.options.length) {
+    hoursYearInput.innerHTML = activityStatisticsYearOptions()
+      .map((year) => `<option value="${escapeHtml(year)}">${escapeHtml(year)}</option>`)
+      .join("");
+  }
+  const currentMonth = activityMonthNumberValue();
+  const currentYear = activityYearValue();
+  if (!hoursMonthInput.value) hoursMonthInput.value = currentMonth;
+  if (!hoursYearInput.value) hoursYearInput.value = currentYear;
+  const isYear = hoursPeriodSelect.value === "year";
+  if (hoursMonthField) hoursMonthField.hidden = isYear;
+};
+
+const loadActivityMonitorHours = async () => {
+  const { hoursPeriodSelect, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
+  syncActivityMonitorHoursControls();
+  const period = hoursPeriodSelect?.value === "year" ? "year" : "month";
+  const year = String(hoursYearInput?.value || activityYearValue()).trim();
+  const monthNumber = String(hoursMonthInput?.value || activityMonthNumberValue()).padStart(2, "0");
+  const statistics = await activitiesStatisticsRequest({
+    period,
+    month: `${year}-${monthNumber}`,
+    year,
+  });
+  activitiesState.monitorHours = Array.isArray(statistics?.monitorHours)
+    ? statistics.monitorHours.map((item) => ({
+      name: String(item?.name || "").trim(),
+      sessions: Number(item?.sessions) || 0,
+      durationMinutes: Number(item?.durationMinutes) || 0,
+    })).filter((item) => item.name)
+    : [];
+  renderActivityMonitorsList();
 };
 
 const refreshActivityOptionLists = async () => {
@@ -1264,24 +1395,26 @@ const openActivitiesMonitorsDialog = () => {
   if (!dialog) return;
   closeToolsMenus();
   setActivitiesMonitorsFeedback("");
+  syncActivityMonitorHoursControls();
   if (typeof dialog.showModal === "function") {
     dialog.showModal();
   } else {
     dialog.setAttribute("open", "");
   }
-  void loadActivityMonitors().catch((error) => {
-    console.warn("Nao foi possivel carregar monitores.", error);
-    setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.localOnly")));
-  });
+  void loadActivityMonitors()
+    .then(() => loadActivityMonitorHours())
+    .catch((error) => {
+      console.warn("Nao foi possivel carregar monitores.", error);
+      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.localOnly")));
+    });
   refreshIcons();
   window.setTimeout(() => input?.focus(), 0);
 };
 
 const closeActivitiesMonitorsDialog = () => {
-  const { dialog, form } = activitiesMonitorsElements();
+  const { dialog } = activitiesMonitorsElements();
   if (!dialog) return;
-  form?.reset();
-  activitiesState.editingMonitorId = "";
+  fillActivityMonitorForm(null);
   setActivitiesMonitorsFeedback("");
   if (dialog.open && typeof dialog.close === "function") {
     dialog.close();
@@ -1293,20 +1426,21 @@ const closeActivitiesMonitorsDialog = () => {
 const handleActivityMonitorSubmit = async (event) => {
   event.preventDefault();
   const { form, input } = activitiesMonitorsElements();
-  const name = String(input?.value || "").trim();
-  if (!name) return;
+  const payload = activityMonitorFormPayload();
+  if (!payload.name) return;
   const submitButton = form?.querySelector('button[type="submit"]');
   if (submitButton) submitButton.disabled = true;
   try {
     if (activitiesState.editingMonitorId) {
-      await updateActivityMonitorRemote(activitiesState.editingMonitorId, name);
+      await updateActivityMonitorRemote(activitiesState.editingMonitorId, payload);
       activitiesState.editingMonitorId = "";
       setActivitiesMonitorsFeedback("Monitor atualizado.", "success");
     } else {
-      await ensureActivityMonitorRemote(name);
+      await ensureActivityMonitorRemote(payload);
       setActivitiesMonitorsFeedback("Monitor guardado.", "success");
     }
-    form?.reset();
+    fillActivityMonitorForm(null);
+    await loadActivityMonitorHours().catch(() => {});
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar monitor.", error);
@@ -1317,7 +1451,7 @@ const handleActivityMonitorSubmit = async (event) => {
 };
 
 const wireActivitiesMonitorsDialog = () => {
-  const { dialog, openButtons, closeButtons, form, list } = activitiesMonitorsElements();
+  const { dialog, openButtons, closeButtons, form, list, hoursPeriodSelect, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
   if (!dialog || dialog.dataset.activitiesMonitorsWired === "true") return;
   dialog.dataset.activitiesMonitorsWired = "true";
   openButtons.forEach((button) => {
@@ -1327,6 +1461,16 @@ const wireActivitiesMonitorsDialog = () => {
     button.addEventListener("click", closeActivitiesMonitorsDialog);
   });
   form?.addEventListener("submit", handleActivityMonitorSubmit);
+  const reloadHours = () => {
+    syncActivityMonitorHoursControls();
+    void loadActivityMonitorHours().catch((error) => {
+      console.warn("Nao foi possivel carregar horas dos monitores.", error);
+      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel carregar as horas dos monitores."));
+    });
+  };
+  hoursPeriodSelect?.addEventListener("change", reloadHours);
+  hoursMonthInput?.addEventListener("change", reloadHours);
+  hoursYearInput?.addEventListener("change", reloadHours);
   list?.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : event.target?.parentElement;
     const editButton = target?.closest("[data-activities-monitor-edit]");
@@ -1727,6 +1871,7 @@ const activitiesState = {
   utentes: [],
   activityNames: [],
   monitors: [],
+  monitorHours: [],
   statistics: null,
   editingActivityNameId: "",
   editingMonitorId: "",

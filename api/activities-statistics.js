@@ -98,6 +98,13 @@ const queryValue = (request, key) => {
 
 const cleanTime = (value) => String(value ?? '').slice(0, 5)
 
+const splitActivityMonitors = (value) =>
+  String(value || '')
+    .split(/\s*\/\s*/)
+    .map((monitor) => monitor.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+
 const minutesFromTime = (time) => {
   const value = cleanTime(time)
   if (!/^\d{2}:\d{2}$/.test(value)) return null
@@ -256,6 +263,8 @@ const listMonthData = async (adminClient, bounds, activityFilter = '') => {
       date: scheduleDate(row),
       start: cleanTime(row?.start_time),
       end: cleanTime(row?.end_time),
+      teacher: String(row?.teacher ?? '').trim(),
+      durationMinutes: durationMinutes(row?.start_time, row?.end_time),
     }))
     .filter((row) => row.id && row.date >= bounds.start && row.date <= bounds.end)
     .filter((row) => !activityFilter || row.title === activityFilter)
@@ -289,8 +298,24 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFil
   const attendanceCounts = new Map()
   const peopleById = new Map(utentes.map((utente) => [utente.id, { ...utente, present: 0 }]))
   const volumeByActivity = new Map()
+  const monitorHoursByName = new Map()
   let totalAttendance = 0
   let totalVolumeMinutes = 0
+
+  for (const activity of activities) {
+    const activityMinutes = durationMinutes(activity.start, activity.end, activity.durationMinutes)
+    if (!activityMinutes) continue
+    for (const monitor of splitActivityMonitors(activity.teacher)) {
+      const current = monitorHoursByName.get(monitor) || {
+        name: monitor,
+        sessions: 0,
+        durationMinutes: 0,
+      }
+      current.sessions += 1
+      current.durationMinutes += activityMinutes
+      monitorHoursByName.set(monitor, current)
+    }
+  }
 
   for (const summary of summaries) {
     const present = summary.attendance
@@ -361,6 +386,8 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFil
     attendance,
     volumeByActivity: Array.from(volumeByActivity.values())
       .sort((left, right) => right.volumeMinutes - left.volumeMinutes || left.title.localeCompare(right.title, 'pt')),
+    monitorHours: Array.from(monitorHoursByName.values())
+      .sort((left, right) => right.durationMinutes - left.durationMinutes || left.name.localeCompare(right.name, 'pt')),
   }
 }
 

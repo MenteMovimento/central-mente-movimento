@@ -54,12 +54,14 @@ const clientErrorMessage = (error) => {
   const normalized = message.toLowerCase()
   if (
     error?.code === '42P01' ||
+    error?.code === '42703' ||
+    error?.code === 'PGRST204' ||
     error?.code === 'PGRST205' ||
     normalized.includes('does not exist') ||
     normalized.includes('schema cache') ||
     normalized.includes('could not find the table')
   ) {
-    return 'Faltam tabelas de atividades no Supabase. Execute o SQL do modulo Atividades e volte a tentar.'
+    return 'Faltam tabelas ou campos de atividades no Supabase. Execute o SQL atualizado do modulo Atividades e volte a tentar.'
   }
   if (normalized.includes('permission denied')) {
     return 'Sem permissao para guardar nas tabelas de atividades.'
@@ -92,6 +94,71 @@ const optionPayload = (row) => ({
   name: String(row?.name ?? '').trim(),
   active: row?.active !== false,
 })
+
+const monitorPayload = (row) => ({
+  ...optionPayload(row),
+  phone: String(row?.phone ?? '').trim(),
+  email: String(row?.email ?? '').trim(),
+  nif: String(row?.nif ?? '').trim(),
+  volunteer: row?.volunteer === true,
+  profession: String(row?.profession ?? '').trim(),
+  activityDescription: String(row?.activity_description ?? '').trim(),
+})
+
+const payloadForKind = (kind, row) => (kind === 'monitors' ? monitorPayload(row) : optionPayload(row))
+
+const isMissingMonitorFieldsError = (kind, error) => {
+  const message = errorMessage(error).toLowerCase()
+  return (
+    kind === 'monitors' &&
+    (error?.code === '42703' ||
+      error?.code === 'PGRST204' ||
+      message.includes('could not find') ||
+      message.includes('schema cache') ||
+      message.includes('column'))
+  )
+}
+
+const selectColumnsForKind = (kind) =>
+  kind === 'monitors'
+    ? 'id,name,phone,email,nif,volunteer,profession,activity_description,active'
+    : 'id,name,active'
+
+const monitorDetailKeys = ['phone', 'email', 'nif', 'volunteer', 'profession', 'activityDescription', 'activity_description']
+
+const booleanValue = (value) =>
+  value === true ||
+  value === 1 ||
+  String(value ?? '').trim().toLowerCase() === 'true' ||
+  String(value ?? '').trim().toLowerCase() === '1' ||
+  String(value ?? '').trim().toLowerCase() === 'sim' ||
+  String(value ?? '').trim().toLowerCase() === 'yes'
+
+const optionNameFromSource = (source) =>
+  String(typeof source === 'object' && source !== null ? source.name : source ?? '').trim()
+
+const hasMonitorDetails = (source) =>
+  typeof source === 'object' &&
+  source !== null &&
+  monitorDetailKeys.some((key) => Object.prototype.hasOwnProperty.call(source, key))
+
+const optionUpdatePayload = (kind, source) => {
+  const payload = {
+    name: optionNameFromSource(source),
+    active: true,
+  }
+
+  if (kind === 'monitors' && hasMonitorDetails(source)) {
+    payload.phone = String(source.phone ?? '').trim()
+    payload.email = String(source.email ?? '').trim()
+    payload.nif = String(source.nif ?? '').trim()
+    payload.volunteer = booleanValue(source.volunteer)
+    payload.profession = String(source.profession ?? '').trim()
+    payload.activity_description = String(source.activityDescription ?? source.activity_description ?? '').trim()
+  }
+
+  return payload
+}
 
 const splitActivityMonitors = (value) =>
   String(value || '')
@@ -193,42 +260,58 @@ const getAuthorizedUser = async (adminClient, request, action) => {
 
 const listOptions = async (adminClient, kind) => {
   const { table } = OPTION_KINDS[kind]
-  const { data, error } = await adminClient
+  let { data, error } = await adminClient
     .from(table)
-    .select('id,name,active')
+    .select(selectColumnsForKind(kind))
     .eq('active', true)
     .order('name', { ascending: true })
 
+  if (isMissingMonitorFieldsError(kind, error)) {
+    ;({ data, error } = await adminClient
+      .from(table)
+      .select('id,name,active')
+      .eq('active', true)
+      .order('name', { ascending: true }))
+  }
+
   if (error) throw error
   return Array.isArray(data)
-    ? data.map(optionPayload).filter((item) => item.id && item.name)
+    ? data.map((row) => payloadForKind(kind, row)).filter((item) => item.id && item.name)
     : []
 }
 
-const saveOption = async (adminClient, kind, name) => {
+const saveOption = async (adminClient, kind, source) => {
   const { table } = OPTION_KINDS[kind]
-  const cleanName = String(name ?? '').trim()
-  if (!cleanName) {
+  const payload = optionUpdatePayload(kind, source)
+  if (!payload.name) {
     const error = new Error('Preencha o nome.')
     error.status = 400
     throw error
   }
 
-  const { data, error } = await adminClient
+  let { data, error } = await adminClient
     .from(table)
-    .upsert({ name: cleanName, active: true }, { onConflict: 'name' })
-    .select('id,name,active')
+    .upsert(payload, { onConflict: 'name' })
+    .select(selectColumnsForKind(kind))
     .single()
 
+  if (isMissingMonitorFieldsError(kind, error) && !hasMonitorDetails(source)) {
+    ;({ data, error } = await adminClient
+      .from(table)
+      .upsert(payload, { onConflict: 'name' })
+      .select('id,name,active')
+      .single())
+  }
+
   if (error) throw error
-  return optionPayload(data)
+  return payloadForKind(kind, data)
 }
 
-const updateOption = async (adminClient, kind, id, name) => {
+const updateOption = async (adminClient, kind, id, source) => {
   const { table } = OPTION_KINDS[kind]
   const optionId = String(id ?? '').trim()
-  const cleanName = String(name ?? '').trim()
-  if (!optionId || !cleanName) {
+  const payload = optionUpdatePayload(kind, source)
+  if (!optionId || !payload.name) {
     const error = new Error('Opcao invalida.')
     error.status = 400
     throw error
@@ -247,22 +330,31 @@ const updateOption = async (adminClient, kind, id, name) => {
     throw error
   }
 
-  const { data, error } = await adminClient
+  let { data, error } = await adminClient
     .from(table)
-    .update({ name: cleanName, active: true })
+    .update(payload)
     .eq('id', optionId)
-    .select('id,name,active')
+    .select(selectColumnsForKind(kind))
     .single()
 
+  if (isMissingMonitorFieldsError(kind, error) && !hasMonitorDetails(source)) {
+    ;({ data, error } = await adminClient
+      .from(table)
+      .update(payload)
+      .eq('id', optionId)
+      .select('id,name,active')
+      .single())
+  }
+
   if (error) throw error
-  if (existingOption.name && existingOption.name !== cleanName) {
+  if (existingOption.name && existingOption.name !== payload.name) {
     if (kind === 'monitors') {
-      await renameMonitorInSchedule(adminClient, existingOption.name, cleanName)
+      await renameMonitorInSchedule(adminClient, existingOption.name, payload.name)
     } else {
       const scheduleColumn = 'title'
       const { error: scheduleError } = await adminClient
         .from('activities_schedule')
-        .update({ [scheduleColumn]: cleanName })
+        .update({ [scheduleColumn]: payload.name })
         .eq(scheduleColumn, existingOption.name)
 
       if (scheduleError && !['42P01', 'PGRST205'].includes(scheduleError.code)) {
@@ -270,7 +362,7 @@ const updateOption = async (adminClient, kind, id, name) => {
       }
     }
   }
-  return optionPayload(data)
+  return payloadForKind(kind, data)
 }
 
 const deleteOption = async (adminClient, kind, id) => {
@@ -316,13 +408,13 @@ export default async function handler(request, response) {
 
     if (request.method === 'POST') {
       await getAuthorizedUser(adminClient, request, 'edit')
-      sendJson(response, 200, { item: await saveOption(adminClient, kind, body.name) })
+      sendJson(response, 200, { item: await saveOption(adminClient, kind, body) })
       return
     }
 
     if (request.method === 'PATCH') {
       await getAuthorizedUser(adminClient, request, 'edit')
-      sendJson(response, 200, { item: await updateOption(adminClient, kind, body.id, body.name) })
+      sendJson(response, 200, { item: await updateOption(adminClient, kind, body.id, body) })
       return
     }
 
