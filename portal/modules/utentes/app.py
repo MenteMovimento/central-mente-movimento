@@ -1454,6 +1454,11 @@ tr:last-child td {
 
 .actions-cell {
     text-align: right;
+    white-space: nowrap;
+}
+
+.actions-cell .icon-button + .icon-button {
+    margin-left: 6px;
 }
 
 .row-actions form {
@@ -3372,6 +3377,15 @@ APP_SCRIPT = """
         return element;
     }
 
+    function normalizeDiagramText(value) {
+        return String(value || "")
+            .normalize("NFD")
+            .replace(/[\\u0300-\\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, " ")
+            .trim();
+    }
+
     function diagramDefaults(kind) {
         if (kind === "ecomapa") {
             return {
@@ -3557,6 +3571,41 @@ APP_SCRIPT = """
         }
     }
 
+    function isPrimaryGenogramNode(state, node) {
+        if (state.kind !== "genograma") {
+            return false;
+        }
+        if (node.primary) {
+            return true;
+        }
+        const primaryLabel = normalizeDiagramText(state.primaryLabel);
+        const nodeLabel = normalizeDiagramText(node.label);
+        return Boolean(
+            primaryLabel &&
+            nodeLabel &&
+            (nodeLabel === primaryLabel || (nodeLabel.length >= 3 && primaryLabel.startsWith(`${nodeLabel} `)))
+        );
+    }
+
+    function appendPrimaryGenogramOutline(group, node) {
+        const attrs = {
+            class: "node-primary-outline",
+            fill: "none",
+            stroke: "#12805c",
+            "stroke-width": "2.4",
+            "pointer-events": "none",
+        };
+        if (node.type === "female") {
+            group.appendChild(svgElement("circle", { ...attrs, r: "35" }));
+        } else if (node.type === "pregnant" || node.type === "abortion") {
+            group.appendChild(svgElement("polygon", { ...attrs, points: "0,-39 39,34 -39,34" }));
+        } else if (node.type === "unknown") {
+            group.appendChild(svgElement("polygon", { ...attrs, points: "0,-39 39,0 0,39 -39,0" }));
+        } else {
+            group.appendChild(svgElement("rect", { ...attrs, x: "-35", y: "-35", width: "70", height: "70" }));
+        }
+    }
+
     function renderDiagram(state) {
         const { data, canvas, kind, readonly } = state;
         canvas.innerHTML = "";
@@ -3665,6 +3714,9 @@ APP_SCRIPT = """
                 shape = svgElement("rect", { class: "node-shape", x: "-28", y: "-28", width: "56", height: "56", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
             }
             group.appendChild(shape);
+            if (isPrimaryGenogramNode(state, node)) {
+                appendPrimaryGenogramOutline(group, node);
+            }
             if (node.type === "abortion") {
                 group.appendChild(svgElement("line", { x1: "-31", y1: "-31", x2: "31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
                 group.appendChild(svgElement("line", { x1: "31", y1: "-31", x2: "-31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
@@ -3805,6 +3857,7 @@ APP_SCRIPT = """
             textarea,
             notes,
             canvas,
+            primaryLabel: editor.dataset.primaryLabel || "",
             data: parseDiagram(textarea.value, kind),
             selectedNodes: [],
             selectedEdge: "",
@@ -3902,6 +3955,22 @@ APP_SCRIPT = """
                 renderDiagram(state);
             });
         }
+        const primary = editor.querySelector("[data-diagram-primary]");
+        if (primary) {
+            primary.addEventListener("click", () => {
+                const node = findNode(state, state.selectedNodes[0]);
+                if (!node) {
+                    alert("Seleciona a personagem principal.");
+                    return;
+                }
+                state.data.nodes.forEach((item) => {
+                    item.primary = item.id === node.id;
+                });
+                syncDiagram(state);
+                markUnsaved();
+                renderDiagram(state);
+            });
+        }
         const remove = editor.querySelector("[data-diagram-delete]");
         if (remove) {
             remove.addEventListener("click", () => {
@@ -3973,8 +4042,44 @@ APP_SCRIPT = """
         });
     }
 
+    function initPaymentEditing() {
+        const editIdInput = form.querySelector("[data-payment-edit-id]");
+        const submitButton = form.querySelector("[data-payment-submit]");
+        if (!editIdInput || !submitButton) {
+            return;
+        }
+        const setField = (name, value) => {
+            const radio = form.querySelector(`input[type="radio"][name="${name}"][value="${CSS.escape(value || "")}"]`);
+            if (radio) {
+                radio.checked = true;
+                return;
+            }
+            const field = form.querySelector(`[name="${name}"]`);
+            if (field) {
+                field.value = value || "";
+            }
+        };
+        document.querySelectorAll("[data-payment-edit]").forEach((button) => {
+            button.addEventListener("click", () => {
+                editIdInput.value = button.dataset.paymentId || "";
+                setField("pag_estado", button.dataset.paymentStatus || "pago");
+                setField("pag_mensalidade_ate", button.dataset.paymentMonth || "");
+                setField("pag_data", button.dataset.paymentDate || "");
+                setField("pag_forma", button.dataset.paymentMethod || "");
+                setField("pag_valor", button.dataset.paymentValue || "");
+                setField("pag_referencia", button.dataset.paymentReference || "");
+                setField("pag_observacoes", button.dataset.paymentNotes || "");
+                submitButton.value = "edit";
+                submitButton.textContent = "Guardar alteração";
+                form.querySelector(".pagamentos-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                markUnsaved();
+            });
+        });
+    }
+
     document.querySelectorAll("[data-diagram-editor]").forEach(initDiagramEditor);
     initAttendanceRows();
+    initPaymentEditing();
     initAgeCalculations();
     form.addEventListener("input", markUnsaved);
     form.addEventListener("change", markUnsaved);
@@ -6829,6 +6934,41 @@ def append_payment_record(data, month_value, method, payment_date="", status="pa
     return data
 
 
+def update_payment_record(data, payment_id, month_value, method, payment_date="", status="pago", amount="", reference="", notes=""):
+    payment_id = str(payment_id or "").strip()
+    month_value = normalize_month_value(month_value)
+    method = str(method or "").strip()
+    if not payment_id:
+        raise ValueError("Escolha o pagamento que pretende editar.")
+    if not month_value or not method:
+        raise ValueError("Escolha a mensalidade e a forma de pagamento antes de guardar.")
+    payment_date = str(payment_date or "").strip() or datetime.now().date().isoformat()
+    history = normalize_pagamento_history(data.get("pag_historico"))
+    updated = False
+    next_history = []
+    for item in history:
+        if item.get("id") == payment_id and not updated:
+            next_history.append(
+                {
+                    **item,
+                    "mensalidade": month_value,
+                    "estado": status or "pago",
+                    "data": payment_date,
+                    "forma": method,
+                    "valor": str(amount or "").strip(),
+                    "referencia": str(reference or "").strip(),
+                    "observacoes": str(notes or "").strip(),
+                }
+            )
+            updated = True
+        else:
+            next_history.append(item)
+    if not updated:
+        raise ValueError("Pagamento não encontrado.")
+    data["pag_historico"] = normalize_pagamento_history(next_history)
+    return data
+
+
 def payment_data_from_existing(existing_data=None):
     existing_data = existing_data or {}
     data = default_pagamentos_data()
@@ -6881,9 +7021,31 @@ def pagamentos_from_post(post_data, existing_data=None):
     for key in PAGAMENTO_TEXT_FIELDS:
         data[key] = field_value(post_data, key)
     data["pag_mensalidade_ate"] = normalize_month_value(data.get("pag_mensalidade_ate"))
+    edit_id = field_value(post_data, "pag_edit_id")
+    if edit_id and action not in ("add", "edit"):
+        action = "edit"
     if action == "add":
         append_payment_record(
             data,
+            data.get("pag_mensalidade_ate"),
+            data.get("pag_forma"),
+            data.get("pag_data"),
+            data.get("pag_estado") or "pago",
+            data.get("pag_valor"),
+            data.get("pag_referencia"),
+            data.get("pag_observacoes"),
+        )
+        data["pag_mensalidade_ate"] = next_payment_month(data)
+        data["pag_estado"] = "pago"
+        data["pag_data"] = ""
+        data["pag_forma"] = ""
+        data["pag_valor"] = ""
+        data["pag_referencia"] = ""
+        data["pag_observacoes"] = ""
+    elif action == "edit":
+        update_payment_record(
+            data,
+            edit_id,
             data.get("pag_mensalidade_ate"),
             data.get("pag_forma"),
             data.get("pag_data"),
@@ -7582,10 +7744,24 @@ def render_pagamentos_history(history, readonly=False, current_user=None):
             cancel_action = ""
             if not readonly:
                 payment_id = esc(item.get("id"))
+                edit_label = esc("Editar pagamento")
                 cancel_label = esc(tr(current_user, "cancel_payment"))
                 cancel_confirm = esc(tr(current_user, "cancel_payment_confirm"))
                 cancel_action = f"""
                 <td class="actions-cell">
+                    <button class="button secondary icon-button" type="button"
+                        data-payment-edit
+                        data-payment-id="{payment_id}"
+                        data-payment-month="{esc(item.get("mensalidade"))}"
+                        data-payment-status="{esc(item.get("estado"))}"
+                        data-payment-date="{esc(item.get("data"))}"
+                        data-payment-method="{esc(item.get("forma"))}"
+                        data-payment-value="{esc(item.get("valor"))}"
+                        data-payment-reference="{esc(item.get("referencia"))}"
+                        data-payment-notes="{esc(item.get("observacoes"))}"
+                        aria-label="{edit_label}" title="{edit_label}">
+                        {PENCIL_ICON}
+                    </button>
                     <button class="button danger icon-button" type="submit" name="pag_action" value="cancel:{payment_id}" onclick="return confirm('{cancel_confirm}');" aria-label="{cancel_label}" title="{cancel_label}">
                         {TRASH_ICON}
                     </button>
@@ -7828,8 +8004,9 @@ def render_referenciacao_form(data, utente_id=None, readonly=False, include_atta
 def render_pagamentos_form(data, readonly=False, current_user=None):
     readonly_class = " readonly-section" if readonly else ""
     register_button = "" if readonly else """
+                <input type="hidden" name="pag_edit_id" value="" data-payment-edit-id>
                 <div class="field span-12 payment-form-actions">
-                    <button class="button" type="submit" name="pag_action" value="add">Registar pagamento</button>
+                    <button class="button" type="submit" name="pag_action" value="add" data-payment-submit>Registar pagamento</button>
                 </div>
     """
     return f"""
@@ -8249,7 +8426,7 @@ def render_diagnostica_avdi_table(data, readonly=False):
     """
 
 
-def render_diagram_editor(data, key, title, kind, readonly=False):
+def render_diagram_editor(data, key, title, kind, readonly=False, primary_label=""):
     disabled = "disabled" if readonly else ""
     readonly_attr = "1" if readonly else "0"
     if kind == "genograma":
@@ -8317,13 +8494,14 @@ def render_diagram_editor(data, key, title, kind, readonly=False):
             {toolbar}
             <button class="button secondary" type="button" data-diagram-connect>Ligar selecionados</button>
             <button class="button secondary" type="button" data-diagram-edit>Editar selecionado</button>
+            {"<button class='button secondary' type='button' data-diagram-primary>Personagem principal</button>" if kind == "genograma" else ""}
             {"<button class='button secondary' type='button' data-diagram-deceased>Falecido</button>" if kind == "genograma" else ""}
             <button class="button danger" type="button" data-diagram-delete>Apagar selecionado</button>
         </div>
         <p class="diagram-help">Clique uma vez numa figura para selecionar. Para filiação com dois progenitores, selecione primeiro os dois progenitores e depois o filho. Arraste uma figura para a mover.</p>
     """
     return f"""
-    <div class="diagram-editor" data-diagram-editor data-diagram-kind="{kind}" data-readonly="{readonly_attr}">
+    <div class="diagram-editor" data-diagram-editor data-diagram-kind="{kind}" data-readonly="{readonly_attr}" data-primary-label="{esc(primary_label)}">
         <label for="{key}">{esc(title)}</label>
         <textarea class="diagram-data" id="{key}" name="{key}" {disabled}>{esc(data.get(key))}</textarea>
         {controls}
@@ -8433,7 +8611,7 @@ def render_diagnostica_form(data, readonly=False):
 
         <section class="form-section">
             <h4 class="section-title">2.3 Genograma</h4>
-            {render_diagram_editor(data, "diag_genograma", "Genograma", "genograma", readonly)}
+            {render_diagram_editor(data, "diag_genograma", "Genograma", "genograma", readonly, data.get("diag_nome"))}
         </section>
 
         <section class="form-section">
@@ -11548,6 +11726,10 @@ class UtentesHandler(BaseHTTPRequestHandler):
             if active_tab == "pagamentos" and payment_action == "add":
                 log_action(admin, "Registou pagamento", "Utente", int(utente_id), field_value(data, "pag_mensalidade_ate"))
                 self.redirect(f"/editar?id={utente_id}&tab=pagamentos&msg={quote('Mensalidade registada com sucesso')}")
+                return
+            if active_tab == "pagamentos" and (payment_action == "edit" or (not payment_action and field_value(data, "pag_edit_id"))):
+                log_action(admin, "Editou pagamento", "Utente", int(utente_id), field_value(data, "pag_mensalidade_ate"))
+                self.redirect(f"/editar?id={utente_id}&tab=pagamentos&msg={quote('Mensalidade atualizada com sucesso')}")
                 return
             log_action(admin, "Guardou utente", "Utente", int(utente_id), f"{field_value(data, 'nome')} - {get_tab_title(active_tab)}")
             self.redirect(f"/?msg={quote('Dados guardados com sucesso')}")
