@@ -1688,6 +1688,22 @@ body.dark-mode .central-admin-forms {
   align-items: end;
 }
 
+.activities-monitor-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.activities-monitor-form[hidden],
+.activities-monitor-hours-controls [hidden] {
+  display: none !important;
+}
+
+.activities-monitor-form-toggle.is-active {
+  background: rgba(22, 128, 117, 0.08);
+  border-color: var(--brand-light);
+  color: var(--brand);
+}
+
 .activities-monitor-form-expanded {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1700,6 +1716,13 @@ body.dark-mode .central-admin-forms {
   width: auto;
   padding: 0 16px;
   justify-self: start;
+}
+
+.activities-monitor-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .activities-monitor-hours-controls {

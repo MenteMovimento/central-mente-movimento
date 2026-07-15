@@ -1109,6 +1109,9 @@ const activitiesMonitorsElements = () => ({
   openButtons: document.querySelectorAll("[data-activities-monitors-toggle]"),
   closeButtons: document.querySelectorAll("[data-activities-monitors-close]"),
   form: document.querySelector("[data-activities-monitor-form]"),
+  formToggle: document.querySelector("[data-activities-monitor-form-toggle]"),
+  formToggleLabel: document.querySelector("[data-activities-monitor-form-toggle-label]"),
+  formCancel: document.querySelector("[data-activities-monitor-form-cancel]"),
   input: document.querySelector("[data-activities-monitor-form] input[name='name']"),
   phoneInput: document.querySelector("[data-activities-monitor-form] input[name='phone']"),
   emailInput: document.querySelector("[data-activities-monitor-form] input[name='email']"),
@@ -1292,6 +1295,7 @@ const deleteActivityMonitorRemote = async (id) => {
     const { form } = activitiesMonitorsElements();
     activitiesState.editingMonitorId = "";
     form?.reset();
+    setActivityMonitorFormOpen(false);
   }
   activitiesState.monitors = activitiesState.monitors.filter((monitor) => monitor.id !== id);
   renderActivityMonitorsList();
@@ -1329,11 +1333,26 @@ const fillActivityMonitorForm = (monitor = null) => {
   if (descriptionInput) descriptionInput.value = monitor.activityDescription || "";
 };
 
+const setActivityMonitorFormOpen = (open) => {
+  const { form, formToggle, formToggleLabel, input } = activitiesMonitorsElements();
+  if (form) form.hidden = !open;
+  if (formToggle) {
+    formToggle.classList.toggle("is-active", open);
+    formToggle.setAttribute("aria-expanded", String(open));
+  }
+  if (formToggleLabel) {
+    formToggleLabel.textContent = open ? "Ocultar formulário" : "Novo monitor";
+  }
+  refreshIcons();
+  if (open) window.setTimeout(() => input?.focus(), 0);
+};
+
 const editActivityMonitorOption = (id) => {
   const { input } = activitiesMonitorsElements();
   const monitor = activitiesState.monitors.find((item) => item.id === id);
   if (!input || !monitor) return;
   fillActivityMonitorForm(monitor);
+  setActivityMonitorFormOpen(true);
   setActivitiesMonitorsFeedback("");
   input.focus();
   input.select();
@@ -1353,7 +1372,10 @@ const syncActivityMonitorHoursControls = () => {
   if (!hoursMonthInput.value) hoursMonthInput.value = currentMonth;
   if (!hoursYearInput.value) hoursYearInput.value = currentYear;
   const isYear = hoursPeriodSelect.value === "year";
-  if (hoursMonthField) hoursMonthField.hidden = isYear;
+  if (hoursMonthField) {
+    hoursMonthField.hidden = isYear;
+    hoursMonthField.style.display = isYear ? "none" : "";
+  }
 };
 
 const loadActivityMonitorHours = async () => {
@@ -1387,10 +1409,12 @@ const refreshActivityOptionLists = async () => {
 };
 
 const openActivitiesMonitorsDialog = () => {
-  const { dialog, input } = activitiesMonitorsElements();
+  const { dialog, formToggle } = activitiesMonitorsElements();
   if (!dialog) return;
   closeToolsMenus();
   setActivitiesMonitorsFeedback("");
+  fillActivityMonitorForm(null);
+  setActivityMonitorFormOpen(false);
   syncActivityMonitorHoursControls();
   if (typeof dialog.showModal === "function") {
     dialog.showModal();
@@ -1402,15 +1426,16 @@ const openActivitiesMonitorsDialog = () => {
     .catch((error) => {
       console.warn("Nao foi possivel carregar monitores.", error);
       setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.localOnly")));
-    });
+  });
   refreshIcons();
-  window.setTimeout(() => input?.focus(), 0);
+  window.setTimeout(() => formToggle?.focus(), 0);
 };
 
 const closeActivitiesMonitorsDialog = () => {
   const { dialog } = activitiesMonitorsElements();
   if (!dialog) return;
   fillActivityMonitorForm(null);
+  setActivityMonitorFormOpen(false);
   setActivitiesMonitorsFeedback("");
   if (dialog.open && typeof dialog.close === "function") {
     dialog.close();
@@ -1436,8 +1461,8 @@ const handleActivityMonitorSubmit = async (event) => {
       setActivitiesMonitorsFeedback("Monitor guardado.", "success");
     }
     fillActivityMonitorForm(null);
+    setActivityMonitorFormOpen(false);
     await loadActivityMonitorHours().catch(() => {});
-    input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar monitor.", error);
     setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel guardar o monitor."));
@@ -1447,7 +1472,7 @@ const handleActivityMonitorSubmit = async (event) => {
 };
 
 const wireActivitiesMonitorsDialog = () => {
-  const { dialog, openButtons, closeButtons, form, list, hoursPeriodSelect, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
+  const { dialog, openButtons, closeButtons, form, formToggle, formCancel, list, hoursPeriodSelect, hoursMonthInput, hoursYearInput } = activitiesMonitorsElements();
   if (!dialog || dialog.dataset.activitiesMonitorsWired === "true") return;
   dialog.dataset.activitiesMonitorsWired = "true";
   openButtons.forEach((button) => {
@@ -1455,6 +1480,18 @@ const wireActivitiesMonitorsDialog = () => {
   });
   closeButtons.forEach((button) => {
     button.addEventListener("click", closeActivitiesMonitorsDialog);
+  });
+  formToggle?.addEventListener("click", () => {
+    const { form: currentForm } = activitiesMonitorsElements();
+    const shouldOpen = !currentForm || currentForm.hidden;
+    fillActivityMonitorForm(null);
+    setActivitiesMonitorsFeedback("");
+    setActivityMonitorFormOpen(shouldOpen);
+  });
+  formCancel?.addEventListener("click", () => {
+    fillActivityMonitorForm(null);
+    setActivitiesMonitorsFeedback("");
+    setActivityMonitorFormOpen(false);
   });
   form?.addEventListener("submit", handleActivityMonitorSubmit);
   const reloadHours = () => {

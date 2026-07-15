@@ -248,7 +248,13 @@ const atividadesMonitorsDialog = () => `
         <i data-lucide="x"></i>
       </button>
     </header>
-    <form class="activities-monitor-form activities-monitor-form-expanded" data-activities-monitor-form>
+    <div class="activities-monitor-toolbar">
+      <button class="secondary-button activities-monitor-form-toggle" type="button" data-activities-monitor-form-toggle aria-expanded="false">
+        <i data-lucide="plus"></i>
+        <span data-activities-monitor-form-toggle-label>Novo monitor</span>
+      </button>
+    </div>
+    <form class="activities-monitor-form activities-monitor-form-expanded" data-activities-monitor-form hidden>
       <label class="activity-field">
         <span>Nome do monitor</span>
         <input type="text" name="name" autocomplete="off" required />
@@ -280,10 +286,16 @@ const atividadesMonitorsDialog = () => `
         <span>Descrição de atividade</span>
         <textarea name="activityDescription" rows="3"></textarea>
       </label>
-      <button class="primary-button" type="submit">
-        <i data-lucide="save"></i>
-        <span>Guardar</span>
-      </button>
+      <div class="activities-monitor-form-actions">
+        <button class="primary-button" type="submit">
+          <i data-lucide="save"></i>
+          <span>Guardar</span>
+        </button>
+        <button class="secondary-button" type="button" data-activities-monitor-form-cancel>
+          <i data-lucide="x"></i>
+          <span>Cancelar</span>
+        </button>
+      </div>
     </form>
     <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
     <section class="activities-monitor-hours-controls" aria-label="Horas dos monitores">
