@@ -81,6 +81,72 @@ class UtentesReadonlyViewTests(unittest.TestCase):
             marker = f'name="{field}" value="{value}" checked disabled'
             self.assertIn(marker, html)
 
+    def test_gender_prefers_explicit_inscription_value(self):
+        row = {"nome": "Pessoa Teste"}
+        diagnostic = {
+            "diag_genograma": json.dumps(
+                {
+                    "nodes": [
+                        {
+                            "id": "g1",
+                            "type": "male",
+                            "label": "Pessoa Teste",
+                            "primary": True,
+                        }
+                    ],
+                    "edges": [],
+                }
+            )
+        }
+
+        gender = UTENTES_APP.utente_gender_for_stats(
+            row,
+            {"ins_genero": "mulher"},
+            diagnostic,
+        )
+
+        self.assertEqual(gender, "mulher")
+
+    def test_gender_uses_primary_person_from_genogram_as_fallback(self):
+        row = {"nome": "Pessoa Teste"}
+        diagnostic = {
+            "diag_genograma": json.dumps(
+                {
+                    "nodes": [
+                        {"id": "g1", "type": "female", "label": "Familiar"},
+                        {
+                            "id": "g2",
+                            "type": "male",
+                            "label": "Pessoa Teste",
+                            "primary": True,
+                        },
+                    ],
+                    "edges": [],
+                }
+            )
+        }
+
+        gender = UTENTES_APP.utente_gender_for_stats(row, {}, diagnostic)
+
+        self.assertEqual(gender, "homem")
+
+    def test_gender_chart_shows_men_women_and_missing_data(self):
+        html = UTENTES_APP.render_gender_chart_card(
+            [
+                {"name": "Homens", "count": 10, "percentage": 40},
+                {"name": "Mulheres", "count": 12, "percentage": 48},
+                {"name": "Outro / sem indicação", "count": 3, "percentage": 12},
+            ],
+            25,
+        )
+
+        self.assertIn("Distribuição por género", html)
+        self.assertIn("Homens: 10", html)
+        self.assertIn("Mulheres: 12", html)
+        self.assertIn("Outro ou sem indicação: 3", html)
+        self.assertIn("--gender-men-end: 40%", html)
+        self.assertIn("--gender-women-end: 88%", html)
+
 
 if __name__ == "__main__":
     unittest.main()
