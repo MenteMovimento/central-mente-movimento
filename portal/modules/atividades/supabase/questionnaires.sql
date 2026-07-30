@@ -1,0 +1,2 @@
+-- Os questionarios mensais reutilizam a tabela public.utente_abas.
+-- Nao e necessario criar uma tabela adicional no Supabase.

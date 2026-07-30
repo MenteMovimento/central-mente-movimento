@@ -29,16 +29,13 @@
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
     dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
-    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
+    atividades: { view: true, edit: true, view_sensitive: true, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
   const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
-    const hasStoredMatrix =
-      Object.keys(source.central || {}).length > 0 ||
-      permissionAreas.some((area) => Object.keys(source[area] || {}).length > 0);
-    const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions();
+    const normalized = emptyPermissions();
 
     normalized.central.manage_users = permissionBoolean(source.central?.manage_users ?? normalized.central.manage_users);
     normalized.central.view_history = permissionBoolean(source.central?.view_history ?? normalized.central.view_history);
@@ -79,11 +76,12 @@
           current.view = true;
         }
       }
-      if (area !== "utentes") {
+      if (!["utentes", "atividades"].includes(area)) {
         current.view_sensitive = false;
         current.edit_sensitive = false;
       }
       if (area === "atividades") {
+        current.edit_sensitive = false;
         current.delete = false;
       }
     });
@@ -268,6 +266,52 @@
       // Continua sem cache se o browser bloquear sessionStorage.
     }
   };
+  const utentesSessionCachePrefix = "central-utentes-session:";
+  const utentesSessionCacheKey = (session) => `${utentesSessionCachePrefix}${session?.user?.id || "anon"}`;
+  const saveUtentesSessionCache = (session, payload = {}) => {
+    try {
+      const authExpiresAt = Number(session?.expires_at || 0) * 1000;
+      const apiExpiresAt = new Date(payload.expiresAt || 0).getTime();
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
+      const candidates = [authExpiresAt, apiExpiresAt, shortCacheExpiresAt].filter((value) => Number.isFinite(value) && value > Date.now());
+      const expiresAt = candidates.length ? Math.min(...candidates) : shortCacheExpiresAt;
+      sessionStorage.setItem(utentesSessionCacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+    } catch (_error) {
+      // A sessão de Utentes continua válida mesmo sem cache local.
+    }
+  };
+  const ensureUtentesSession = async (session) => {
+    const token = session?.access_token || "";
+    if (!token) throw new Error("Sessão em falta.");
+    const response = await fetch("/api/utentes-session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || "Não foi possível iniciar Utentes.");
+    }
+    const payload = await response.json().catch(() => ({ ok: true }));
+    saveUtentesSessionCache(session, payload);
+  };
+  const wireUtentesLinks = (session) => {
+    if (window.location.pathname.startsWith("/area/utentes") || window.__CENTRAL_UTENTES_LINKS_WIRED) return;
+    window.__CENTRAL_UTENTES_LINKS_WIRED = true;
+    document.addEventListener("click", async (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+      const link = target?.closest('a[href^="/area/utentes"]');
+      if (!link || link.target === "_blank") return;
+      event.preventDefault();
+      try {
+        await ensureUtentesSession(session);
+        window.location.assign(link.getAttribute("href") || "/area/utentes/");
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
+      }
+    });
+  };
   const ensureAccess = async (session, area = "") => {
     const cacheArea = area || "dashboard";
     const token = session?.access_token || "";
@@ -280,7 +324,13 @@
       },
       body: JSON.stringify({ area })
     });
-    if (!response.ok) throw new Error("Sem acesso preparado.");
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const error = new Error(payload.error || "Sem acesso preparado.");
+      error.code = payload.code || "";
+      error.status = response.status;
+      throw error;
+    }
     const payload = await response.json().catch(() => ({}));
     saveAccessCache(session, cacheArea);
     window.CENTRAL_PERMISSIONS?.applyToPage?.(payload.appUser);
@@ -308,8 +358,15 @@
         return;
       }
       await ensureAccess(session, areaFromPath(window.location.pathname));
+      wireUtentesLinks(session);
       window.clearTimeout(loginTimer);
       showPage();
     })
-    .catch(() => redirectToDashboard());
+    .catch((error) => {
+      if (error?.code === "EMAIL_VERIFICATION_REQUIRED" || error?.status === 401) {
+        redirectToCentralLogin();
+        return;
+      }
+      redirectToDashboard();
+    });
 })();

@@ -20,12 +20,14 @@ Depois abre:
 http://127.0.0.1:8090
 ```
 
-Para usar o ramo de Socios sem segundo login, entra na Central com as credenciais locais:
+Para usar o ramo de Socios sem segundo login, entra na Central com o email local:
 
 ```text
 Email: admin@mentemovimento.local
-Password: admin123
 ```
+
+O `start-local.ps1` cria uma password forte na primeira execucao, mostra-a no
+terminal e guarda-a apenas em `.runtime/local-credentials.json` (ignorado pelo Git).
 
 A area de Socios corre dentro deste projeto e usa a base local:
 
@@ -76,7 +78,7 @@ O ramo de Socios ja esta integrado como copia local da aplicacao de Socios, com 
 
 O ramo de Utentes ja esta integrado como copia local da aplicacao Python de Utentes, incluindo fichas, separadores, anexos PDF, genograma/ecomapa, historico, utilizadores, tema, idioma e manuais.
 
-O ramo de Ciberseguranca ja esta integrado como copia local da aplicacao React/Vite, incluindo listagem, reparacoes, estados, estatisticas, CSV e fluxo visual proprio dentro da Central.
+O ramo de Ciberseguranca ja esta integrado como copia local da aplicacao React/Vite, incluindo listagem, reparacoes, estados, indicadores, CSV e fluxo visual proprio dentro da Central.
 
 O tema claro/escuro passa a ser partilhado entre as areas, e as ferramentas secundarias ficam recolhidas no menu dos tres tracinhos para manter a barra superior consistente.
 

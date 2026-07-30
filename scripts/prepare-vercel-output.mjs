@@ -18,6 +18,9 @@ const dispositivosDist = path.join(root, 'portal', 'modules', 'dispositivos', 'd
 const dispositivosOutput = path.join(publicDir, 'area', 'dispositivos')
 const atividadesDocsSource = path.join(root, 'portal', 'modules', 'atividades', 'docs')
 const atividadesOutput = path.join(publicDir, 'area', 'atividades')
+const initialManualSource = path.join(root, 'portal', 'docs', 'Manual_Inicial_MenteMovimento.pdf')
+const pdfMakeBrowser = path.join(root, 'node_modules', 'pdfmake', 'build', 'pdfmake.min.js')
+const pdfMakeFonts = path.join(root, 'node_modules', 'pdfmake', 'build', 'vfs_fonts.js')
 const supabaseUmd = path.join(
   root,
   'portal',
@@ -44,10 +47,23 @@ const supabaseAnonKey =
   ''
 
 const jsString = (value) => JSON.stringify(String(value ?? ''))
-const assetVersion = '20260715-monitor-profiles-hours'
+const assetVersion = '20260729-activities-questionnaire-manuals-v1'
 
-const authPendingHead = `<script>
+const authPendingHead = ({ onlyWithStoredSession = false } = {}) => {
+  const waitCondition = onlyWithStoredSession
+    ? `(() => {
+          try {
+            return Boolean(sessionStorage.getItem("central-mm-auth-token"));
+          } catch (_error) {
+            return false;
+          }
+        })()`
+    : 'true'
+
+  return `<script>
       (() => {
+        const shouldWaitForSession = ${waitCondition};
+        if (!shouldWaitForSession) return;
         document.documentElement.dataset.centralAuthPending = "true";
         const isStillPending = () => document.documentElement.dataset.centralAuthPending === "true";
         const renderLoading = () => {
@@ -76,6 +92,10 @@ const authPendingHead = `<script>
         background: #f4fbf8;
       }
 
+      html[data-central-auth-pending="true"] body {
+        visibility: hidden;
+      }
+
       html[data-theme="dark"][data-central-auth-pending="true"] {
         background: #07131f;
       }
@@ -84,6 +104,7 @@ const authPendingHead = `<script>
         position: fixed;
         inset: 0;
         z-index: 2147483647;
+        visibility: visible;
         display: grid;
         place-items: center;
         background: #f4fbf8;
@@ -96,6 +117,7 @@ const authPendingHead = `<script>
         color: #dff7f0;
       }
     </style>`
+}
 
 const moduleCards = `
 <article class="module-card module-green" data-module-card="socios">
@@ -142,21 +164,21 @@ const moduleCards = `
 const topbarMenu = (activeId = '') =>
   activeId === 'atividades'
     ? `
-          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view_sensitive" data-hide-when-restricted="true">
             <i data-lucide="calendar-days"></i>
-            <span>Atividades</span>
+            <span data-i18n="nav.atividades">Atividades</span>
           </button>
-          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view_sensitive" data-hide-when-restricted="true">
             <i data-lucide="users-round"></i>
-            <span>Monitores</span>
+            <span data-i18n="activities.menuMonitors">Monitores</span>
           </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
-            <span>Hist&oacute;rico</span>
+            <span data-i18n="menu.history">Hist&oacute;rico</span>
           </a>
           <button class="menu-item" type="button" data-activities-manuals-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="book-open"></i>
-            <span>Manuais</span>
+            <span data-i18n="menu.manuals">Manuais</span>
           </button>`
     : `
           <button class="menu-item" type="button" data-users-toggle role="menuitem">
@@ -177,10 +199,10 @@ const atividadesManualsDialog = () => `
   <div class="activities-manual-panel">
     <header class="activities-manual-head">
       <div>
-        <h2 id="activitiesManualTitle">Manual</h2>
-        <p>Escolha o manual adequado ao que pretende consultar.</p>
+        <h2 id="activitiesManualTitle" data-i18n="activities.manualTitle">Manual</h2>
+        <p data-i18n="activities.manualSubtitle">Escolha o manual adequado ao que pretende consultar.</p>
       </div>
-      <button class="icon-link" type="button" data-activities-manuals-close aria-label="Fechar">
+      <button class="icon-link" type="button" data-activities-manuals-close aria-label="Fechar" data-i18n-aria-label="language.close">
         <i data-lucide="x"></i>
       </button>
     </header>
@@ -190,8 +212,8 @@ const atividadesManualsDialog = () => `
           <i data-lucide="users-round"></i>
         </span>
         <span>
-          <strong>Manual do Utilizador</strong>
-          <small>Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
+          <strong data-i18n="activities.manualUserTitle">Manual do Utilizador</strong>
+          <small data-i18n="activities.manualUserCopy">Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
         </span>
       </a>
       <a class="activities-manual-option" href="/area/atividades/docs/Manual_Programador_Atividades.pdf" target="_blank" rel="noopener" data-requires-permission-area="atividades" data-requires-permission-action="view">
@@ -199,8 +221,8 @@ const atividadesManualsDialog = () => `
           <i data-lucide="code-2"></i>
         </span>
         <span>
-          <strong>Manual do Programador</strong>
-          <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
+          <strong data-i18n="activities.manualDeveloperTitle">Manual do Programador</strong>
+          <small data-i18n="activities.manualDeveloperCopy">Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e base de dados.</small>
         </span>
       </a>
     </div>
@@ -212,26 +234,26 @@ const atividadesCatalogDialog = () => `
   <div class="activities-manual-panel activities-monitors-panel">
     <header class="activities-manual-head">
       <div>
-        <h2 id="activitiesCatalogTitle">Atividades</h2>
-        <p>Crie e consulte os nomes das atividades usadas no horário.</p>
+        <h2 id="activitiesCatalogTitle" data-i18n="nav.atividades">Atividades</h2>
+        <p data-i18n="activities.catalogSubtitle">Crie e consulte os nomes das atividades usadas no hor&aacute;rio.</p>
       </div>
-      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar">
+      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar" data-i18n-aria-label="language.close">
         <i data-lucide="x"></i>
       </button>
     </header>
     <form class="activities-monitor-form" data-activities-catalog-form>
       <label class="activity-field">
-        <span>Nome da atividade</span>
+        <span data-i18n="activities.name">Nome da atividade</span>
         <input type="text" name="name" autocomplete="off" required />
       </label>
       <button class="primary-button" type="submit">
         <i data-lucide="save"></i>
-        <span>Guardar</span>
+        <span data-i18n="activities.save">Guardar</span>
       </button>
     </form>
     <p class="form-error activity-error" data-activities-catalog-error role="alert" hidden></p>
     <div class="activities-monitor-list" data-activities-catalog-list>
-      <p class="activity-empty-state">Sem atividades registadas.</p>
+      <p class="activity-empty-state" data-i18n="activities.catalogEmpty">Sem atividades registadas.</p>
     </div>
   </div>
 </dialog>`
@@ -241,82 +263,82 @@ const atividadesMonitorsDialog = () => `
   <div class="activities-manual-panel activities-monitors-panel">
     <header class="activities-manual-head">
       <div>
-        <h2 id="activitiesMonitorsTitle">Monitores</h2>
-        <p>Crie e consulte os monitores usados nas atividades.</p>
+        <h2 id="activitiesMonitorsTitle" data-i18n="activities.menuMonitors">Monitores</h2>
+        <p data-i18n="activities.monitorsSubtitle">Crie e consulte os monitores usados nas atividades.</p>
       </div>
-      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar">
+      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar" data-i18n-aria-label="language.close">
         <i data-lucide="x"></i>
       </button>
     </header>
     <div class="activities-monitor-toolbar">
       <button class="secondary-button activities-monitor-form-toggle" type="button" data-activities-monitor-form-toggle aria-expanded="false">
         <i data-lucide="plus"></i>
-        <span data-activities-monitor-form-toggle-label>Novo monitor</span>
+        <span data-activities-monitor-form-toggle-label data-i18n="activities.monitorNew">Novo monitor</span>
       </button>
     </div>
     <form class="activities-monitor-form activities-monitor-form-expanded" data-activities-monitor-form hidden>
       <label class="activity-field">
-        <span>Nome do monitor</span>
+        <span data-i18n="activities.monitorName">Nome do monitor</span>
         <input type="text" name="name" autocomplete="off" required />
       </label>
       <label class="activity-field">
-        <span>Telemóvel</span>
+        <span data-i18n="activities.monitorPhone">Telem&oacute;vel</span>
         <input type="tel" name="phone" autocomplete="off" />
       </label>
       <label class="activity-field">
-        <span>Email</span>
+        <span data-i18n="activities.monitorEmail">Email</span>
         <input type="email" name="email" autocomplete="off" />
       </label>
       <label class="activity-field">
-        <span>NIF</span>
+        <span data-i18n="activities.monitorNif">NIF</span>
         <input type="text" name="nif" inputmode="numeric" autocomplete="off" />
       </label>
       <label class="activity-field">
-        <span>Voluntariado</span>
+        <span data-i18n="activities.monitorVolunteer">Voluntariado</span>
         <select name="volunteer">
-          <option value="false">Não</option>
-          <option value="true">Sim</option>
+          <option value="false" data-i18n="activities.monitorNo">N&atilde;o</option>
+          <option value="true" data-i18n="activities.monitorYes">Sim</option>
         </select>
       </label>
       <label class="activity-field">
-        <span>Profissão</span>
+        <span data-i18n="activities.monitorProfession">Profiss&atilde;o</span>
         <input type="text" name="profession" autocomplete="off" />
       </label>
       <label class="activity-field activity-field-wide">
-        <span>Descrição de atividade</span>
+        <span data-i18n="activities.monitorDescription">Descri&ccedil;&atilde;o de atividade</span>
         <textarea name="activityDescription" rows="3"></textarea>
       </label>
       <div class="activities-monitor-form-actions">
         <button class="primary-button" type="submit">
           <i data-lucide="save"></i>
-          <span>Guardar</span>
+          <span data-i18n="activities.save">Guardar</span>
         </button>
         <button class="secondary-button" type="button" data-activities-monitor-form-cancel>
           <i data-lucide="x"></i>
-          <span>Cancelar</span>
+          <span data-i18n="activities.cancel">Cancelar</span>
         </button>
       </div>
     </form>
     <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
-    <section class="activities-monitor-hours-controls" aria-label="Horas dos monitores">
+    <section class="activities-monitor-hours-controls" aria-label="Horas dos monitores" data-i18n-aria-label="activities.monitorHoursAria">
       <label class="activity-field">
-        <span>Horas</span>
+        <span data-i18n="activities.monitorHours">Horas</span>
         <select data-activities-monitor-hours-period>
-          <option value="month">Mensal</option>
-          <option value="year">Anual</option>
+          <option value="month" data-i18n="activities.statisticsPeriodMonthly">Mensal</option>
+          <option value="year" data-i18n="activities.statisticsPeriodAnnual">Anual</option>
         </select>
       </label>
       <label class="activity-field" data-activities-monitor-hours-month-field>
-        <span>Mês</span>
+        <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
         <select data-activities-monitor-hours-month></select>
       </label>
       <label class="activity-field">
-        <span>Ano</span>
+        <span data-i18n="activities.statisticsYear">Ano</span>
         <select data-activities-monitor-hours-year></select>
       </label>
     </section>
     <div class="activities-monitor-list" data-activities-monitor-list>
-      <p class="activity-empty-state">Sem monitores registados.</p>
+      <p class="activity-empty-state" data-i18n="activities.monitorEmpty">Sem monitores registados.</p>
     </div>
   </div>
 </dialog>`
@@ -404,6 +426,7 @@ const pageShell = ({ title, body, page, titleKey = '', headExtra = '' }) => `<!d
     ${headExtra}
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
+    ${page === 'atividades' ? '<script src="/static/vendor/pdfmake.min.js" defer></script>\n    <script src="/static/vendor/vfs_fonts.js" defer></script>' : ''}
     <script src="/static/central-config.js?v=${assetVersion}" defer></script>
     <script src="/static/app.js?v=${assetVersion}" defer></script>
     <script src="/static/central-auth.js?v=${assetVersion}" defer></script>
@@ -513,6 +536,7 @@ const centralUsersDialog = `
 const loginPage = pageShell({
   title: 'MenteMovimento',
   page: 'login',
+  headExtra: authPendingHead({ onlyWithStoredSession: true }),
   body: `
 <main class="login-shell">
   <section class="login-panel" aria-labelledby="loginTitle">
@@ -522,32 +546,75 @@ const loginPage = pageShell({
       </span>
       <span data-i18n="app.title">MenteMovimento</span>
     </div>
-    <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
-    <p class="login-copy" data-i18n="login.copy">Acesso reservado à gestão da associação.</p>
-    <form class="login-form" id="centralLoginForm">
-      <label class="field" for="email">
-        <span data-i18n="login.email">Email</span>
-        <input id="email" name="email" type="email" autocomplete="email" required />
-      </label>
-      <label class="field" for="password" style="margin-bottom: 6px;">
-        <span data-i18n="login.password">Password</span>
-        <div style="position: relative; width: 100%; display: flex; align-items: center;">
-          <input id="password" name="password" type="password" autocomplete="current-password" required autofocus style="width: 100%; padding-right: 42px;" />
-          <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
-            <i data-lucide="eye">👁️</i>
+    <div class="login-step" id="centralPasswordStep">
+      <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
+      <p class="login-copy" data-i18n="login.copy">Acesso reservado à gestão da associação.</p>
+      <form class="login-form" id="centralLoginForm">
+        <label class="field" for="email">
+          <span data-i18n="login.email">Email</span>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" for="password" style="margin-bottom: 6px;">
+          <span data-i18n="login.password">Password</span>
+          <div style="position: relative; width: 100%; display: flex; align-items: center;">
+            <input id="password" name="password" type="password" autocomplete="current-password" required autofocus style="width: 100%; padding-right: 42px;" />
+            <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
+              <i data-lucide="eye">👁️</i>
+            </button>
+          </div>
+        </label>
+        <label class="remember-field" for="rememberCredentials">
+          <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
+          <span data-i18n="login.remember">Lembrar neste browser</span>
+        </label>
+        <button class="primary-button" type="submit">
+          <i data-lucide="mail-check"></i>
+          <span data-i18n="login.submit">Entrar</span>
+        </button>
+      </form>
+    </div>
+    <div class="login-step" id="centralVerificationStep" aria-labelledby="verificationTitle" hidden>
+      <h1 id="verificationTitle" data-i18n="login.verifyTitle">Confirmar email</h1>
+      <p class="login-copy login-verification-copy">
+        <span data-i18n="login.verifyCopy">Enviámos um código para</span>
+        <strong id="centralVerificationEmail"></strong>
+      </p>
+      <form class="login-form" id="centralVerificationForm">
+        <label class="field" for="verificationCode">
+          <span data-i18n="login.code">Código de verificação</span>
+          <input
+            class="verification-code-input"
+            id="verificationCode"
+            name="code"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            minlength="6"
+            maxlength="8"
+            pattern="[0-9]{6,8}"
+            data-i18n-placeholder="login.codePlaceholder"
+            placeholder="000000"
+            required
+          />
+        </label>
+        <button class="primary-button" type="submit">
+          <i data-lucide="shield-check"></i>
+          <span data-i18n="login.verify">Confirmar e entrar</span>
+        </button>
+        <div class="login-verification-actions">
+          <button class="secondary-button" id="centralResendCode" type="button">
+            <i data-lucide="refresh-cw"></i>
+            <span data-resend-label data-i18n="login.resend">Reenviar código</span>
+          </button>
+          <button class="secondary-button" id="centralBackToPassword" type="button">
+            <i data-lucide="arrow-left"></i>
+            <span data-i18n="login.back">Voltar</span>
           </button>
         </div>
-      </label>
-      <label class="remember-field" for="rememberCredentials">
-        <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
-        <span data-i18n="login.remember">Lembrar neste browser</span>
-      </label>
-      <p class="form-error" id="centralAuthError" role="alert" hidden></p>
-      <button class="primary-button" type="submit">
-        <i data-lucide="log-in"></i>
-        <span data-i18n="login.submit">Entrar</span>
-      </button>
-    </form>
+        <p class="login-status" id="centralVerificationStatus" role="status" hidden></p>
+      </form>
+    </div>
+    <p class="form-error login-form-error" id="centralAuthError" role="alert" hidden></p>
   </section>
 </main>`,
 }).replace('<body data-central-page="login">', '<body class="login-page" data-central-page="login">')
@@ -562,6 +629,10 @@ ${topbar('', { showAccountMenu: true })}
     <div>
       <p class="eyebrow-dashboard" data-i18n="dashboard.eyebrow">Gestão da associação</p>
     </div>
+    <a class="dashboard-manual-link" href="/docs/Manual_Inicial_MenteMovimento.pdf?v=20260724" target="_blank" rel="noopener">
+      <i data-lucide="book-open-check" aria-hidden="true"></i>
+      <span data-i18n="dashboard.initialManual">Manual Inicial</span>
+    </a>
   </section>
   <section class="module-grid" aria-label="Aplicações disponíveis" data-i18n-aria-label="dashboard.available">
     ${moduleCards}
@@ -584,6 +655,7 @@ ${centralUsersDialog}`,
 const atividadesHistoryPage = pageShell({
   title: 'Histórico de Atividades | MenteMovimento',
   page: 'atividades-historico',
+  titleKey: 'activities.historyPageTitle',
   body: `
 ${topbar('atividades')}
 ${atividadesHistoryPageContent()}`,
@@ -592,6 +664,7 @@ ${atividadesHistoryPageContent()}`,
 const atividadesUserManualPage = pageShell({
   title: 'Manual de Utilizador - Atividades | MenteMovimento',
   page: 'atividades-manual-utilizador',
+  titleKey: 'activities.userManualPageTitle',
   body: `
 ${topbar('atividades')}
 ${atividadesUserManualPageContent()}`,
@@ -600,6 +673,7 @@ ${atividadesUserManualPageContent()}`,
 const atividadesDeveloperManualPage = pageShell({
   title: 'Manual de Programador - Atividades | MenteMovimento',
   page: 'atividades-manual-programador',
+  titleKey: 'activities.developerManualPageTitle',
   body: `
 ${topbar('atividades')}
 ${atividadesDeveloperManualPageContent()}`,
@@ -648,6 +722,8 @@ await mkdir(publicDir, { recursive: true })
 await cp(staticSource, staticOutput, { recursive: true })
 await mkdir(path.join(staticOutput, 'vendor'), { recursive: true })
 await cp(supabaseUmd, path.join(staticOutput, 'vendor', 'supabase.js'))
+await cp(pdfMakeBrowser, path.join(staticOutput, 'vendor', 'pdfmake.min.js'))
+await cp(pdfMakeFonts, path.join(staticOutput, 'vendor', 'vfs_fonts.js'))
 
 await writeFile(
   path.join(staticOutput, 'central-config.js'),
@@ -666,13 +742,18 @@ await writeFile(
   const authStorageKey = "central-mm-auth-token";
   const rememberLoginKey = "central-remember-login";
   const rememberEmailKey = "central-remember-email";
+  const verificationStateKey = "central-email-verification-state";
+  let verificationCountdownTimer = 0;
   const authStorage = {
     getItem: (key) => sessionStorage.getItem(key),
     setItem: (key, value) => sessionStorage.setItem(key, value),
     removeItem: (key) => sessionStorage.removeItem(key)
   };
-  // Every embedded branch receives the same permissions helper as the Central.
-  // A stored matrix is authoritative; only old empty matrices start with full access.
+  const showPage = () => {
+    document.documentElement.removeAttribute("data-central-auth-pending");
+    document.getElementById("centralAuthLoading")?.remove();
+  };
+  // Every embedded branch receives the same fail-closed permissions helper as the Central.
   const permissionAreas = ["socios", "utentes", "dispositivos", "atividades"];
   const permissionActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
   const emptyAreaPermissions = () => ({
@@ -690,16 +771,13 @@ await writeFile(
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
     dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
-    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
+    atividades: { view: true, edit: true, view_sensitive: true, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
   const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
-    const hasStoredMatrix =
-      Object.keys(source.central || {}).length > 0 ||
-      permissionAreas.some((area) => Object.keys(source[area] || {}).length > 0);
-    const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions();
+    const normalized = emptyPermissions();
 
     normalized.central.manage_users = permissionBoolean(source.central?.manage_users ?? normalized.central.manage_users);
     normalized.central.view_history = permissionBoolean(source.central?.view_history ?? normalized.central.view_history);
@@ -740,11 +818,12 @@ await writeFile(
           current.view = true;
         }
       }
-      if (area !== "utentes") {
+      if (!["utentes", "atividades"].includes(area)) {
         current.view_sensitive = false;
         current.edit_sensitive = false;
       }
       if (area === "atividades") {
+        current.edit_sensitive = false;
         current.delete = false;
       }
     });
@@ -876,7 +955,7 @@ await writeFile(
   const clearCentralSession = async (client) => {
     accessPromises.clear();
     try {
-      await client.auth.signOut();
+      await client.auth.signOut({ scope: "local" });
     } catch (_error) {
       // Continua a limpeza local mesmo se o pedido remoto falhar.
     }
@@ -917,6 +996,157 @@ await writeFile(
       // O login continua mesmo sem acesso a localStorage.
     }
   };
+  const translateLogin = (key, replacements = {}) => {
+    if (typeof window.CENTRAL_TRANSLATE === "function") {
+      return window.CENTRAL_TRANSLATE(key, replacements);
+    }
+    const fallback = {
+      "login.resend": "Reenviar código",
+      "login.resendIn": "Reenviar em {seconds}s",
+      "login.codeSent": "Enviámos um novo código.",
+      "login.codeExpired": "O código expirou. Volte a introduzir a password.",
+      "login.invalidCode": "O código é inválido ou expirou.",
+      "login.sessionExpired": "Sessão expirada. Volte a entrar.",
+      "login.startError": "Não foi possível enviar o código de verificação.",
+      "login.completeError": "Não foi possível concluir a verificação."
+    };
+    return Object.entries(replacements).reduce(
+      (text, [name, value]) => text.split("{" + name + "}").join(String(value)),
+      fallback[key] || key
+    );
+  };
+  const writeVerificationState = (state) => {
+    try {
+      sessionStorage.setItem(verificationStateKey, JSON.stringify(state));
+    } catch (_error) {
+      // O passo de verificação continua nesta página mesmo sem persistência.
+    }
+    return state;
+  };
+  const saveVerificationState = (payload, remember = false) => writeVerificationState({
+    challengeId: String(payload?.challengeId || ""),
+    email: String(payload?.email || "").trim(),
+    expiresAt: String(payload?.expiresAt || ""),
+    resendAt: Date.now() + Math.max(0, Number(payload?.resendAfter || 60)) * 1000,
+    remember: remember === true
+  });
+  const loadVerificationState = () => {
+    try {
+      const state = JSON.parse(sessionStorage.getItem(verificationStateKey) || "null");
+      if (!state?.challengeId || !state?.email || !state?.expiresAt) return null;
+      return state;
+    } catch (_error) {
+      return null;
+    }
+  };
+  const clearVerificationState = () => {
+    window.clearInterval(verificationCountdownTimer);
+    verificationCountdownTimer = 0;
+    try {
+      sessionStorage.removeItem(verificationStateKey);
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia sessionStorage.
+    }
+  };
+  const showVerificationStatus = (message) => {
+    const status = document.querySelector("#centralVerificationStatus");
+    if (!status) return;
+    status.textContent = message || "";
+    status.hidden = !message;
+  };
+  const setLoginStep = (step, state = null) => {
+    const verifying = step === "verification";
+    const passwordStep = document.querySelector("#centralPasswordStep");
+    const verificationStep = document.querySelector("#centralVerificationStep");
+    if (passwordStep) passwordStep.hidden = verifying;
+    if (verificationStep) verificationStep.hidden = !verifying;
+    document.querySelector(".login-panel")?.setAttribute(
+      "aria-labelledby",
+      verifying ? "verificationTitle" : "loginTitle"
+    );
+    if (!verifying) {
+      window.clearInterval(verificationCountdownTimer);
+      verificationCountdownTimer = 0;
+      window.setTimeout(() => document.querySelector("#password")?.focus(), 0);
+      return;
+    }
+    const emailNode = document.querySelector("#centralVerificationEmail");
+    if (emailNode) emailNode.textContent = state?.email || "";
+    showVerificationStatus("");
+    window.setTimeout(() => document.querySelector("#verificationCode")?.focus(), 0);
+  };
+  const updateResendCountdown = () => {
+    const state = loadVerificationState();
+    const button = document.querySelector("#centralResendCode");
+    const label = button?.querySelector("[data-resend-label]");
+    if (!state || !button || !label) return;
+    if (new Date(state.expiresAt).getTime() <= Date.now()) {
+      clearVerificationState();
+      setLoginStep("password");
+      showError(translateLogin("login.codeExpired"));
+      return;
+    }
+    const seconds = Math.max(0, Math.ceil((Number(state.resendAt || 0) - Date.now()) / 1000));
+    button.disabled = seconds > 0;
+    label.textContent = seconds > 0
+      ? translateLogin("login.resendIn", { seconds })
+      : translateLogin("login.resend");
+  };
+  const startResendCountdown = () => {
+    window.clearInterval(verificationCountdownTimer);
+    updateResendCountdown();
+    verificationCountdownTimer = window.setInterval(updateResendCountdown, 1000);
+  };
+  const requestJson = async (url, options, fallbackMessage) => {
+    const response = await fetch(url, options);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload.error || fallbackMessage);
+      error.code = payload.code || "";
+      error.retryAfter = Number(payload.retryAfter || 0);
+      throw error;
+    }
+    return payload;
+  };
+  const startEmailVerification = (email, password) => requestJson(
+    "/api/email-verification-start",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    },
+    translateLogin("login.startError")
+  );
+  const resendEmailVerification = (challengeId) => requestJson(
+    "/api/email-verification-start",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ challengeId })
+    },
+    translateLogin("login.startError")
+  );
+  const completeEmailVerification = async (client, state) => {
+    const { data } = await client.auth.getSession();
+    const token = data?.session?.access_token || "";
+    if (!token) {
+      const error = new Error(translateLogin("login.invalidCode"));
+      error.code = "INVALID_EMAIL_CODE";
+      throw error;
+    }
+    return requestJson(
+      "/api/email-verification-complete",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ challengeId: state.challengeId })
+      },
+      translateLogin("login.completeError")
+    );
+  };
   const stripSensitiveLoginParams = () => {
     if (page !== "login") return;
     const url = new URL(window.location.href);
@@ -941,8 +1171,8 @@ await writeFile(
   const showError = (message) => {
     const error = document.querySelector("#centralAuthError");
     if (!error) return;
-    error.textContent = message;
-    error.hidden = false;
+    error.textContent = message || "";
+    error.hidden = !message;
   };
   const displayNameFromSession = (session, profile = null) => {
     const metadataName = session?.user?.user_metadata?.full_name;
@@ -1040,7 +1270,9 @@ await writeFile(
         });
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.error || "Não foi possível preparar o acesso.");
+          const error = new Error(payload.error || "Não foi possível preparar o acesso.");
+          error.code = payload.code || "";
+          throw error;
         }
         const payload = await response.json().catch(() => ({ ok: true }));
         saveAccessCache(session, cacheArea);
@@ -1055,12 +1287,12 @@ await writeFile(
       throw error;
     }
   };
-  const ensureUtentesSession = async (client) => {
+  const ensureUtentesSession = async (client, { force = false } = {}) => {
     const { data } = await client.auth.getSession();
     const session = data?.session || null;
     const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
-    if (hasUtentesSessionCache(session)) return;
+    if (!force && hasUtentesSessionCache(session)) return;
     const response = await fetch("/api/utentes-session", {
       method: "POST",
       credentials: "same-origin",
@@ -1073,23 +1305,25 @@ await writeFile(
     const payload = await response.json().catch(() => ({ ok: true }));
     saveUtentesSessionCache(session, payload);
   };
-  const goTo = async (client, target) => {
+  const goTo = async (client, target, { forceUtentesSession = false } = {}) => {
     const path = safePath(target, "/dashboard");
     await ensureCentralAccess(client, areaFromPath(path));
     if (path.startsWith("/area/utentes")) {
-      await ensureUtentesSession(client);
+      await ensureUtentesSession(client, { force: forceUtentesSession });
     }
     window.location.replace(path);
   };
-  const goToDashboardAfterLogin = async (client) => {
-    await goTo(client, "/dashboard");
+  const goToRequestedPath = async (client, { forceUtentesSession = false } = {}) => {
+    await goTo(client, nextPath(), { forceUtentesSession });
   };
   const wireUtentesLinks = (client) => {
     document.querySelectorAll('a[href^="/area/utentes"]').forEach((link) => {
       link.addEventListener("click", async (event) => {
         event.preventDefault();
         try {
-          await goTo(client, link.getAttribute("href") || "/area/utentes/");
+          await goTo(client, link.getAttribute("href") || "/area/utentes/", {
+            forceUtentesSession: true
+          });
         } catch (error) {
           window.alert(error instanceof Error ? error.message : "Sem acesso a esta area.");
           window.location.href = "/dashboard";
@@ -1101,7 +1335,10 @@ await writeFile(
     stripSensitiveLoginParams();
     clearPersistentAuth();
     const client = createClient();
-    if (!client) return;
+    if (!client) {
+      showPage();
+      return;
+    }
     const { data } = await client.auth.getSession();
     const session = data?.session || null;
     if (page === "logout") {
@@ -1112,6 +1349,7 @@ await writeFile(
       } catch (_error) {
         // Logout continua mesmo sem acesso a sessionStorage.
       }
+      clearVerificationState();
       clearUtentesSessionCache();
       clearPersistentAuth();
       window.location.replace("/login?next=" + encodeURIComponent(nextPath()));
@@ -1119,14 +1357,46 @@ await writeFile(
     }
     if (page === "login") {
       loadRememberedLogin();
-      if (session) {
+      let verificationState = loadVerificationState();
+      if (verificationState && new Date(verificationState.expiresAt).getTime() <= Date.now()) {
+        clearVerificationState();
+        verificationState = null;
+      }
+      if (verificationState && session) {
         try {
-          await goToDashboardAfterLogin(client);
+          await completeEmailVerification(client, verificationState);
+          saveRememberedLogin(verificationState.email, verificationState.remember);
+          clearVerificationState();
+          await goToRequestedPath(client, {
+            forceUtentesSession: nextPath().startsWith("/area/utentes")
+          });
           return;
-        } catch (_error) {
-          await clearCentralSession(client);
-          showError("Sessão expirada. Volte a entrar.");
+        } catch (error) {
+          if (["CHALLENGE_EXPIRED", "CHALLENGE_COMPLETED"].includes(error?.code)) {
+            await clearCentralSession(client);
+            clearVerificationState();
+            verificationState = null;
+          }
         }
+      } else if (!verificationState && session) {
+        try {
+          await goToRequestedPath(client, {
+            forceUtentesSession: nextPath().startsWith("/area/utentes")
+          });
+          return;
+        } catch (error) {
+          await clearCentralSession(client);
+          showError(error?.code === "EMAIL_VERIFICATION_REQUIRED"
+            ? translateLogin("login.sessionExpired")
+            : error instanceof Error ? error.message : translateLogin("login.sessionExpired"));
+        }
+      }
+      showPage();
+      if (verificationState) {
+        setLoginStep("verification", verificationState);
+        startResendCountdown();
+      } else {
+        setLoginStep("password");
       }
       document.querySelector("#centralLoginForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -1137,20 +1407,124 @@ await writeFile(
         const submit = event.currentTarget.querySelector("button[type='submit']");
         submit.disabled = true;
         showError("");
-        document.querySelector("#centralAuthError").hidden = true;
-        await clearCentralSession(client);
-        const { error } = await client.auth.signInWithPassword({ email, password });
-        submit.disabled = false;
-        if (error) {
-          showError("Credenciais inválidas ou utilizador sem acesso.");
+        try {
+          clearVerificationState();
+          await clearCentralSession(client);
+          const payload = await startEmailVerification(email, password);
+          const state = saveVerificationState(payload, remember);
+          const passwordInput = document.querySelector("#password");
+          if (passwordInput) passwordInput.value = "";
+          setLoginStep("verification", state);
+          startResendCountdown();
+        } catch (error) {
+          showError(error instanceof Error ? error.message : translateLogin("login.startError"));
+        } finally {
+          submit.disabled = false;
+        }
+      });
+      const verificationCode = document.querySelector("#verificationCode");
+      verificationCode?.addEventListener("input", () => {
+        verificationCode.value = verificationCode.value.replace(/\\D/g, "").slice(0, 8);
+      });
+      document.querySelector("#centralVerificationForm")?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const state = loadVerificationState();
+        if (!state || new Date(state.expiresAt).getTime() <= Date.now()) {
+          clearVerificationState();
+          await clearCentralSession(client);
+          setLoginStep("password");
+          showError(translateLogin("login.codeExpired"));
           return;
         }
-        saveRememberedLogin(email, remember);
+        const form = new FormData(event.currentTarget);
+        const code = String(form.get("code") || "").replace(/\\D/g, "");
+        const submit = event.currentTarget.querySelector("button[type='submit']");
+        submit.disabled = true;
+        showError("");
+        showVerificationStatus("");
         try {
-          await goToDashboardAfterLogin(client);
+          const { data: currentData } = await client.auth.getSession();
+          let completed = false;
+          if (currentData?.session) {
+            try {
+              await completeEmailVerification(client, state);
+              completed = true;
+            } catch (error) {
+              if (error?.code !== "INVALID_EMAIL_CODE") throw error;
+              await client.auth.signOut({ scope: "local" }).catch(() => {});
+            }
+          }
+          if (!completed) {
+            const { error: verificationError } = await client.auth.verifyOtp({
+              email: state.email,
+              token: code,
+              type: "email"
+            });
+            if (verificationError) {
+              const invalidCodeError = new Error(translateLogin("login.invalidCode"));
+              invalidCodeError.code = "INVALID_EMAIL_CODE";
+              throw invalidCodeError;
+            }
+            await completeEmailVerification(client, state);
+          }
+          saveRememberedLogin(state.email, state.remember);
+          clearVerificationState();
+          await goToRequestedPath(client, {
+            forceUtentesSession: nextPath().startsWith("/area/utentes")
+          });
         } catch (error) {
-          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
+          if (["CHALLENGE_EXPIRED", "CHALLENGE_COMPLETED"].includes(error?.code)) {
+            await clearCentralSession(client);
+            clearVerificationState();
+            setLoginStep("password");
+            showError(translateLogin("login.codeExpired"));
+          } else {
+            showError(error?.code === "INVALID_EMAIL_CODE"
+              ? translateLogin("login.invalidCode")
+              : error instanceof Error ? error.message : translateLogin("login.completeError"));
+          }
+        } finally {
+          submit.disabled = false;
         }
+      });
+      document.querySelector("#centralResendCode")?.addEventListener("click", async (event) => {
+        const button = event.currentTarget;
+        const state = loadVerificationState();
+        if (!state) {
+          setLoginStep("password");
+          showError(translateLogin("login.codeExpired"));
+          return;
+        }
+        button.disabled = true;
+        showError("");
+        showVerificationStatus("");
+        try {
+          const payload = await resendEmailVerification(state.challengeId);
+          const nextState = saveVerificationState(payload, state.remember);
+          setLoginStep("verification", nextState);
+          showVerificationStatus(translateLogin("login.codeSent"));
+          startResendCountdown();
+        } catch (error) {
+          if (error?.retryAfter > 0) {
+            writeVerificationState({ ...state, resendAt: Date.now() + error.retryAfter * 1000 });
+            startResendCountdown();
+          }
+          if (error?.code === "CHALLENGE_EXPIRED") {
+            await clearCentralSession(client);
+            clearVerificationState();
+            setLoginStep("password");
+          }
+          showError(error instanceof Error ? error.message : translateLogin("login.startError"));
+        } finally {
+          updateResendCountdown();
+        }
+      });
+      document.querySelector("#centralBackToPassword")?.addEventListener("click", async () => {
+        clearVerificationState();
+        await clearCentralSession(client);
+        showError("");
+        showVerificationStatus("");
+        setLoginStep("password");
       });
       return;
     }
@@ -1162,6 +1536,11 @@ await writeFile(
       const payload = await ensureCentralAccess(client, areaFromPath(window.location.pathname));
       setDashboardAccountName(session, payload?.appUser);
     } catch (error) {
+      if (error?.code === "EMAIL_VERIFICATION_REQUIRED") {
+        await clearCentralSession(client);
+        window.location.replace("/login?next=" + encodeURIComponent(window.location.pathname + window.location.search));
+        return;
+      }
       showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }
     wireUtentesLinks(client);
@@ -1202,16 +1581,13 @@ await writeFile(
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
     dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
-    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
+    atividades: { view: true, edit: true, view_sensitive: true, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
   const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
-    const hasStoredMatrix =
-      Object.keys(source.central || {}).length > 0 ||
-      permissionAreas.some((area) => Object.keys(source[area] || {}).length > 0);
-    const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions();
+    const normalized = emptyPermissions();
 
     normalized.central.manage_users = permissionBoolean(source.central?.manage_users ?? normalized.central.manage_users);
     normalized.central.view_history = permissionBoolean(source.central?.view_history ?? normalized.central.view_history);
@@ -1252,11 +1628,12 @@ await writeFile(
           current.view = true;
         }
       }
-      if (area !== "utentes") {
+      if (!["utentes", "atividades"].includes(area)) {
         current.view_sensitive = false;
         current.edit_sensitive = false;
       }
       if (area === "atividades") {
+        current.edit_sensitive = false;
         current.delete = false;
       }
     });
@@ -1441,6 +1818,52 @@ await writeFile(
       // Continua sem cache se o browser bloquear sessionStorage.
     }
   };
+  const utentesSessionCachePrefix = "central-utentes-session:";
+  const utentesSessionCacheKey = (session) => \`\${utentesSessionCachePrefix}\${session?.user?.id || "anon"}\`;
+  const saveUtentesSessionCache = (session, payload = {}) => {
+    try {
+      const authExpiresAt = Number(session?.expires_at || 0) * 1000;
+      const apiExpiresAt = new Date(payload.expiresAt || 0).getTime();
+      const shortCacheExpiresAt = Date.now() + 30 * 60 * 1000;
+      const candidates = [authExpiresAt, apiExpiresAt, shortCacheExpiresAt].filter((value) => Number.isFinite(value) && value > Date.now());
+      const expiresAt = candidates.length ? Math.min(...candidates) : shortCacheExpiresAt;
+      sessionStorage.setItem(utentesSessionCacheKey(session), JSON.stringify({ ok: true, expiresAt }));
+    } catch (_error) {
+      // A sessão de Utentes continua válida mesmo sem cache local.
+    }
+  };
+  const ensureUtentesSession = async (session) => {
+    const token = session?.access_token || "";
+    if (!token) throw new Error("Sessão em falta.");
+    const response = await fetch("/api/utentes-session", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { Authorization: \`Bearer \${token}\` }
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.error || "Não foi possível iniciar Utentes.");
+    }
+    const payload = await response.json().catch(() => ({ ok: true }));
+    saveUtentesSessionCache(session, payload);
+  };
+  const wireUtentesLinks = (session) => {
+    if (window.location.pathname.startsWith("/area/utentes") || window.__CENTRAL_UTENTES_LINKS_WIRED) return;
+    window.__CENTRAL_UTENTES_LINKS_WIRED = true;
+    document.addEventListener("click", async (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target instanceof Element ? event.target : event.target?.parentElement;
+      const link = target?.closest('a[href^="/area/utentes"]');
+      if (!link || link.target === "_blank") return;
+      event.preventDefault();
+      try {
+        await ensureUtentesSession(session);
+        window.location.assign(link.getAttribute("href") || "/area/utentes/");
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
+      }
+    });
+  };
   const ensureAccess = async (session, area = "") => {
     const cacheArea = area || "dashboard";
     const token = session?.access_token || "";
@@ -1453,7 +1876,13 @@ await writeFile(
       },
       body: JSON.stringify({ area })
     });
-    if (!response.ok) throw new Error("Sem acesso preparado.");
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      const error = new Error(payload.error || "Sem acesso preparado.");
+      error.code = payload.code || "";
+      error.status = response.status;
+      throw error;
+    }
     const payload = await response.json().catch(() => ({}));
     saveAccessCache(session, cacheArea);
     window.CENTRAL_PERMISSIONS?.applyToPage?.(payload.appUser);
@@ -1481,10 +1910,17 @@ await writeFile(
         return;
       }
       await ensureAccess(session, areaFromPath(window.location.pathname));
+      wireUtentesLinks(session);
       window.clearTimeout(loginTimer);
       showPage();
     })
-    .catch(() => redirectToDashboard());
+    .catch((error) => {
+      if (error?.code === "EMAIL_VERIFICATION_REQUIRED" || error?.status === 401) {
+        redirectToCentralLogin();
+        return;
+      }
+      redirectToDashboard();
+    });
 })();`,
 )
 
@@ -1502,6 +1938,10 @@ await writeFile(path.join(atividadesOutput, 'manual-programador', 'index.html'),
 if (existsSync(atividadesDocsSource)) {
   await mkdir(path.join(atividadesOutput, 'docs'), { recursive: true })
   await cp(atividadesDocsSource, path.join(atividadesOutput, 'docs'), { recursive: true })
+}
+if (existsSync(initialManualSource)) {
+  await mkdir(path.join(publicDir, 'docs'), { recursive: true })
+  await cp(initialManualSource, path.join(publicDir, 'docs', 'Manual_Inicial_MenteMovimento.pdf'))
 }
 for (const page of [
   globalPage({
@@ -1534,12 +1974,13 @@ for (const page of [
     key: 'global.manuals',
     title: 'Manuais',
     icon: 'book-open',
-    copy: 'Area comum para consultar os manuais dos ramos e os manuais tecnicos.',
+    copy: 'Área comum para consultar o manual inicial, os manuais dos ramos e os manuais técnicos.',
     items: [
+      ['inicial', 'Manual inicial', 'Primeiros passos, navegação, permissões e cuidados com a informação.'],
       ['socios', 'Manual de sócios', 'Quotas, exportações e gestão de sócios.'],
       ['utentes', 'Manual de utentes', 'Fichas, separadores, anexos PDF, genograma e ecomapa.'],
-      ['dispositivos', 'Manual de cibersegurança', 'Registos, reparações, estados, estatísticas, anexos e CSV.'],
-      ['atividades', 'Manual de atividades', 'A preparar quando o modulo de atividades estiver fechado.'],
+      ['dispositivos', 'Manual de cibersegurança', 'Registos, reparações, estados, indicadores, anexos e CSV.'],
+      ['atividades', 'Manual de atividades', 'Horário, sumários, presenças, monitores, indicadores e impressão.'],
     ],
   }),
 ]) {
@@ -1560,7 +2001,7 @@ sociosIndex = sociosIndex
   .replace(/<title>.*?<\/title>/, '<title>Gestão de Sócios | MenteMovimento</title>')
   .replace(
     '</title>',
-    `</title>\n    ${authPendingHead}`,
+    `</title>\n    ${authPendingHead()}`,
   )
   .replace('<script src="vendor/lucide.min.js" defer></script>', '<script src="/static/vendor/lucide.min.js" defer></script>')
   .replace(/\s*<script src="vendor\/xlsx\.full\.min\.js" defer><\/script>/, '')
@@ -1593,7 +2034,7 @@ dispositivosIndex = dispositivosIndex
   .replace(/<title>.*?<\/title>/, '<title>Cibersegurança | MenteMovimento</title>')
   .replace(
     '</title>',
-    `</title>\n    ${authPendingHead}`,
+    `</title>\n    ${authPendingHead()}`,
   )
   .replace(
     '<script type="module"',

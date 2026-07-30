@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm --prefix portal/modules/dispositivos install --no-audit --no-fund && npm --prefix portal/modules/dispositivos run build && node scripts/prepare-vercel-output.mjs"
+    "build": "npm --prefix portal/modules/dispositivos install --no-audit --no-fund && npm --prefix portal/modules/dispositivos run build && node scripts/prepare-vercel-output.mjs",
+    "test:email-login": "node --test tests/email-login.test.mjs",
+    "test:activities-summary-lock": "node --test tests/activities-summary-lock.test.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.106.1"
+    "@supabase/supabase-js": "^2.106.1",
+    "pdfmake": "0.2.20"
   }
 }

@@ -86,6 +86,7 @@ as $$
   limit 1
 $$;
 
+revoke all on function private.current_app_role() from public, anon;
 grant execute on function private.current_app_role() to authenticated;
 
 create or replace function private.jsonb_bool(value jsonb, path text[])
@@ -100,22 +101,6 @@ as $$
   end
 $$;
 
-create or replace function private.default_app_permission(role public.app_role, area text, action text)
-returns boolean
-language sql
-immutable
-as $$
-  select case
-    when area = 'central' and action = 'manage_users' then role = 'admin'
-    when area = 'central' and action = 'view_history' then role in ('admin', 'operator')
-    when area in ('socios', 'utentes', 'dispositivos') and action = 'view' then role in ('admin', 'operator', 'viewer')
-    when area in ('socios', 'utentes', 'dispositivos') and action in ('edit', 'export') then role in ('admin', 'operator')
-    when area in ('socios', 'utentes', 'dispositivos') and action = 'delete' then role = 'admin'
-    when area = 'utentes' and action in ('view_sensitive', 'edit_sensitive') then role in ('admin', 'operator')
-    else false
-  end
-$$;
-
 create or replace function private.current_app_permission(area text, action text)
 returns boolean
 language sql
@@ -125,7 +110,6 @@ stable
 as $$
   select coalesce(
     private.jsonb_bool(app_users.permissions, array[area, action]),
-    private.default_app_permission(app_users.role, area, action),
     false
   )
   from public.app_users
@@ -134,6 +118,10 @@ as $$
   limit 1
 $$;
 
+drop function if exists private.default_app_permission(public.app_role, text, text);
+
+revoke all on function private.jsonb_bool(jsonb, text[]) from public, anon, authenticated;
+revoke all on function private.current_app_permission(text, text) from public, anon;
 grant execute on function private.current_app_permission(text, text) to authenticated;
 
 create or replace function private.touch_updated_at()
@@ -235,7 +223,7 @@ with check (
   private.current_app_permission('central', 'manage_users')
   and (
     id <> auth.uid()
-    or (role = 'admin' and active = true)
+    or active = true
   )
 );
 

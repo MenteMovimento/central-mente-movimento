@@ -40,9 +40,9 @@
 4. Usa `Ordenar por` e `Direcao` para exportar na ordem crescente ou decrescente que estiver visivel.
 5. Usa `Imprimir relatorio` para gerar um relatorio imprimivel dos registos visiveis.
 
-## 6. Ver estatisticas
+## 6. Ver indicadores
 
-1. Abre a aba `Estatisticas`.
+1. Abre a aba `Indicadores`.
 2. Consulta totais por estado, marcas mais comuns, tecnicos, avarias e resultados finais.
 3. Tambem podes imprimir um relatorio a partir desta pagina.
 

@@ -1,6 +1,7 @@
 -- Central MenteMovimento - promover a matriz de permissoes
 -- Execute este ficheiro no SQL Editor do Supabase uma unica vez.
--- Todas as contas ativas passam inicialmente a ter acesso total.
+-- Contas sem matriz ficam sem acesso. Para evitar bloquear uma instalacao nova,
+-- apenas a conta ativa mais antiga recebe o acesso inicial de administracao.
 -- Depois, ajuste cada utilizador na grelha de permissoes da Central.
 
 alter table public.app_users
@@ -37,6 +38,8 @@ as $$
   limit 1
 $$;
 
+revoke all on function private.jsonb_bool(jsonb, text[]) from public, anon, authenticated;
+revoke all on function private.current_app_permission(text, text) from public, anon;
 grant execute on function private.current_app_permission(text, text) to authenticated;
 
 update public.app_users
@@ -45,13 +48,44 @@ set role = 'viewer';
 update public.app_users
 set
   permissions = jsonb_build_object(
-    'central', jsonb_build_object('manage_users', true, 'view_history', true),
-    'socios', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
-    'utentes', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', true, 'edit_sensitive', true, 'export', true, 'delete', true),
-    'dispositivos', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
-    'atividades', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', false)
+    'central', jsonb_build_object('manage_users', false, 'view_history', false),
+    'socios', jsonb_build_object('view', false, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false),
+    'utentes', jsonb_build_object('view', false, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false),
+    'dispositivos', jsonb_build_object('view', false, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false),
+    'atividades', jsonb_build_object('view', false, 'edit', false, 'view_sensitive', false, 'edit_sensitive', false, 'export', false, 'delete', false)
   )
 where permissions is null or permissions = '{}'::jsonb;
+
+do $$
+declare
+  bootstrap_user_id uuid;
+begin
+  if not exists (
+    select 1
+    from public.app_users
+    where active = true
+      and coalesce(private.jsonb_bool(permissions, array['central', 'manage_users']), false)
+  ) then
+    select id
+    into bootstrap_user_id
+    from public.app_users
+    where active = true
+    order by created_at asc nulls last, id asc
+    limit 1;
+
+    if bootstrap_user_id is not null then
+      update public.app_users
+      set permissions = jsonb_build_object(
+        'central', jsonb_build_object('manage_users', true, 'view_history', true),
+        'socios', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
+        'utentes', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', true, 'edit_sensitive', true, 'export', true, 'delete', true),
+        'dispositivos', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
+        'atividades', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', true, 'edit_sensitive', false, 'export', true, 'delete', false)
+      )
+      where id = bootstrap_user_id;
+    end if;
+  end if;
+end $$;
 
 drop policy if exists "admins update app users" on public.app_users;
 create policy "admins update app users"

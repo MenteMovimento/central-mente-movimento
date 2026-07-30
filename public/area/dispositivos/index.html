@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/area/dispositivos/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestor de dispositivos | Mentemovimento</title>
+    <title>Cibersegurança | MenteMovimento</title>
     <script>
       (() => {
+        const shouldWaitForSession = true;
+        if (!shouldWaitForSession) return;
         document.documentElement.dataset.centralAuthPending = "true";
         const isStillPending = () => document.documentElement.dataset.centralAuthPending === "true";
         const renderLoading = () => {
@@ -35,6 +37,10 @@
         background: #f4fbf8;
       }
 
+      html[data-central-auth-pending="true"] body {
+        visibility: hidden;
+      }
+
       html[data-theme="dark"][data-central-auth-pending="true"] {
         background: #07131f;
       }
@@ -43,6 +49,7 @@
         position: fixed;
         inset: 0;
         z-index: 2147483647;
+        visibility: visible;
         display: grid;
         place-items: center;
         background: #f4fbf8;
@@ -56,12 +63,12 @@
       }
     </style>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260707-atividades-manual-dialog" defer></script>
-    <script src="/static/central-module-auth.js?v=20260707-atividades-manual-dialog" defer></script>
-    <script type="module" crossorigin src="/area/dispositivos/assets/index-Cao3UleD.js"></script>
-    <link rel="stylesheet" crossorigin href="/area/dispositivos/assets/index-C3w8mbUo.css">
+    <script src="/static/central-config.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/central-module-auth.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script type="module" crossorigin src="/area/dispositivos/assets/index-DIpI8zrt.js"></script>
+    <link rel="stylesheet" crossorigin href="/area/dispositivos/assets/index-G2Sf0HCO.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"></div>
   </body>
 </html>

@@ -1,3 +1,6 @@
+-- Historico e anexos da area de Ciberseguranca.
+-- Requer supabase/permissions-matrix.sql executado primeiro.
+
 create table if not exists public.device_history (
   id uuid primary key default gen_random_uuid(),
   device_id uuid,
@@ -39,35 +42,37 @@ create policy "Authenticated members can read device history"
 on public.device_history
 for select
 to authenticated
-using (public.current_member_role() in ('admin', 'manager', 'member'));
+using (private.current_app_permission('dispositivos', 'view'));
 
 create policy "Authenticated members can create device history"
 on public.device_history
 for insert
 to authenticated
-with check (public.current_member_role() in ('admin', 'manager'));
+with check (private.current_app_permission('dispositivos', 'edit'));
 
 create policy "Authenticated members can read device attachments"
 on public.device_attachments
 for select
 to authenticated
-using (public.current_member_role() in ('admin', 'manager', 'member'));
+using (private.current_app_permission('dispositivos', 'view'));
 
 create policy "Authenticated members can create device attachments"
 on public.device_attachments
 for insert
 to authenticated
-with check (public.current_member_role() in ('admin', 'manager'));
+with check (private.current_app_permission('dispositivos', 'edit'));
 
 create policy "Authenticated members can delete device attachments"
 on public.device_attachments
 for delete
 to authenticated
-using (public.current_member_role() in ('admin', 'manager'));
+using (private.current_app_permission('dispositivos', 'edit'));
 
-insert into storage.buckets (id, name, public)
-values ('device-attachments', 'device-attachments', false)
-on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('device-attachments', 'device-attachments', false, 20971520)
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit;
 
 drop policy if exists "Authenticated members can read device attachment files" on storage.objects;
 drop policy if exists "Authenticated members can create device attachment files" on storage.objects;
@@ -77,18 +82,27 @@ create policy "Authenticated members can read device attachment files"
 on storage.objects
 for select
 to authenticated
-using (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager', 'member'));
+using (
+  bucket_id = 'device-attachments'
+  and private.current_app_permission('dispositivos', 'view')
+);
 
 create policy "Authenticated members can create device attachment files"
 on storage.objects
 for insert
 to authenticated
-with check (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager'));
+with check (
+  bucket_id = 'device-attachments'
+  and private.current_app_permission('dispositivos', 'edit')
+);
 
 create policy "Authenticated members can delete device attachment files"
 on storage.objects
 for delete
 to authenticated
-using (bucket_id = 'device-attachments' and public.current_member_role() in ('admin', 'manager'));
+using (
+  bucket_id = 'device-attachments'
+  and private.current_app_permission('dispositivos', 'edit')
+);
 
 notify pgrst, 'reload schema';

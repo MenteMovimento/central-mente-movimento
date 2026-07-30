@@ -45,6 +45,8 @@ DB_PATH = os.path.join(BASE_DIR, "utentes.db")
 LOGO_PATH = os.path.join(BASE_DIR, "logo-horizontal.png")
 ATTACHMENTS_DIR = os.path.join(BASE_DIR, "anexos")
 MAX_PDF_BYTES = 30 * 1024 * 1024
+MAX_FORM_BYTES = 5 * 1024 * 1024
+MAX_MULTIPART_BYTES = MAX_PDF_BYTES + 1024 * 1024
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SECRET_KEY = (
     os.environ.get("SUPABASE_SECRET_KEY")
@@ -66,7 +68,10 @@ TAB_SECTIONS = [
 PERFIL_ADMIN = "Administrador"
 PERFIL_UTILIZADOR = "Utilizador"
 DEFAULT_ADMIN_EMAIL = "admin@mentemovimento.local"
-DEFAULT_ADMIN_PASSWORD = "admin123"
+_DEFAULT_ADMIN_PASSWORD_ENV = os.environ.get("UTENTES_ADMIN_PASSWORD", "").strip()
+DEFAULT_ADMIN_PASSWORD = _DEFAULT_ADMIN_PASSWORD_ENV or secrets.token_urlsafe(24)
+DEFAULT_ADMIN_PASSWORD_GENERATED = not bool(_DEFAULT_ADMIN_PASSWORD_ENV)
+DEFAULT_ADMIN_CREDENTIAL_ACTIVE = False
 SESSION_COOKIE = "utentes_session"
 LANGUAGE_COOKIE = "utentes_language"
 SESSION_HOURS = 12
@@ -2236,7 +2241,26 @@ def verify_password(password, stored_hash):
 
 
 def ensure_default_admin(conn=None):
+    global DEFAULT_ADMIN_CREDENTIAL_ACTIVE
+
     if supabase_available():
+        existing_default = table_select(
+            "utilizadores",
+            {
+                "select": "id,password_hash",
+                "email": f"eq.{DEFAULT_ADMIN_EMAIL}",
+                "limit": "1",
+            },
+        )
+        if existing_default:
+            if verify_password("admin123", existing_default[0].get("password_hash", "")):
+                table_update(
+                    "utilizadores",
+                    {"id": f"eq.{existing_default[0]['id']}"},
+                    {"password_hash": hash_password(DEFAULT_ADMIN_PASSWORD), "updated_at": now()},
+                )
+                DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
+            return
         if table_select("utilizadores", {"select": "id", "limit": "1"}):
             return
         timestamp = now()
@@ -2254,6 +2278,19 @@ def ensure_default_admin(conn=None):
                 "updated_at": timestamp,
             },
         )
+        DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
+        return
+    existing_default = conn.execute(
+        "SELECT id, password_hash FROM utilizadores WHERE lower(email) = lower(?) LIMIT 1",
+        (DEFAULT_ADMIN_EMAIL,),
+    ).fetchone()
+    if existing_default:
+        if verify_password("admin123", existing_default["password_hash"]):
+            conn.execute(
+                "UPDATE utilizadores SET password_hash = ?, updated_at = ? WHERE id = ?",
+                (hash_password(DEFAULT_ADMIN_PASSWORD), now(), existing_default["id"]),
+            )
+            DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
         return
     total = conn.execute("SELECT COUNT(*) AS total FROM utilizadores").fetchone()["total"]
     if total:
@@ -2266,6 +2303,7 @@ def ensure_default_admin(conn=None):
         """,
         ("Administrador", DEFAULT_ADMIN_EMAIL, hash_password(DEFAULT_ADMIN_PASSWORD), PERFIL_ADMIN, timestamp, timestamp),
     )
+    DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
 
 
 def is_admin(user):
@@ -5749,8 +5787,34 @@ def delete_utente_record(utente_id):
     return utente
 
 
+def request_content_length(handler, maximum):
+    raw_length = str(handler.headers.get("Content-Length", "0")).strip()
+    try:
+        length = int(raw_length or "0")
+    except ValueError as exc:
+        raise ValueError("Tamanho do pedido invalido.") from exc
+    if length < 0:
+        raise ValueError("Tamanho do pedido invalido.")
+    if length > maximum:
+        raise ValueError("Pedido demasiado grande.")
+    return length
+
+
+def request_is_same_origin(handler):
+    source = str(handler.headers.get("Origin") or handler.headers.get("Referer") or "").strip()
+    if not source:
+        return True
+    parsed_source = urlparse(source)
+    if parsed_source.scheme not in {"http", "https"} or not parsed_source.netloc:
+        return False
+    expected_host = str(
+        handler.headers.get("X-Forwarded-Host") or handler.headers.get("Host") or ""
+    ).split(",", 1)[0].strip().lower()
+    return bool(expected_host) and hmac.compare_digest(parsed_source.netloc.lower(), expected_host)
+
+
 def read_post(handler):
-    length = int(handler.headers.get("Content-Length", "0"))
+    length = request_content_length(handler, MAX_FORM_BYTES)
     raw = handler.rfile.read(length).decode("utf-8")
     return parse_qs(raw, keep_blank_values=True)
 
@@ -5759,7 +5823,7 @@ def read_multipart(handler):
     content_type = handler.headers.get("Content-Type", "")
     if "multipart/form-data" not in content_type:
         raise ValueError("Pedido inválido.")
-    length = int(handler.headers.get("Content-Length", "0"))
+    length = request_content_length(handler, MAX_MULTIPART_BYTES)
     raw = handler.rfile.read(length)
     message = BytesParser(policy=policy.default).parsebytes(
         f"Content-Type: {content_type}\r\nMIME-Version: 1.0\r\n\r\n".encode("utf-8") + raw
@@ -6630,13 +6694,25 @@ class UtentesHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Página não encontrada")
 
     def do_POST(self):
+        if not request_is_same_origin(self):
+            self.send_error(403, "Origem do pedido nao autorizada")
+            return
+
         parsed = urlparse(self.path)
 
         if parsed.path == "/anexos/upload":
             self.handle_pdf_upload()
             return
 
-        data = read_post(self)
+        try:
+            data = read_post(self)
+        except UnicodeDecodeError:
+            self.send_error(400, "Codificacao do pedido invalida")
+            return
+        except ValueError as exc:
+            status = 413 if "grande" in str(exc).lower() else 400
+            self.send_error(status, str(exc))
+            return
 
         if parsed.path == "/login":
             email = field_value(data, "email")
@@ -6883,6 +6959,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "application/pdf")
         self.send_header("Content-Disposition", f"inline; filename=\"{filename}\"; filename*=UTF-8''{quote(filename)}")
+        self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -6891,6 +6968,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
@@ -6899,6 +6977,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         encoded = body.encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
@@ -6941,6 +7020,9 @@ def run():
     server = ThreadingHTTPServer(("127.0.0.1", port), UtentesHandler)
     print(f"Base de dados: {DB_PATH}")
     print(f"A abrir em: http://127.0.0.1:{port}")
+    if DEFAULT_ADMIN_CREDENTIAL_ACTIVE:
+        print(f"Login local: {DEFAULT_ADMIN_EMAIL}")
+        print(f"Password local temporaria: {DEFAULT_ADMIN_PASSWORD}")
     server.serve_forever()
 
 

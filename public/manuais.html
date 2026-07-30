@@ -4,14 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Manuais - MenteMovimento</title>
+    <title>Manuais | MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260608-header-i18n-icons" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260729-activities-questionnaire-manuals-v1" />
+    
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="/static/app.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="/static/central-auth.js?v=20260608-header-i18n-icons" defer></script>
+    
+    <script src="/static/central-config.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/app.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/central-auth.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
   </head>
   <body data-central-page="dashboard" data-title-key="global.manuals.title">
     
@@ -24,7 +26,6 @@
       </span>
       <div>
         <h1>MenteMovimento</h1>
-        <p data-user-email>Administrador</p>
       </div>
     </a>
     <nav class="topnav" aria-label="Áreas principais" data-i18n-aria-label="nav.areas">
@@ -38,7 +39,11 @@
       </a>
       <a class="topnav-link" href="/area/dispositivos/">
         <i data-lucide="monitor-cog"></i>
-        <span data-i18n="nav.dispositivos">Dispositivos</span>
+        <span data-i18n="nav.dispositivos">Cibersegurança</span>
+      </a>
+      <a class="topnav-link" href="/area/atividades/">
+        <i data-lucide="calendar-days"></i>
+        <span data-i18n="nav.atividades">Atividades</span>
       </a>
     </nav>
     <div class="global-actions" aria-label="Ferramentas globais" data-i18n-aria-label="nav.tools">
@@ -47,6 +52,7 @@
           <i data-lucide="menu"></i>
         </summary>
         <div class="global-tools-menu" role="menu">
+
           <button class="menu-item" type="button" data-users-toggle role="menuitem">
             <i data-lucide="users-round"></i>
             <span data-i18n="menu.users">Utilizadores</span>
@@ -61,20 +67,35 @@
           </button>
         </div>
       </details>
-      <a class="icon-link" href="/logout" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
-        <i data-lucide="log-out"></i>
-      </a>
+      
+      <details class="dashboard-user-menu-wrap">
+        <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+          <i data-lucide="user-round"></i>
+        </summary>
+        <div class="dashboard-user-menu" role="menu">
+          <strong class="dashboard-account-name" data-dashboard-account-name hidden></strong>
+          <a class="dashboard-logout-button" href="/logout" role="menuitem" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+            <i data-lucide="log-out"></i>
+            <span data-i18n="nav.logout">Terminar sessão</span>
+          </a>
+        </div>
+      </details>
     </div>
   </div>
 </header>
+
 <main class="global-shell">
   <section class="global-panel">
     <p class="eyebrow" data-i18n="global.eyebrow">Ferramenta global</p>
     <i data-lucide="book-open"></i>
     <h2 data-i18n="global.manuals.title">Manuais</h2>
-    <p class="global-copy" data-i18n="global.manuals.copy">Área comum para consultar os manuais dos três ramos e os manuais técnicos.</p>
+    <p class="global-copy" data-i18n="global.manuals.copy">Área comum para consultar o manual inicial, os manuais dos ramos e os manuais técnicos.</p>
     <div class="global-grid">
       
+      <article class="global-item">
+        <strong data-i18n="global.manuals.inicial.title">Manual inicial</strong>
+        <p data-i18n="global.manuals.inicial.copy">Primeiros passos, navegação, permissões e cuidados com a informação.</p>
+      </article>
       <article class="global-item">
         <strong data-i18n="global.manuals.socios.title">Manual de sócios</strong>
         <p data-i18n="global.manuals.socios.copy">Quotas, exportações e gestão de sócios.</p>
@@ -84,8 +105,12 @@
         <p data-i18n="global.manuals.utentes.copy">Fichas, separadores, anexos PDF, genograma e ecomapa.</p>
       </article>
       <article class="global-item">
-        <strong data-i18n="global.manuals.dispositivos.title">Manual de dispositivos</strong>
-        <p data-i18n="global.manuals.dispositivos.copy">Reparações, estados, estatísticas, anexos e CSV.</p>
+        <strong data-i18n="global.manuals.dispositivos.title">Manual de cibersegurança</strong>
+        <p data-i18n="global.manuals.dispositivos.copy">Registos, reparações, estados, indicadores, anexos e CSV.</p>
+      </article>
+      <article class="global-item">
+        <strong data-i18n="global.manuals.atividades.title">Manual de atividades</strong>
+        <p data-i18n="global.manuals.atividades.copy">Horário, sumários, presenças, monitores, indicadores e impressão.</p>
       </article>
     </div>
   </section>
@@ -95,6 +120,7 @@
   <section class="central-admin-panel" aria-label="Utilizadores">
     <div class="central-admin-head">
       <div>
+        <i data-lucide="users"></i>
         <h2 data-i18n="users.title">Utilizadores</h2>
         <p data-i18n="users.subtitle">Crie acessos novos e edite permissões de utilizadores existentes.</p>
       </div>
@@ -112,6 +138,7 @@
     <div class="central-admin-forms">
       <form class="central-admin-form" id="centralCreateUserForm">
         <div class="form-section-title">
+          <i data-lucide="user-plus"></i>
           <h3 data-i18n="users.createTitle">Criar utilizador</h3>
           <p data-i18n="users.createHint">O utilizador é adicionado automaticamente à base de dados da associação.</p>
         </div>
@@ -126,7 +153,7 @@
         <label class="field" for="userPassword" style="margin-bottom: 16px;">
           <span>Password</span>
           <div style="position: relative; width: 100%; display: flex; align-items: center;">
-            <input id="userPassword" name="password" type="password" required style="width: 100%; padding-right: 42px;" />
+            <input id="userPassword" name="password" type="password" autocomplete="new-password" minlength="8" title="A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial." required style="width: 100%; padding-right: 42px;" />
             <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
               <i data-lucide="eye">👁️</i>
             </button>
@@ -142,6 +169,7 @@
 
       <form class="central-admin-form" id="centralEditUserForm">
         <div class="form-section-title">
+          <i data-lucide="user-pen"></i>
           <h3 data-i18n="users.editTitle">Editar utilizador</h3>
           <p id="centralEditingUserHint" data-i18n="users.editHint">Escolha um utilizador na lista para editar.</p>
         </div>
@@ -149,10 +177,6 @@
         <label class="field" for="centralEditUserName">
           <span data-i18n="users.name">Nome</span>
           <input id="centralEditUserName" name="fullName" type="text" autocomplete="name" />
-        </label>
-        <label class="field" for="centralEditUserEmail">
-          <span data-i18n="login.email">Email</span>
-          <input id="centralEditUserEmail" name="email" type="email" autocomplete="email" required />
         </label>
         <label class="remember-field" for="centralEditUserActive">
           <input id="centralEditUserActive" name="active" type="checkbox" checked />

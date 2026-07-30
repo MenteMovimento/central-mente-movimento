@@ -53,7 +53,7 @@ Funcionalidades que devem ser migradas do projeto de ciberseguranca:
 - Listagem.
 - Reparações.
 - Estados.
-- Estatísticas.
+- Indicadores.
 - Anexos.
 - Importação/exportação CSV.
 

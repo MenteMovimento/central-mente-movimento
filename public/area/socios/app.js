@@ -11,6 +11,10 @@ const REMEMBER_EMAIL_STORAGE_KEY = "socios-remember-email";
 const LOGIN_FAILURE_STORAGE_KEY = "socios-login-failures";
 const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
 const CENTRAL_AUTH_STORAGE_KEY = "central-mm-auth-token";
+const passwordPolicyMessage =
+  "A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial.";
+const isStrongPassword = (password) =>
+  password.length >= 8 && /\p{Lu}/u.test(password) && /[^\p{L}\p{N}]/u.test(password);
 
 const centralAuthStorage = {
   getItem: (key) => sessionStorage.getItem(key),
@@ -108,7 +112,8 @@ const translations = {
       logout: "Terminar sessão",
       socios: "Sócios",
       utentes: "Utentes",
-      dispositivos: "Dispositivos",
+      dispositivos: "Cibersegurança",
+      atividades: "Atividades",
     },
     menu: {
       users: "Utilizadores",
@@ -117,7 +122,7 @@ const translations = {
       light: "Tema claro",
     },
     app: {
-      title: "Gestão de Sócios | MenteMovimento",
+      title: "Sócios | MenteMovimento",
       setupTitle: "Configuração necessária",
       setupText: "Configure o Supabase em config.js antes de publicar ou usar a app em produção.",
       setupLink: "Ver instruções",
@@ -150,6 +155,7 @@ const translations = {
       cancel: "Cancelar",
       delete: "Apagar",
       edit: "Editar",
+      view: "Ver",
       clear: "Limpar",
       active: "Ativo",
       actions: "Ações",
@@ -165,7 +171,7 @@ const translations = {
     metrics: {
       members: "Sócios",
       overdue: "Quotas em atraso",
-      quotaState: "Estado das quotas",
+      quotaState: "Quotas em atraso",
       paid: "Quotas em dia",
       paidDetail: "Sócios com pagamento dentro do prazo.",
       latest: "Último registo",
@@ -195,7 +201,7 @@ const translations = {
       baseReadyDetail: "Adicione o primeiro sócio para começar o histórico.",
       overdueSingular: "quota em atraso",
       overduePlural: "quotas em atraso",
-      overdueDetail: "Os sócios em atraso aparecem destacados a vermelho na tabela.",
+      overdueDetail: "Sócios com pagamento atrasado.",
       noOverdue: "Sem quotas em atraso",
       paidSingular: "sócio está",
       paidPlural: "sócios estão",
@@ -208,6 +214,7 @@ const translations = {
       registered: "Ficha registada.",
     },
     member: {
+      viewTitle: "Consultar sócio",
       editTitle: "Editar sócio",
       newTitle: "Novo sócio",
       subtitle: "Ficha individual",
@@ -249,7 +256,7 @@ const translations = {
       title: "Utilizadores",
       subtitle: "Crie acessos novos e edite permissões de utilizadores existentes.",
       createTitle: "Criar utilizador",
-      createHint: "O utilizador é adicionado automaticamente à base de dados da associação.",
+      createHint: "O utilizador é adicionado automaticamente à base de dados da associação",
       editTitle: "Editar utilizador",
       editHint: "Escolha um utilizador na lista para editar.",
       createButton: "Criar utilizador",
@@ -310,7 +317,7 @@ const translations = {
       languageComing: "A mudança de idioma fica preparada para a próxima fase.",
       noPermissionMembers: "Não tem permissão para alterar sócios.",
       adminUsersOnly: "Só administradores podem gerir utilizadores.",
-      adminHistoryOnly: "Só administradores podem consultar o histórico.",
+      adminHistoryOnly: "É necessária permissão para consultar Sócios.",
       manualsOnly: "Só administradores e operadores podem consultar os manuais.",
       approvalMinuteMissing: "Falta aplicar o SQL para guardar o Nº de Ata de Aprovação.",
       quotaPaidAtMissing: "Falta aplicar o SQL para guardar a data do pagamento das quotas.",
@@ -324,7 +331,8 @@ const translations = {
       logout: "Sign out",
       socios: "Members",
       utentes: "Clients",
-      dispositivos: "Devices",
+      dispositivos: "Cybersecurity",
+      atividades: "Activities",
     },
     menu: {
       users: "Users",
@@ -366,6 +374,7 @@ const translations = {
       cancel: "Cancel",
       delete: "Delete",
       edit: "Edit",
+      view: "View",
       clear: "Clear",
       active: "Active",
       actions: "Actions",
@@ -381,7 +390,7 @@ const translations = {
     metrics: {
       members: "Members",
       overdue: "Overdue fees",
-      quotaState: "Fee status",
+      quotaState: "Overdue fees",
       paid: "Paid fees",
       paidDetail: "Members with payments within the due date.",
       latest: "Latest record",
@@ -424,6 +433,7 @@ const translations = {
       registered: "Record registered.",
     },
     member: {
+      viewTitle: "View member",
       editTitle: "Edit member",
       newTitle: "New member",
       subtitle: "Individual record",
@@ -526,7 +536,7 @@ const translations = {
       languageComing: "Language switching is ready for the next phase.",
       noPermissionMembers: "You do not have permission to edit members.",
       adminUsersOnly: "Only administrators can manage users.",
-      adminHistoryOnly: "Only administrators can view the history.",
+      adminHistoryOnly: "Permission to view Members is required.",
       manualsOnly: "Only administrators and operators can view the manuals.",
       approvalMinuteMissing: "Run the SQL update before saving approval minute numbers.",
       quotaPaidAtMissing: "Run the SQL update before saving fee payment dates.",
@@ -669,6 +679,7 @@ const state = {
   filter: "all",
   sort: "nameAsc",
   editingId: null,
+  viewingOnly: false,
   editingUserId: null,
   csrfToken: "",
   loginFailureCount: 0,
@@ -686,6 +697,8 @@ const elements = {
   accessUserId: document.querySelector("#accessUserId"),
   accessUserName: document.querySelector("#accessUserName"),
   accessUserRole: document.querySelector("#accessUserRole"),
+  accountMenuName: document.querySelector("#accountMenuName"),
+  accountMenuWrap: document.querySelector(".account-menu-wrap"),
   adminDialog: document.querySelector("#adminDialog"),
   adminManagerBtn: document.querySelector("#adminManagerBtn"),
   appShell: document.querySelector("#appShell"),
@@ -897,9 +910,9 @@ function applyOrganizationName() {
     !configuredName ||
     normalizedConfiguredName === normalise("Gestão de Sócios") ||
     (normalizedConfiguredName.includes("gest") && normalizedConfiguredName.includes("socio"));
-  const name = usesDefaultName ? t("app.title") : configuredName;
-  document.title = name;
-  elements.appTitle.textContent = name;
+  const name = usesDefaultName ? "MenteMovimento" : configuredName;
+  document.title = t("app.title");
+  if (elements.appTitle) elements.appTitle.textContent = name;
   elements.authTitle.textContent = name;
 }
 
@@ -991,7 +1004,7 @@ function applyLanguage(language = loadStoredLanguage(), persist = true) {
   updateLanguageOptions();
 
   if (state.profile) {
-    elements.userRole.textContent = roleLabel(state.profile.role);
+    if (elements.userRole) elements.userRole.textContent = roleLabel(state.profile.role);
     render();
     renderAppUsers();
     renderHistory();
@@ -1057,6 +1070,7 @@ function updateStaticLanguageText() {
   setText('.topnav a[href="/area/socios/"] span', "nav.socios");
   setText('.topnav a[href="/area/utentes/"] span', "nav.utentes");
   setText('.topnav a[href="/area/dispositivos/"] span', "nav.dispositivos");
+  setText('.topnav a[href="/area/atividades/"] span', "nav.atividades");
   setAttributeText(".topbar-actions", "aria-label", "nav.tools");
 
   setText(".setup-panel h1", "app.setupTitle");
@@ -1077,6 +1091,7 @@ function updateStaticLanguageText() {
   setAttributeText("#toolsMenuBtn", "aria-label", "app.menu");
   setAttributeText("#logoutBtn", "title", "app.logout");
   setAttributeText("#logoutBtn", "aria-label", "app.logout");
+  setText("#logoutBtn span", "app.logout");
   setText("#importBtn span", "app.import");
   setText("#exportJsonBtn span", "app.export");
   setText("#historyBtn span", "app.history");
@@ -1128,7 +1143,6 @@ function updateStaticLanguageText() {
   setText('label[for="createUserName"] span, label[for="accessUserName"] span', "app.name");
   setText('label[for="createUserEmail"] span, label[for="accessUserEmail"] span', "app.email");
   setText('label[for="createUserPassword"] span', "app.password");
-  setText('label[for="createUserRole"] span, label[for="accessUserRole"] span', "app.profile");
   setText('label[for="accessUserActive"] span', "app.active");
   setText("#clearUserFormBtn", "app.clear");
   setText("#createUserForm .primary-button span", "admin.createButton");
@@ -1217,8 +1231,9 @@ function updateLanguageOptions() {
 function syncOpenDialogText() {
   if (elements.dialog.open) {
     const member = state.members.find((item) => item.id === state.editingId);
-    elements.dialogTitle.textContent = member ? t("member.editTitle") : t("member.newTitle");
+    elements.dialogTitle.textContent = state.viewingOnly ? t("member.viewTitle") : member ? t("member.editTitle") : t("member.newTitle");
     elements.dialogSubtitle.textContent = member ? member.name : t("member.subtitle");
+    elements.cancelBtn.textContent = state.viewingOnly ? t("app.close") : t("app.cancel");
   }
 
   if (!state.editingUserId) {
@@ -1426,8 +1441,10 @@ function showApp() {
   elements.setupView.hidden = true;
   elements.authView.hidden = true;
   elements.appShell.hidden = false;
-  elements.userEmail.textContent = state.profile.full_name || state.profile.email || state.user.email || "";
-  elements.userRole.textContent = roleLabel(state.profile.role);
+  const accountName = state.profile.full_name || state.profile.email || state.user.email || "";
+  if (elements.accountMenuName) elements.accountMenuName.textContent = accountName;
+  if (elements.userEmail) elements.userEmail.textContent = state.profile.full_name || state.profile.email || state.user.email || "";
+  if (elements.userRole) elements.userRole.textContent = roleLabel(state.profile.role);
   applyPermissions();
   updateStaticLanguageText();
   renderIcons();
@@ -1480,16 +1497,20 @@ function canExport() {
   return hasCentralPermission("socios", "export");
 }
 
+function canViewMembers() {
+  return hasCentralPermission("socios", "view");
+}
+
 function canManageUsers() {
   return hasCentralPermission("central", "manage_users");
 }
 
 function canViewHistory() {
-  return hasCentralPermission("central", "view_history");
+  return canViewMembers();
 }
 
 function canViewManuals() {
-  return hasCentralPermission("socios", "view");
+  return canViewMembers();
 }
 
 function hasCentralPermission(area, action) {
@@ -1558,11 +1579,31 @@ async function refreshHistory() {
 
   elements.historyError.textContent = "";
 
-  const { data, error } = await supabaseClient
-    .from("member_audit_log")
-    .select("id,member_id,action,changed_at,changed_by,old_data,new_data")
-    .order("changed_at", { ascending: false })
-    .limit(120);
+  let data;
+  let error;
+
+  try {
+    const session = state.session || (await supabaseClient.auth.getSession()).data.session;
+    const response = await fetch("/api/central-users?kind=member-history&limit=120", {
+      headers: {
+        Authorization: `Bearer ${session?.access_token || ""}`,
+      },
+      credentials: "same-origin",
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.error || "Não foi possível carregar o histórico de sócios.");
+    }
+    data = Array.isArray(payload.history) ? payload.history : [];
+  } catch (apiError) {
+    const fallback = await supabaseClient
+      .from("member_audit_log")
+      .select("id,member_id,action,changed_at,changed_by,old_data,new_data")
+      .order("changed_at", { ascending: false })
+      .limit(120);
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     state.auditLogs = [];
@@ -1608,7 +1649,7 @@ function renderHistory() {
 
 function renderHistoryRow(entry) {
   const subject = getAuditSubject(entry);
-  const actor = getAuditActor(entry.changed_by);
+  const actor = getAuditActor(entry);
   const actionClass = `is-${entry.action}`;
 
   return `
@@ -1634,7 +1675,12 @@ function getAuditSubject(entry) {
   return { name, detail: memberNumber };
 }
 
-function getAuditActor(userId) {
+function getAuditActor(entry) {
+  if (entry?.actor_name) {
+    return entry.actor_name;
+  }
+
+  const userId = entry?.changed_by;
   if (!userId) {
     return t("history.system");
   }
@@ -2017,7 +2063,7 @@ function updateDashboardInsights(overdueMembers, paidMembers) {
     elements.quotaInsightTitle.textContent = t("insight.baseReady");
     elements.quotaInsightDetail.textContent = t("insight.baseReadyDetail");
   } else if (overdueCount > 0) {
-    elements.quotaInsightTitle.textContent = `${overdueCount} ${overdueCount === 1 ? t("insight.overdueSingular") : t("insight.overduePlural")}`;
+    elements.quotaInsightTitle.textContent = `${overdueCount}`;
     elements.quotaInsightDetail.textContent = t("insight.overdueDetail");
   } else {
     elements.quotaInsightTitle.textContent = t("insight.noOverdue");
@@ -2124,9 +2170,17 @@ function renderQuotaStatus(value, paidAt = "") {
 }
 
 function renderRowActions(member) {
-  if (!canWrite() && !canDelete()) {
+  if (!canViewMembers() && !canWrite() && !canDelete()) {
     return `<span class="muted-cell">—</span>`;
   }
+
+  const viewButton = canViewMembers()
+    ? `
+      <button class="icon-button" type="button" title="${escapeAttribute(t("app.view"))}" aria-label="${escapeAttribute(t("app.view"))} ${escapeAttribute(member.name || t("history.member"))}" data-action="view" data-id="${escapeAttribute(member.id)}">
+        <i data-lucide="eye"></i>
+      </button>
+    `
+    : "";
 
   const editButton = canWrite()
     ? `
@@ -2153,7 +2207,7 @@ function renderRowActions(member) {
     `
     : "";
 
-  return `<div class="row-actions">${payQuotaButton}${editButton}${deleteButton}</div>`;
+  return `<div class="row-actions">${payQuotaButton}${viewButton}${editButton}${deleteButton}</div>`;
 }
 
 function escapeHtml(value) {
@@ -2169,8 +2223,29 @@ function escapeAttribute(value) {
   return escapeHtml(value).replace(/`/g, "&#096;");
 }
 
-function openMemberDialog(member = null) {
-  if (!canWrite()) {
+function setMemberDialogReadOnly(readOnly) {
+  state.viewingOnly = Boolean(readOnly);
+  elements.dialog.classList.toggle("is-readonly", state.viewingOnly);
+  elements.form.querySelectorAll("input:not([type='hidden']), textarea").forEach((field) => {
+    field.readOnly = state.viewingOnly;
+  });
+  elements.form.querySelectorAll("select").forEach((field) => {
+    field.disabled = state.viewingOnly;
+  });
+  elements.form.querySelectorAll('button[type="submit"]').forEach((button) => {
+    button.hidden = state.viewingOnly;
+  });
+  elements.cancelBtn.textContent = state.viewingOnly ? t("app.close") : t("app.cancel");
+}
+
+function openMemberDialog(member = null, options = {}) {
+  const readOnly = Boolean(options.readOnly);
+  if (readOnly && !canViewMembers()) {
+    showToast(t("messages.noPermissionMembers"));
+    return;
+  }
+
+  if (!readOnly && !canWrite()) {
     showToast(t("messages.noPermissionMembers"));
     return;
   }
@@ -2179,9 +2254,9 @@ function openMemberDialog(member = null) {
   elements.form.reset();
   syncCsrfTokens();
   elements.formError.textContent = "";
-  elements.dialogTitle.textContent = member ? t("member.editTitle") : t("member.newTitle");
+  elements.dialogTitle.textContent = readOnly ? t("member.viewTitle") : member ? t("member.editTitle") : t("member.newTitle");
   elements.dialogSubtitle.textContent = member ? member.name : t("member.subtitle");
-  elements.deleteMemberBtn.hidden = !member || !canDelete();
+  elements.deleteMemberBtn.hidden = readOnly || !member || !canDelete();
   document.querySelector("#memberId").value = member?.id ?? "";
   populateQuotaYearOptions(member?.quotaPaidUntil ?? "");
 
@@ -2193,13 +2268,15 @@ function openMemberDialog(member = null) {
     document.querySelector("#admissionDate").value = todayInputValue();
   }
 
+  setMemberDialogReadOnly(readOnly);
   elements.dialog.showModal();
-  document.querySelector("#memberNumber").focus();
+  (readOnly ? elements.closeDialogBtn : document.querySelector("#memberNumber")).focus();
 }
 
 function closeMemberDialog() {
   elements.dialog.close();
   state.editingId = null;
+  setMemberDialogReadOnly(false);
 }
 
 async function openAdminDialog() {
@@ -2286,7 +2363,14 @@ function closeToolsMenu() {
   }
 }
 
+function closeAccountMenu() {
+  if (elements.accountMenuWrap?.open) {
+    elements.accountMenuWrap.open = false;
+  }
+}
+
 function toggleToolsMenu() {
+  closeAccountMenu();
   setToolsMenuOpen(elements.toolsMenu.hidden);
 }
 
@@ -2358,8 +2442,8 @@ function validateCreateUser(user) {
     errors.push("Indique um email válido.");
   }
 
-  if (!user.password || user.password.length < 8) {
-    errors.push("A password deve ter pelo menos 8 caracteres.");
+  if (!user.password || !isStrongPassword(user.password)) {
+    errors.push(passwordPolicyMessage);
   }
 
   if (!["admin", "operator", "viewer"].includes(user.role)) {
@@ -2402,7 +2486,7 @@ async function handleCreateUserSubmit(event) {
 
   try {
     const session = state.session || (await supabaseClient.auth.getSession()).data.session;
-    const response = await fetch("/api/create-user", {
+    const response = await fetch("/api/central-users", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${session?.access_token || ""}`,
@@ -2419,7 +2503,7 @@ async function handleCreateUserSubmit(event) {
 
     clearCreateUserForm();
     await refreshAppUsers();
-    showToast(`Utilizador criado: ${result.email || user.email}.`);
+    showToast(`Utilizador criado: ${result.user?.email || user.email}.`);
   } catch (error) {
     elements.createUserError.textContent = friendlyCreateUserError(error);
   } finally {
@@ -2520,8 +2604,8 @@ async function handleDeleteUser(id) {
 
   try {
     const session = state.session || (await supabaseClient.auth.getSession()).data.session;
-    const response = await fetch("/api/delete-user", {
-      method: "POST",
+    const response = await fetch("/api/central-users", {
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${session?.access_token || ""}`,
         "Content-Type": "application/json",
@@ -2540,7 +2624,7 @@ async function handleDeleteUser(id) {
     }
 
     await refreshAppUsers();
-    showToast(`Utilizador eliminado: ${result.email || user.email || "acesso removido"}.`);
+    showToast(`Utilizador eliminado: ${user.email || "acesso removido"}.`);
   } catch (error) {
     showToast(friendlyAdminActionError(error));
   }
@@ -2622,6 +2706,10 @@ function validateForm(member) {
 
 async function handleSubmit(event) {
   event.preventDefault();
+
+  if (state.viewingOnly) {
+    return;
+  }
 
   if (!canWrite()) {
     showToast("Não tem permissão para guardar alterações.");
@@ -3648,6 +3736,10 @@ function wireEvents() {
 
     const member = state.members.find((item) => item.id === button.dataset.id);
 
+    if (button.dataset.action === "view" && member) {
+      openMemberDialog(member, { readOnly: true });
+    }
+
     if (button.dataset.action === "edit" && member) {
       openMemberDialog(member);
     }
@@ -3717,16 +3809,19 @@ function wireEvents() {
   });
 
   document.addEventListener("click", (event) => {
-    if (elements.toolsMenu.hidden || elements.toolsMenu.contains(event.target) || elements.toolsMenuBtn.contains(event.target)) {
-      return;
+    if (!elements.toolsMenu.hidden && !elements.toolsMenu.contains(event.target) && !elements.toolsMenuBtn.contains(event.target)) {
+      closeToolsMenu();
     }
 
-    closeToolsMenu();
+    if (elements.accountMenuWrap?.open && !elements.accountMenuWrap.contains(event.target)) {
+      closeAccountMenu();
+    }
   });
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeToolsMenu();
+      closeAccountMenu();
     }
   });
 }

@@ -29,6 +29,20 @@ const translations = {
     "login.email": "Email",
     "login.password": "Password",
     "login.remember": "Lembrar neste browser",
+    "login.verifyTitle": "Confirmar email",
+    "login.verifyCopy": "Enviámos um código para",
+    "login.code": "Código de verificação",
+    "login.codePlaceholder": "000000",
+    "login.verify": "Confirmar e entrar",
+    "login.resend": "Reenviar código",
+    "login.resendIn": "Reenviar em {seconds}s",
+    "login.back": "Voltar",
+    "login.codeSent": "Enviámos um novo código.",
+    "login.codeExpired": "O código expirou. Volte a introduzir a password.",
+    "login.invalidCode": "O código é inválido ou expirou.",
+    "login.sessionExpired": "Sessão expirada. Volte a entrar.",
+    "login.startError": "Não foi possível enviar o código de verificação.",
+    "login.completeError": "Não foi possível concluir a verificação.",
     "nav.areas": "\u00c1reas principais",
     "nav.tools": "Ferramentas globais",
     "nav.openMenu": "Abrir menu",
@@ -54,6 +68,7 @@ const translations = {
     "language.enLabel": "Language: English",
     "language.close": "Fechar",
     "dashboard.eyebrow": "Gest\u00e3o da associa\u00e7\u00e3o",
+    "dashboard.initialManual": "Manual Inicial",
     "dashboard.title": "Escolhe a \u00e1rea de trabalho",
     "dashboard.session": "Sess\u00e3o \u00fanica",
     "dashboard.available": "Aplica\u00e7\u00f5es dispon\u00edveis",
@@ -71,40 +86,122 @@ const translations = {
     "activities.eyebrow": "Hor\u00e1rio semanal",
     "activities.copy": "Planeie as atividades da semana por dia, hora e monitor.",
     "activities.loading": "A carregar...",
+    "activities.menuMonitors": "Monitores",
+    "activities.back": "Voltar",
+    "activities.catalogSubtitle": "Crie e consulte os nomes das atividades usadas no hor\u00e1rio.",
+    "activities.catalogEmpty": "Sem atividades registadas.",
+    "activities.catalogEdit": "Editar atividade",
+    "activities.catalogDelete": "Remover atividade",
+    "activities.catalogUpdated": "Atividade atualizada.",
+    "activities.catalogSaved": "Atividade guardada.",
+    "activities.catalogSaveError": "N\u00e3o foi poss\u00edvel guardar a atividade.",
+    "activities.catalogDeleteError": "N\u00e3o foi poss\u00edvel remover a atividade.",
+    "activities.monitorsSubtitle": "Crie e consulte os monitores usados nas atividades.",
+    "activities.monitorNew": "Novo monitor",
+    "activities.monitorHideForm": "Ocultar formul\u00e1rio",
+    "activities.monitorName": "Nome do monitor",
+    "activities.monitorPhone": "Telem\u00f3vel",
+    "activities.monitorEmail": "Email",
+    "activities.monitorNif": "NIF",
+    "activities.monitorVolunteer": "Voluntariado",
+    "activities.monitorYes": "Sim",
+    "activities.monitorNo": "N\u00e3o",
+    "activities.monitorProfession": "Profiss\u00e3o",
+    "activities.monitorDescription": "Descri\u00e7\u00e3o de atividade",
+    "activities.cancel": "Cancelar",
+    "activities.monitorHours": "Horas",
+    "activities.monitorHoursAria": "Horas dos monitores",
+    "activities.monitorEmpty": "Sem monitores registados.",
+    "activities.monitorVolunteerMeta": "Voluntariado: {value}",
+    "activities.monitorPhoneMeta": "Tel.: {value}",
+    "activities.monitorNifMeta": "NIF: {value}",
+    "activities.monitorProfessionMeta": "Profiss\u00e3o: {value}",
+    "activities.monitorHoursMeta": "Horas: {value}",
+    "activities.monitorEdit": "Editar monitor",
+    "activities.monitorDelete": "Remover monitor",
+    "activities.monitorUpdated": "Monitor atualizado.",
+    "activities.monitorSaved": "Monitor guardado.",
+    "activities.monitorSaveError": "N\u00e3o foi poss\u00edvel guardar o monitor.",
+    "activities.monitorDeleteError": "N\u00e3o foi poss\u00edvel remover o monitor.",
+    "activities.monitorHoursLoadError": "N\u00e3o foi poss\u00edvel carregar as horas dos monitores.",
+    "activities.optionsSessionMissing": "Sess\u00e3o em falta.",
+    "activities.optionsDatabaseError": "N\u00e3o foi poss\u00edvel guardar na base de dados.",
+    "activities.manualTitle": "Manual",
+    "activities.manualSubtitle": "Escolha o manual adequado ao que pretende consultar.",
+    "activities.manualUserTitle": "Manual do Utilizador",
+    "activities.manualUserCopy": "Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.",
+    "activities.manualDeveloperTitle": "Manual do Programador",
+    "activities.manualDeveloperCopy": "Para quem mant\u00e9m o m\u00f3dulo: ficheiros, gera\u00e7\u00e3o, permiss\u00f5es e base de dados.",
+    "activities.historyPageTitle": "Hist\u00f3rico de Atividades",
+    "activities.historyTitle": "Hist\u00f3rico de Altera\u00e7\u00f5es",
+    "activities.userManualPageTitle": "Manual de Utilizador - Atividades",
+    "activities.userManualEyebrow": "Manual de utilizador",
+    "activities.userManualCopy": "Guia r\u00e1pido para consultar, criar, organizar e imprimir o hor\u00e1rio semanal de atividades.",
+    "activities.userManualCreateTitle": "Criar atividade",
+    "activities.userManualCreateCopy": "Use o bot\u00e3o Criar Atividade, escolha o dia, as horas, o nome da atividade e at\u00e9 dois monitores, e grave.",
+    "activities.userManualEditTitle": "Consultar e editar",
+    "activities.userManualEditCopy": "O olho abre a atividade em modo consulta. O l\u00e1pis permite alterar os dados. O caixote remove a atividade.",
+    "activities.userManualOrganizeTitle": "Organizar a semana",
+    "activities.userManualOrganizeCopy": "Quando houver v\u00e1rias atividades no mesmo hor\u00e1rio, arraste o cart\u00e3o inteiro para mudar a ordem.",
+    "activities.userManualPrintTitle": "Imprimir",
+    "activities.userManualPrintCopy": "O bot\u00e3o de impress\u00e3o gera uma folha semanal em formato de hor\u00e1rio escolar.",
+    "activities.developerManualPageTitle": "Manual de Programador - Atividades",
+    "activities.developerManualEyebrow": "Manual de programador",
+    "activities.developerManualCopy": "Notas t\u00e9cnicas essenciais para manter o m\u00f3dulo de atividades dentro do portal.",
+    "activities.developerManualStructureTitle": "Estrutura",
+    "activities.developerManualStructureCopy": "A marca\u00e7\u00e3o da \u00e1rea est\u00e1 em portal/modules/atividades/page.mjs. A gera\u00e7\u00e3o das p\u00e1ginas continua em scripts/prepare-vercel-output.mjs.",
+    "activities.developerManualDatabaseTitle": "Base de dados",
+    "activities.developerManualDatabaseCopy": "As atividades, os monitores e o hist\u00f3rico usam tabelas Supabase definidas em portal/modules/atividades/supabase/schema.sql.",
+    "activities.developerManualPermissionsTitle": "Permiss\u00f5es",
+    "activities.developerManualPermissionsCopy": "Em Atividades, view permite consultar pelo olho, edit permite gerir o sum\u00e1rio, view_sensitive permite criar, editar e eliminar atividades, e export permite imprimir.",
+    "activities.developerManualPrintTitle": "Impress\u00e3o",
+    "activities.developerManualPrintCopy": "A impress\u00e3o semanal \u00e9 gerada por iframe tempor\u00e1rio para evitar abrir separadores vazios.",
     "activities.createButton": "Criar Atividade",
     "activities.closeCreateButton": "Fechar",
     "activities.form.addTitle": "Adicionar atividade",
     "activities.form.editTitle": "Editar atividade",
     "activities.form.viewTitle": "Ver atividade",
+    "activities.viewSummaryTitle": "Sumário",
+    "activities.viewAttendanceTitle": "Utentes presentes",
+    "activities.viewParticipantCount": "N.º de participantes",
+    "activities.viewNoSummary": "Ainda não existe sumário para esta atividade.",
+    "activities.viewNoAttendance": "Sem presenças registadas.",
+    "activities.viewLoading": "A carregar sumário e presenças...",
     "activities.printWeek": "Imprimir semana",
     "activities.printSummary": "Imprimir",
-    "activities.statisticsButton": "Estatísticas",
-    "activities.statisticsTitle": "Estatísticas de atividades",
+    "activities.pdfPreparing": "A preparar o PDF...",
+    "activities.pdfPrintError": "N\u00e3o foi poss\u00edvel preparar o PDF para impress\u00e3o.",
+    "activities.pdfDownloadFallback": "O navegador bloqueou a janela de impressÃ£o. O PDF foi descarregado.",
+    "activities.statisticsButton": "Indicadores",
+    "activities.statisticsTitle": "Indicadores de atividades",
     "activities.statisticsPeriod": "Período",
+    "activities.statisticsPeriodWeekly": "Semanal",
     "activities.statisticsPeriodMonthly": "Mensal",
     "activities.statisticsPeriodAnnual": "Anual",
+    "activities.statisticsWeek": "Semana",
     "activities.statisticsMonth": "Mês",
     "activities.statisticsYear": "Ano",
     "activities.statisticsActivity": "Atividade",
     "activities.statisticsAllActivities": "Todas",
     "activities.statisticsRefresh": "Atualizar",
-    "activities.statisticsEmpty": "Escolha o período para consultar as estatísticas.",
-    "activities.statisticsLoadError": "Não foi possível carregar as estatísticas de atividades.",
+    "activities.statisticsEmpty": "Escolha o período para consultar os indicadores.",
+    "activities.statisticsLoadError": "Não foi possível carregar os indicadores de atividades.",
     "activities.statisticsActivities": "Atividades no mês",
+    "activities.statisticsActivitiesWeek": "Atividades na semana",
     "activities.statisticsActivitiesYear": "Atividades no ano",
     "activities.statisticsAverage": "Média de utentes/atividade",
     "activities.statisticsSummaries": "Sumários registados",
     "activities.statisticsVolume": "Volume total",
-    "activities.statisticsAttendanceTitle": "Assiduidade por utente",
+    "activities.statisticsAttendanceTitle": "Taxa de assiduidade por utente",
     "activities.statisticsVolumeTitle": "Volume por atividade",
     "activities.statisticsUser": "Utente",
     "activities.statisticsAttendance": "Presenças",
-    "activities.statisticsAssiduity": "Assiduidade",
+    "activities.statisticsAssiduity": "Taxa de assiduidade",
     "activities.statisticsSessions": "Sessões",
     "activities.statisticsPeople": "Pessoas",
     "activities.statisticsDuration": "Duração",
     "activities.statisticsNoRows": "Sem dados registados neste período.",
-    "activities.statisticsPersonHours": "horas-pessoa",
+    "activities.statisticsPersonHours": "(horas x pessoas)",
     "activities.summaryButton": "Sumário",
     "activities.summaryAction": "Sumário",
     "activities.summaryTitle": "Sumário da atividade",
@@ -127,7 +224,112 @@ const translations = {
     "activities.summaryUtentesError": "Não foi possível carregar os utentes.",
     "activities.summarySaved": "Sumário guardado.",
     "activities.summarySaveError": "Não foi possível guardar o sumário.",
+    "activities.summaryLocked": "Este sumário pertence a uma semana encerrada. Pode consultá-lo, mas já não pode alterá-lo.",
+    "activities.signatureButton": "Assinar",
+    "activities.signatureTitle": "Assinatura da presença",
+    "activities.signatureEdit": "Ver assinatura",
+    "activities.signatureSigned": "Assinada",
+    "activities.signaturePending": "Sem assinatura",
+    "activities.signatureNotPresent": "Sem presenca",
+    "activities.signatureSave": "Guardar assinatura",
+    "activities.signatureClear": "Limpar",
+    "activities.signatureInstruction": "Peca ao utente para assinar dentro da caixa.",
+    "activities.signatureEmpty": "Assine dentro da caixa antes de guardar.",
+    "activities.signatureSaved": "Assinatura guardada.",
+    "activities.missingTimeButton": "Tempo em falta: {time}",
+    "activities.missingTimeTitle": "Tempo em falta",
+    "activities.missingTimeInstruction": "Indique quantos minutos o utente não esteve na atividade.",
+    "activities.missingTimeMaximum": "Duração da atividade: {time}",
+    "activities.missingTimeLabel": "Minutos em falta",
+    "activities.missingTimeFull": "Presença completa",
+    "activities.missingTimeCancel": "Cancelar",
+    "activities.missingTimeApply": "Aplicar",
+    "activities.missingTimeInvalid": "O tempo em falta não pode ultrapassar a duração da atividade.",
+    "activities.missingTimeDetail": "Tempo em falta: {time}",
+    "activities.attendedTimeTitle": "Tempo presente",
+    "activities.attendedTimeDetail": "Tempo presente: {actual} de {total}",
+    "activities.questionnaireButton": "Questionário",
+    "activities.questionnaireTitle": "Questionários mensais",
+    "activities.questionnaireTabsLabel": "Opções dos questionários",
+    "activities.questionnaireFillTab": "Preencher",
+    "activities.questionnaireHistoryTab": "Consultar",
+    "activities.questionnaireAverageTab": "Média",
+    "activities.questionnaireIntro": "Registe uma avaliação mensal para cada utente e atividade.",
+    "activities.questionnaireHistoryIntro": "Consulte os questionários guardados anteriormente.",
+    "activities.questionnaireAverageIntro": "Consulte as médias mensais de cada atividade, organizadas pelas áreas do questionário.",
+    "activities.questionnaireAverageEmpty": "Não existem questionários para calcular a média com estes filtros.",
+    "activities.questionnaireAverageQuestionnaires": "Questionários considerados",
+    "activities.questionnaireAverageOverall": "Média geral",
+    "activities.questionnaireAverageByArea": "Média por área",
+    "activities.questionnaireAverageValue": "Média: {value} / 5",
+    "activities.questionnaireAverageRecord": "{count} questionário",
+    "activities.questionnaireAverageRecords": "{count} questionários",
+    "activities.questionnaireActivity": "Atividade",
+    "activities.questionnaireUtente": "Utente",
+    "activities.questionnaireMonth": "Mês",
+    "activities.questionnaireYear": "Ano",
+    "activities.questionnaireSelectActivity": "Selecionar atividade",
+    "activities.questionnaireSelectUtente": "Selecionar utente",
+    "activities.questionnaireAllActivities": "Todas as atividades",
+    "activities.questionnaireAllUtentes": "Todos os utentes",
+    "activities.questionnaireAllMonths": "Todos os meses",
+    "activities.questionnaireAllYears": "Todos os anos",
+    "activities.questionnaireScale1": "Discordo totalmente",
+    "activities.questionnaireScale2": "Discordo",
+    "activities.questionnaireScale3": "Nem concordo nem discordo",
+    "activities.questionnaireScale4": "Concordo",
+    "activities.questionnaireScale5": "Concordo totalmente",
+    "activities.questionnaireSectionParticipation": "A. Participação",
+    "activities.questionnaireSectionLearning": "B. Aprendizagem",
+    "activities.questionnaireSectionWellbeing": "C. Bem-estar",
+    "activities.questionnaireSectionRelationships": "D. Relações com os outros",
+    "activities.questionnaireSectionAutonomy": "E. Autonomia",
+    "activities.questionnaireSectionInclusion": "F. Inclusão",
+    "activities.questionnaireParticipation1": "Gosto de participar nas atividades de {activity}.",
+    "activities.questionnaireParticipation2": "Sinto-me motivado(a) para participar.",
+    "activities.questionnaireParticipation3": "Sinto que faço parte da equipa.",
+    "activities.questionnaireLearning1": "Aprendi coisas novas nesta atividade.",
+    "activities.questionnaireLearning2": "Hoje sinto-me mais capaz de realizar tarefas relacionadas com esta atividade.",
+    "activities.questionnaireLearning3": "Tenho mais confiança para experimentar novas atividades.",
+    "activities.questionnaireWellbeing1": "Esta atividade faz-me sentir útil.",
+    "activities.questionnaireWellbeing2": "A minha autoestima melhorou desde que participo.",
+    "activities.questionnaireWellbeing3": "Sinto-me mais feliz quando participo.",
+    "activities.questionnaireWellbeing4": "Tenho mais esperança no futuro.",
+    "activities.questionnaireRelationships1": "Fiz novas amizades através desta atividade.",
+    "activities.questionnaireRelationships2": "Sinto-me mais à vontade para falar com outras pessoas.",
+    "activities.questionnaireRelationships3": "Sinto que os colegas me respeitam.",
+    "activities.questionnaireAutonomy1": "Consigo realizar mais tarefas sozinho(a).",
+    "activities.questionnaireAutonomy2": "Tenho mais confiança para tomar decisões.",
+    "activities.questionnaireAutonomy3": "A atividade ajudou-me a organizar melhor o meu dia.",
+    "activities.questionnaireInclusion1": "Sinto que esta atividade mostra à comunidade aquilo de que somos capazes.",
+    "activities.questionnaireInclusion2": "Tenho orgulho em mostrar os trabalhos realizados.",
+    "activities.questionnaireInclusion3": "Gostava de participar em feiras, exposições ou eventos para apresentar os trabalhos.",
+    "activities.questionnaireExisting": "Já existe um questionário para esta atividade, utente e período. Consulte o registo guardado.",
+    "activities.questionnaireNew": "Ainda não existe um questionário para esta combinação.",
+    "activities.questionnaireViewExisting": "Ver questionário realizado",
+    "activities.questionnaireDetailTitle": "Questionário realizado",
+    "activities.questionnaireBackToHistory": "Voltar à lista",
+    "activities.questionnairePeriod": "Período",
+    "activities.questionnaireSavedAt": "Guardado em",
+    "activities.questionnaireAnswer": "Resposta",
+    "activities.questionnaireNoAnswer": "Sem resposta",
+    "activities.questionnaireClear": "Limpar respostas",
+    "activities.questionnaireSave": "Guardar questionário",
+    "activities.questionnaireSaved": "Questionário guardado.",
+    "activities.questionnaireSaveError": "Não foi possível guardar o questionário.",
+    "activities.questionnaireLoadError": "Não foi possível carregar os questionários.",
+    "activities.questionnaireRequired": "Responda a todas as questões antes de guardar.",
+    "activities.questionnaireNoRecords": "Não existem questionários com estes filtros.",
+    "activities.questionnaireOpen": "Abrir",
+    "activities.questionnaireDelete": "Eliminar questionário",
+    "activities.questionnaireDeleteConfirm": "Tem a certeza de que pretende eliminar este questionário?",
+    "activities.questionnaireDeleted": "Questionário eliminado.",
+    "activities.questionnaireDeleteError": "Não foi possível eliminar o questionário.",
+    "activities.questionnaireSelectContext": "Selecione a atividade, o utente, o mês e o ano para apresentar o questionário.",
+    "activities.questionnaireUpdated": "Atualizado em {date}",
+    "activities.questionnaireHistoryCount": "{count} questionário(s)",
     "activities.copyPreviousWeek": "Copiar semana anterior",
+    "activities.copyPreviousWeekConfirm": "Tem a certeza de que pretende copiar a semana anterior? As atividades que já existem nesta semana não serão substituídas.",
     "activities.printTitle": "Horário semanal de atividades",
     "activities.printScheduleTitle": "Horário de Atividades",
     "activities.weekPrevious": "Semana anterior",
@@ -146,6 +348,7 @@ const translations = {
     "activities.update": "Atualizar",
     "activities.clear": "Limpar",
     "activities.week": "Segunda a sexta",
+    "activities.weekTitle": "Horário de atividades",
     "activities.lunch": "Almo\u00e7o",
     "activities.defaultLunchMonitor": "Monitor a definir",
     "activities.emptyDay": "Sem atividades",
@@ -170,6 +373,8 @@ const translations = {
     "activities.historyEmpty": "Sem a\u00e7\u00f5es registadas.",
     "activities.historyAction": "A\u00e7\u00e3o",
     "activities.historyWhen": "Data",
+    "activities.historyUser": "Utilizador",
+    "activities.historyUnknownUser": "Não identificado",
     "activities.historyActivity": "Atividade",
     "activities.historyDetails": "Detalhes",
     "activities.historyCreated": "Criada",
@@ -214,7 +419,9 @@ const translations = {
     "global.users.viewer.title": "Consulta",
     "global.users.viewer.copy": "Acesso s\u00f3 de leitura quando necess\u00e1rio.",
     "global.manuals.title": "Manuais",
-    "global.manuals.copy": "\u00c1rea comum para consultar os manuais dos ramos e os manuais t\u00e9cnicos.",
+    "global.manuals.copy": "\u00c1rea comum para consultar o manual inicial, os manuais dos ramos e os manuais t\u00e9cnicos.",
+    "global.manuals.inicial.title": "Manual inicial",
+    "global.manuals.inicial.copy": "Primeiros passos, navega\u00e7\u00e3o, permiss\u00f5es e cuidados com a informa\u00e7\u00e3o.",
     "global.manuals.socios.title": "Manual de s\u00f3cios",
     "global.manuals.socios.copy": "Quotas, exporta\u00e7\u00f5es e gest\u00e3o de s\u00f3cios.",
     "global.manuals.utentes.title": "Manual de utentes",
@@ -222,7 +429,7 @@ const translations = {
     "global.manuals.dispositivos.title": "Manual de cibersegurança",
     "global.manuals.dispositivos.copy": "Registos, repara\u00e7\u00f5es, estados, estat\u00edsticas, anexos e CSV.",
     "global.manuals.atividades.title": "Manual de atividades",
-    "global.manuals.atividades.copy": "A preparar quando o m\u00f3dulo de atividades estiver fechado.",
+    "global.manuals.atividades.copy": "Hor\u00e1rio, sum\u00e1rios, presen\u00e7as, monitores, indicadores e impress\u00e3o.",
     "users.title": "Utilizadores",
     "users.subtitle": "Crie acessos novos e edite permiss\u00f5es de utilizadores existentes.",
     "users.refresh": "Atualizar",
@@ -281,6 +488,20 @@ const translations = {
     "login.email": "Email",
     "login.password": "Password",
     "login.remember": "Remember on this browser",
+    "login.verifyTitle": "Confirm email",
+    "login.verifyCopy": "We sent a code to",
+    "login.code": "Verification code",
+    "login.codePlaceholder": "000000",
+    "login.verify": "Confirm and sign in",
+    "login.resend": "Resend code",
+    "login.resendIn": "Resend in {seconds}s",
+    "login.back": "Back",
+    "login.codeSent": "We sent a new code.",
+    "login.codeExpired": "The code expired. Enter your password again.",
+    "login.invalidCode": "The code is invalid or has expired.",
+    "login.sessionExpired": "Session expired. Sign in again.",
+    "login.startError": "The verification code could not be sent.",
+    "login.completeError": "Verification could not be completed.",
     "nav.areas": "Main areas",
     "nav.tools": "Global tools",
     "nav.openMenu": "Open menu",
@@ -306,6 +527,7 @@ const translations = {
     "language.enLabel": "Language: English",
     "language.close": "Close",
     "dashboard.eyebrow": "Association management",
+    "dashboard.initialManual": "Getting started guide",
     "dashboard.title": "Choose the workspace",
     "dashboard.session": "Single session",
     "dashboard.available": "Available applications",
@@ -323,40 +545,122 @@ const translations = {
     "activities.eyebrow": "Weekly timetable",
     "activities.copy": "Plan the week's activities by day, time and monitor.",
     "activities.loading": "Loading...",
+    "activities.menuMonitors": "Monitors",
+    "activities.back": "Back",
+    "activities.catalogSubtitle": "Create and manage the activity names used in the timetable.",
+    "activities.catalogEmpty": "No activities registered.",
+    "activities.catalogEdit": "Edit activity",
+    "activities.catalogDelete": "Remove activity",
+    "activities.catalogUpdated": "Activity updated.",
+    "activities.catalogSaved": "Activity saved.",
+    "activities.catalogSaveError": "Could not save the activity.",
+    "activities.catalogDeleteError": "Could not remove the activity.",
+    "activities.monitorsSubtitle": "Create and manage the monitors used in activities.",
+    "activities.monitorNew": "New monitor",
+    "activities.monitorHideForm": "Hide form",
+    "activities.monitorName": "Monitor name",
+    "activities.monitorPhone": "Phone",
+    "activities.monitorEmail": "Email",
+    "activities.monitorNif": "Tax number",
+    "activities.monitorVolunteer": "Volunteer",
+    "activities.monitorYes": "Yes",
+    "activities.monitorNo": "No",
+    "activities.monitorProfession": "Profession",
+    "activities.monitorDescription": "Activity description",
+    "activities.cancel": "Cancel",
+    "activities.monitorHours": "Hours",
+    "activities.monitorHoursAria": "Monitor hours",
+    "activities.monitorEmpty": "No monitors registered.",
+    "activities.monitorVolunteerMeta": "Volunteer: {value}",
+    "activities.monitorPhoneMeta": "Phone: {value}",
+    "activities.monitorNifMeta": "Tax number: {value}",
+    "activities.monitorProfessionMeta": "Profession: {value}",
+    "activities.monitorHoursMeta": "Hours: {value}",
+    "activities.monitorEdit": "Edit monitor",
+    "activities.monitorDelete": "Remove monitor",
+    "activities.monitorUpdated": "Monitor updated.",
+    "activities.monitorSaved": "Monitor saved.",
+    "activities.monitorSaveError": "Could not save the monitor.",
+    "activities.monitorDeleteError": "Could not remove the monitor.",
+    "activities.monitorHoursLoadError": "Could not load monitor hours.",
+    "activities.optionsSessionMissing": "Session missing.",
+    "activities.optionsDatabaseError": "Could not save to the database.",
+    "activities.manualTitle": "Manuals",
+    "activities.manualSubtitle": "Choose the manual you want to consult.",
+    "activities.manualUserTitle": "User Manual",
+    "activities.manualUserCopy": "For day-to-day use of the app: creating, viewing, organising and printing activities.",
+    "activities.manualDeveloperTitle": "Developer Manual",
+    "activities.manualDeveloperCopy": "For maintaining the module: files, generation, permissions and database storage.",
+    "activities.historyPageTitle": "Activity History",
+    "activities.historyTitle": "Change History",
+    "activities.userManualPageTitle": "Activities User Manual",
+    "activities.userManualEyebrow": "User manual",
+    "activities.userManualCopy": "A quick guide to viewing, creating, organising and printing the weekly activity timetable.",
+    "activities.userManualCreateTitle": "Create an activity",
+    "activities.userManualCreateCopy": "Use Create Activity, choose the day, times, activity name and up to two monitors, then save.",
+    "activities.userManualEditTitle": "View and edit",
+    "activities.userManualEditCopy": "The eye opens the activity in view mode. The pencil edits its details. The bin removes it.",
+    "activities.userManualOrganizeTitle": "Organise the week",
+    "activities.userManualOrganizeCopy": "When several activities share a time slot, drag the entire card to change their order.",
+    "activities.userManualPrintTitle": "Print",
+    "activities.userManualPrintCopy": "The print button creates a one-page weekly school-style timetable.",
+    "activities.developerManualPageTitle": "Activities Developer Manual",
+    "activities.developerManualEyebrow": "Developer manual",
+    "activities.developerManualCopy": "Essential technical notes for maintaining the activities module inside the portal.",
+    "activities.developerManualStructureTitle": "Structure",
+    "activities.developerManualStructureCopy": "The area markup is in portal/modules/atividades/page.mjs. Page generation remains in scripts/prepare-vercel-output.mjs.",
+    "activities.developerManualDatabaseTitle": "Database",
+    "activities.developerManualDatabaseCopy": "Activities, monitors and history use Supabase tables defined in portal/modules/atividades/supabase/schema.sql.",
+    "activities.developerManualPermissionsTitle": "Permissions",
+    "activities.developerManualPermissionsCopy": "For Activities, view allows viewing through the eye button, edit manages summaries, view_sensitive allows creating, editing and deleting activities, and export allows printing.",
+    "activities.developerManualPrintTitle": "Printing",
+    "activities.developerManualPrintCopy": "Weekly printing uses a temporary iframe to avoid opening empty tabs.",
     "activities.createButton": "Create Activity",
     "activities.closeCreateButton": "Close",
     "activities.form.addTitle": "Add activity",
     "activities.form.editTitle": "Edit activity",
     "activities.form.viewTitle": "View activity",
+    "activities.viewSummaryTitle": "Summary",
+    "activities.viewAttendanceTitle": "Clients present",
+    "activities.viewParticipantCount": "Number of participants",
+    "activities.viewNoSummary": "There is no summary for this activity yet.",
+    "activities.viewNoAttendance": "No attendance recorded.",
+    "activities.viewLoading": "Loading summary and attendance...",
     "activities.printWeek": "Print week",
     "activities.printSummary": "Print",
-    "activities.statisticsButton": "Statistics",
-    "activities.statisticsTitle": "Activity statistics",
+    "activities.pdfPreparing": "Preparing PDF...",
+    "activities.pdfPrintError": "The PDF could not be prepared for printing.",
+    "activities.pdfDownloadFallback": "The browser blocked the print window. The PDF was downloaded.",
+    "activities.statisticsButton": "Indicators",
+    "activities.statisticsTitle": "Activity indicators",
     "activities.statisticsPeriod": "Period",
+    "activities.statisticsPeriodWeekly": "Weekly",
     "activities.statisticsPeriodMonthly": "Monthly",
     "activities.statisticsPeriodAnnual": "Annual",
+    "activities.statisticsWeek": "Week",
     "activities.statisticsMonth": "Month",
     "activities.statisticsYear": "Year",
     "activities.statisticsActivity": "Activity",
     "activities.statisticsAllActivities": "All",
     "activities.statisticsRefresh": "Refresh",
-    "activities.statisticsEmpty": "Choose a period to view statistics.",
-    "activities.statisticsLoadError": "Could not load activity statistics.",
+    "activities.statisticsEmpty": "Choose a period to view indicators.",
+    "activities.statisticsLoadError": "Could not load activity indicators.",
     "activities.statisticsActivities": "Monthly activities",
+    "activities.statisticsActivitiesWeek": "Weekly activities",
     "activities.statisticsActivitiesYear": "Annual activities",
     "activities.statisticsAverage": "Average clients/activity",
     "activities.statisticsSummaries": "Registered summaries",
     "activities.statisticsVolume": "Total volume",
-    "activities.statisticsAttendanceTitle": "Attendance by client",
+    "activities.statisticsAttendanceTitle": "Attendance rate by client",
     "activities.statisticsVolumeTitle": "Volume by activity",
     "activities.statisticsUser": "Client",
     "activities.statisticsAttendance": "Attendances",
-    "activities.statisticsAssiduity": "Attendance",
+    "activities.statisticsAssiduity": "Attendance rate",
     "activities.statisticsSessions": "Sessions",
     "activities.statisticsPeople": "People",
     "activities.statisticsDuration": "Duration",
     "activities.statisticsNoRows": "No data registered in this period.",
-    "activities.statisticsPersonHours": "person-hours",
+    "activities.statisticsPersonHours": "(hours x people)",
     "activities.summaryButton": "Summary",
     "activities.summaryAction": "Summary",
     "activities.summaryTitle": "Activity summary",
@@ -379,7 +683,112 @@ const translations = {
     "activities.summaryUtentesError": "Could not load clients.",
     "activities.summarySaved": "Summary saved.",
     "activities.summarySaveError": "Could not save the summary.",
+    "activities.summaryLocked": "This summary belongs to a closed week. You can view it, but it can no longer be changed.",
+    "activities.signatureButton": "Sign",
+    "activities.signatureTitle": "Attendance signature",
+    "activities.signatureEdit": "View signature",
+    "activities.signatureSigned": "Signed",
+    "activities.signaturePending": "No signature",
+    "activities.signatureNotPresent": "Not present",
+    "activities.signatureSave": "Save signature",
+    "activities.signatureClear": "Clear",
+    "activities.signatureInstruction": "Ask the client to sign inside the box.",
+    "activities.signatureEmpty": "Sign inside the box before saving.",
+    "activities.signatureSaved": "Signature saved.",
+    "activities.missingTimeButton": "Time missed: {time}",
+    "activities.missingTimeTitle": "Time missed",
+    "activities.missingTimeInstruction": "Enter how many minutes the client missed from the activity.",
+    "activities.missingTimeMaximum": "Activity duration: {time}",
+    "activities.missingTimeLabel": "Minutes missed",
+    "activities.missingTimeFull": "Full attendance",
+    "activities.missingTimeCancel": "Cancel",
+    "activities.missingTimeApply": "Apply",
+    "activities.missingTimeInvalid": "The missed time cannot exceed the activity duration.",
+    "activities.missingTimeDetail": "Time missed: {time}",
+    "activities.attendedTimeTitle": "Time attended",
+    "activities.attendedTimeDetail": "Time attended: {actual} of {total}",
+    "activities.questionnaireButton": "Questionnaire",
+    "activities.questionnaireTitle": "Monthly questionnaires",
+    "activities.questionnaireTabsLabel": "Questionnaire options",
+    "activities.questionnaireFillTab": "Complete",
+    "activities.questionnaireHistoryTab": "Browse",
+    "activities.questionnaireAverageTab": "Average",
+    "activities.questionnaireIntro": "Record one monthly evaluation for each client and activity.",
+    "activities.questionnaireHistoryIntro": "Browse questionnaires saved previously.",
+    "activities.questionnaireAverageIntro": "View monthly averages for each activity, organised by questionnaire area.",
+    "activities.questionnaireAverageEmpty": "There are no questionnaires to calculate an average with these filters.",
+    "activities.questionnaireAverageQuestionnaires": "Questionnaires included",
+    "activities.questionnaireAverageOverall": "Overall average",
+    "activities.questionnaireAverageByArea": "Average by area",
+    "activities.questionnaireAverageValue": "Average: {value} / 5",
+    "activities.questionnaireAverageRecord": "{count} questionnaire",
+    "activities.questionnaireAverageRecords": "{count} questionnaires",
+    "activities.questionnaireActivity": "Activity",
+    "activities.questionnaireUtente": "Client",
+    "activities.questionnaireMonth": "Month",
+    "activities.questionnaireYear": "Year",
+    "activities.questionnaireSelectActivity": "Select activity",
+    "activities.questionnaireSelectUtente": "Select client",
+    "activities.questionnaireAllActivities": "All activities",
+    "activities.questionnaireAllUtentes": "All clients",
+    "activities.questionnaireAllMonths": "All months",
+    "activities.questionnaireAllYears": "All years",
+    "activities.questionnaireScale1": "Strongly disagree",
+    "activities.questionnaireScale2": "Disagree",
+    "activities.questionnaireScale3": "Neither agree nor disagree",
+    "activities.questionnaireScale4": "Agree",
+    "activities.questionnaireScale5": "Strongly agree",
+    "activities.questionnaireSectionParticipation": "A. Participation",
+    "activities.questionnaireSectionLearning": "B. Learning",
+    "activities.questionnaireSectionWellbeing": "C. Wellbeing",
+    "activities.questionnaireSectionRelationships": "D. Relationships with others",
+    "activities.questionnaireSectionAutonomy": "E. Autonomy",
+    "activities.questionnaireSectionInclusion": "F. Inclusion",
+    "activities.questionnaireParticipation1": "I enjoy taking part in {activity} activities.",
+    "activities.questionnaireParticipation2": "I feel motivated to take part.",
+    "activities.questionnaireParticipation3": "I feel that I am part of the team.",
+    "activities.questionnaireLearning1": "I learned new things in this activity.",
+    "activities.questionnaireLearning2": "I now feel more able to carry out tasks related to this activity.",
+    "activities.questionnaireLearning3": "I feel more confident trying new activities.",
+    "activities.questionnaireWellbeing1": "This activity makes me feel useful.",
+    "activities.questionnaireWellbeing2": "My self-esteem has improved since I started taking part.",
+    "activities.questionnaireWellbeing3": "I feel happier when I take part.",
+    "activities.questionnaireWellbeing4": "I have more hope for the future.",
+    "activities.questionnaireRelationships1": "I made new friends through this activity.",
+    "activities.questionnaireRelationships2": "I feel more comfortable speaking with other people.",
+    "activities.questionnaireRelationships3": "I feel that my colleagues respect me.",
+    "activities.questionnaireAutonomy1": "I can carry out more tasks on my own.",
+    "activities.questionnaireAutonomy2": "I feel more confident making decisions.",
+    "activities.questionnaireAutonomy3": "The activity helped me organise my day better.",
+    "activities.questionnaireInclusion1": "I feel this activity shows the community what we are capable of.",
+    "activities.questionnaireInclusion2": "I am proud to show the work we have completed.",
+    "activities.questionnaireInclusion3": "I would like to take part in fairs, exhibitions or events to present our work.",
+    "activities.questionnaireExisting": "A questionnaire already exists for this activity, client and period. View the saved record.",
+    "activities.questionnaireNew": "No questionnaire exists for this selection yet.",
+    "activities.questionnaireViewExisting": "View completed questionnaire",
+    "activities.questionnaireDetailTitle": "Completed questionnaire",
+    "activities.questionnaireBackToHistory": "Back to list",
+    "activities.questionnairePeriod": "Period",
+    "activities.questionnaireSavedAt": "Saved on",
+    "activities.questionnaireAnswer": "Answer",
+    "activities.questionnaireNoAnswer": "No answer",
+    "activities.questionnaireClear": "Clear answers",
+    "activities.questionnaireSave": "Save questionnaire",
+    "activities.questionnaireSaved": "Questionnaire saved.",
+    "activities.questionnaireSaveError": "The questionnaire could not be saved.",
+    "activities.questionnaireLoadError": "The questionnaires could not be loaded.",
+    "activities.questionnaireRequired": "Answer every question before saving.",
+    "activities.questionnaireNoRecords": "No questionnaires match these filters.",
+    "activities.questionnaireOpen": "Open",
+    "activities.questionnaireDelete": "Delete questionnaire",
+    "activities.questionnaireDeleteConfirm": "Are you sure you want to delete this questionnaire?",
+    "activities.questionnaireDeleted": "Questionnaire deleted.",
+    "activities.questionnaireDeleteError": "The questionnaire could not be deleted.",
+    "activities.questionnaireSelectContext": "Select the activity, client, month and year to display the questionnaire.",
+    "activities.questionnaireUpdated": "Updated on {date}",
+    "activities.questionnaireHistoryCount": "{count} questionnaire(s)",
     "activities.copyPreviousWeek": "Copy previous week",
+    "activities.copyPreviousWeekConfirm": "Are you sure you want to copy the previous week? Activities already in this week will not be replaced.",
     "activities.printTitle": "Weekly activities timetable",
     "activities.printScheduleTitle": "Activities Timetable",
     "activities.weekPrevious": "Previous week",
@@ -423,6 +832,8 @@ const translations = {
     "activities.historyEmpty": "No actions registered.",
     "activities.historyAction": "Action",
     "activities.historyWhen": "Date",
+    "activities.historyUser": "User",
+    "activities.historyUnknownUser": "Not identified",
     "activities.historyActivity": "Activity",
     "activities.historyDetails": "Details",
     "activities.historyCreated": "Created",
@@ -467,15 +878,17 @@ const translations = {
     "global.users.viewer.title": "Viewer",
     "global.users.viewer.copy": "Read-only access when needed.",
     "global.manuals.title": "Manuals",
-    "global.manuals.copy": "Shared area to consult branch manuals and technical guides.",
+    "global.manuals.copy": "Shared area to consult the getting started guide, branch manuals and technical guides.",
+    "global.manuals.inicial.title": "Getting started guide",
+    "global.manuals.inicial.copy": "First steps, navigation, permissions and information care.",
     "global.manuals.socios.title": "Members manual",
     "global.manuals.socios.copy": "Fees, exports and member management.",
     "global.manuals.utentes.title": "Clients manual",
     "global.manuals.utentes.copy": "Records, sections, PDF attachments, genogram and ecomap.",
     "global.manuals.dispositivos.title": "Cybersecurity manual",
-    "global.manuals.dispositivos.copy": "Records, repairs, states, statistics, attachments and CSV.",
+    "global.manuals.dispositivos.copy": "Records, repairs, states, indicators, attachments and CSV.",
     "global.manuals.atividades.title": "Activities manual",
-    "global.manuals.atividades.copy": "To be prepared when the activities module is complete.",
+    "global.manuals.atividades.copy": "Timetable, summaries, attendance, monitors, indicators and printing.",
     "users.title": "Users",
     "users.subtitle": "Create new access and edit permissions for existing users.",
     "users.refresh": "Refresh",
@@ -530,6 +943,12 @@ const translations = {
 
 const getTranslation = (key, language = getLanguage()) =>
   translations[language]?.[key] || translations.pt[key] || key;
+
+window.CENTRAL_TRANSLATE = (key, replacements = {}) =>
+  Object.entries(replacements).reduce(
+    (text, [name, value]) => text.split(`{${name}}`).join(String(value)),
+    getTranslation(key),
+  );
 
 const applyTheme = (theme) => {
   const isDark = theme === "dark";
@@ -871,7 +1290,7 @@ const renderActivitiesCatalogList = () => {
   const { list } = activitiesCatalogElements();
   if (!list) return;
   if (!activitiesState.activityNames.length) {
-    list.innerHTML = `<p class="activity-empty-state">Sem atividades registadas.</p>`;
+    list.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.catalogEmpty"))}</p>`;
     renderActivityNameOptions();
     refreshIcons();
     return;
@@ -882,10 +1301,10 @@ const renderActivitiesCatalogList = () => {
         <article class="activities-monitor-row">
           <strong>${escapeHtml(activity.name)}</strong>
           <div class="activities-monitor-actions">
-            <button class="icon-link" type="button" data-activity-name-edit="${escapeHtml(activity.id)}" title="Editar atividade" aria-label="Editar atividade">
+            <button class="icon-link" type="button" data-activity-name-edit="${escapeHtml(activity.id)}" title="${escapeHtml(getTranslation("activities.catalogEdit"))}" aria-label="${escapeHtml(getTranslation("activities.catalogEdit"))}">
               <i data-lucide="pencil"></i>
             </button>
-            <button class="icon-link danger-link" type="button" data-activity-name-delete="${escapeHtml(activity.id)}" title="Remover atividade" aria-label="Remover atividade">
+            <button class="icon-link danger-link" type="button" data-activity-name-delete="${escapeHtml(activity.id)}" title="${escapeHtml(getTranslation("activities.catalogDelete"))}" aria-label="${escapeHtml(getTranslation("activities.catalogDelete"))}">
               <i data-lucide="trash-2"></i>
             </button>
           </div>
@@ -909,7 +1328,7 @@ const getActivitiesAccessToken = async () => {
   const { data, error } = await client.auth.getSession();
   if (error) throw error;
   const token = data?.session?.access_token || "";
-  if (!token) throw new Error("Sessao em falta.");
+  if (!token) throw new Error(getTranslation("activities.optionsSessionMissing"));
   return token;
 };
 
@@ -926,7 +1345,7 @@ const activitiesOptionsRequest = async (kind, { method = "GET", body = null } = 
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new Error(payload?.error || "Nao foi possivel guardar na base de dados.");
+    throw new Error(payload?.error || getTranslation("activities.optionsDatabaseError"));
   }
   return payload;
 };
@@ -1057,16 +1476,16 @@ const handleActivityCatalogSubmit = async (event) => {
     if (activitiesState.editingActivityNameId) {
       await updateActivityNameRemote(activitiesState.editingActivityNameId, name);
       activitiesState.editingActivityNameId = "";
-      setActivitiesCatalogFeedback("Atividade atualizada.", "success");
+      setActivitiesCatalogFeedback(getTranslation("activities.catalogUpdated"), "success");
     } else {
       await ensureActivityNameRemote(name);
-      setActivitiesCatalogFeedback("Atividade guardada.", "success");
+      setActivitiesCatalogFeedback(getTranslation("activities.catalogSaved"), "success");
     }
     form?.reset();
     input?.focus();
   } catch (error) {
     console.warn("Nao foi possivel guardar atividade.", error);
-    setActivitiesCatalogFeedback(activityOptionErrorMessage(error, "Nao foi possivel guardar a atividade."));
+    setActivitiesCatalogFeedback(activityOptionErrorMessage(error, getTranslation("activities.catalogSaveError")));
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
@@ -1096,7 +1515,7 @@ const wireActivitiesCatalogDialog = () => {
     if (!id) return;
     void deleteActivityNameRemote(id).catch((error) => {
       console.warn("Nao foi possivel remover atividade.", error);
-      setActivitiesCatalogFeedback(activityOptionErrorMessage(error, "Nao foi possivel remover a atividade."));
+      setActivitiesCatalogFeedback(activityOptionErrorMessage(error, getTranslation("activities.catalogDeleteError")));
     });
   });
   dialog.addEventListener("click", (event) => {
@@ -1181,11 +1600,13 @@ const activityMonitorHoursText = (monitorName) => {
 };
 
 const activityMonitorDetails = (monitor) => {
-  const details = [`Voluntariado: ${monitor.volunteer ? "Sim" : "Nao"}`];
-  if (monitor.phone) details.push(`Tel.: ${monitor.phone}`);
+  const translatedValue = (key, value) => getTranslation(key).replace("{value}", String(value));
+  const volunteerText = getTranslation(monitor.volunteer ? "activities.monitorYes" : "activities.monitorNo");
+  const details = [translatedValue("activities.monitorVolunteerMeta", volunteerText)];
+  if (monitor.phone) details.push(translatedValue("activities.monitorPhoneMeta", monitor.phone));
   if (monitor.email) details.push(monitor.email);
-  if (monitor.nif) details.push(`NIF: ${monitor.nif}`);
-  if (monitor.profession) details.push(`Profissao: ${monitor.profession}`);
+  if (monitor.nif) details.push(translatedValue("activities.monitorNifMeta", monitor.nif));
+  if (monitor.profession) details.push(translatedValue("activities.monitorProfessionMeta", monitor.profession));
   return details;
 };
 
@@ -1193,7 +1614,7 @@ const renderActivityMonitorsList = () => {
   const { list } = activitiesMonitorsElements();
   if (!list) return;
   if (!activitiesState.monitors.length) {
-    list.innerHTML = `<p class="activity-empty-state">Sem monitores registados.</p>`;
+    list.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.monitorEmpty"))}</p>`;
     renderActivityMonitorOptions();
     refreshIcons();
     return;
@@ -1211,12 +1632,12 @@ const renderActivityMonitorsList = () => {
             </div>
             ${monitor.activityDescription ? `<p class="activities-monitor-description">${escapeHtml(monitor.activityDescription)}</p>` : ""}
           </div>
-          <span class="activities-monitor-hours">Horas: ${escapeHtml(activityMonitorHoursText(monitor.name))}</span>
+          <span class="activities-monitor-hours">${escapeHtml(getTranslation("activities.monitorHoursMeta").replace("{value}", activityMonitorHoursText(monitor.name)))}</span>
           <div class="activities-monitor-actions">
-            <button class="icon-link" type="button" data-activities-monitor-edit="${escapeHtml(monitor.id)}" title="Editar monitor" aria-label="Editar monitor">
+            <button class="icon-link" type="button" data-activities-monitor-edit="${escapeHtml(monitor.id)}" title="${escapeHtml(getTranslation("activities.monitorEdit"))}" aria-label="${escapeHtml(getTranslation("activities.monitorEdit"))}">
               <i data-lucide="pencil"></i>
             </button>
-            <button class="icon-link danger-link" type="button" data-activities-monitor-delete="${escapeHtml(monitor.id)}" title="Remover monitor" aria-label="Remover monitor">
+            <button class="icon-link danger-link" type="button" data-activities-monitor-delete="${escapeHtml(monitor.id)}" title="${escapeHtml(getTranslation("activities.monitorDelete"))}" aria-label="${escapeHtml(getTranslation("activities.monitorDelete"))}">
               <i data-lucide="trash-2"></i>
             </button>
           </div>
@@ -1341,7 +1762,7 @@ const setActivityMonitorFormOpen = (open) => {
     formToggle.setAttribute("aria-expanded", String(open));
   }
   if (formToggleLabel) {
-    formToggleLabel.textContent = open ? "Ocultar formulário" : "Novo monitor";
+    formToggleLabel.textContent = getTranslation(open ? "activities.monitorHideForm" : "activities.monitorNew");
   }
   refreshIcons();
   if (open) window.setTimeout(() => input?.focus(), 0);
@@ -1468,17 +1889,17 @@ const handleActivityMonitorSubmit = async (event) => {
     if (activitiesState.editingMonitorId) {
       await updateActivityMonitorRemote(activitiesState.editingMonitorId, payload);
       activitiesState.editingMonitorId = "";
-      setActivitiesMonitorsFeedback("Monitor atualizado.", "success");
+      setActivitiesMonitorsFeedback(getTranslation("activities.monitorUpdated"), "success");
     } else {
       await ensureActivityMonitorRemote(payload);
-      setActivitiesMonitorsFeedback("Monitor guardado.", "success");
+      setActivitiesMonitorsFeedback(getTranslation("activities.monitorSaved"), "success");
     }
     fillActivityMonitorForm(null);
     setActivityMonitorFormOpen(false);
     await loadActivityMonitorHours().catch(() => {});
   } catch (error) {
     console.warn("Nao foi possivel guardar monitor.", error);
-    setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel guardar o monitor."));
+    setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.monitorSaveError")));
   } finally {
     if (submitButton) submitButton.disabled = false;
   }
@@ -1511,7 +1932,7 @@ const wireActivitiesMonitorsDialog = () => {
     syncActivityMonitorHoursControls();
     void loadActivityMonitorHours().catch((error) => {
       console.warn("Nao foi possivel carregar horas dos monitores.", error);
-      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel carregar as horas dos monitores."));
+      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.monitorHoursLoadError")));
     });
   };
   hoursPeriodSelect?.addEventListener("change", reloadHours);
@@ -1530,7 +1951,7 @@ const wireActivitiesMonitorsDialog = () => {
     if (!id) return;
     void deleteActivityMonitorRemote(id).catch((error) => {
       console.warn("Nao foi possivel remover monitor.", error);
-      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, "Nao foi possivel remover o monitor."));
+      setActivitiesMonitorsFeedback(activityOptionErrorMessage(error, getTranslation("activities.monitorDeleteError")));
     });
   });
   dialog.addEventListener("click", (event) => {
@@ -1604,7 +2025,7 @@ const fullCentralPermissions = () => {
     socios: all(false, true),
     utentes: all(true, true),
     dispositivos: all(false, true),
-    atividades: all(false, false),
+    atividades: { ...all(false, false), view_sensitive: true },
   };
   return JSON.parse(JSON.stringify(defaults));
 };
@@ -1617,18 +2038,15 @@ const emptyCentralPermissions = () => ({
   atividades: emptyAreaPermissions(),
 });
 
-// New users start with access selected. Once stored, every individual checkbox is authoritative.
-const defaultCentralPermissionsForRole = () => fullCentralPermissions();
+// New users start without access. Every permission must be granted explicitly.
+const defaultCentralPermissionsForRole = () => emptyCentralPermissions();
 
 const boolPermission = (value) => value === true || value === "true" || value === 1 || value === "1";
 const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
 
 const normalizeCentralPermissions = (input) => {
   const source = input && typeof input === "object" ? input : {};
-  const hasStoredMatrix =
-    Object.keys(source.central || {}).length > 0 ||
-    centralAreaIds.some((area) => Object.keys(source[area] || {}).length > 0);
-  const normalized = hasStoredMatrix ? emptyCentralPermissions() : fullCentralPermissions();
+  const normalized = emptyCentralPermissions();
   normalized.central = {
     manage_users: boolPermission(source.central?.manage_users ?? normalized.central.manage_users),
     view_history: boolPermission(source.central?.view_history ?? normalized.central.view_history),
@@ -1671,11 +2089,12 @@ const normalizeCentralPermissions = (input) => {
         nextArea.view_sensitive = true;
       }
     }
-    if (area !== "utentes") {
+    if (!["utentes", "atividades"].includes(area)) {
       nextArea.view_sensitive = false;
       nextArea.edit_sensitive = false;
     }
     if (area === "atividades") {
+      nextArea.edit_sensitive = false;
       nextArea.delete = false;
     }
     normalized[area] = nextArea;
@@ -1914,11 +2333,16 @@ const activitiesState = {
   entries: [],
   history: [],
   summaries: [],
+  questionnaires: [],
+  questionnaireActivities: [],
+  questionnaireUtentes: [],
+  questionnaireActiveTab: "fill",
   utentes: [],
   activityNames: [],
   monitors: [],
   monitorHours: [],
   statistics: null,
+  viewingActivityId: "",
   editingActivityNameId: "",
   editingMonitorId: "",
   storageMode: "local",
@@ -1929,6 +2353,13 @@ const activitiesState = {
   dragImageEl: null,
   defaultLunchPendingWeeks: new Set(),
   summaryAttendanceIds: new Set(),
+  summarySignatures: new Map(),
+  summaryMissingMinutes: new Map(),
+  summaryLocked: false,
+  activeSignatureUtenteId: "",
+  activeMissingTimeUtenteId: "",
+  isDrawingSignature: false,
+  signatureCanvasHasContent: false,
 };
 
 const activityId = () =>
@@ -1954,6 +2385,8 @@ const activitiesElements = () => ({
   statisticsCloseBtn: document.querySelector("[data-activities-statistics-close]"),
   statisticsPrintBtn: document.querySelector("[data-activities-statistics-print]"),
   statisticsPeriodSelect: document.querySelector("[data-activities-statistics-period]"),
+  statisticsWeekField: document.querySelector("[data-activities-statistics-week-field]"),
+  statisticsWeekValue: document.querySelector("[data-activities-statistics-week-value]"),
   statisticsMonthField: document.querySelector("[data-activities-statistics-month-field]"),
   statisticsMonthInput: document.querySelector("[data-activities-statistics-month]"),
   statisticsYearField: document.querySelector("[data-activities-statistics-year-field]"),
@@ -1964,7 +2397,6 @@ const activitiesElements = () => ({
   statisticsError: document.querySelector("[data-activities-statistics-error]"),
   summaryDialog: document.querySelector("[data-activities-summary-dialog]"),
   summaryCloseBtn: document.querySelector("[data-activities-summary-close]"),
-  summaryPrintBtn: document.querySelector("[data-activities-summary-print]"),
   summaryForm: document.querySelector("[data-activities-summary-form]"),
   summaryActivitySelect: document.querySelector("[data-summary-activity-select]"),
   summaryActivityName: document.querySelector("[data-summary-activity-name]"),
@@ -1974,8 +2406,26 @@ const activitiesElements = () => ({
   summaryDuration: document.querySelector("[data-summary-duration]"),
   summaryAttendanceList: document.querySelector("[data-summary-attendance-list]"),
   summaryAttendanceSearch: document.querySelector("[data-summary-attendance-search]"),
+  summaryLockedNotice: document.querySelector("[data-summary-locked-notice]"),
+  summarySaveBtn: document.querySelector("[data-summary-save]"),
   summaryClearBtn: document.querySelector("[data-summary-clear]"),
   summaryError: document.querySelector("[data-summary-error]"),
+  signatureDialog: document.querySelector("[data-signature-dialog]"),
+  signatureCloseBtn: document.querySelector("[data-signature-close]"),
+  signatureSaveBtn: document.querySelector("[data-signature-save]"),
+  signatureClearBtn: document.querySelector("[data-signature-clear]"),
+  signatureCanvas: document.querySelector("[data-signature-canvas]"),
+  signatureName: document.querySelector("[data-signature-name]"),
+  signatureInstruction: document.querySelector("[data-signature-instruction]"),
+  signatureError: document.querySelector("[data-signature-error]"),
+  missingTimeDialog: document.querySelector("[data-missing-time-dialog]"),
+  missingTimeCloseBtn: document.querySelector("[data-missing-time-close]"),
+  missingTimeForm: document.querySelector("[data-missing-time-form]"),
+  missingTimeName: document.querySelector("[data-missing-time-name]"),
+  missingTimeMaximum: document.querySelector("[data-missing-time-maximum]"),
+  missingTimeInput: document.querySelector("[data-missing-time-input]"),
+  missingTimeError: document.querySelector("[data-missing-time-error]"),
+  missingTimePresets: document.querySelector("[data-missing-time-presets]"),
   status: document.querySelector("[data-activities-status]"),
   prevWeekBtn: document.querySelector("[data-activities-week-prev]"),
   nextWeekBtn: document.querySelector("[data-activities-week-next]"),
@@ -1983,7 +2433,890 @@ const activitiesElements = () => ({
   clearBtn: document.querySelector("[data-activities-clear]"),
   formTitle: document.querySelector("[data-activities-form-title]"),
   submitLabel: document.querySelector("[data-activities-submit-label]"),
+  viewSummary: document.querySelector("[data-activity-view-summary]"),
+  viewSummaryText: document.querySelector("[data-activity-view-summary-text]"),
+  viewAttendance: document.querySelector("[data-activity-view-attendance]"),
+  viewParticipantCount: document.querySelector("[data-activity-view-participant-count]"),
+  viewPrintBtn: document.querySelector("[data-activity-view-print]"),
 });
+
+const activityQuestionnaireSections = [
+  {
+    titleKey: "activities.questionnaireSectionParticipation",
+    questions: [
+      ["participation_1", "activities.questionnaireParticipation1"],
+      ["participation_2", "activities.questionnaireParticipation2"],
+      ["participation_3", "activities.questionnaireParticipation3"],
+    ],
+  },
+  {
+    titleKey: "activities.questionnaireSectionLearning",
+    questions: [
+      ["learning_1", "activities.questionnaireLearning1"],
+      ["learning_2", "activities.questionnaireLearning2"],
+      ["learning_3", "activities.questionnaireLearning3"],
+    ],
+  },
+  {
+    titleKey: "activities.questionnaireSectionWellbeing",
+    questions: [
+      ["wellbeing_1", "activities.questionnaireWellbeing1"],
+      ["wellbeing_2", "activities.questionnaireWellbeing2"],
+      ["wellbeing_3", "activities.questionnaireWellbeing3"],
+      ["wellbeing_4", "activities.questionnaireWellbeing4"],
+    ],
+  },
+  {
+    titleKey: "activities.questionnaireSectionRelationships",
+    questions: [
+      ["relationships_1", "activities.questionnaireRelationships1"],
+      ["relationships_2", "activities.questionnaireRelationships2"],
+      ["relationships_3", "activities.questionnaireRelationships3"],
+    ],
+  },
+  {
+    titleKey: "activities.questionnaireSectionAutonomy",
+    questions: [
+      ["autonomy_1", "activities.questionnaireAutonomy1"],
+      ["autonomy_2", "activities.questionnaireAutonomy2"],
+      ["autonomy_3", "activities.questionnaireAutonomy3"],
+    ],
+  },
+  {
+    titleKey: "activities.questionnaireSectionInclusion",
+    questions: [
+      ["inclusion_1", "activities.questionnaireInclusion1"],
+      ["inclusion_2", "activities.questionnaireInclusion2"],
+      ["inclusion_3", "activities.questionnaireInclusion3"],
+    ],
+  },
+];
+
+const activityQuestionnaireResponseKeys = activityQuestionnaireSections.flatMap((section) =>
+  section.questions.map(([key]) => key),
+);
+
+const activityQuestionnaireScores = (records, keys = activityQuestionnaireResponseKeys) =>
+  records.flatMap((record) =>
+    keys
+      .map((key) => Number(record.responses?.[key] || 0))
+      .filter((score) => score >= 1 && score <= 5),
+  );
+
+const activityQuestionnaireMean = (records, keys = activityQuestionnaireResponseKeys) => {
+  const scores = activityQuestionnaireScores(records, keys);
+  if (!scores.length) return null;
+  return scores.reduce((total, score) => total + score, 0) / scores.length;
+};
+
+const activityQuestionnaireSectionMean = (records, section) =>
+  activityQuestionnaireMean(
+    records,
+    section.questions.map(([key]) => key),
+  );
+
+const formatActivityQuestionnaireMean = (value) => {
+  if (!Number.isFinite(value)) return "-";
+  return new Intl.NumberFormat(getLanguage() === "en" ? "en-GB" : "pt-PT", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
+};
+
+const activityQuestionnaireAverageValueText = (value) =>
+  getTranslation("activities.questionnaireAverageValue").replace(
+    "{value}",
+    formatActivityQuestionnaireMean(value),
+  );
+
+const activityQuestionnaireElements = () => ({
+  openBtn: document.querySelector("[data-activities-questionnaire]"),
+  dialog: document.querySelector("[data-activities-questionnaire-dialog]"),
+  closeBtn: document.querySelector("[data-activities-questionnaire-close]"),
+  tabs: document.querySelectorAll("[data-questionnaire-tab]"),
+  views: document.querySelectorAll("[data-questionnaire-view]"),
+  form: document.querySelector("[data-questionnaire-form]"),
+  activitySelect: document.querySelector("[data-questionnaire-activity]"),
+  utenteSelect: document.querySelector("[data-questionnaire-utente]"),
+  monthSelect: document.querySelector("[data-questionnaire-month]"),
+  yearSelect: document.querySelector("[data-questionnaire-year]"),
+  questions: document.querySelector("[data-questionnaire-questions]"),
+  existingPanel: document.querySelector("[data-questionnaire-existing-panel]"),
+  existing: document.querySelector("[data-questionnaire-existing]"),
+  existingOpenBtn: document.querySelector("[data-questionnaire-existing-open]"),
+  error: document.querySelector("[data-questionnaire-error]"),
+  success: document.querySelector("[data-questionnaire-success]"),
+  saveBtn: document.querySelector("[data-questionnaire-save]"),
+  clearBtn: document.querySelector("[data-questionnaire-clear]"),
+  historyActivitySelect: document.querySelector("[data-questionnaire-history-activity]"),
+  historyUtenteSelect: document.querySelector("[data-questionnaire-history-utente]"),
+  historyMonthSelect: document.querySelector("[data-questionnaire-history-month]"),
+  historyYearSelect: document.querySelector("[data-questionnaire-history-year]"),
+  historyList: document.querySelector("[data-questionnaire-history-list]"),
+  historyError: document.querySelector("[data-questionnaire-history-error]"),
+  averageActivitySelect: document.querySelector("[data-questionnaire-average-activity]"),
+  averageMonthSelect: document.querySelector("[data-questionnaire-average-month]"),
+  averageYearSelect: document.querySelector("[data-questionnaire-average-year]"),
+  averageContent: document.querySelector("[data-questionnaire-average-content]"),
+  detailBackBtn: document.querySelector("[data-questionnaire-detail-back]"),
+  detailContent: document.querySelector("[data-questionnaire-detail-content]"),
+});
+
+const normalizeActivityQuestionnaireRecord = (record) => ({
+  id: String(record?.id || ""),
+  activityId: String(record?.activityId || ""),
+  activityName: String(record?.activityName || "").trim(),
+  utenteId: String(record?.utenteId || ""),
+  utenteName: String(record?.utenteName || "").trim(),
+  year: Number(record?.year || 0),
+  month: Number(record?.month || 0),
+  responses: record?.responses && typeof record.responses === "object" ? record.responses : {},
+  completedAt: String(record?.completedAt || ""),
+  updatedAt: String(record?.updatedAt || ""),
+});
+
+const activityQuestionnaireRequest = async ({ method = "GET", body = null } = {}) => {
+  const token = await getActivitiesAccessToken();
+  const response = await fetch("/api/activities-questionnaires", {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(method === "GET" ? {} : { "Content-Type": "application/json" }),
+    },
+    body: method === "GET" ? undefined : JSON.stringify(body || {}),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const fallbackKey = method === "GET"
+      ? "activities.questionnaireLoadError"
+      : method === "DELETE"
+        ? "activities.questionnaireDeleteError"
+        : "activities.questionnaireSaveError";
+    throw new Error(payload?.error || getTranslation(fallbackKey));
+  }
+  return payload;
+};
+
+const activityQuestionnaireMonthLabel = (month) => {
+  const locale = getLanguage() === "en" ? "en-GB" : "pt-PT";
+  const value = new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2024, Number(month) - 1, 1));
+  return value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : String(month);
+};
+
+const activityQuestionnaireYearValues = () => {
+  const currentYear = new Date().getFullYear();
+  const values = new Set([currentYear, currentYear + 1]);
+  for (let year = 2020; year <= currentYear; year += 1) values.add(year);
+  activitiesState.questionnaires.forEach((record) => {
+    if (record.year >= 2000 && record.year <= 2100) values.add(record.year);
+  });
+  return [...values].sort((left, right) => right - left);
+};
+
+const setActivityQuestionnaireSelectOptions = (select, items, { placeholder = "", fallback = "" } = {}) => {
+  if (!select) return;
+  const previousValue = select.value;
+  select.innerHTML = [
+    ...(placeholder ? [{ value: "", label: placeholder }] : []),
+    ...items,
+  ]
+    .map((item) => `<option value="${escapeHtml(String(item.value))}">${escapeHtml(String(item.label))}</option>`)
+    .join("");
+  const nextValue = [previousValue, fallback].find(
+    (value) => value !== "" && [...select.options].some((option) => option.value === String(value)),
+  );
+  select.value = nextValue === undefined ? "" : String(nextValue);
+};
+
+const setActivityQuestionnaireFeedback = (type, message) => {
+  const { error, success } = activityQuestionnaireElements();
+  if (error) {
+    error.textContent = type === "error" ? message : "";
+    error.hidden = type !== "error" || !message;
+  }
+  if (success) {
+    success.textContent = type === "success" ? message : "";
+    success.hidden = type !== "success" || !message;
+  }
+};
+
+const setActivityQuestionnaireHistoryError = (message) => {
+  const { historyError } = activityQuestionnaireElements();
+  if (!historyError) return;
+  historyError.textContent = message || "";
+  historyError.hidden = !message;
+};
+
+const selectedActivityQuestionnaireName = () => {
+  const { activitySelect } = activityQuestionnaireElements();
+  return activitySelect?.selectedOptions?.[0]?.textContent?.trim() || getTranslation("activities.questionnaireActivity").toLowerCase();
+};
+
+const collectActivityQuestionnaireResponses = () => {
+  const { form } = activityQuestionnaireElements();
+  if (!form) return {};
+  return Object.fromEntries(
+    activityQuestionnaireResponseKeys.map((key) => {
+      const input = form.querySelector(`input[name="questionnaire_${key}"]:checked`);
+      return [key, input ? Number(input.value) : 0];
+    }),
+  );
+};
+
+const applyActivityQuestionnaireResponses = (responses = {}) => {
+  const { form } = activityQuestionnaireElements();
+  if (!form) return;
+  activityQuestionnaireResponseKeys.forEach((key) => {
+    const value = Number(responses?.[key] || 0);
+    const input = form.querySelector(`input[name="questionnaire_${key}"][value="${value}"]`);
+    if (input) input.checked = true;
+  });
+};
+
+const hasCompleteActivityQuestionnaireContext = () => {
+  const { activitySelect, utenteSelect, monthSelect, yearSelect } = activityQuestionnaireElements();
+  return Boolean(activitySelect?.value && utenteSelect?.value && monthSelect?.value && yearSelect?.value);
+};
+
+const renderActivityQuestionnaireQuestions = ({ preserveResponses = true } = {}) => {
+  const { questions } = activityQuestionnaireElements();
+  if (!questions) return;
+  const hasCompleteContext = hasCompleteActivityQuestionnaireContext();
+  questions.hidden = !hasCompleteContext;
+  if (!hasCompleteContext) {
+    questions.innerHTML = "";
+    return;
+  }
+  const responses = preserveResponses ? collectActivityQuestionnaireResponses() : {};
+  const activityName = selectedActivityQuestionnaireName();
+  const scoreLabels = [1, 2, 3, 4, 5].map((score) => getTranslation(`activities.questionnaireScale${score}`));
+  questions.innerHTML = activityQuestionnaireSections
+    .map(
+      (section) => `
+        <section class="activity-questionnaire-section">
+          <h3>${escapeHtml(getTranslation(section.titleKey))}</h3>
+          <div class="activity-questionnaire-section-body">
+            ${section.questions
+              .map(([key, textKey], index) => {
+                const prompt = getTranslation(textKey).replace("{activity}", activityName);
+                return `
+                  <div class="activity-questionnaire-question" role="group" aria-labelledby="questionnaire_${escapeHtml(key)}_label">
+                    <p class="activity-questionnaire-question-copy" id="questionnaire_${escapeHtml(key)}_label"><span>${index + 1}.</span> ${escapeHtml(prompt)}</p>
+                    <div class="activity-questionnaire-score-options" role="radiogroup" aria-label="${escapeHtml(prompt)}">
+                      ${scoreLabels
+                        .map(
+                          (label, scoreIndex) => `
+                            <label title="${escapeHtml(label)}">
+                              <input type="radio" name="questionnaire_${escapeHtml(key)}" value="${scoreIndex + 1}" aria-label="${scoreIndex + 1} - ${escapeHtml(label)}" required>
+                              <span>${scoreIndex + 1}</span>
+                            </label>
+                          `,
+                        )
+                        .join("")}
+                    </div>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        </section>
+      `,
+    )
+    .join("");
+  applyActivityQuestionnaireResponses(responses);
+};
+
+const selectedActivityQuestionnaireRecord = () => {
+  const { activitySelect, utenteSelect, monthSelect, yearSelect } = activityQuestionnaireElements();
+  const activityId = String(activitySelect?.value || "");
+  const utenteId = String(utenteSelect?.value || "");
+  const month = Number(monthSelect?.value || 0);
+  const year = Number(yearSelect?.value || 0);
+  if (!activityId || !utenteId || !month || !year) return null;
+  return activitiesState.questionnaires.find(
+    (record) =>
+      record.activityId === activityId &&
+      record.utenteId === utenteId &&
+      record.month === month &&
+      record.year === year,
+  ) || null;
+};
+
+const syncSelectedActivityQuestionnaire = () => {
+  const {
+    questions,
+    existingPanel,
+    existing,
+    existingOpenBtn,
+    saveBtn,
+    clearBtn,
+  } = activityQuestionnaireElements();
+  const hasCompleteContext = hasCompleteActivityQuestionnaireContext();
+  const record = selectedActivityQuestionnaireRecord();
+
+  if (hasCompleteContext && !record) {
+    renderActivityQuestionnaireQuestions({ preserveResponses: false });
+  } else if (questions) {
+    questions.hidden = true;
+    questions.innerHTML = "";
+  }
+
+  if (saveBtn) saveBtn.disabled = !hasCompleteContext || Boolean(record);
+  if (clearBtn) clearBtn.disabled = !hasCompleteContext || Boolean(record);
+  if (existingPanel) existingPanel.hidden = !hasCompleteContext;
+  if (existing) {
+    existing.classList.toggle("is-existing", Boolean(record));
+    existing.textContent = hasCompleteContext
+      ? getTranslation(record ? "activities.questionnaireExisting" : "activities.questionnaireNew")
+      : "";
+  }
+  if (existingOpenBtn) existingOpenBtn.hidden = !record;
+  setActivityQuestionnaireFeedback("", "");
+};
+
+const activityQuestionnaireReferenceItems = (kind) => {
+  const records = activitiesState.questionnaires;
+  const source = kind === "activity" ? activitiesState.questionnaireActivities : activitiesState.questionnaireUtentes;
+  const map = new Map(source.map((item) => [String(item.id), String(item.name)]));
+  records.forEach((record) => {
+    const id = kind === "activity" ? record.activityId : record.utenteId;
+    const name = kind === "activity" ? record.activityName : record.utenteName;
+    if (id && name && !map.has(id)) map.set(id, name);
+  });
+  return [...map.entries()]
+    .map(([value, label]) => ({ value, label }))
+    .sort((left, right) => left.label.localeCompare(right.label, getLanguage() === "en" ? "en" : "pt"));
+};
+
+const renderActivityQuestionnaireOptionLists = () => {
+  const {
+    activitySelect,
+    utenteSelect,
+    monthSelect,
+    yearSelect,
+    historyActivitySelect,
+    historyUtenteSelect,
+    historyMonthSelect,
+    historyYearSelect,
+    averageActivitySelect,
+    averageMonthSelect,
+    averageYearSelect,
+  } = activityQuestionnaireElements();
+  const now = new Date();
+  const activityItems = activityQuestionnaireReferenceItems("activity");
+  const utenteItems = activityQuestionnaireReferenceItems("utente");
+  const monthItems = Array.from({ length: 12 }, (_, index) => ({ value: index + 1, label: activityQuestionnaireMonthLabel(index + 1) }));
+  const yearItems = activityQuestionnaireYearValues().map((year) => ({ value: year, label: year }));
+  setActivityQuestionnaireSelectOptions(activitySelect, activityItems, {
+    placeholder: getTranslation("activities.questionnaireSelectActivity"),
+  });
+  setActivityQuestionnaireSelectOptions(utenteSelect, utenteItems, {
+    placeholder: getTranslation("activities.questionnaireSelectUtente"),
+  });
+  setActivityQuestionnaireSelectOptions(monthSelect, monthItems, { fallback: now.getMonth() + 1 });
+  setActivityQuestionnaireSelectOptions(yearSelect, yearItems, { fallback: now.getFullYear() });
+  setActivityQuestionnaireSelectOptions(historyActivitySelect, activityItems, {
+    placeholder: getTranslation("activities.questionnaireAllActivities"),
+  });
+  setActivityQuestionnaireSelectOptions(historyUtenteSelect, utenteItems, {
+    placeholder: getTranslation("activities.questionnaireAllUtentes"),
+  });
+  setActivityQuestionnaireSelectOptions(historyMonthSelect, monthItems, {
+    placeholder: getTranslation("activities.questionnaireAllMonths"),
+  });
+  setActivityQuestionnaireSelectOptions(historyYearSelect, yearItems, {
+    placeholder: getTranslation("activities.questionnaireAllYears"),
+  });
+  setActivityQuestionnaireSelectOptions(averageActivitySelect, activityItems, {
+    placeholder: getTranslation("activities.questionnaireAllActivities"),
+  });
+  setActivityQuestionnaireSelectOptions(averageMonthSelect, monthItems, { fallback: now.getMonth() + 1 });
+  setActivityQuestionnaireSelectOptions(averageYearSelect, yearItems, { fallback: now.getFullYear() });
+};
+
+const activityQuestionnairePeriodText = (record) => `${activityQuestionnaireMonthLabel(record.month)} ${record.year}`;
+
+const renderActivityQuestionnaireDetail = (record) => {
+  const { detailContent } = activityQuestionnaireElements();
+  if (!detailContent || !record) return;
+
+  const locale = getLanguage() === "en" ? "en-GB" : "pt-PT";
+  const timestamp = new Date(record.updatedAt || record.completedAt);
+  const savedAt = Number.isNaN(timestamp.getTime())
+    ? getTranslation("activities.questionnaireNoAnswer")
+    : new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(timestamp);
+  const scoreLabels = [1, 2, 3, 4, 5].map((score) =>
+    getTranslation(`activities.questionnaireScale${score}`),
+  );
+
+  detailContent.dataset.questionnaireDetailRecord = record.id;
+  detailContent.innerHTML = `
+    <header class="activity-questionnaire-detail-header">
+      <p class="eyebrow">${escapeHtml(getTranslation("activities.questionnaireDetailTitle"))}</p>
+      <h2>${escapeHtml(record.utenteName)}</h2>
+      <p>${escapeHtml(record.activityName)}</p>
+    </header>
+    <div class="activity-questionnaire-detail-meta">
+      <article>
+        <span>${escapeHtml(getTranslation("activities.questionnaireActivity"))}</span>
+        <strong>${escapeHtml(record.activityName)}</strong>
+      </article>
+      <article>
+        <span>${escapeHtml(getTranslation("activities.questionnaireUtente"))}</span>
+        <strong>${escapeHtml(record.utenteName)}</strong>
+      </article>
+      <article>
+        <span>${escapeHtml(getTranslation("activities.questionnairePeriod"))}</span>
+        <strong>${escapeHtml(activityQuestionnairePeriodText(record))}</strong>
+      </article>
+      <article>
+        <span>${escapeHtml(getTranslation("activities.questionnaireSavedAt"))}</span>
+        <strong>${escapeHtml(savedAt)}</strong>
+      </article>
+    </div>
+    <div class="activity-questionnaire-detail-sections">
+      ${activityQuestionnaireSections
+        .map((section) => {
+          const sectionMean = activityQuestionnaireSectionMean([record], section);
+          return `
+            <section class="activity-questionnaire-detail-section">
+              <h3>
+                <span>${escapeHtml(getTranslation(section.titleKey))}</span>
+                <strong class="activity-questionnaire-section-average">${escapeHtml(
+                  activityQuestionnaireAverageValueText(sectionMean),
+                )}</strong>
+              </h3>
+              <div>
+                ${section.questions
+                  .map(([key, textKey], index) => {
+                    const prompt = getTranslation(textKey).replace("{activity}", record.activityName);
+                    const score = Number(record.responses?.[key] || 0);
+                    const answer = score >= 1 && score <= 5
+                      ? scoreLabels[score - 1]
+                      : getTranslation("activities.questionnaireNoAnswer");
+                    return `
+                      <article class="activity-questionnaire-detail-answer">
+                        <p><span>${index + 1}.</span> ${escapeHtml(prompt)}</p>
+                        <div class="activity-questionnaire-detail-score">
+                          <strong>${score >= 1 && score <= 5 ? score : "-"}</strong>
+                          <span>${escapeHtml(answer)}</span>
+                        </div>
+                      </article>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            </section>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+};
+
+const renderActivityQuestionnaireHistory = () => {
+  const {
+    historyList,
+    historyActivitySelect,
+    historyUtenteSelect,
+    historyMonthSelect,
+    historyYearSelect,
+  } = activityQuestionnaireElements();
+  if (!historyList) return;
+  const activityId = String(historyActivitySelect?.value || "");
+  const utenteId = String(historyUtenteSelect?.value || "");
+  const month = Number(historyMonthSelect?.value || 0);
+  const year = Number(historyYearSelect?.value || 0);
+  const records = activitiesState.questionnaires.filter(
+    (record) =>
+      (!activityId || record.activityId === activityId) &&
+      (!utenteId || record.utenteId === utenteId) &&
+      (!month || record.month === month) &&
+      (!year || record.year === year),
+  );
+  if (!records.length) {
+    historyList.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.questionnaireNoRecords"))}</p>`;
+    return;
+  }
+  const locale = getLanguage() === "en" ? "en-GB" : "pt-PT";
+  historyList.innerHTML = `
+    <p class="activity-questionnaire-history-count">${escapeHtml(
+      getTranslation("activities.questionnaireHistoryCount").replace("{count}", String(records.length)),
+    )}</p>
+    <div class="activity-questionnaire-history-list">
+      ${records
+        .map((record) => {
+          const timestamp = new Date(record.updatedAt || record.completedAt);
+          const updatedText = Number.isNaN(timestamp.getTime())
+            ? ""
+            : getTranslation("activities.questionnaireUpdated").replace(
+                "{date}",
+                new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "short" }).format(timestamp),
+              );
+          return `
+            <article class="activity-questionnaire-history-item">
+              <div class="activity-questionnaire-history-icon"><i data-lucide="clipboard-check"></i></div>
+              <div>
+                <strong>${escapeHtml(record.utenteName)}</strong>
+                <span>${escapeHtml(record.activityName)} &middot; ${escapeHtml(activityQuestionnairePeriodText(record))}</span>
+                ${updatedText ? `<small>${escapeHtml(updatedText)}</small>` : ""}
+              </div>
+              <div class="activity-questionnaire-history-actions">
+                <button class="secondary-button" type="button" data-questionnaire-open-record="${escapeHtml(record.id)}">
+                  <i data-lucide="folder-open"></i>
+                  <span>${escapeHtml(getTranslation("activities.questionnaireOpen"))}</span>
+                </button>
+                <button
+                  class="icon-link activity-questionnaire-history-delete"
+                  type="button"
+                  data-questionnaire-delete-record="${escapeHtml(record.id)}"
+                  aria-label="${escapeHtml(getTranslation("activities.questionnaireDelete"))}"
+                  title="${escapeHtml(getTranslation("activities.questionnaireDelete"))}"
+                >
+                  <i data-lucide="trash-2"></i>
+                </button>
+              </div>
+            </article>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+  refreshIcons();
+};
+
+const activityQuestionnaireRecordCountText = (count) =>
+  getTranslation(
+    count === 1
+      ? "activities.questionnaireAverageRecord"
+      : "activities.questionnaireAverageRecords",
+  ).replace("{count}", String(count));
+
+const renderActivityQuestionnaireAverage = () => {
+  const {
+    averageActivitySelect,
+    averageMonthSelect,
+    averageYearSelect,
+    averageContent,
+  } = activityQuestionnaireElements();
+  if (!averageContent) return;
+
+  const activityId = String(averageActivitySelect?.value || "");
+  const month = Number(averageMonthSelect?.value || 0);
+  const year = Number(averageYearSelect?.value || 0);
+  const records = activitiesState.questionnaires.filter(
+    (record) =>
+      (!activityId || record.activityId === activityId) &&
+      record.month === month &&
+      record.year === year,
+  );
+
+  if (!records.length) {
+    averageContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(
+      getTranslation("activities.questionnaireAverageEmpty"),
+    )}</p>`;
+    return;
+  }
+
+  const groups = new Map();
+  records.forEach((record) => {
+    const key = record.activityId || record.activityName;
+    if (!groups.has(key)) groups.set(key, { name: record.activityName, records: [] });
+    groups.get(key).records.push(record);
+  });
+  const activityGroups = [...groups.values()].sort((left, right) =>
+    left.name.localeCompare(right.name, getLanguage() === "en" ? "en" : "pt"),
+  );
+  const overallMean = activityQuestionnaireMean(records);
+
+  averageContent.innerHTML = `
+    <div class="activity-questionnaire-average-summary">
+      <article class="activity-questionnaire-average-stat">
+        <span>${escapeHtml(getTranslation("activities.questionnaireAverageQuestionnaires"))}</span>
+        <strong>${records.length}</strong>
+      </article>
+      <article class="activity-questionnaire-average-stat">
+        <span>${escapeHtml(getTranslation("activities.questionnaireAverageOverall"))}</span>
+        <strong>${escapeHtml(activityQuestionnaireAverageValueText(overallMean))}</strong>
+      </article>
+    </div>
+    <div class="activity-questionnaire-average-groups">
+      ${activityGroups
+        .map((group) => {
+          const groupMean = activityQuestionnaireMean(group.records);
+          return `
+            <section class="activity-questionnaire-average-group">
+              <header>
+                <div>
+                  <h3>${escapeHtml(group.name)}</h3>
+                  <span>${escapeHtml(activityQuestionnaireRecordCountText(group.records.length))}</span>
+                </div>
+                <strong>${escapeHtml(activityQuestionnaireAverageValueText(groupMean))}</strong>
+              </header>
+              <div class="activity-questionnaire-average-sections">
+                ${activityQuestionnaireSections
+                  .map((section) => {
+                    const sectionMean = activityQuestionnaireSectionMean(group.records, section);
+                    const width = Number.isFinite(sectionMean)
+                      ? Math.max(0, Math.min(100, (sectionMean / 5) * 100))
+                      : 0;
+                    return `
+                      <article class="activity-questionnaire-average-section">
+                        <div>
+                          <span>${escapeHtml(getTranslation(section.titleKey))}</span>
+                          <strong>${escapeHtml(activityQuestionnaireAverageValueText(sectionMean))}</strong>
+                        </div>
+                        <div class="activity-questionnaire-average-meter" aria-hidden="true">
+                          <i style="width: ${width}%"></i>
+                        </div>
+                      </article>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            </section>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+};
+
+const setActivityQuestionnaireTab = (tab) => {
+  const { tabs, views } = activityQuestionnaireElements();
+  const nextView = ["fill", "history", "detail", "average"].includes(tab) ? tab : "fill";
+  const activeTab = nextView === "detail" ? "history" : nextView;
+  activitiesState.questionnaireActiveTab = nextView;
+  tabs.forEach((button) => {
+    const active = button.dataset.questionnaireTab === activeTab;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  views.forEach((view) => {
+    view.hidden = view.dataset.questionnaireView !== nextView;
+  });
+  if (nextView === "history") renderActivityQuestionnaireHistory();
+  if (nextView === "average") renderActivityQuestionnaireAverage();
+};
+
+const loadActivityQuestionnaires = async () => {
+  const { historyList } = activityQuestionnaireElements();
+  if (historyList) {
+    historyList.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.loading"))}</p>`;
+  }
+  const payload = await activityQuestionnaireRequest();
+  activitiesState.questionnaires = Array.isArray(payload?.records)
+    ? payload.records.map(normalizeActivityQuestionnaireRecord).filter((record) => record.id)
+    : [];
+  activitiesState.questionnaireActivities = Array.isArray(payload?.activities)
+    ? payload.activities
+        .map((item) => ({ id: String(item?.id || ""), name: String(item?.name || "").trim() }))
+        .filter((item) => item.id && item.name)
+    : [];
+  activitiesState.questionnaireUtentes = Array.isArray(payload?.utentes)
+    ? payload.utentes
+        .map((item) => ({ id: String(item?.id || ""), name: String(item?.name || "").trim() }))
+        .filter((item) => item.id && item.name)
+    : [];
+  renderActivityQuestionnaireOptionLists();
+  syncSelectedActivityQuestionnaire();
+  renderActivityQuestionnaireHistory();
+  renderActivityQuestionnaireAverage();
+};
+
+const closeActivityQuestionnaireDialog = () => {
+  const { dialog } = activityQuestionnaireElements();
+  if (!dialog) return;
+  if (typeof dialog.close === "function" && dialog.open) dialog.close();
+  else dialog.removeAttribute("open");
+};
+
+const openActivityQuestionnaireDialog = async () => {
+  if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "view_sensitive")) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
+  const { dialog } = activityQuestionnaireElements();
+  if (!dialog) return;
+  closeToolsMenus();
+  setActivityFormOpen(false);
+  closeActivitySummaryDialog();
+  setActivityQuestionnaireFeedback("", "");
+  setActivityQuestionnaireHistoryError("");
+  setActivityQuestionnaireTab("fill");
+  renderActivityQuestionnaireOptionLists();
+  renderActivityQuestionnaireQuestions({ preserveResponses: false });
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "");
+  try {
+    await loadActivityQuestionnaires();
+  } catch (error) {
+    console.warn("Nao foi possivel carregar os questionarios.", error);
+    setActivityQuestionnaireFeedback("error", error?.message || getTranslation("activities.questionnaireLoadError"));
+    setActivityQuestionnaireHistoryError(error?.message || getTranslation("activities.questionnaireLoadError"));
+  }
+};
+
+const openStoredActivityQuestionnaire = (id) => {
+  const record = activitiesState.questionnaires.find((item) => item.id === id);
+  if (!record) return;
+  renderActivityQuestionnaireDetail(record);
+  setActivityQuestionnaireTab("detail");
+  activityQuestionnaireElements().detailContent?.scrollIntoView({ block: "start", behavior: "smooth" });
+};
+
+const clearActivityQuestionnaireResponses = () => {
+  const { form } = activityQuestionnaireElements();
+  form?.querySelectorAll('input[type="radio"]').forEach((input) => {
+    input.checked = false;
+  });
+  setActivityQuestionnaireFeedback("", "");
+};
+
+const handleActivityQuestionnaireSubmit = async (event) => {
+  event.preventDefault();
+  const { form, activitySelect, utenteSelect, monthSelect, yearSelect, saveBtn } = activityQuestionnaireElements();
+  if (!form) return;
+  if (!hasCompleteActivityQuestionnaireContext()) {
+    setActivityQuestionnaireFeedback("error", getTranslation("activities.questionnaireSelectContext"));
+    return;
+  }
+  if (selectedActivityQuestionnaireRecord()) {
+    syncSelectedActivityQuestionnaire();
+    return;
+  }
+  const responses = collectActivityQuestionnaireResponses();
+  if (activityQuestionnaireResponseKeys.some((key) => !responses[key])) {
+    setActivityQuestionnaireFeedback("error", getTranslation("activities.questionnaireRequired"));
+    form.querySelector('input[type="radio"]:invalid')?.focus();
+    return;
+  }
+  if (saveBtn) saveBtn.disabled = true;
+  setActivityQuestionnaireFeedback("", "");
+  try {
+    const payload = await activityQuestionnaireRequest({
+      method: "POST",
+      body: {
+        activityId: activitySelect?.value,
+        utenteId: utenteSelect?.value,
+        month: Number(monthSelect?.value || 0),
+        year: Number(yearSelect?.value || 0),
+        responses,
+      },
+    });
+    const record = normalizeActivityQuestionnaireRecord(payload?.record);
+    if (!record.id) throw new Error(getTranslation("activities.questionnaireSaveError"));
+    activitiesState.questionnaires = [
+      record,
+      ...activitiesState.questionnaires.filter((item) => item.id !== record.id),
+    ];
+    renderActivityQuestionnaireOptionLists();
+    renderActivityQuestionnaireHistory();
+    renderActivityQuestionnaireAverage();
+    syncSelectedActivityQuestionnaire();
+    setActivityQuestionnaireFeedback("success", getTranslation("activities.questionnaireSaved"));
+  } catch (error) {
+    console.warn("Nao foi possivel guardar o questionario.", error);
+    setActivityQuestionnaireFeedback("error", error?.message || getTranslation("activities.questionnaireSaveError"));
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = !hasCompleteActivityQuestionnaireContext() || Boolean(selectedActivityQuestionnaireRecord());
+    }
+  }
+};
+
+const deleteStoredActivityQuestionnaire = async (id) => {
+  const record = activitiesState.questionnaires.find((item) => item.id === id);
+  if (!record) return;
+  if (!window.confirm(getTranslation("activities.questionnaireDeleteConfirm"))) return;
+
+  const { historyList } = activityQuestionnaireElements();
+  const deleteButton = [...(historyList?.querySelectorAll("[data-questionnaire-delete-record]") || [])]
+    .find((button) => button.dataset.questionnaireDeleteRecord === String(id));
+  if (deleteButton) deleteButton.disabled = true;
+  setActivityQuestionnaireHistoryError("");
+
+  try {
+    await activityQuestionnaireRequest({ method: "DELETE", body: { id } });
+    activitiesState.questionnaires = activitiesState.questionnaires.filter((item) => item.id !== id);
+    renderActivityQuestionnaireOptionLists();
+    renderActivityQuestionnaireHistory();
+    renderActivityQuestionnaireAverage();
+    syncSelectedActivityQuestionnaire();
+    setActivityQuestionnaireFeedback("success", getTranslation("activities.questionnaireDeleted"));
+  } catch (error) {
+    console.warn("Nao foi possivel eliminar o questionario.", error);
+    setActivityQuestionnaireHistoryError(
+      error?.message || getTranslation("activities.questionnaireDeleteError"),
+    );
+  } finally {
+    if (deleteButton?.isConnected) deleteButton.disabled = false;
+  }
+};
+
+const wireActivitiesQuestionnaireDialog = () => {
+  const {
+    openBtn,
+    dialog,
+    closeBtn,
+    tabs,
+    form,
+    activitySelect,
+    utenteSelect,
+    monthSelect,
+    yearSelect,
+    clearBtn,
+    historyActivitySelect,
+    historyUtenteSelect,
+    historyMonthSelect,
+    historyYearSelect,
+    averageActivitySelect,
+    averageMonthSelect,
+    averageYearSelect,
+    historyList,
+    existingOpenBtn,
+    detailBackBtn,
+  } = activityQuestionnaireElements();
+  if (!openBtn || !dialog || !form || dialog.dataset.activitiesQuestionnaireWired === "true") return;
+  dialog.dataset.activitiesQuestionnaireWired = "true";
+  openBtn.addEventListener("click", () => void openActivityQuestionnaireDialog());
+  closeBtn?.addEventListener("click", closeActivityQuestionnaireDialog);
+  tabs.forEach((button) => {
+    button.addEventListener("click", () => setActivityQuestionnaireTab(button.dataset.questionnaireTab));
+  });
+  [activitySelect, utenteSelect, monthSelect, yearSelect].forEach((select) => {
+    select?.addEventListener("change", syncSelectedActivityQuestionnaire);
+  });
+  [historyActivitySelect, historyUtenteSelect, historyMonthSelect, historyYearSelect].forEach((select) => {
+    select?.addEventListener("change", renderActivityQuestionnaireHistory);
+  });
+  [averageActivitySelect, averageMonthSelect, averageYearSelect].forEach((select) => {
+    select?.addEventListener("change", renderActivityQuestionnaireAverage);
+  });
+  form.addEventListener("submit", handleActivityQuestionnaireSubmit);
+  clearBtn?.addEventListener("click", clearActivityQuestionnaireResponses);
+  existingOpenBtn?.addEventListener("click", () => {
+    const record = selectedActivityQuestionnaireRecord();
+    if (record) openStoredActivityQuestionnaire(record.id);
+  });
+  detailBackBtn?.addEventListener("click", () => setActivityQuestionnaireTab("history"));
+  historyList?.addEventListener("click", (event) => {
+    const deleteButton = event.target.closest("[data-questionnaire-delete-record]");
+    if (deleteButton) {
+      void deleteStoredActivityQuestionnaire(String(deleteButton.dataset.questionnaireDeleteRecord || ""));
+      return;
+    }
+    const openButton = event.target.closest("[data-questionnaire-open-record]");
+    if (openButton) openStoredActivityQuestionnaire(String(openButton.dataset.questionnaireOpenRecord || ""));
+  });
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeActivityQuestionnaireDialog();
+  });
+  dialog.addEventListener("close", () => {
+    setActivityQuestionnaireFeedback("", "");
+    setActivityQuestionnaireHistoryError("");
+  });
+};
 
 const normalizeActivityEntry = (entry, fallbackWeekStart = activitiesState.selectedWeekStart, fallbackOrder = 0) => {
   const title = String(entry?.title || "").trim();
@@ -2060,6 +3393,34 @@ const activityDateForEntry = (entry) => {
 
 const activityDateIsoForEntry = (entry) => dateToIso(activityDateForEntry(entry));
 
+const isActivitySummaryLocked = (entry) =>
+  Boolean(entry && activityDateIsoForEntry(entry) < weekStartIso());
+
+const setActivitySummaryLockState = (entry) => {
+  const {
+    summaryForm,
+    summaryLockedNotice,
+    summarySaveBtn,
+    summaryClearBtn,
+  } = activitiesElements();
+  const locked = isActivitySummaryLocked(entry);
+  activitiesState.summaryLocked = locked;
+  summaryForm?.classList.toggle("is-locked", locked);
+  if (summaryForm?.elements.summary) summaryForm.elements.summary.readOnly = locked;
+  if (summarySaveBtn) summarySaveBtn.disabled = locked;
+  if (summaryClearBtn) summaryClearBtn.disabled = locked;
+  if (summaryLockedNotice) summaryLockedNotice.hidden = !locked;
+  return locked;
+};
+
+const preventLockedActivitySummaryEdit = () => {
+  const entry = selectedActivitySummaryEntry();
+  if (!isActivitySummaryLocked(entry)) return false;
+  setActivitySummaryLockState(entry);
+  setActivitySummaryFeedback(getTranslation("activities.summaryLocked"));
+  return true;
+};
+
 const activityMinutesFromTime = (time) => {
   if (!isActivityTime(time)) return null;
   const [hours, minutes] = time.split(":").map(Number);
@@ -2083,14 +3444,55 @@ const activityDurationText = (minutes) => {
     .replace("{minutes}", String(rest));
 };
 
+const cleanActivityMissingMinutes = (value) => {
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes)) return 0;
+  return Math.max(0, Math.round(minutes));
+};
+
+const activityAttendanceMinutes = (entry, attendance) => {
+  const total = activityDurationMinutes(entry);
+  const missing = Math.min(total, cleanActivityMissingMinutes(attendance?.missingMinutes));
+  return Math.max(0, total - missing);
+};
+
+const activityAttendanceTimeDetails = (entry, attendance) => {
+  const total = activityDurationMinutes(entry);
+  const missing = Math.min(total, cleanActivityMissingMinutes(attendance?.missingMinutes));
+  const actual = activityAttendanceMinutes(entry, attendance);
+  return {
+    total,
+    missing,
+    actual,
+    missingText: getTranslation("activities.missingTimeDetail").replace("{time}", activityDurationText(missing)),
+    attendedText: getTranslation("activities.attendedTimeDetail")
+      .replace("{actual}", activityDurationText(actual))
+      .replace("{total}", activityDurationText(total)),
+  };
+};
+
+const cleanActivitySignature = (value) => {
+  const signature = String(value || "").trim();
+  if (!signature.startsWith("data:image/png;base64,")) return "";
+  return signature.length <= 300000 ? signature : "";
+};
+
 const normalizeActivityUtente = (utente) => {
   const id = String(utente?.id || "").trim();
   const name = String(utente?.name || utente?.nome || "").trim();
+  const signature = cleanActivitySignature(utente?.signature);
   if (!id || !name) return null;
   return {
     id,
     name,
     number: String(utente?.number || utente?.numero_utente || "").trim(),
+    missingMinutes: cleanActivityMissingMinutes(utente?.missingMinutes ?? utente?.missing_minutes),
+    ...(signature
+      ? {
+          signature,
+          signatureAt: String(utente?.signatureAt || utente?.signature_at || "").trim(),
+        }
+      : {}),
   };
 };
 
@@ -2243,6 +3645,15 @@ const formatActivityMonth = (month) => {
 };
 
 const formatActivityStatisticsPeriod = (statistics) => {
+  if (statistics?.period === "week") {
+    const start = dateFromIso(String(statistics.periodStart || statistics.weekStart || ""));
+    const end = dateFromIso(String(statistics.periodEnd || "")) || (start ? addDaysToIso(dateToIso(start), 4) : null);
+    if (start && end) {
+      return getTranslation("activities.weekRange")
+        .replace("{start}", formatActivityDate(start))
+        .replace("{end}", formatActivityDate(end));
+    }
+  }
   if (statistics?.period === "year") return String(statistics.year || "");
   return formatActivityMonth(statistics?.month);
 };
@@ -2265,11 +3676,13 @@ const formatActivityVolume = (minutes) => {
   return `${formatActivityNumber(hours, 1)} ${getTranslation("activities.statisticsPersonHours")}`;
 };
 
-const activitiesStatisticsRequest = async ({ period = "month", month = "", year = "", activity = "" } = {}) => {
+const activitiesStatisticsRequest = async ({ period = "month", weekStart = "", month = "", year = "", activity = "" } = {}) => {
   const token = await getActivitiesAccessToken();
   const query = new URLSearchParams({ period });
   if (activity) query.set("activity", activity);
-  if (period === "year") {
+  if (period === "week") {
+    query.set("weekStart", weekStart);
+  } else if (period === "year") {
     query.set("year", year);
   } else {
     query.set("month", month);
@@ -2335,7 +3748,9 @@ const renderActivityStatistics = (statistics) => {
     : statisticsTableEmptyRow(5);
 
   const activitiesLabel =
-    statistics.period === "year"
+    statistics.period === "week"
+      ? getTranslation("activities.statisticsActivitiesWeek")
+      : statistics.period === "year"
       ? getTranslation("activities.statisticsActivitiesYear")
       : getTranslation("activities.statisticsActivities");
 
@@ -2397,23 +3812,39 @@ const renderActivityStatistics = (statistics) => {
 
 const activityStatisticsPeriodValue = () => {
   const { statisticsPeriodSelect } = activitiesElements();
-  return statisticsPeriodSelect?.value === "year" ? "year" : "month";
+  const value = statisticsPeriodSelect?.value;
+  return value === "week" || value === "year" ? value : "month";
 };
 
 const syncActivityStatisticsPeriodControls = () => {
-  const { statisticsPeriodSelect, statisticsMonthField, statisticsMonthInput, statisticsYearField, statisticsYearInput } = activitiesElements();
+  const {
+    statisticsWeekField,
+    statisticsWeekValue,
+    statisticsMonthField,
+    statisticsMonthInput,
+    statisticsYearField,
+    statisticsYearInput,
+  } = activitiesElements();
   fillActivityStatisticsSelectOptions();
   fillActivityStatisticsActivityOptions();
-  const period = statisticsPeriodSelect?.value === "year" ? "year" : "month";
+  const period = activityStatisticsPeriodValue();
+  if (statisticsWeekField) {
+    statisticsWeekField.hidden = period !== "week";
+    statisticsWeekField.style.display = period === "week" ? "grid" : "none";
+  }
+  if (statisticsWeekValue) statisticsWeekValue.textContent = activityWeekRangeText();
   if (statisticsMonthField) {
-    statisticsMonthField.hidden = period === "year";
-    statisticsMonthField.style.display = period === "year" ? "none" : "";
+    statisticsMonthField.hidden = period !== "month";
+    statisticsMonthField.style.display = period === "month" ? "grid" : "none";
   }
   if (statisticsMonthInput) {
     statisticsMonthInput.hidden = false;
     if (!statisticsMonthInput.value) statisticsMonthInput.value = activityMonthNumberValue();
   }
-  if (statisticsYearField) statisticsYearField.hidden = false;
+  if (statisticsYearField) {
+    statisticsYearField.hidden = period === "week";
+    statisticsYearField.style.display = period === "week" ? "none" : "grid";
+  }
   if (statisticsYearInput && !statisticsYearInput.value) statisticsYearInput.value = activityYearValue();
 };
 
@@ -2437,9 +3868,17 @@ const loadActivityStatistics = async () => {
     statisticsContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(getTranslation("activities.loading"))}</p>`;
   }
   try {
-    renderActivityStatistics(await activitiesStatisticsRequest({ period, month, year, activity }));
+    renderActivityStatistics(
+      await activitiesStatisticsRequest({
+        period,
+        weekStart: activitiesState.selectedWeekStart,
+        month,
+        year,
+        activity,
+      }),
+    );
   } catch (error) {
-    console.warn("Nao foi possivel carregar estatisticas de atividades.", error);
+    console.warn("Nao foi possivel carregar indicadores de atividades.", error);
     setActivityStatisticsFeedback(error?.message || getTranslation("activities.statisticsLoadError"));
     renderActivityStatistics(null);
   } finally {
@@ -2458,7 +3897,7 @@ const openActivityStatisticsDialog = async () => {
   setActivityFormOpen(false);
   closeActivitySummaryDialog();
   await loadActivitiesCatalog().catch((error) => {
-    console.warn("Nao foi possivel carregar lista de atividades para estatisticas.", error);
+    console.warn("Nao foi possivel carregar lista de atividades para indicadores.", error);
   });
   fillActivityStatisticsSelectOptions();
   fillActivityStatisticsActivityOptions();
@@ -2509,6 +3948,8 @@ const sameActivityScheduleSlot = (left, right) =>
   normalizeActivityText(left?.title) === normalizeActivityText(right?.title);
 
 const canEditActivities = () => centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "edit");
+const canManageActivities = () =>
+  centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "view_sensitive");
 
 const readActivitiesFromStorage = () => {
   try {
@@ -2611,6 +4052,8 @@ const normalizeActivityHistoryEntry = (entry, index = 0) => {
     id: String(entry?.id || `activity-history-${index}`),
     at: at.toISOString(),
     action: String(entry?.action || "updated"),
+    actorName: String(entry?.actorName ?? entry?.actor_name ?? "").trim(),
+    createdBy: String(entry?.createdBy ?? entry?.created_by ?? "").trim(),
     title: String(entry?.title || ""),
     teacher: String(entry?.teacher || ""),
     day: isActivityDay(entry?.day) ? entry.day : "",
@@ -2642,6 +4085,8 @@ const activityHistoryEntryFromRow = (row, index = 0) =>
       id: row?.id,
       at: row?.created_at,
       action: row?.action,
+      actorName: row?.actor_name,
+      createdBy: row?.created_by,
       title: row?.title,
       teacher: row?.teacher,
       day: row?.day,
@@ -2664,6 +4109,13 @@ const activityHistoryEntryToRow = (entry) => ({
   week_start: entry.weekStart || null,
 });
 
+const currentActivityUserName = () => {
+  const profile = window.CENTRAL_USER_PROFILE || {};
+  return String(profile.full_name || profile.fullName || profile.email || "").trim();
+};
+
+const activitiesHistoryRequest = (options = {}) => activitiesOptionsRequest("history", options);
+
 const migrateLocalActivityHistoryToRemote = async (client, remoteEntries, localEntries) => {
   if (!localEntries.length || hasActivitiesMigrationRun(activitiesHistoryMigrationStorageKey)) return remoteEntries;
   const remoteIds = new Set(remoteEntries.map((entry) => entry.id));
@@ -2675,14 +4127,16 @@ const migrateLocalActivityHistoryToRemote = async (client, remoteEntries, localE
   const { data, error } = await client
     .from(activitiesHistoryTableName)
     .insert(missingEntries.map(activityHistoryEntryToRow))
-    .select("id,created_at,action,title,teacher,day,start_time,end_time,week_start");
+    .select("id,created_at,action,title,teacher,day,start_time,end_time,week_start,created_by");
   if (error) {
     console.warn("Nao foi possivel migrar historico local de atividades.", error);
     return remoteEntries;
   }
   markActivitiesMigrationRun(activitiesHistoryMigrationStorageKey);
   const migratedEntries = Array.isArray(data)
-    ? data.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
+    ? data
+      .map((row, index) => activityHistoryEntryFromRow({ ...row, actor_name: currentActivityUserName() }, index))
+      .filter(Boolean)
     : missingEntries;
   return [...remoteEntries, ...migratedEntries]
     .sort((left, right) => right.at.localeCompare(left.at))
@@ -2696,19 +4150,28 @@ const loadActivitiesHistory = async () => {
     activitiesState.history = [];
     return [];
   }
-  const { data, error } = await client
-    .from(activitiesHistoryTableName)
-    .select("id,created_at,action,title,teacher,day,start_time,end_time,week_start")
-    .order("created_at", { ascending: false })
-    .limit(200);
-  if (error) {
-    console.warn("Historico partilhado de atividades indisponivel.", error);
-    activitiesState.history = [];
-    return [];
+  let remoteEntries = [];
+  try {
+    const { items } = await activitiesHistoryRequest();
+    remoteEntries = Array.isArray(items)
+      ? items.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
+      : [];
+  } catch (apiError) {
+    console.warn("API do historico de atividades indisponivel.", apiError);
+    const { data, error } = await client
+      .from(activitiesHistoryTableName)
+      .select("id,created_at,action,title,teacher,day,start_time,end_time,week_start,created_by")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) {
+      console.warn("Historico partilhado de atividades indisponivel.", error);
+      activitiesState.history = [];
+      return [];
+    }
+    remoteEntries = Array.isArray(data)
+      ? data.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
+      : [];
   }
-  let remoteEntries = Array.isArray(data)
-    ? data.map((row, index) => activityHistoryEntryFromRow(row, index)).filter(Boolean)
-    : [];
   remoteEntries = await migrateLocalActivityHistoryToRemote(client, remoteEntries, localEntries);
   activitiesState.history = remoteEntries;
   saveActivitiesHistory(remoteEntries);
@@ -2717,12 +4180,26 @@ const loadActivitiesHistory = async () => {
 
 const saveActivityHistoryRemote = async (entry) => {
   if (activitiesState.storageMode !== "remote") return;
-  const client = createActivitiesClient();
-  if (!client) return;
-  const { error } = await client
-    .from(activitiesHistoryTableName)
-    .insert(activityHistoryEntryToRow(entry));
-  if (error) console.warn("Nao foi possivel guardar historico de atividades.", error);
+  try {
+    const { item } = await activitiesHistoryRequest({
+      method: "POST",
+      body: activityHistoryEntryToRow(entry),
+    });
+    const savedEntry = activityHistoryEntryFromRow(item);
+    if (savedEntry) {
+      activitiesState.history = activitiesState.history.map((historyEntry) =>
+        historyEntry.id === entry.id ? savedEntry : historyEntry,
+      );
+    }
+  } catch (apiError) {
+    console.warn("API do historico de atividades indisponivel.", apiError);
+    const client = createActivitiesClient();
+    if (!client) return;
+    const { error } = await client
+      .from(activitiesHistoryTableName)
+      .insert(activityHistoryEntryToRow(entry));
+    if (error) console.warn("Nao foi possivel guardar historico de atividades.", error);
+  }
 };
 
 const recordActivityHistory = (action, entry = {}) => {
@@ -2732,6 +4209,7 @@ const recordActivityHistory = (action, entry = {}) => {
     id: activityId(),
     at: new Date().toISOString(),
     action,
+    actorName: currentActivityUserName(),
     title: item?.title || String(entry?.title || ""),
     teacher: item?.teacher || String(entry?.teacher || ""),
     day: item?.day || (isActivityDay(entry?.day) ? entry.day : ""),
@@ -2811,6 +4289,13 @@ const setActivitySummaryFeedback = (message = "", kind = "error") => {
   summaryError.classList.toggle("is-success", kind === "success");
 };
 
+const setActivitySignatureFeedback = (message = "") => {
+  const { signatureError } = activitiesElements();
+  if (!signatureError) return;
+  signatureError.textContent = message || "";
+  signatureError.hidden = !message;
+};
+
 const activitySummaryOptionLabel = (entry) => {
   const entryDate = activityDateForEntry(entry);
   const dateText = entryDate ? formatActivityDate(entryDate) : "";
@@ -2851,6 +4336,62 @@ const activitySummaryForEntry = (entry) => {
   );
 };
 
+const setActivityViewSummaryVisible = (visible) => {
+  const { viewSummary, viewSummaryText, viewAttendance, viewParticipantCount, viewPrintBtn } = activitiesElements();
+  if (viewSummary) {
+    viewSummary.hidden = !visible;
+    viewSummary.classList.remove("has-error");
+  }
+  if (viewPrintBtn) {
+    viewPrintBtn.hidden = !visible || !centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "export");
+  }
+  if (!visible) {
+    activitiesState.viewingActivityId = "";
+    if (viewSummaryText) viewSummaryText.textContent = "";
+    if (viewParticipantCount) viewParticipantCount.textContent = "0";
+    viewAttendance?.replaceChildren();
+  }
+};
+
+const renderActivityViewSummary = (entry, { loading = false, error = "" } = {}) => {
+  const { viewSummary, viewSummaryText, viewAttendance, viewParticipantCount, viewPrintBtn } = activitiesElements();
+  if (!entry || !viewSummary || !viewSummaryText || !viewAttendance) return;
+  setActivityViewSummaryVisible(true);
+  viewSummary.classList.toggle("has-error", Boolean(error));
+  viewAttendance.replaceChildren();
+  if (viewParticipantCount) viewParticipantCount.textContent = "0";
+  if (viewPrintBtn) viewPrintBtn.disabled = loading || Boolean(error);
+
+  if (loading) {
+    viewSummaryText.textContent = getTranslation("activities.viewLoading");
+    return;
+  }
+  if (error) {
+    viewSummaryText.textContent = error;
+    return;
+  }
+
+  const summary = activitySummaryForEntry(entry);
+  viewSummaryText.textContent = String(summary?.summary || "").trim() || getTranslation("activities.viewNoSummary");
+  const attendance = Array.isArray(summary?.attendance) ? summary.attendance : [];
+  if (viewParticipantCount) viewParticipantCount.textContent = String(attendance.length);
+  if (!attendance.length) {
+    const item = document.createElement("li");
+    item.className = "is-empty";
+    item.textContent = getTranslation("activities.viewNoAttendance");
+    viewAttendance.append(item);
+    return;
+  }
+  attendance.forEach((utente) => {
+    const item = document.createElement("li");
+    const details = activityAttendanceTimeDetails(entry, utente);
+    item.textContent = details.missing
+      ? `${utente.name} — ${details.missingText} (${details.attendedText})`
+      : utente.name;
+    viewAttendance.append(item);
+  });
+};
+
 const setSummaryMetaText = (selectorNode, value) => {
   if (selectorNode) selectorNode.textContent = value || "-";
 };
@@ -2864,17 +4405,37 @@ const resetActivitySummaryMeta = () => {
   setSummaryMetaText(summaryDuration, "-");
   if (summaryForm?.elements.summary) summaryForm.elements.summary.value = "";
   activitiesState.summaryAttendanceIds = new Set();
+  activitiesState.summarySignatures = new Map();
+  activitiesState.summaryMissingMinutes = new Map();
+  setActivitySummaryLockState(null);
   renderActivitySummaryAttendance();
+};
+
+const activitySummarySignatureRecord = (utenteId) => {
+  const record = activitiesState.summarySignatures.get(utenteId);
+  if (!record) return null;
+  const signature = cleanActivitySignature(typeof record === "string" ? record : record.signature);
+  if (!signature) return null;
+  return {
+    signature,
+    signatureAt: String(typeof record === "string" ? "" : record.signatureAt || "").trim(),
+  };
 };
 
 const currentActivitySummaryAttendance = () =>
   activitiesState.utentes
     .filter((utente) => activitiesState.summaryAttendanceIds.has(utente.id))
-    .map((utente) => ({
-      id: utente.id,
-      name: utente.name,
-      number: utente.number,
-    }));
+    .map((utente) => {
+      const signature = activitySummarySignatureRecord(utente.id);
+      const missingMinutes = cleanActivityMissingMinutes(activitiesState.summaryMissingMinutes.get(utente.id));
+      return {
+        id: utente.id,
+        name: utente.name,
+        number: utente.number,
+        missingMinutes,
+        ...(signature ? signature : {}),
+      };
+    });
 
 const renderActivitySummaryAttendance = () => {
   const { summaryAttendanceList, summaryAttendanceSearch } = activitiesElements();
@@ -2893,17 +4454,49 @@ const renderActivitySummaryAttendance = () => {
     return;
   }
   summaryAttendanceList.innerHTML = utentes
-    .map(
-      (utente) => `
-        <label class="activity-attendance-option">
-          <input type="checkbox" value="${escapeHtml(utente.id)}"${activitiesState.summaryAttendanceIds.has(utente.id) ? " checked" : ""} />
-          <span>
-            <strong>${escapeHtml(utente.name)}</strong>
-          </span>
-        </label>
-      `,
-    )
+    .map((utente) => {
+      const isPresent = activitiesState.summaryAttendanceIds.has(utente.id);
+      const signature = activitySummarySignatureRecord(utente.id);
+      const missingMinutes = cleanActivityMissingMinutes(activitiesState.summaryMissingMinutes.get(utente.id));
+      const missingTimeLabel = getTranslation("activities.missingTimeButton").replace(
+        "{time}",
+        activityDurationText(missingMinutes),
+      );
+      const status = signature
+        ? getTranslation("activities.signatureSigned")
+        : isPresent
+          ? getTranslation("activities.signaturePending")
+          : getTranslation("activities.signatureNotPresent");
+      const statusClass = signature ? "is-signed" : isPresent ? "is-pending" : "";
+      const disabledAttribute = activitiesState.summaryLocked ? " disabled" : "";
+      return `
+        <div class="activity-attendance-option${isPresent ? " is-present" : ""}">
+          <label class="activity-attendance-check">
+            <input type="checkbox" value="${escapeHtml(utente.id)}"${isPresent ? " checked" : ""}${disabledAttribute} />
+            <span>
+              <strong>${escapeHtml(utente.name)}</strong>
+            </span>
+          </label>
+          <div class="activity-attendance-actions">
+            <small class="activity-signature-status ${statusClass}">${escapeHtml(status)}</small>
+            <div class="activity-attendance-buttons">
+              ${isPresent ? `
+                <button class="secondary-button activity-missing-time-button${missingMinutes ? " has-missing-time" : ""}" type="button" data-summary-missing-time-id="${escapeHtml(utente.id)}"${disabledAttribute}>
+                  <i data-lucide="clock-3"></i>
+                  <span>${escapeHtml(missingTimeLabel)}</span>
+                </button>
+              ` : ""}
+              <button class="secondary-button activity-signature-button" type="button" data-summary-signature-id="${escapeHtml(utente.id)}"${disabledAttribute}>
+                <i data-lucide="pen-line"></i>
+                <span>${escapeHtml(signature ? getTranslation("activities.signatureEdit") : getTranslation("activities.signatureButton"))}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    })
     .join("");
+  refreshIcons();
 };
 
 const fillActivitySummaryForm = (entry) => {
@@ -2922,6 +4515,7 @@ const fillActivitySummaryForm = (entry) => {
   }
   const activityDate = activityDateForEntry(entry);
   const summary = activitySummaryForEntry(entry);
+  setActivitySummaryLockState(entry);
   setSummaryMetaText(summaryActivityName, entry.title);
   setSummaryMetaText(summaryDate, formatActivityDate(activityDate));
   setSummaryMetaText(summaryStart, entry.start);
@@ -2930,6 +4524,17 @@ const fillActivitySummaryForm = (entry) => {
   if (summaryForm?.elements.summary) summaryForm.elements.summary.value = summary?.summary || "";
   if (summaryAttendanceSearch) summaryAttendanceSearch.value = "";
   activitiesState.summaryAttendanceIds = new Set((summary?.attendance || []).map((utente) => utente.id));
+  activitiesState.summarySignatures = new Map(
+    (summary?.attendance || [])
+      .map((utente) => {
+        const signature = cleanActivitySignature(utente.signature);
+        return signature ? [utente.id, { signature, signatureAt: String(utente.signatureAt || "").trim() }] : null;
+      })
+      .filter(Boolean),
+  );
+  activitiesState.summaryMissingMinutes = new Map(
+    (summary?.attendance || []).map((utente) => [utente.id, cleanActivityMissingMinutes(utente.missingMinutes)]),
+  );
   renderActivitySummaryAttendance();
   refreshIcons();
 };
@@ -2972,6 +4577,9 @@ const closeActivitySummaryDialog = () => {
   summaryForm?.reset();
   if (summaryAttendanceSearch) summaryAttendanceSearch.value = "";
   activitiesState.summaryAttendanceIds = new Set();
+  activitiesState.summarySignatures = new Map();
+  activitiesState.summaryMissingMinutes = new Map();
+  setActivitySummaryLockState(null);
   setActivitySummaryFeedback("");
   if (summaryDialog.open && typeof summaryDialog.close === "function") {
     summaryDialog.close();
@@ -2981,25 +4589,110 @@ const closeActivitySummaryDialog = () => {
 };
 
 const clearActivitySummaryForm = () => {
+  if (preventLockedActivitySummaryEdit()) return;
   const { summaryForm } = activitiesElements();
   if (summaryForm?.elements.summary) summaryForm.elements.summary.value = "";
   activitiesState.summaryAttendanceIds = new Set();
+  activitiesState.summarySignatures = new Map();
+  activitiesState.summaryMissingMinutes = new Map();
   renderActivitySummaryAttendance();
   setActivitySummaryFeedback("");
 };
 
-const handleActivitySummarySubmit = async (event) => {
-  event.preventDefault();
-  const { summaryForm } = activitiesElements();
+const setActivityMissingTimeFeedback = (message = "") => {
+  const { missingTimeError } = activitiesElements();
+  if (!missingTimeError) return;
+  missingTimeError.textContent = message || "";
+  missingTimeError.hidden = !message;
+};
+
+const updateActivityMissingTimePresets = () => {
+  const { missingTimeInput, missingTimePresets } = activitiesElements();
+  if (!missingTimeInput || !missingTimePresets) return;
+  const maximum = cleanActivityMissingMinutes(missingTimeInput.max);
+  const current = cleanActivityMissingMinutes(missingTimeInput.value);
+  missingTimePresets.querySelectorAll("[data-missing-time-preset]").forEach((button) => {
+    const value = cleanActivityMissingMinutes(button.dataset.missingTimePreset);
+    button.disabled = value > maximum;
+    button.classList.toggle("is-selected", value === current);
+  });
+};
+
+const closeActivityMissingTimeDialog = () => {
+  const { missingTimeDialog, missingTimeForm } = activitiesElements();
+  activitiesState.activeMissingTimeUtenteId = "";
+  setActivityMissingTimeFeedback("");
+  missingTimeForm?.reset();
+  if (!missingTimeDialog) return;
+  if (missingTimeDialog.open && typeof missingTimeDialog.close === "function") {
+    missingTimeDialog.close();
+  } else {
+    missingTimeDialog.removeAttribute("open");
+  }
+};
+
+const openActivityMissingTimeDialog = (utenteId) => {
+  if (preventLockedActivitySummaryEdit()) return;
   const entry = selectedActivitySummaryEntry();
-  if (!summaryForm || !entry) {
-    setActivitySummaryFeedback(getTranslation("activities.summaryNoActivity"));
+  const utente = activitiesState.utentes.find((item) => item.id === utenteId);
+  const { missingTimeDialog, missingTimeName, missingTimeMaximum, missingTimeInput } = activitiesElements();
+  if (!entry || !utente || !missingTimeDialog || !missingTimeInput) return;
+  if (!activitiesState.summaryAttendanceIds.has(utenteId)) return;
+
+  const maximum = activityDurationMinutes(entry);
+  const current = Math.min(maximum, cleanActivityMissingMinutes(activitiesState.summaryMissingMinutes.get(utenteId)));
+  activitiesState.activeMissingTimeUtenteId = utenteId;
+  if (missingTimeName) missingTimeName.textContent = utente.name;
+  if (missingTimeMaximum) {
+    missingTimeMaximum.textContent = getTranslation("activities.missingTimeMaximum").replace(
+      "{time}",
+      activityDurationText(maximum),
+    );
+  }
+  missingTimeInput.max = String(maximum);
+  missingTimeInput.value = String(current);
+  setActivityMissingTimeFeedback("");
+  updateActivityMissingTimePresets();
+  if (typeof missingTimeDialog.showModal === "function") {
+    missingTimeDialog.showModal();
+  } else {
+    missingTimeDialog.setAttribute("open", "");
+  }
+  missingTimeInput.focus();
+  missingTimeInput.select();
+};
+
+const applyActivityMissingTime = (event) => {
+  event?.preventDefault?.();
+  if (preventLockedActivitySummaryEdit()) {
+    closeActivityMissingTimeDialog();
     return;
   }
-  const submitButton = summaryForm.querySelector('button[type="submit"]');
-  if (submitButton) submitButton.disabled = true;
-  try {
-    const payload = {
+  const { missingTimeInput } = activitiesElements();
+  const entry = selectedActivitySummaryEntry();
+  const utenteId = activitiesState.activeMissingTimeUtenteId;
+  if (!entry || !missingTimeInput || !utenteId || !activitiesState.summaryAttendanceIds.has(utenteId)) {
+    closeActivityMissingTimeDialog();
+    return;
+  }
+  const maximum = activityDurationMinutes(entry);
+  const rawValue = Number(missingTimeInput.value);
+  if (!Number.isFinite(rawValue) || rawValue < 0 || rawValue > maximum) {
+    setActivityMissingTimeFeedback(getTranslation("activities.missingTimeInvalid"));
+    return;
+  }
+  activitiesState.summaryMissingMinutes.set(utenteId, Math.round(rawValue));
+  closeActivityMissingTimeDialog();
+  renderActivitySummaryAttendance();
+};
+
+const buildActivitySummaryPayload = () => {
+  const { summaryForm } = activitiesElements();
+  const entry = selectedActivitySummaryEntry();
+  if (!summaryForm || !entry) return null;
+  return {
+    entry,
+    payload: {
       activityId: entry.id,
       activityDate: activityDateIsoForEntry(entry),
       title: entry.title,
@@ -3008,11 +4701,182 @@ const handleActivitySummarySubmit = async (event) => {
       durationMinutes: activityDurationMinutes(entry),
       summary: String(summaryForm.elements.summary?.value || "").trim(),
       attendance: currentActivitySummaryAttendance(),
-    };
-    await saveActivitySummaryRemote(payload);
-    fillActivitySummaryForm(entry);
-    recordActivityHistory("summary", entry);
-    setActivitySummaryFeedback(getTranslation("activities.summarySaved"), "success");
+    },
+  };
+};
+
+const persistActivitySummaryForm = async (
+  successMessage = getTranslation("activities.summarySaved"),
+  shouldRecordHistory = true,
+) => {
+  if (preventLockedActivitySummaryEdit()) {
+    throw new Error(getTranslation("activities.summaryLocked"));
+  }
+  const data = buildActivitySummaryPayload();
+  if (!data) {
+    setActivitySummaryFeedback(getTranslation("activities.summaryNoActivity"));
+    return null;
+  }
+  const savedSummary = await saveActivitySummaryRemote(data.payload);
+  fillActivitySummaryForm(data.entry);
+  if (shouldRecordHistory) recordActivityHistory("summary", data.entry);
+  setActivitySummaryFeedback(successMessage, "success");
+  return savedSummary;
+};
+
+const signatureCanvasContext = () => {
+  const { signatureCanvas } = activitiesElements();
+  return signatureCanvas?.getContext?.("2d") || null;
+};
+
+const prepareActivitySignatureCanvas = () => {
+  const ctx = signatureCanvasContext();
+  if (!ctx) return;
+  const { signatureCanvas } = activitiesElements();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+  ctx.strokeStyle = "#0f241f";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  activitiesState.signatureCanvasHasContent = false;
+};
+
+const loadActivitySignatureCanvas = (signature = "") => {
+  const { signatureCanvas } = activitiesElements();
+  prepareActivitySignatureCanvas();
+  const cleanSignature = cleanActivitySignature(signature);
+  if (!signatureCanvas || !cleanSignature) return;
+  const ctx = signatureCanvasContext();
+  if (!ctx) return;
+  const image = new Image();
+  image.onload = () => {
+    ctx.drawImage(image, 0, 0, signatureCanvas.width, signatureCanvas.height);
+    activitiesState.signatureCanvasHasContent = true;
+  };
+  image.src = cleanSignature;
+};
+
+const signaturePointFromEvent = (event) => {
+  const { signatureCanvas } = activitiesElements();
+  const rect = signatureCanvas?.getBoundingClientRect();
+  if (!signatureCanvas || !rect) return null;
+  return {
+    x: ((event.clientX - rect.left) * signatureCanvas.width) / Math.max(1, rect.width),
+    y: ((event.clientY - rect.top) * signatureCanvas.height) / Math.max(1, rect.height),
+  };
+};
+
+const beginActivitySignatureStroke = (event) => {
+  if (activitiesState.summaryLocked) return;
+  const { signatureCanvas } = activitiesElements();
+  const ctx = signatureCanvasContext();
+  const point = signaturePointFromEvent(event);
+  if (!signatureCanvas || !ctx || !point) return;
+  event.preventDefault();
+  signatureCanvas.setPointerCapture?.(event.pointerId);
+  activitiesState.isDrawingSignature = true;
+  activitiesState.signatureCanvasHasContent = true;
+  ctx.beginPath();
+  ctx.moveTo(point.x, point.y);
+};
+
+const continueActivitySignatureStroke = (event) => {
+  if (!activitiesState.isDrawingSignature) return;
+  const ctx = signatureCanvasContext();
+  const point = signaturePointFromEvent(event);
+  if (!ctx || !point) return;
+  event.preventDefault();
+  ctx.lineTo(point.x, point.y);
+  ctx.stroke();
+};
+
+const endActivitySignatureStroke = (event) => {
+  if (!activitiesState.isDrawingSignature) return;
+  event.preventDefault();
+  activitiesState.isDrawingSignature = false;
+};
+
+const openActivitySignatureDialog = (utenteId) => {
+  if (preventLockedActivitySummaryEdit()) return;
+  const { signatureDialog, signatureName, signatureInstruction } = activitiesElements();
+  const utente = activitiesState.utentes.find((item) => item.id === utenteId);
+  if (!signatureDialog || !utente) return;
+  activitiesState.activeSignatureUtenteId = utente.id;
+  setActivitySignatureFeedback("");
+  if (signatureName) signatureName.textContent = utente.name;
+  if (signatureInstruction) signatureInstruction.textContent = getTranslation("activities.signatureInstruction");
+  try {
+    if (typeof signatureDialog.showModal === "function") {
+      signatureDialog.showModal();
+    } else {
+      signatureDialog.setAttribute("open", "");
+    }
+  } catch (_error) {
+    signatureDialog.setAttribute("open", "");
+  }
+  requestAnimationFrame(() => {
+    loadActivitySignatureCanvas(activitySummarySignatureRecord(utente.id)?.signature || "");
+  });
+  refreshIcons();
+};
+
+const closeActivitySignatureDialog = () => {
+  const { signatureDialog } = activitiesElements();
+  if (!signatureDialog) return;
+  activitiesState.activeSignatureUtenteId = "";
+  activitiesState.isDrawingSignature = false;
+  setActivitySignatureFeedback("");
+  if (signatureDialog.open && typeof signatureDialog.close === "function") {
+    signatureDialog.close();
+  } else {
+    signatureDialog.removeAttribute("open");
+  }
+};
+
+const saveActivitySignature = async () => {
+  if (preventLockedActivitySummaryEdit()) {
+    closeActivitySignatureDialog();
+    return;
+  }
+  const { signatureCanvas, signatureSaveBtn } = activitiesElements();
+  const utenteId = activitiesState.activeSignatureUtenteId;
+  if (!signatureCanvas || !utenteId) return;
+  if (!activitiesState.signatureCanvasHasContent) {
+    setActivitySignatureFeedback(getTranslation("activities.signatureEmpty"));
+    return;
+  }
+  if (signatureSaveBtn) signatureSaveBtn.disabled = true;
+  try {
+    activitiesState.summaryAttendanceIds.add(utenteId);
+    activitiesState.summarySignatures.set(utenteId, {
+      signature: signatureCanvas.toDataURL("image/png"),
+      signatureAt: new Date().toISOString(),
+    });
+    renderActivitySummaryAttendance();
+    await persistActivitySummaryForm(getTranslation("activities.signatureSaved"), false);
+    closeActivitySignatureDialog();
+  } catch (error) {
+    console.warn("Nao foi possivel guardar assinatura de presenca.", error);
+    setActivitySignatureFeedback(error?.message || getTranslation("activities.summarySaveError"));
+  } finally {
+    if (signatureSaveBtn) signatureSaveBtn.disabled = false;
+  }
+};
+
+const handleActivitySummarySubmit = async (event) => {
+  event.preventDefault();
+  if (preventLockedActivitySummaryEdit()) return;
+  const { summaryForm } = activitiesElements();
+  if (!buildActivitySummaryPayload()) {
+    setActivitySummaryFeedback(getTranslation("activities.summaryNoActivity"));
+    return;
+  }
+  const submitButton = summaryForm.querySelector('button[type="submit"]');
+  if (submitButton) submitButton.disabled = true;
+  try {
+    await persistActivitySummaryForm();
+    closeActivitySummaryDialog();
   } catch (error) {
     console.warn("Nao foi possivel guardar sumario de atividade.", error);
     setActivitySummaryFeedback(error?.message || getTranslation("activities.summarySaveError"));
@@ -3147,6 +5011,7 @@ const setActivityFormReadOnly = (readonly) => {
 const resetActivitiesForm = () => {
   const { form } = activitiesElements();
   if (!form) return;
+  setActivityViewSummaryVisible(false);
   setActivityFormReadOnly(false);
   form.reset();
   form.elements.id.value = "";
@@ -3158,23 +5023,24 @@ const resetActivitiesForm = () => {
 };
 
 const renderActivitySlot = (entry) => `
-  <article class="activity-slot" draggable="true" data-activity-id="${escapeHtml(entry.id)}">
+  <article class="activity-slot" draggable="${canManageActivities() ? "true" : "false"}" data-activity-id="${escapeHtml(entry.id)}">
     <div class="activity-slot-main">
       <time>${escapeHtml(activityTimeText(entry))}</time>
       <strong>${escapeHtml(entry.title)}</strong>
       <span><i data-lucide="user-round"></i>${escapeHtml(entry.teacher)}</span>
     </div>
     <div class="activity-slot-actions">
+      <button class="icon-link activity-summary-action" type="button" data-activity-action="summary" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.summaryAction"))}" aria-label="${escapeHtml(getTranslation("activities.summaryAction"))}">
+        <i data-lucide="clipboard-list"></i>
+        <span>${escapeHtml(getTranslation("activities.summaryAction"))}</span>
+      </button>
       <button class="icon-link" type="button" data-activity-action="view" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="view" title="${escapeHtml(getTranslation("activities.view"))}" aria-label="${escapeHtml(getTranslation("activities.view"))}">
         <i data-lucide="eye"></i>
       </button>
-      <button class="icon-link" type="button" data-activity-action="summary" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.summaryAction"))}" aria-label="${escapeHtml(getTranslation("activities.summaryAction"))}">
-        <i data-lucide="clipboard-list"></i>
-      </button>
-      <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
+      <button class="icon-link" type="button" data-activity-action="edit" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="view_sensitive" data-hide-when-restricted="true" title="${escapeHtml(getTranslation("activities.edit"))}" aria-label="${escapeHtml(getTranslation("activities.edit"))}">
         <i data-lucide="pencil"></i>
       </button>
-      <button class="icon-link danger-link" type="button" data-activity-action="delete" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="edit" title="${escapeHtml(getTranslation("activities.remove"))}" aria-label="${escapeHtml(getTranslation("activities.remove"))}">
+      <button class="icon-link danger-link" type="button" data-activity-action="delete" data-id="${escapeHtml(entry.id)}" data-requires-permission-area="atividades" data-requires-permission-action="view_sensitive" data-hide-when-restricted="true" title="${escapeHtml(getTranslation("activities.remove"))}" aria-label="${escapeHtml(getTranslation("activities.remove"))}">
         <i data-lucide="trash-2"></i>
       </button>
     </div>
@@ -3189,8 +5055,8 @@ const renderActivityPreviewSlot = (entry) => `
       <span><i data-lucide="user-round"></i>${escapeHtml(entry.teacher)}</span>
     </div>
     <div class="activity-slot-actions activity-slot-preview-actions">
+      <span class="icon-link activity-summary-action" aria-hidden="true"><i data-lucide="clipboard-list"></i><span>${escapeHtml(getTranslation("activities.summaryAction"))}</span></span>
       <span class="icon-link" aria-hidden="true"><i data-lucide="eye"></i></span>
-      <span class="icon-link" aria-hidden="true"><i data-lucide="clipboard-list"></i></span>
       <span class="icon-link" aria-hidden="true"><i data-lucide="pencil"></i></span>
       <span class="icon-link danger-link" aria-hidden="true"><i data-lucide="trash-2"></i></span>
     </div>
@@ -3386,6 +5252,7 @@ const renderActivitiesHistoryPage = async () => {
         <thead>
           <tr>
             <th>${escapeHtml(getTranslation("activities.historyWhen"))}</th>
+            <th>${escapeHtml(getTranslation("activities.historyUser"))}</th>
             <th>${escapeHtml(getTranslation("activities.historyAction"))}</th>
             <th>${escapeHtml(getTranslation("activities.historyActivity"))}</th>
             <th>${escapeHtml(getTranslation("activities.historyDetails"))}</th>
@@ -3397,6 +5264,7 @@ const renderActivitiesHistoryPage = async () => {
               (entry) => `
                 <tr>
                   <td>${escapeHtml(formatActivityDateTime(entry.at))}</td>
+                  <td>${escapeHtml(entry.actorName || getTranslation("activities.historyUnknownUser"))}</td>
                   <td><strong>${escapeHtml(activityHistoryActionLabel(entry.action))}</strong></td>
                   <td>${escapeHtml(entry.title || "-")}</td>
                   <td>${escapeHtml(activityHistoryDetails(entry) || "-")}</td>
@@ -3487,7 +5355,7 @@ const rememberActivityListsRemote = async (entry) => {
 const ensureDefaultLunchForSelectedWeek = async () => {
   const { root } = activitiesElements();
   const weekStart = activitiesState.selectedWeekStart;
-  if (!root || activitiesState.storageMode !== "remote" || !canEditActivities()) return false;
+  if (!root || activitiesState.storageMode !== "remote" || !canManageActivities()) return false;
   if (activitiesState.defaultLunchPendingWeeks.has(weekStart)) return false;
   const missingDays = activitiesDays.filter(
     (day) =>
@@ -3532,7 +5400,7 @@ const ensureDefaultLunchForSelectedWeek = async () => {
 };
 
 const copyPreviousWeekActivities = async (button) => {
-  if (!canEditActivities()) {
+  if (!canManageActivities()) {
     showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
     return;
   }
@@ -3548,6 +5416,7 @@ const copyPreviousWeekActivities = async (button) => {
     setActivitiesFeedback(getTranslation("activities.copyEmpty"));
     return;
   }
+  if (!window.confirm(getTranslation("activities.copyPreviousWeekConfirm"))) return;
 
   if (button) button.disabled = true;
   try {
@@ -3602,6 +5471,10 @@ const copyPreviousWeekActivities = async (button) => {
 
 const handleActivitySubmit = async (event) => {
   event.preventDefault();
+  if (!canManageActivities()) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
   const form = event.currentTarget;
   const submitButton = form.querySelector('button[type="submit"]');
   const data = new FormData(form);
@@ -3680,7 +5553,7 @@ const fillActivityForm = (entry) => {
   }
 };
 
-const viewActivity = (id) => {
+const viewActivity = async (id) => {
   const { form } = activitiesElements();
   const entry = activitiesState.entries.find((item) => item.id === id);
   if (!form || !entry) return;
@@ -3689,12 +5562,30 @@ const viewActivity = (id) => {
   setActivityFormReadOnly(true);
   setActivityFormOpen(true);
   setActivitiesFeedback("");
+  activitiesState.viewingActivityId = entry.id;
+  renderActivityViewSummary(entry, { loading: true });
+  try {
+    await loadActivitySummaryData();
+    if (activitiesState.viewingActivityId !== entry.id) return;
+    renderActivityViewSummary(entry);
+  } catch (error) {
+    if (activitiesState.viewingActivityId !== entry.id) return;
+    console.warn("Nao foi possivel carregar o sumario da atividade.", error);
+    renderActivityViewSummary(entry, {
+      error: error?.message || getTranslation("activities.summaryLoadError"),
+    });
+  }
 };
 
 const editActivity = (id) => {
+  if (!canManageActivities()) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
   const { form } = activitiesElements();
   const entry = activitiesState.entries.find((item) => item.id === id);
   if (!form || !entry) return;
+  setActivityViewSummaryVisible(false);
   fillActivityForm(entry);
   setActivityFormReadOnly(false);
   setActivitiesFormMode(true);
@@ -3705,6 +5596,10 @@ const editActivity = (id) => {
 };
 
 const deleteActivity = async (id) => {
+  if (!canManageActivities()) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return;
+  }
   const entry = activitiesState.entries.find((item) => item.id === id);
   if (!entry) return;
   if (!window.confirm(getTranslation("activities.confirmDelete"))) return;
@@ -3774,6 +5669,7 @@ const activityPrintDocument = () => {
   <style>
     @page { size: A4 landscape; margin: 0; }
     * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: none; text-size-adjust: none; }
     html, body { margin: 0; min-height: 210mm; padding: 0; width: 297mm; }
     body {
       background: #ffffff;
@@ -3899,6 +5795,7 @@ const activityStatisticsPrintDocument = (statistics) => {
   <style>
     @page { size: A4 portrait; margin: 0; }
     * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: none; text-size-adjust: none; }
     html, body { margin: 0; min-height: 297mm; padding: 0; width: 210mm; }
     body {
       background: #ffffff;
@@ -4052,13 +5949,36 @@ const activityStatisticsPrintDocument = (statistics) => {
 </html>`;
 };
 
-const activitySummaryPrintDocument = (entry) => {
+const activitySummaryPrintDocument = (entry, storedSummary = undefined) => {
   const { summaryForm } = activitiesElements();
-  const attendance = currentActivitySummaryAttendance();
-  const summaryText = String(summaryForm?.elements.summary?.value || "").trim();
+  const isStoredView = storedSummary !== undefined;
+  const attendance = isStoredView
+    ? (Array.isArray(storedSummary?.attendance) ? storedSummary.attendance : [])
+    : currentActivitySummaryAttendance();
+  const summaryText = String(
+    isStoredView ? storedSummary?.summary || "" : summaryForm?.elements.summary?.value || "",
+  ).trim();
   const activityDate = activityDateForEntry(entry);
   const attendanceContent = attendance.length
-    ? `<ul>${attendance.map((utente) => `<li>${escapeHtml(utente.name)}</li>`).join("")}</ul>`
+    ? `<ul>${attendance
+        .map((utente) => {
+          const signature = cleanActivitySignature(utente.signature);
+          const details = activityAttendanceTimeDetails(entry, utente);
+          return `<li>
+            <span class="attendee-copy">
+              <span class="attendee-name">${escapeHtml(utente.name)}</span>
+              <small>${escapeHtml(details.missingText)} · ${escapeHtml(details.attendedText)}</small>
+            </span>
+            ${
+              isStoredView
+                ? ""
+                : signature
+                ? `<img class="signature-image" src="${escapeHtml(signature)}" alt="Assinatura de ${escapeHtml(utente.name)}">`
+                : `<span class="signature-empty">${escapeHtml(getTranslation("activities.signaturePending"))}</span>`
+            }
+          </li>`;
+        })
+        .join("")}</ul>`
     : `<p class="empty">${escapeHtml(getTranslation("activities.summaryNoUtentes"))}</p>`;
   return `<!doctype html>
 <html lang="${escapeHtml(getLanguage() === "en" ? "en" : "pt")}">
@@ -4068,6 +5988,7 @@ const activitySummaryPrintDocument = (entry) => {
   <style>
     @page { size: A4 portrait; margin: 0; }
     * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: none; text-size-adjust: none; }
     html, body { margin: 0; min-height: 297mm; padding: 0; width: 210mm; }
     body {
       background: #ffffff;
@@ -4144,12 +6065,34 @@ const activitySummaryPrintDocument = (entry) => {
     ul {
       border: 1.4px solid #9bb9b2;
       border-radius: 2mm;
-      columns: 2;
-      list-style-position: inside;
+      display: grid;
+      gap: 2mm;
+      list-style: none;
       margin: 0;
       padding: 4mm;
     }
-    li { break-inside: avoid; font-size: 12px; margin-bottom: 1.5mm; }
+    li {
+      align-items: center;
+      border-bottom: 1px solid #d8e5e1;
+      break-inside: avoid;
+      display: flex;
+      font-size: 12px;
+      justify-content: space-between;
+      gap: 5mm;
+      padding: 1.5mm 0;
+    }
+    li:last-child { border-bottom: 0; }
+    .attendee-name { font-weight: 800; }
+    .signature-image {
+      border: 1px solid #c8d8d4;
+      border-radius: 1.5mm;
+      height: 18mm;
+      object-fit: contain;
+      width: 55mm;
+    }
+    .signature-empty { color: #506560; font-size: 10px; font-weight: 800; }
+    .attendee-copy { display: grid; gap: 1mm; }
+    .attendee-copy small { color: #506560; font-size: 10px; font-weight: 700; }
     .empty {
       border: 1.4px solid #9bb9b2;
       border-radius: 2mm;
@@ -4172,6 +6115,7 @@ const activitySummaryPrintDocument = (entry) => {
           <th>${escapeHtml(getTranslation("activities.summaryStart"))}</th>
           <th>${escapeHtml(getTranslation("activities.summaryEnd"))}</th>
           <th>${escapeHtml(getTranslation("activities.summaryDuration"))}</th>
+          <th>${escapeHtml(getTranslation("activities.viewParticipantCount"))}</th>
         </tr>
       </thead>
       <tbody>
@@ -4180,6 +6124,7 @@ const activitySummaryPrintDocument = (entry) => {
           <td>${escapeHtml(entry.start)}</td>
           <td>${escapeHtml(entry.end || "-")}</td>
           <td>${escapeHtml(activityDurationText(activityDurationMinutes(entry)))}</td>
+          <td>${escapeHtml(String(attendance.length))}</td>
         </tr>
       </tbody>
     </table>
@@ -4196,15 +6141,35 @@ const activitySummaryPrintDocument = (entry) => {
 </html>`;
 };
 
+const waitForActivityPrintDocument = async (frameWindow, frameDocument) => {
+  try {
+    await frameDocument.fonts?.ready;
+  } catch {
+    // The document still remains printable when a browser does not expose FontFaceSet.
+  }
+  const pendingImages = Array.from(frameDocument.images || []).filter((image) => !image.complete);
+  await Promise.all(
+    pendingImages.map(
+      (image) =>
+        new Promise((resolve) => {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        }),
+    ),
+  );
+  await new Promise((resolve) => frameWindow.requestAnimationFrame(() => frameWindow.requestAnimationFrame(resolve)));
+};
+
 const printActivityHtmlDocument = (html, title = getTranslation("activities.printTitle")) => {
+  const landscape = /@page\s*\{[^}]*\bsize\s*:\s*A4\s+landscape/i.test(html);
   const printFrame = document.createElement("iframe");
   printFrame.title = title;
   printFrame.setAttribute("aria-hidden", "true");
   printFrame.style.position = "fixed";
-  printFrame.style.right = "0";
-  printFrame.style.bottom = "0";
-  printFrame.style.width = "1px";
-  printFrame.style.height = "1px";
+  printFrame.style.left = landscape ? "-310mm" : "-220mm";
+  printFrame.style.top = "0";
+  printFrame.style.width = landscape ? "297mm" : "210mm";
+  printFrame.style.height = landscape ? "210mm" : "297mm";
   printFrame.style.border = "0";
   printFrame.style.opacity = "0";
   printFrame.style.pointerEvents = "none";
@@ -4222,11 +6187,207 @@ const printActivityHtmlDocument = (html, title = getTranslation("activities.prin
   frameDocument.write(html);
   frameDocument.close();
   frameWindow.addEventListener("afterprint", cleanup, { once: true });
-  window.setTimeout(() => {
+  void waitForActivityPrintDocument(frameWindow, frameDocument).then(() => {
     frameWindow.focus();
     frameWindow.print();
     window.setTimeout(cleanup, 10000);
-  }, 150);
+  });
+};
+
+const activitySummaryPdfDefinition = (entry, storedSummary = undefined) => {
+  const attendance = Array.isArray(storedSummary?.attendance) ? storedSummary.attendance : [];
+  const summaryText = String(storedSummary?.summary || "").trim() || "-";
+  const activityDate = activityDateForEntry(entry);
+  const participantCount = String(attendance.length);
+  const lineColor = "#9bb9b2";
+  const headerFill = "#eef5f3";
+  const mutedColor = "#506560";
+  const accentColor = "#23776b";
+  const title = getTranslation("activities.summaryTitle");
+  const pageLabel = getLanguage() === "en" ? "Page" : "P\u00e1gina";
+  const ofLabel = getLanguage() === "en" ? "of" : "de";
+  const attendanceRows = attendance.length
+    ? attendance.map((utente, index) => {
+        const details = activityAttendanceTimeDetails(entry, utente);
+        return [
+          { text: String(index + 1), color: mutedColor, alignment: "center" },
+          { text: String(utente?.name || "-").trim() || "-", bold: true },
+          { text: activityDurationText(details.missing), alignment: "center" },
+          { text: activityDurationText(details.actual), alignment: "center" },
+        ];
+      })
+    : [[
+        { text: "-", color: mutedColor, alignment: "center" },
+        { text: getTranslation("activities.summaryNoUtentes"), color: mutedColor, italics: true },
+        { text: "-", color: mutedColor, alignment: "center" },
+        { text: "-", color: mutedColor, alignment: "center" },
+      ]];
+
+  return {
+    pageSize: "A4",
+    pageOrientation: "portrait",
+    pageMargins: [40, 42, 40, 44],
+    info: {
+      title: `${title} - ${entry.title}`,
+      subject: `${entry.title} - ${formatActivityDate(activityDate)}`,
+      creator: "MenteMovimento",
+    },
+    defaultStyle: {
+      font: "Roboto",
+      fontSize: 10,
+      color: "#081614",
+      lineHeight: 1.2,
+    },
+    styles: {
+      documentTitle: { fontSize: 21, bold: true, color: "#081614" },
+      documentDate: { fontSize: 10, bold: true, color: mutedColor },
+      metaLabel: { fontSize: 8, bold: true, color: mutedColor },
+      metaValue: { fontSize: 11, bold: true, color: "#081614" },
+      sectionTitle: { fontSize: 13, bold: true, color: "#005f56" },
+    },
+    footer: (currentPage, pageCount) => ({
+      columns: [
+        { text: "MenteMovimento", color: mutedColor, fontSize: 8 },
+        {
+          text: `${pageLabel} ${currentPage} ${ofLabel} ${pageCount}`,
+          color: mutedColor,
+          fontSize: 8,
+          alignment: "right",
+        },
+      ],
+      margin: [40, 12, 40, 0],
+    }),
+    content: [
+      {
+        columns: [
+          { text: title, style: "documentTitle" },
+          { text: formatActivityDate(activityDate), style: "documentDate", alignment: "right", margin: [12, 5, 0, 0] },
+        ],
+        columnGap: 16,
+      },
+      {
+        canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1.5, lineColor: accentColor }],
+        margin: [0, 8, 0, 16],
+      },
+      {
+        table: {
+          headerRows: 1,
+          widths: ["*", 58, 58, 72, 72],
+          body: [
+            [
+              { text: getTranslation("activities.name"), style: "metaLabel" },
+              { text: getTranslation("activities.summaryStart"), style: "metaLabel" },
+              { text: getTranslation("activities.summaryEnd"), style: "metaLabel" },
+              { text: getTranslation("activities.summaryDuration"), style: "metaLabel" },
+              { text: getTranslation("activities.viewParticipantCount"), style: "metaLabel" },
+            ],
+            [
+              { text: String(entry.title || "-"), style: "metaValue" },
+              { text: String(entry.start || "-"), style: "metaValue" },
+              { text: String(entry.end || "-"), style: "metaValue" },
+              { text: activityDurationText(activityDurationMinutes(entry)), style: "metaValue" },
+              { text: participantCount, style: "metaValue", alignment: "center" },
+            ],
+          ],
+        },
+        layout: {
+          fillColor: (rowIndex) => (rowIndex === 0 ? headerFill : null),
+          hLineColor: () => lineColor,
+          vLineColor: () => lineColor,
+          hLineWidth: () => 0.8,
+          vLineWidth: () => 0.8,
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 7,
+          paddingBottom: () => 7,
+        },
+        margin: [0, 0, 0, 18],
+      },
+      { text: getTranslation("activities.summaryText"), style: "sectionTitle", margin: [0, 0, 0, 7] },
+      {
+        table: {
+          widths: ["*"],
+          heights: () => 86,
+          body: [[{ text: summaryText, margin: [4, 3, 4, 3] }]],
+        },
+        layout: {
+          hLineColor: () => lineColor,
+          vLineColor: () => lineColor,
+          hLineWidth: () => 0.8,
+          vLineWidth: () => 0.8,
+        },
+        margin: [0, 0, 0, 18],
+      },
+      {
+        columns: [
+          { text: getTranslation("activities.summaryAttendance"), style: "sectionTitle" },
+          {
+            text: `${getTranslation("activities.viewParticipantCount")}: ${participantCount}`,
+            color: mutedColor,
+            bold: true,
+            alignment: "right",
+          },
+        ],
+        margin: [0, 0, 0, 7],
+      },
+      {
+        table: {
+          headerRows: 1,
+          widths: [30, "*", 88, 88],
+          body: [
+            [
+              { text: "N.\u00ba", style: "metaLabel", alignment: "center" },
+              { text: getTranslation("activities.statisticsUser"), style: "metaLabel" },
+              { text: getTranslation("activities.missingTimeTitle"), style: "metaLabel", alignment: "center" },
+              { text: getTranslation("activities.attendedTimeTitle"), style: "metaLabel", alignment: "center" },
+            ],
+            ...attendanceRows,
+          ],
+        },
+        layout: {
+          fillColor: (rowIndex) => (rowIndex === 0 ? headerFill : null),
+          hLineColor: () => lineColor,
+          vLineColor: () => lineColor,
+          hLineWidth: () => 0.65,
+          vLineWidth: () => 0.65,
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 6,
+          paddingBottom: () => 6,
+        },
+      },
+    ],
+  };
+};
+
+const activitySummaryPdfFilename = (entry) => {
+  const safeTitle = String(entry?.title || "atividade")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase() || "atividade";
+  return `sumario-${safeTitle}-${activityDateIsoForEntry(entry)}.pdf`;
+};
+
+const printActivitySummaryPdf = async (entry, storedSummary) => {
+  const pdfMake = window.pdfMake;
+  if (!pdfMake?.createPdf) throw new Error("pdfmake unavailable");
+
+  const printWindow = window.open("", "_blank");
+  if (printWindow) {
+    printWindow.document.title = getTranslation("activities.pdfPreparing");
+    printWindow.document.body.innerHTML = `<main style="font:700 18px/1.4 Arial,sans-serif;display:grid;min-height:90vh;place-items:center;color:#075f55">${escapeHtml(getTranslation("activities.pdfPreparing"))}</main>`;
+  }
+
+  const pdf = pdfMake.createPdf(activitySummaryPdfDefinition(entry, storedSummary));
+  if (printWindow) {
+    await pdf.print({}, printWindow);
+    return;
+  }
+
+  await pdf.download(activitySummaryPdfFilename(entry));
+  setActivitiesFeedback(getTranslation("activities.pdfDownloadFallback"), "success");
 };
 
 const printActivityWeek = () => {
@@ -4237,14 +6398,21 @@ const printActivityWeek = () => {
   printActivityHtmlDocument(activityPrintDocument(), getTranslation("activities.printTitle"));
 };
 
-const printActivitySummary = () => {
-  const entry = selectedActivitySummaryEntry();
-  if (!entry) {
-    setActivitySummaryFeedback(getTranslation("activities.summaryNoActivity"));
-    return;
+const printViewedActivity = async () => {
+  const entry = activitiesState.entries.find((item) => item.id === activitiesState.viewingActivityId);
+  if (!entry) return;
+  const summary = activitySummaryForEntry(entry) || { summary: "", attendance: [] };
+  const { viewPrintBtn } = activitiesElements();
+  if (viewPrintBtn) viewPrintBtn.disabled = true;
+  try {
+    await printActivitySummaryPdf(entry, summary);
+    recordActivityHistory("summary_printed", entry);
+  } catch (error) {
+    console.error("Erro ao preparar PDF do sumario.", error);
+    setActivitiesFeedback(getTranslation("activities.pdfPrintError"));
+  } finally {
+    if (viewPrintBtn) viewPrintBtn.disabled = false;
   }
-  recordActivityHistory("summary_printed", entry);
-  printActivityHtmlDocument(activitySummaryPrintDocument(entry), getTranslation("activities.summaryTitle"));
 };
 
 const printActivityStatistics = () => {
@@ -4266,6 +6434,10 @@ const changeActivityWeek = (weekOffset) => {
 };
 
 const reorderActivitiesInCell = async (draggedId, targetCellKey, insertionIndex = Number.POSITIVE_INFINITY) => {
+  if (!canManageActivities()) {
+    showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+    return false;
+  }
   const draggedEntry = activitiesState.entries.find((entry) => entry.id === draggedId);
   if (!draggedEntry || activityCellKey(draggedEntry) !== targetCellKey) return false;
   const cellEntries = sortedActivities().filter((entry) => activityCellKey(entry) === targetCellKey);
@@ -4310,6 +6482,7 @@ const wireActivitiesCalendar = () => {
     nextWeekBtn,
     clearBtn,
     printBtn,
+    viewPrintBtn,
     statisticsBtns,
     statisticsDialog,
     statisticsCloseBtn,
@@ -4321,12 +6494,20 @@ const wireActivitiesCalendar = () => {
     statisticsRefreshBtn,
     summaryDialog,
     summaryCloseBtn,
-    summaryPrintBtn,
     summaryForm,
     summaryActivitySelect,
     summaryAttendanceList,
     summaryAttendanceSearch,
     summaryClearBtn,
+    signatureDialog,
+    signatureCloseBtn,
+    signatureSaveBtn,
+    signatureClearBtn,
+    signatureCanvas,
+    missingTimeDialog,
+    missingTimeForm,
+    missingTimeInput,
+    missingTimePresets,
   } = activitiesElements();
   if (!root || !form || !grid) return;
   window.__CENTRAL_RENDER_ACTIVITIES = () => {
@@ -4354,6 +6535,10 @@ const wireActivitiesCalendar = () => {
   });
   form.addEventListener("submit", handleActivitySubmit);
   createBtn?.addEventListener("click", () => {
+    if (!canManageActivities()) {
+      showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
+      return;
+    }
     const shouldOpen = !isActivityFormOpen();
     if (shouldOpen) {
       resetActivitiesForm();
@@ -4371,6 +6556,7 @@ const wireActivitiesCalendar = () => {
   });
   clearBtn?.addEventListener("click", resetActivitiesForm);
   printBtn?.addEventListener("click", printActivityWeek);
+  viewPrintBtn?.addEventListener("click", printViewedActivity);
   statisticsBtns?.forEach((button) => {
     button.addEventListener("click", () => {
       void openActivityStatisticsDialog();
@@ -4401,7 +6587,6 @@ const wireActivitiesCalendar = () => {
     setActivityStatisticsFeedback("");
   });
   summaryCloseBtn?.addEventListener("click", closeActivitySummaryDialog);
-  summaryPrintBtn?.addEventListener("click", printActivitySummary);
   summaryForm?.addEventListener("submit", handleActivitySummarySubmit);
   summaryActivitySelect?.addEventListener("change", () => {
     fillActivitySummaryForm(selectedActivitySummaryEntry());
@@ -4413,11 +6598,28 @@ const wireActivitiesCalendar = () => {
   summaryAttendanceList?.addEventListener("change", (event) => {
     const input = event.target instanceof HTMLInputElement ? event.target : event.target?.closest?.("input[type='checkbox']");
     if (!input || input.type !== "checkbox") return;
+    if (preventLockedActivitySummaryEdit()) {
+      renderActivitySummaryAttendance();
+      return;
+    }
     if (input.checked) {
       activitiesState.summaryAttendanceIds.add(input.value);
     } else {
       activitiesState.summaryAttendanceIds.delete(input.value);
+      activitiesState.summarySignatures.delete(input.value);
+      activitiesState.summaryMissingMinutes.delete(input.value);
     }
+    renderActivitySummaryAttendance();
+  });
+  summaryAttendanceList?.addEventListener("click", (event) => {
+    const missingTimeButton = event.target.closest("[data-summary-missing-time-id]");
+    if (missingTimeButton) {
+      openActivityMissingTimeDialog(String(missingTimeButton.dataset.summaryMissingTimeId || ""));
+      return;
+    }
+    const signatureButton = event.target.closest("[data-summary-signature-id]");
+    if (!signatureButton) return;
+    openActivitySignatureDialog(String(signatureButton.dataset.summarySignatureId || ""));
   });
   summaryClearBtn?.addEventListener("click", clearActivitySummaryForm);
   summaryDialog?.addEventListener("click", (event) => {
@@ -4425,12 +6627,58 @@ const wireActivitiesCalendar = () => {
   });
   summaryDialog?.addEventListener("cancel", () => {
     activitiesState.summaryAttendanceIds = new Set();
+    activitiesState.summarySignatures = new Map();
+    activitiesState.summaryMissingMinutes = new Map();
   });
   summaryDialog?.addEventListener("close", () => {
     summaryForm?.reset();
     if (summaryAttendanceSearch) summaryAttendanceSearch.value = "";
     activitiesState.summaryAttendanceIds = new Set();
+    activitiesState.summarySignatures = new Map();
+    activitiesState.summaryMissingMinutes = new Map();
     setActivitySummaryFeedback("");
+  });
+  missingTimeForm?.addEventListener("submit", applyActivityMissingTime);
+  missingTimeInput?.addEventListener("input", () => {
+    setActivityMissingTimeFeedback("");
+    updateActivityMissingTimePresets();
+  });
+  missingTimePresets?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-missing-time-preset]");
+    if (!button || button.disabled || !missingTimeInput) return;
+    missingTimeInput.value = String(cleanActivityMissingMinutes(button.dataset.missingTimePreset));
+    setActivityMissingTimeFeedback("");
+    updateActivityMissingTimePresets();
+  });
+  missingTimeDialog?.addEventListener("click", (event) => {
+    if (event.target === missingTimeDialog || event.target.closest("[data-missing-time-close]")) {
+      closeActivityMissingTimeDialog();
+    }
+  });
+  missingTimeDialog?.addEventListener("close", () => {
+    activitiesState.activeMissingTimeUtenteId = "";
+    setActivityMissingTimeFeedback("");
+  });
+  signatureCloseBtn?.addEventListener("click", closeActivitySignatureDialog);
+  signatureClearBtn?.addEventListener("click", () => {
+    prepareActivitySignatureCanvas();
+    setActivitySignatureFeedback("");
+  });
+  signatureSaveBtn?.addEventListener("click", () => {
+    void saveActivitySignature();
+  });
+  signatureCanvas?.addEventListener("pointerdown", beginActivitySignatureStroke);
+  signatureCanvas?.addEventListener("pointermove", continueActivitySignatureStroke);
+  signatureCanvas?.addEventListener("pointerup", endActivitySignatureStroke);
+  signatureCanvas?.addEventListener("pointerleave", endActivitySignatureStroke);
+  signatureCanvas?.addEventListener("pointercancel", endActivitySignatureStroke);
+  signatureDialog?.addEventListener("click", (event) => {
+    if (event.target === signatureDialog) closeActivitySignatureDialog();
+  });
+  signatureDialog?.addEventListener("close", () => {
+    activitiesState.activeSignatureUtenteId = "";
+    activitiesState.isDrawingSignature = false;
+    setActivitySignatureFeedback("");
   });
   dialogCloseBtn?.addEventListener("click", () => {
     resetActivitiesForm();
@@ -4454,13 +6702,14 @@ const wireActivitiesCalendar = () => {
     if (activitiesElements().createLabel) {
       activitiesElements().createLabel.textContent = getTranslation("activities.createButton");
     }
+    setActivityViewSummaryVisible(false);
   });
   grid.addEventListener("click", (event) => {
     const button = event.target.closest("[data-activity-action]");
     if (!button) return;
     const id = button.dataset.id || "";
     if (button.dataset.activityAction === "view") {
-      viewActivity(id);
+      void viewActivity(id);
       return;
     }
     if (button.dataset.activityAction === "edit") {
@@ -4482,7 +6731,7 @@ const wireActivitiesCalendar = () => {
       event.preventDefault();
       return;
     }
-    if (!centralHasPermission(window.CENTRAL_USER_PROFILE, "atividades", "edit")) {
+    if (!canManageActivities()) {
       event.preventDefault();
       showCentralRestrictedAccess(getTranslation("access.actionRestricted"));
       return;
@@ -4608,9 +6857,11 @@ const renderPermissionGrid = (container, scope, permissions) => {
       const areaPermissions = permissions[area] || emptyAreaPermissions();
       const cells = centralAreaActions
         .map((action) => {
-          const isSensitive = action === "view_sensitive" || action === "edit_sensitive";
+          const isUnsupportedSensitive =
+            (action === "view_sensitive" && !["utentes", "atividades"].includes(area)) ||
+            (action === "edit_sensitive" && area !== "utentes");
           const isActivityDelete = area === "atividades" && action === "delete";
-          if ((isSensitive && area !== "utentes") || isActivityDelete) {
+          if (isUnsupportedSensitive || isActivityDelete) {
             return `<td class="permission-na">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
           }
           const name = permissionInputName(scope, area, action);
@@ -4861,7 +7112,9 @@ const fillCentralUserForm = (user) => {
 const validateCentralUser = ({ id, email, fullName, password, requirePassword = false }) => {
   if (id !== undefined && !id) return "Escolha primeiro um utilizador para editar.";
   if (!fullName && fullName !== undefined) return "Indique o nome do utilizador.";
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { return "Indique um email válido.";}
+  if (email !== undefined && (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+    return "Indique um email válido.";
+  }
   if (requirePassword && (!password || !isStrongPassword(password))) return passwordPolicyMessage;
   return "";
 };
@@ -5083,6 +7336,7 @@ document.addEventListener("DOMContentLoaded", () => {
   wireActivitiesManualsDialog();
   wireActivitiesCatalogDialog();
   wireActivitiesMonitorsDialog();
+  wireActivitiesQuestionnaireDialog();
   wireActivitiesCalendar();
   void renderActivitiesHistoryPage();
   refreshIcons();

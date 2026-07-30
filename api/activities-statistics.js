@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
+import { exposedErrorMessage } from '../api-lib/http.js'
 import { hasPermission, normalizePermissions } from '../api-lib/permissions.js'
+import { assertVerifiedCentralSession } from '../api-lib/central-session.js'
 
 const sendJson = (response, status, body) => {
+  response.setHeader('Cache-Control', 'private, no-store')
   response.status(status).json(body)
 }
 
@@ -51,9 +54,9 @@ const clientErrorMessage = (error) => {
     return 'Falta criar as tabelas de atividades/sumarios no Supabase. Execute o SQL atualizado do modulo Atividades e volte a tentar.'
   }
   if (normalized.includes('permission denied')) {
-    return 'Sem permissao para consultar estatisticas de atividades.'
+    return 'Sem permissao para consultar indicadores de atividades.'
   }
-  return message
+  return exposedErrorMessage(error, 'Nao foi possivel concluir o pedido.')
 }
 
 const dateIsoPattern = /^\d{4}-\d{2}-\d{2}$/
@@ -131,7 +134,25 @@ const dayOffsets = {
 
 const scheduleDate = (row) => addDaysToIso(String(row?.week_start ?? ''), dayOffsets[row?.day] ?? 0)
 
-const statisticsBounds = ({ period, month, year: requestedYear }) => {
+export const statisticsBounds = ({ period, weekStart, month, year: requestedYear }) => {
+  if (period === 'week') {
+    const selectedDate = dateFromIso(String(weekStart || ''))
+    if (!selectedDate) {
+      const error = new Error('Semana invalida.')
+      error.status = 400
+      throw error
+    }
+    const start = weekStartIso(selectedDate)
+    return {
+      period: 'week',
+      weekStart: start,
+      year: String(selectedDate.getFullYear()),
+      start,
+      end: addDaysToIso(start, 4),
+      scheduleStart: start,
+    }
+  }
+
   if (period === 'year') {
     if (!yearPattern.test(requestedYear || '')) {
       const error = new Error('Ano invalido.')
@@ -187,6 +208,8 @@ const getAuthorizedUser = async (adminClient, request) => {
     throw error
   }
 
+  await assertVerifiedCentralSession(adminClient, token, { user })
+
   const { data: appUser, error: appUserError } = await adminClient
     .from('app_users')
     .select('id, active, permissions')
@@ -223,12 +246,21 @@ const normalizeAttendance = (attendance) => {
     const key = id || name
     if (!key || seen.has(key)) continue
     seen.add(key)
-    result.push({ id, name: name || 'Sem nome' })
+    result.push({
+      id,
+      name: name || 'Sem nome',
+      missingMinutes: Math.max(0, Math.round(Number(item?.missingMinutes ?? item?.missing_minutes) || 0)),
+    })
   }
   return result
 }
 
-const listMonthData = async (adminClient, bounds, activityFilter = '') => {
+const listMonthData = async (
+  adminClient,
+  bounds,
+  activityFilter = '',
+  { includeAttendance = false, includeAllUtentes = false } = {},
+) => {
   const [scheduleResult, summariesResult, utentesResult] = await Promise.all([
     adminClient
       .from('activities_schedule')
@@ -240,16 +272,22 @@ const listMonthData = async (adminClient, bounds, activityFilter = '') => {
       .order('start_time', { ascending: true }),
     adminClient
       .from('activities_summaries')
-      .select('id,activity_id,activity_date,activity_title,start_time,end_time,duration_minutes,attendance')
+      .select(
+        includeAttendance
+          ? 'id,activity_id,activity_date,activity_title,start_time,end_time,duration_minutes,attendance'
+          : 'id,activity_id,activity_date,activity_title,start_time,end_time,duration_minutes',
+      )
       .gte('activity_date', bounds.start)
       .lte('activity_date', bounds.end)
       .order('activity_date', { ascending: true })
       .order('start_time', { ascending: true }),
-    adminClient
-      .from('utentes')
-      .select('id,nome,numero_utente,estado')
-      .order('nome', { ascending: true })
-      .limit(1000),
+    includeAllUtentes
+      ? adminClient
+          .from('utentes')
+          .select('id,nome')
+          .order('nome', { ascending: true })
+          .limit(500)
+      : Promise.resolve({ data: [], error: null }),
   ])
 
   if (scheduleResult.error) throw scheduleResult.error
@@ -278,7 +316,7 @@ const listMonthData = async (adminClient, bounds, activityFilter = '') => {
       start: cleanTime(row?.start_time),
       end: cleanTime(row?.end_time),
       durationMinutes: durationMinutes(row?.start_time, row?.end_time, row?.duration_minutes),
-      attendance: normalizeAttendance(row?.attendance),
+      attendance: includeAttendance ? normalizeAttendance(row?.attendance) : [],
     }))
     .filter((row) => row.activityId && row.date >= bounds.start && row.date <= bounds.end)
     .filter((row) => !activityFilter || row.title === activityFilter)
@@ -287,16 +325,20 @@ const listMonthData = async (adminClient, bounds, activityFilter = '') => {
     .map((row) => ({
       id: String(row?.id ?? '').trim(),
       name: String(row?.nome ?? '').trim(),
-      number: String(row?.numero_utente ?? '').trim(),
     }))
     .filter((row) => row.id && row.name)
 
   return { activities, summaries, utentes }
 }
 
-const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFilter = '') => {
+export const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFilter = '') => {
   const attendanceCounts = new Map()
-  const peopleById = new Map(utentes.map((utente) => [utente.id, { ...utente, present: 0 }]))
+  const peopleById = new Map(
+    utentes.map((utente) => [
+      utente.id,
+      { ...utente, present: 0, attendedMinutes: 0, registeredMinutes: 0 },
+    ]),
+  )
   const volumeByActivity = new Map()
   const monitorHoursByName = new Map()
   let totalAttendance = 0
@@ -319,8 +361,15 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFil
 
   for (const summary of summaries) {
     const present = summary.attendance
+    const summaryDurationMinutes = Math.max(0, Number(summary.durationMinutes) || 0)
     totalAttendance += present.length
-    const volumeMinutes = summary.durationMinutes * present.length
+    const volumeMinutes = present.reduce((total, attendee) => {
+      const missingMinutes = Math.min(
+        summaryDurationMinutes,
+        Math.max(0, Number(attendee.missingMinutes) || 0),
+      )
+      return total + Math.max(0, summaryDurationMinutes - missingMinutes)
+    }, 0)
     totalVolumeMinutes += volumeMinutes
 
     const title = summary.title || 'Sem nome'
@@ -333,7 +382,7 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFil
     }
     currentVolume.sessions += 1
     currentVolume.attendance += present.length
-    currentVolume.durationMinutes += summary.durationMinutes
+    currentVolume.durationMinutes += summaryDurationMinutes
     currentVolume.volumeMinutes += volumeMinutes
     volumeByActivity.set(title, currentVolume)
 
@@ -345,9 +394,19 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFil
         peopleById.set(key, {
           id: attendee.id || key,
           name: attendee.name || 'Sem nome',
-          number: '',
           present: 0,
+          attendedMinutes: 0,
+          registeredMinutes: 0,
         })
+      }
+      const person = peopleById.get(key)
+      if (person) {
+        const missingMinutes = Math.min(
+          summaryDurationMinutes,
+          Math.max(0, Number(attendee.missingMinutes) || 0),
+        )
+        person.attendedMinutes += Math.max(0, summaryDurationMinutes - missingMinutes)
+        person.registeredMinutes += summaryDurationMinutes
       }
     }
   }
@@ -362,15 +421,17 @@ const buildStatistics = ({ activities, summaries, utentes }, bounds, activityFil
     .map((person) => ({
       id: person.id,
       name: person.name,
-      number: person.number,
       present: person.present,
       total: totalSessions,
-      percentage: totalSessions ? Math.round((person.present / totalSessions) * 1000) / 10 : 0,
+      percentage: person.registeredMinutes
+        ? Math.round((person.attendedMinutes / person.registeredMinutes) * 1000) / 10
+        : 0,
     }))
     .sort((left, right) => right.present - left.present || left.name.localeCompare(right.name, 'pt'))
 
   return {
     period: bounds.period,
+    weekStart: bounds.weekStart ?? null,
     month: bounds.month ?? null,
     year: bounds.year,
     periodStart: bounds.start,
@@ -405,13 +466,24 @@ export default async function handler(request, response) {
   }
 
   try {
-    await getAuthorizedUser(adminClient, request)
-    const period = String(queryValue(request, 'period') || 'month').trim() === 'year' ? 'year' : 'month'
+    const profile = await getAuthorizedUser(adminClient, request)
+    const requestedPeriod = String(queryValue(request, 'period') || 'month').trim()
+    const period = requestedPeriod === 'week' || requestedPeriod === 'year' ? requestedPeriod : 'month'
+    const weekStart = String(queryValue(request, 'weekStart') || '').trim()
     const month = String(queryValue(request, 'month') || '').trim()
     const year = String(queryValue(request, 'year') || '').trim()
     const activity = String(queryValue(request, 'activity') || '').trim()
-    const bounds = statisticsBounds({ period, month, year })
-    const data = await listMonthData(adminClient, bounds, activity)
+    const bounds = statisticsBounds({ period, weekStart, month, year })
+    const canViewAttendance = hasPermission(profile, 'atividades', 'edit')
+    const data = await listMonthData(
+      adminClient,
+      bounds,
+      activity,
+      {
+        includeAttendance: canViewAttendance,
+        includeAllUtentes: canViewAttendance,
+      },
+    )
     sendJson(response, 200, { statistics: buildStatistics(data, bounds, activity) })
   } catch (error) {
     sendJson(response, error.status ?? 500, { error: clientErrorMessage(error) })

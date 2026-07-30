@@ -4,13 +4,18 @@
   const authStorageKey = "central-mm-auth-token";
   const rememberLoginKey = "central-remember-login";
   const rememberEmailKey = "central-remember-email";
+  const verificationStateKey = "central-email-verification-state";
+  let verificationCountdownTimer = 0;
   const authStorage = {
     getItem: (key) => sessionStorage.getItem(key),
     setItem: (key, value) => sessionStorage.setItem(key, value),
     removeItem: (key) => sessionStorage.removeItem(key)
   };
-  // Every embedded branch receives the same permissions helper as the Central.
-  // A stored matrix is authoritative; only old empty matrices start with full access.
+  const showPage = () => {
+    document.documentElement.removeAttribute("data-central-auth-pending");
+    document.getElementById("centralAuthLoading")?.remove();
+  };
+  // Every embedded branch receives the same fail-closed permissions helper as the Central.
   const permissionAreas = ["socios", "utentes", "dispositivos", "atividades"];
   const permissionActions = ["view", "edit", "view_sensitive", "edit_sensitive", "export", "delete"];
   const emptyAreaPermissions = () => ({
@@ -28,16 +33,13 @@
     socios: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
     utentes: { view: true, edit: true, view_sensitive: true, edit_sensitive: true, export: true, delete: true },
     dispositivos: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: true },
-    atividades: { view: true, edit: true, view_sensitive: false, edit_sensitive: false, export: true, delete: false }
+    atividades: { view: true, edit: true, view_sensitive: true, edit_sensitive: false, export: true, delete: false }
   });
   const permissionBoolean = (value) => value === true || value === "true" || value === 1 || value === "1";
   const hasPermissionValue = (permissions, action) => Object.prototype.hasOwnProperty.call(permissions, action);
   const normalizeCentralPermissions = (input) => {
     const source = input && typeof input === "object" ? input : {};
-    const hasStoredMatrix =
-      Object.keys(source.central || {}).length > 0 ||
-      permissionAreas.some((area) => Object.keys(source[area] || {}).length > 0);
-    const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions();
+    const normalized = emptyPermissions();
 
     normalized.central.manage_users = permissionBoolean(source.central?.manage_users ?? normalized.central.manage_users);
     normalized.central.view_history = permissionBoolean(source.central?.view_history ?? normalized.central.view_history);
@@ -78,11 +80,12 @@
           current.view = true;
         }
       }
-      if (area !== "utentes") {
+      if (!["utentes", "atividades"].includes(area)) {
         current.view_sensitive = false;
         current.edit_sensitive = false;
       }
       if (area === "atividades") {
+        current.edit_sensitive = false;
         current.delete = false;
       }
     });
@@ -214,7 +217,7 @@
   const clearCentralSession = async (client) => {
     accessPromises.clear();
     try {
-      await client.auth.signOut();
+      await client.auth.signOut({ scope: "local" });
     } catch (_error) {
       // Continua a limpeza local mesmo se o pedido remoto falhar.
     }
@@ -255,6 +258,157 @@
       // O login continua mesmo sem acesso a localStorage.
     }
   };
+  const translateLogin = (key, replacements = {}) => {
+    if (typeof window.CENTRAL_TRANSLATE === "function") {
+      return window.CENTRAL_TRANSLATE(key, replacements);
+    }
+    const fallback = {
+      "login.resend": "Reenviar código",
+      "login.resendIn": "Reenviar em {seconds}s",
+      "login.codeSent": "Enviámos um novo código.",
+      "login.codeExpired": "O código expirou. Volte a introduzir a password.",
+      "login.invalidCode": "O código é inválido ou expirou.",
+      "login.sessionExpired": "Sessão expirada. Volte a entrar.",
+      "login.startError": "Não foi possível enviar o código de verificação.",
+      "login.completeError": "Não foi possível concluir a verificação."
+    };
+    return Object.entries(replacements).reduce(
+      (text, [name, value]) => text.split("{" + name + "}").join(String(value)),
+      fallback[key] || key
+    );
+  };
+  const writeVerificationState = (state) => {
+    try {
+      sessionStorage.setItem(verificationStateKey, JSON.stringify(state));
+    } catch (_error) {
+      // O passo de verificação continua nesta página mesmo sem persistência.
+    }
+    return state;
+  };
+  const saveVerificationState = (payload, remember = false) => writeVerificationState({
+    challengeId: String(payload?.challengeId || ""),
+    email: String(payload?.email || "").trim(),
+    expiresAt: String(payload?.expiresAt || ""),
+    resendAt: Date.now() + Math.max(0, Number(payload?.resendAfter || 60)) * 1000,
+    remember: remember === true
+  });
+  const loadVerificationState = () => {
+    try {
+      const state = JSON.parse(sessionStorage.getItem(verificationStateKey) || "null");
+      if (!state?.challengeId || !state?.email || !state?.expiresAt) return null;
+      return state;
+    } catch (_error) {
+      return null;
+    }
+  };
+  const clearVerificationState = () => {
+    window.clearInterval(verificationCountdownTimer);
+    verificationCountdownTimer = 0;
+    try {
+      sessionStorage.removeItem(verificationStateKey);
+    } catch (_error) {
+      // Sem impacto quando o browser bloqueia sessionStorage.
+    }
+  };
+  const showVerificationStatus = (message) => {
+    const status = document.querySelector("#centralVerificationStatus");
+    if (!status) return;
+    status.textContent = message || "";
+    status.hidden = !message;
+  };
+  const setLoginStep = (step, state = null) => {
+    const verifying = step === "verification";
+    const passwordStep = document.querySelector("#centralPasswordStep");
+    const verificationStep = document.querySelector("#centralVerificationStep");
+    if (passwordStep) passwordStep.hidden = verifying;
+    if (verificationStep) verificationStep.hidden = !verifying;
+    document.querySelector(".login-panel")?.setAttribute(
+      "aria-labelledby",
+      verifying ? "verificationTitle" : "loginTitle"
+    );
+    if (!verifying) {
+      window.clearInterval(verificationCountdownTimer);
+      verificationCountdownTimer = 0;
+      window.setTimeout(() => document.querySelector("#password")?.focus(), 0);
+      return;
+    }
+    const emailNode = document.querySelector("#centralVerificationEmail");
+    if (emailNode) emailNode.textContent = state?.email || "";
+    showVerificationStatus("");
+    window.setTimeout(() => document.querySelector("#verificationCode")?.focus(), 0);
+  };
+  const updateResendCountdown = () => {
+    const state = loadVerificationState();
+    const button = document.querySelector("#centralResendCode");
+    const label = button?.querySelector("[data-resend-label]");
+    if (!state || !button || !label) return;
+    if (new Date(state.expiresAt).getTime() <= Date.now()) {
+      clearVerificationState();
+      setLoginStep("password");
+      showError(translateLogin("login.codeExpired"));
+      return;
+    }
+    const seconds = Math.max(0, Math.ceil((Number(state.resendAt || 0) - Date.now()) / 1000));
+    button.disabled = seconds > 0;
+    label.textContent = seconds > 0
+      ? translateLogin("login.resendIn", { seconds })
+      : translateLogin("login.resend");
+  };
+  const startResendCountdown = () => {
+    window.clearInterval(verificationCountdownTimer);
+    updateResendCountdown();
+    verificationCountdownTimer = window.setInterval(updateResendCountdown, 1000);
+  };
+  const requestJson = async (url, options, fallbackMessage) => {
+    const response = await fetch(url, options);
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload.error || fallbackMessage);
+      error.code = payload.code || "";
+      error.retryAfter = Number(payload.retryAfter || 0);
+      throw error;
+    }
+    return payload;
+  };
+  const startEmailVerification = (email, password) => requestJson(
+    "/api/email-verification-start",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    },
+    translateLogin("login.startError")
+  );
+  const resendEmailVerification = (challengeId) => requestJson(
+    "/api/email-verification-start",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ challengeId })
+    },
+    translateLogin("login.startError")
+  );
+  const completeEmailVerification = async (client, state) => {
+    const { data } = await client.auth.getSession();
+    const token = data?.session?.access_token || "";
+    if (!token) {
+      const error = new Error(translateLogin("login.invalidCode"));
+      error.code = "INVALID_EMAIL_CODE";
+      throw error;
+    }
+    return requestJson(
+      "/api/email-verification-complete",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ challengeId: state.challengeId })
+      },
+      translateLogin("login.completeError")
+    );
+  };
   const stripSensitiveLoginParams = () => {
     if (page !== "login") return;
     const url = new URL(window.location.href);
@@ -279,12 +433,19 @@
   const showError = (message) => {
     const error = document.querySelector("#centralAuthError");
     if (!error) return;
-    error.textContent = message;
-    error.hidden = false;
+    error.textContent = message || "";
+    error.hidden = !message;
   };
-  const setUserEmail = (session) => {
-    document.querySelectorAll("[data-user-email]").forEach((node) => {
-      node.textContent = session?.user?.user_metadata?.full_name || session?.user?.email || "Administrador";
+  const displayNameFromSession = (session, profile = null) => {
+    const metadataName = session?.user?.user_metadata?.full_name;
+    return String(profile?.full_name || metadataName || session?.user?.email || "").trim();
+  };
+  const setDashboardAccountName = (session, profile = null) => {
+    const name = displayNameFromSession(session, profile);
+    document.querySelectorAll("[data-dashboard-account-name]").forEach((node) => {
+      node.textContent = name;
+      node.title = name;
+      node.hidden = !name;
     });
   };
   const utentesSessionCachePrefix = "central-utentes-session:";
@@ -371,7 +532,9 @@
         });
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
-          throw new Error(payload.error || "Não foi possível preparar o acesso.");
+          const error = new Error(payload.error || "Não foi possível preparar o acesso.");
+          error.code = payload.code || "";
+          throw error;
         }
         const payload = await response.json().catch(() => ({ ok: true }));
         saveAccessCache(session, cacheArea);
@@ -386,12 +549,12 @@
       throw error;
     }
   };
-  const ensureUtentesSession = async (client) => {
+  const ensureUtentesSession = async (client, { force = false } = {}) => {
     const { data } = await client.auth.getSession();
     const session = data?.session || null;
     const token = session?.access_token || "";
     if (!token) throw new Error("Sessão em falta.");
-    if (hasUtentesSessionCache(session)) return;
+    if (!force && hasUtentesSessionCache(session)) return;
     const response = await fetch("/api/utentes-session", {
       method: "POST",
       credentials: "same-origin",
@@ -404,23 +567,25 @@
     const payload = await response.json().catch(() => ({ ok: true }));
     saveUtentesSessionCache(session, payload);
   };
-  const goTo = async (client, target) => {
+  const goTo = async (client, target, { forceUtentesSession = false } = {}) => {
     const path = safePath(target, "/dashboard");
     await ensureCentralAccess(client, areaFromPath(path));
     if (path.startsWith("/area/utentes")) {
-      await ensureUtentesSession(client);
+      await ensureUtentesSession(client, { force: forceUtentesSession });
     }
     window.location.replace(path);
   };
-  const goToDashboardAfterLogin = async (client) => {
-    await goTo(client, "/dashboard");
+  const goToRequestedPath = async (client, { forceUtentesSession = false } = {}) => {
+    await goTo(client, nextPath(), { forceUtentesSession });
   };
   const wireUtentesLinks = (client) => {
     document.querySelectorAll('a[href^="/area/utentes"]').forEach((link) => {
       link.addEventListener("click", async (event) => {
         event.preventDefault();
         try {
-          await goTo(client, link.getAttribute("href") || "/area/utentes/");
+          await goTo(client, link.getAttribute("href") || "/area/utentes/", {
+            forceUtentesSession: true
+          });
         } catch (error) {
           window.alert(error instanceof Error ? error.message : "Sem acesso a esta area.");
           window.location.href = "/dashboard";
@@ -432,7 +597,10 @@
     stripSensitiveLoginParams();
     clearPersistentAuth();
     const client = createClient();
-    if (!client) return;
+    if (!client) {
+      showPage();
+      return;
+    }
     const { data } = await client.auth.getSession();
     const session = data?.session || null;
     if (page === "logout") {
@@ -443,6 +611,7 @@
       } catch (_error) {
         // Logout continua mesmo sem acesso a sessionStorage.
       }
+      clearVerificationState();
       clearUtentesSessionCache();
       clearPersistentAuth();
       window.location.replace("/login?next=" + encodeURIComponent(nextPath()));
@@ -450,14 +619,46 @@
     }
     if (page === "login") {
       loadRememberedLogin();
-      if (session) {
+      let verificationState = loadVerificationState();
+      if (verificationState && new Date(verificationState.expiresAt).getTime() <= Date.now()) {
+        clearVerificationState();
+        verificationState = null;
+      }
+      if (verificationState && session) {
         try {
-          await goToDashboardAfterLogin(client);
+          await completeEmailVerification(client, verificationState);
+          saveRememberedLogin(verificationState.email, verificationState.remember);
+          clearVerificationState();
+          await goToRequestedPath(client, {
+            forceUtentesSession: nextPath().startsWith("/area/utentes")
+          });
           return;
-        } catch (_error) {
-          await clearCentralSession(client);
-          showError("Sessão expirada. Volte a entrar.");
+        } catch (error) {
+          if (["CHALLENGE_EXPIRED", "CHALLENGE_COMPLETED"].includes(error?.code)) {
+            await clearCentralSession(client);
+            clearVerificationState();
+            verificationState = null;
+          }
         }
+      } else if (!verificationState && session) {
+        try {
+          await goToRequestedPath(client, {
+            forceUtentesSession: nextPath().startsWith("/area/utentes")
+          });
+          return;
+        } catch (error) {
+          await clearCentralSession(client);
+          showError(error?.code === "EMAIL_VERIFICATION_REQUIRED"
+            ? translateLogin("login.sessionExpired")
+            : error instanceof Error ? error.message : translateLogin("login.sessionExpired"));
+        }
+      }
+      showPage();
+      if (verificationState) {
+        setLoginStep("verification", verificationState);
+        startResendCountdown();
+      } else {
+        setLoginStep("password");
       }
       document.querySelector("#centralLoginForm")?.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -468,20 +669,124 @@
         const submit = event.currentTarget.querySelector("button[type='submit']");
         submit.disabled = true;
         showError("");
-        document.querySelector("#centralAuthError").hidden = true;
-        await clearCentralSession(client);
-        const { error } = await client.auth.signInWithPassword({ email, password });
-        submit.disabled = false;
-        if (error) {
-          showError("Credenciais inválidas ou utilizador sem acesso.");
+        try {
+          clearVerificationState();
+          await clearCentralSession(client);
+          const payload = await startEmailVerification(email, password);
+          const state = saveVerificationState(payload, remember);
+          const passwordInput = document.querySelector("#password");
+          if (passwordInput) passwordInput.value = "";
+          setLoginStep("verification", state);
+          startResendCountdown();
+        } catch (error) {
+          showError(error instanceof Error ? error.message : translateLogin("login.startError"));
+        } finally {
+          submit.disabled = false;
+        }
+      });
+      const verificationCode = document.querySelector("#verificationCode");
+      verificationCode?.addEventListener("input", () => {
+        verificationCode.value = verificationCode.value.replace(/\D/g, "").slice(0, 8);
+      });
+      document.querySelector("#centralVerificationForm")?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const state = loadVerificationState();
+        if (!state || new Date(state.expiresAt).getTime() <= Date.now()) {
+          clearVerificationState();
+          await clearCentralSession(client);
+          setLoginStep("password");
+          showError(translateLogin("login.codeExpired"));
           return;
         }
-        saveRememberedLogin(email, remember);
+        const form = new FormData(event.currentTarget);
+        const code = String(form.get("code") || "").replace(/\D/g, "");
+        const submit = event.currentTarget.querySelector("button[type='submit']");
+        submit.disabled = true;
+        showError("");
+        showVerificationStatus("");
         try {
-          await goToDashboardAfterLogin(client);
+          const { data: currentData } = await client.auth.getSession();
+          let completed = false;
+          if (currentData?.session) {
+            try {
+              await completeEmailVerification(client, state);
+              completed = true;
+            } catch (error) {
+              if (error?.code !== "INVALID_EMAIL_CODE") throw error;
+              await client.auth.signOut({ scope: "local" }).catch(() => {});
+            }
+          }
+          if (!completed) {
+            const { error: verificationError } = await client.auth.verifyOtp({
+              email: state.email,
+              token: code,
+              type: "email"
+            });
+            if (verificationError) {
+              const invalidCodeError = new Error(translateLogin("login.invalidCode"));
+              invalidCodeError.code = "INVALID_EMAIL_CODE";
+              throw invalidCodeError;
+            }
+            await completeEmailVerification(client, state);
+          }
+          saveRememberedLogin(state.email, state.remember);
+          clearVerificationState();
+          await goToRequestedPath(client, {
+            forceUtentesSession: nextPath().startsWith("/area/utentes")
+          });
         } catch (error) {
-          showError(error instanceof Error ? error.message : "Não foi possível iniciar Utentes.");
+          if (["CHALLENGE_EXPIRED", "CHALLENGE_COMPLETED"].includes(error?.code)) {
+            await clearCentralSession(client);
+            clearVerificationState();
+            setLoginStep("password");
+            showError(translateLogin("login.codeExpired"));
+          } else {
+            showError(error?.code === "INVALID_EMAIL_CODE"
+              ? translateLogin("login.invalidCode")
+              : error instanceof Error ? error.message : translateLogin("login.completeError"));
+          }
+        } finally {
+          submit.disabled = false;
         }
+      });
+      document.querySelector("#centralResendCode")?.addEventListener("click", async (event) => {
+        const button = event.currentTarget;
+        const state = loadVerificationState();
+        if (!state) {
+          setLoginStep("password");
+          showError(translateLogin("login.codeExpired"));
+          return;
+        }
+        button.disabled = true;
+        showError("");
+        showVerificationStatus("");
+        try {
+          const payload = await resendEmailVerification(state.challengeId);
+          const nextState = saveVerificationState(payload, state.remember);
+          setLoginStep("verification", nextState);
+          showVerificationStatus(translateLogin("login.codeSent"));
+          startResendCountdown();
+        } catch (error) {
+          if (error?.retryAfter > 0) {
+            writeVerificationState({ ...state, resendAt: Date.now() + error.retryAfter * 1000 });
+            startResendCountdown();
+          }
+          if (error?.code === "CHALLENGE_EXPIRED") {
+            await clearCentralSession(client);
+            clearVerificationState();
+            setLoginStep("password");
+          }
+          showError(error instanceof Error ? error.message : translateLogin("login.startError"));
+        } finally {
+          updateResendCountdown();
+        }
+      });
+      document.querySelector("#centralBackToPassword")?.addEventListener("click", async () => {
+        clearVerificationState();
+        await clearCentralSession(client);
+        showError("");
+        showVerificationStatus("");
+        setLoginStep("password");
       });
       return;
     }
@@ -490,11 +795,16 @@
       return;
     }
     try {
-      await ensureCentralAccess(client, areaFromPath(window.location.pathname));
+      const payload = await ensureCentralAccess(client, areaFromPath(window.location.pathname));
+      setDashboardAccountName(session, payload?.appUser);
     } catch (error) {
+      if (error?.code === "EMAIL_VERIFICATION_REQUIRED") {
+        await clearCentralSession(client);
+        window.location.replace("/login?next=" + encodeURIComponent(window.location.pathname + window.location.search));
+        return;
+      }
       showError(error instanceof Error ? error.message : "Não foi possível preparar o acesso.");
     }
-    setUserEmail(session);
     wireUtentesLinks(client);
   });
 })();

@@ -9,6 +9,8 @@ from email.parser import BytesParser
 from email import policy
 from html.parser import HTMLParser
 import csv
+import base64
+import binascii
 import hashlib
 import hmac
 import html
@@ -50,6 +52,8 @@ LOGO_PATH = os.path.join(BASE_DIR, "logo-horizontal.png")
 ATTACHMENTS_DIR = os.path.join(BASE_DIR, "anexos")
 DOCS_DIR = os.path.join(BASE_DIR, "docs")
 MAX_PDF_BYTES = 30 * 1024 * 1024
+MAX_FORM_BYTES = 5 * 1024 * 1024
+MAX_MULTIPART_BYTES = MAX_PDF_BYTES + 1024 * 1024
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SECRET_KEY = (
     os.environ.get("SUPABASE_SECRET_KEY")
@@ -65,20 +69,24 @@ TAB_SECTIONS = [
     ("inscricao", "Ficha de Inscrição e Avaliação Inicial de Requisitos"),
     ("diagnostica", "Avaliação Diagnóstica Multidisciplinar"),
     ("atendimentos", "Registo de Atendimentos e Acompanhamentos"),
+    ("plano_intervencao", "Plano Individual de Intervenção"),
     ("protecao_dados", "Proteção de dados e Termos de Responsabilidade"),
     ("outros", "Outros"),
     ("pagamentos", "Pagamentos e Mensalidades")
 ]
 
 UTENTES_PUBLIC_TABS = {"referenciacao", "pagamentos", "emergencia", "protecao_dados"}
-UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "outros"}
+UTENTES_SENSITIVE_TABS = {"inscricao", "diagnostica", "atendimentos", "plano_intervencao", "outros"}
 CENTRAL_AREA_KEYS = ("socios", "utentes", "dispositivos", "atividades")
 CENTRAL_AREA_ACTIONS = ("view", "edit", "view_sensitive", "edit_sensitive", "export", "delete")
 
 PERFIL_ADMIN = "Administrador"
 PERFIL_UTILIZADOR = "Utilizador"
 DEFAULT_ADMIN_EMAIL = "admin@mentemovimento.local"
-DEFAULT_ADMIN_PASSWORD = "admin123"
+_DEFAULT_ADMIN_PASSWORD_ENV = os.environ.get("UTENTES_ADMIN_PASSWORD", "").strip()
+DEFAULT_ADMIN_PASSWORD = _DEFAULT_ADMIN_PASSWORD_ENV or secrets.token_urlsafe(24)
+DEFAULT_ADMIN_PASSWORD_GENERATED = not bool(_DEFAULT_ADMIN_PASSWORD_ENV)
+DEFAULT_ADMIN_CREDENTIAL_ACTIVE = False
 SESSION_COOKIE = "utentes_session"
 LANGUAGE_COOKIE = "utentes_language"
 SESSION_HOURS = 12
@@ -534,7 +542,14 @@ main {
 
 @media (min-width: 1180px) {
     .tab-list {
-        grid-template-columns: repeat(8, minmax(0, 1fr));
+        grid-template-columns: repeat(9, minmax(0, 1fr));
+        gap: 6px;
+        padding: 10px;
+    }
+
+    .tab-link {
+        font-size: 0.69rem;
+        padding: 7px 5px;
     }
 }
 
@@ -896,6 +911,235 @@ main {
 .attendance-meta input[type="date"],
 .attendance-meta input[type="text"] {
     padding: 8px;
+}
+
+.plano-intervencao-table-wrap {
+    overflow-x: auto;
+}
+
+.plano-intervencao-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.plano-intervencao-table th,
+.plano-intervencao-table td {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.plano-intervencao-table col.plano-text-col {
+    width: 19%;
+}
+
+.plano-intervencao-table col.plano-dates-col {
+    width: 24%;
+}
+
+.plano-intervencao-table.has-row-actions col.plano-text-col {
+    width: 18%;
+}
+
+.plano-intervencao-table.has-row-actions col.plano-dates-col {
+    width: 22%;
+}
+
+.plano-intervencao-table.has-row-actions col.plano-actions-col {
+    width: 6%;
+}
+
+.plano-intervencao-table textarea {
+    min-height: 126px;
+    resize: vertical;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.plano-intervencao-table input[type="date"] {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+}
+
+.plano-date-fields {
+    display: grid;
+    gap: 10px;
+}
+
+.plano-date-fields label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.plano-intervencao-table .plano-row-actions {
+    min-width: 0;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.plano-intervencao-table .plano-row-actions .icon-button {
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .plano-intervencao-table {
+        min-width: 950px;
+        table-layout: auto;
+    }
+
+    .plano-intervencao-table th,
+    .plano-intervencao-table td {
+        min-width: 160px;
+    }
+
+    .plano-intervencao-table .plano-dates-cell {
+        min-width: 190px;
+    }
+
+    .plano-intervencao-table .plano-row-actions {
+        min-width: 64px;
+    }
+
+    .plano-intervencao-table input[type="date"] {
+        min-width: 128px;
+    }
+}
+
+.plano-observacoes {
+    min-height: 220px;
+    resize: vertical;
+}
+
+.utente-signatures-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.utente-signature-card {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+}
+
+.utente-signature-card h5 {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.utente-signature-preview {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 3 / 1;
+    min-height: 130px;
+    overflow: hidden;
+    padding: 10px;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    background: #ffffff;
+    color: var(--muted);
+    text-align: center;
+}
+
+.utente-signature-preview.has-signature {
+    border-style: solid;
+}
+
+.utente-signature-preview img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: 150px;
+    object-fit: contain;
+}
+
+.utente-signature-actions,
+.utente-signature-dialog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.utente-signature-dialog {
+    width: min(760px, calc(100vw - 28px));
+    max-width: none;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+}
+
+.utente-signature-dialog::backdrop {
+    background: rgba(10, 27, 24, 0.58);
+}
+
+.utente-signature-dialog-panel {
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+}
+
+.utente-signature-dialog-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.utente-signature-dialog-head h3,
+.utente-signature-dialog-head p {
+    margin: 0;
+}
+
+.utente-signature-dialog-head p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.utente-signature-canvas-wrap {
+    overflow: hidden;
+    border: 2px solid var(--brand);
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.utente-signature-canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 25 / 8;
+    background: #ffffff;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.utente-signature-error {
+    margin: 0;
+}
+
+@media (max-width: 720px) {
+    .utente-signatures-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .utente-signature-dialog-panel {
+        padding: 16px;
+    }
 }
 
 .attendance-section-head {
@@ -2319,7 +2563,8 @@ tr:last-child td {
 
     .medication-wrap,
     .payment-history-wrap,
-    .utility-table-wrap {
+    .utility-table-wrap,
+    .plano-intervencao-table-wrap {
         overflow: visible !important;
     }
 
@@ -2359,10 +2604,62 @@ tr:last-child td {
     .sheet-table .observations-cell,
     .attendance-table .meta-cell,
     .attendance-table .text-cell,
+    .plano-intervencao-table th,
+    .plano-intervencao-table td,
     .medication-table .medicine-name,
     .medication-table .medicine-notes,
     .scoring-table .criteria-cell {
         min-width: 0 !important;
+    }
+
+    .plano-intervencao-table .plano-row-actions {
+        display: none !important;
+    }
+
+    .plano-intervencao-table {
+        font-size: 6.7pt !important;
+    }
+
+    .plano-intervencao-table .print-control-value.is-multiline {
+        min-height: 0 !important;
+    }
+
+    .utente-signatures-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .utente-signatures-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 4mm !important;
+    }
+
+    .utente-signature-card {
+        break-inside: avoid;
+        gap: 2mm !important;
+        padding: 3mm !important;
+        border: 1px solid #b8c8c2 !important;
+        page-break-inside: avoid;
+    }
+
+    .utente-signature-card h5 {
+        font-size: 9pt !important;
+    }
+
+    .utente-signature-preview {
+        min-height: 28mm !important;
+        padding: 1.5mm !important;
+        border: 1px solid #b8c8c2 !important;
+    }
+
+    .utente-signature-preview img {
+        max-height: 30mm !important;
+    }
+
+    .utente-signature-actions,
+    .utente-signature-dialog {
+        display: none !important;
     }
 
     .attendance-meta,
@@ -3355,9 +3652,6 @@ APP_SCRIPT = """
     }
 
     const form = document.getElementById("edit-utente-form");
-    if (!form) {
-        return;
-    }
 
     const status = document.querySelector("[data-autosave-status]");
     const tabLinks = Array.from(document.querySelectorAll(".tab-link[href^='/editar']"));
@@ -3391,7 +3685,7 @@ APP_SCRIPT = """
             return {
                 kind,
                 notes: "",
-                nodes: [{ id: "n1", type: "central", label: "Utente / família", x: 500, y: 260 }],
+                nodes: [],
                 edges: [],
             };
         }
@@ -3432,7 +3726,16 @@ APP_SCRIPT = """
 
     function lineAttrs(edge) {
         const attrs = { fill: "none", stroke: "#24413b", "stroke-width": "2.4" };
-        if (["union", "weak", "cutoff"].includes(edge.type)) {
+        if (["union", "cutoff"].includes(edge.type)) {
+            attrs["stroke-dasharray"] = "8 7";
+        }
+        if (edge.type === "medium" || edge.type === "normal") {
+            attrs.stroke = "#d69e2e";
+            attrs["stroke-width"] = "3.2";
+        }
+        if (edge.type === "weak") {
+            attrs.stroke = "#d64545";
+            attrs["stroke-width"] = "3";
             attrs["stroke-dasharray"] = "8 7";
         }
         if (["conflict", "stress"].includes(edge.type)) {
@@ -3449,17 +3752,56 @@ APP_SCRIPT = """
         if (edge.type === "resource_to") {
             attrs["marker-end"] = "url(#arrow-end)";
             attrs.stroke = "#12805c";
+            attrs["stroke-width"] = "3";
         }
         if (edge.type === "resource_from") {
             attrs["marker-start"] = "url(#arrow-start)";
             attrs.stroke = "#12805c";
+            attrs["stroke-width"] = "3";
         }
         if (edge.type === "resource_both") {
             attrs["marker-start"] = "url(#arrow-start)";
             attrs["marker-end"] = "url(#arrow-end)";
             attrs.stroke = "#12805c";
+            attrs["stroke-width"] = "3";
         }
         return attrs;
+    }
+
+    function ecomapaNodeEdgeDistance(node, unitX, unitY) {
+        if (node.type === "female") {
+            return node.primary ? 61 : 52;
+        }
+        let halfWidth;
+        let halfHeight;
+        if (node.type === "male") {
+            halfWidth = node.primary ? 62 : 52;
+            halfHeight = node.primary ? 62 : 52;
+        } else if (node.type === "central") {
+            halfWidth = node.primary ? 72 : 62;
+            halfHeight = node.primary ? 52 : 42;
+        } else {
+            halfWidth = node.primary ? 76 : 66;
+            halfHeight = node.primary ? 40 : 30;
+        }
+        const horizontal = Math.abs(unitX) < 0.001 ? Number.POSITIVE_INFINITY : halfWidth / Math.abs(unitX);
+        const vertical = Math.abs(unitY) < 0.001 ? Number.POSITIVE_INFINITY : halfHeight / Math.abs(unitY);
+        return Math.min(horizontal, vertical);
+    }
+
+    function ecomapaFlowPath(source, target) {
+        const dx = target.x - source.x;
+        const dy = target.y - source.y;
+        const length = Math.hypot(dx, dy);
+        if (!length) {
+            return "";
+        }
+        const unitX = dx / length;
+        const unitY = dy / length;
+        const sourceOffset = Math.min(ecomapaNodeEdgeDistance(source, unitX, unitY) + 12, length * 0.42);
+        const targetOffset = Math.min(ecomapaNodeEdgeDistance(target, unitX, unitY) + 12, length * 0.42);
+        return `M ${source.x + unitX * sourceOffset},${source.y + unitY * sourceOffset} ` +
+            `L ${target.x - unitX * targetOffset},${target.y - unitY * targetOffset}`;
     }
 
     function genogramParentChildPath(parentA, parentB, child) {
@@ -3471,6 +3813,17 @@ APP_SCRIPT = """
 
     function findNode(state, id) {
         return state.data.nodes.find((node) => node.id === id);
+    }
+
+    function normalizeDiagramAge(value) {
+        const age = String(value ?? "").trim();
+        if (!age) {
+            return "";
+        }
+        if (!/^\\d{1,3}$/.test(age) || Number(age) > 130) {
+            return null;
+        }
+        return age;
     }
 
     function toggleNodeSelection(state, nodeId) {
@@ -3571,12 +3924,12 @@ APP_SCRIPT = """
         }
     }
 
-    function isPrimaryGenogramNode(state, node) {
-        if (state.kind !== "genograma") {
-            return false;
-        }
+    function isPrimaryDiagramNode(state, node) {
         if (node.primary) {
             return true;
+        }
+        if (state.kind !== "genograma") {
+            return false;
         }
         const primaryLabel = normalizeDiagramText(state.primaryLabel);
         const nodeLabel = normalizeDiagramText(node.label);
@@ -3587,7 +3940,7 @@ APP_SCRIPT = """
         );
     }
 
-    function appendPrimaryGenogramOutline(group, node) {
+    function appendPrimaryDiagramOutline(group, node, kind) {
         const attrs = {
             class: "node-primary-outline",
             fill: "none",
@@ -3595,6 +3948,18 @@ APP_SCRIPT = """
             "stroke-width": "2.4",
             "pointer-events": "none",
         };
+        if (kind === "ecomapa") {
+            if (node.type === "female") {
+                group.appendChild(svgElement("circle", { ...attrs, r: "61" }));
+            } else if (node.type === "male") {
+                group.appendChild(svgElement("rect", { ...attrs, x: "-62", y: "-62", width: "124", height: "124" }));
+            } else if (node.type === "central") {
+                group.appendChild(svgElement("rect", { ...attrs, x: "-72", y: "-52", width: "144", height: "104", rx: "20" }));
+            } else {
+                group.appendChild(svgElement("rect", { ...attrs, x: "-76", y: "-40", width: "152", height: "80", rx: "12" }));
+            }
+            return;
+        }
         if (node.type === "female") {
             group.appendChild(svgElement("circle", { ...attrs, r: "35" }));
         } else if (node.type === "pregnant" || node.type === "abortion") {
@@ -3641,7 +4006,9 @@ APP_SCRIPT = """
                 return;
             }
             let path;
-            if (kind === "genograma" && edge.type === "parent_child" && coParent) {
+            if (kind === "ecomapa" && ["resource_to", "resource_from", "resource_both"].includes(edge.type)) {
+                path = ecomapaFlowPath(source, target);
+            } else if (kind === "genograma" && edge.type === "parent_child" && coParent) {
                 path = genogramParentChildPath(source, coParent, target);
             } else if (["conflict", "stress"].includes(edge.type)) {
                 path = zigzagPath(source, target);
@@ -3701,9 +4068,15 @@ APP_SCRIPT = """
             group.setAttribute("transform", `translate(${node.x}, ${node.y})`);
             let shape;
             if (kind === "ecomapa") {
-                shape = node.type === "central"
-                    ? svgElement("circle", { class: "node-shape", r: "54", fill: "#dff8ee", stroke: "#12805c", "stroke-width": "3" })
-                    : svgElement("rect", { class: "node-shape", x: "-66", y: "-30", width: "132", height: "60", rx: "8", fill: "#eef6ff", stroke: "#2f5f9f", "stroke-width": "2.2" });
+                if (node.type === "female") {
+                    shape = svgElement("circle", { class: "node-shape", r: "52", fill: "#dff8ee", stroke: "#12805c", "stroke-width": "3" });
+                } else if (node.type === "male") {
+                    shape = svgElement("rect", { class: "node-shape", x: "-52", y: "-52", width: "104", height: "104", fill: "#dff8ee", stroke: "#12805c", "stroke-width": "3" });
+                } else if (node.type === "central") {
+                    shape = svgElement("rect", { class: "node-shape", x: "-62", y: "-42", width: "124", height: "84", rx: "16", fill: "#dff8ee", stroke: "#12805c", "stroke-width": "3" });
+                } else {
+                    shape = svgElement("rect", { class: "node-shape", x: "-66", y: "-30", width: "132", height: "60", rx: "8", fill: "#eef6ff", stroke: "#2f5f9f", "stroke-width": "2.2" });
+                }
             } else if (node.type === "female") {
                 shape = svgElement("circle", { class: "node-shape", r: "28", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
             } else if (node.type === "pregnant" || node.type === "abortion") {
@@ -3714,8 +4087,8 @@ APP_SCRIPT = """
                 shape = svgElement("rect", { class: "node-shape", x: "-28", y: "-28", width: "56", height: "56", fill: "#ffffff", stroke: "#243d38", "stroke-width": "2.4" });
             }
             group.appendChild(shape);
-            if (isPrimaryGenogramNode(state, node)) {
-                appendPrimaryGenogramOutline(group, node);
+            if (isPrimaryDiagramNode(state, node)) {
+                appendPrimaryDiagramOutline(group, node, kind);
             }
             if (node.type === "abortion") {
                 group.appendChild(svgElement("line", { x1: "-31", y1: "-31", x2: "31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
@@ -3724,6 +4097,25 @@ APP_SCRIPT = """
             if (node.deceased) {
                 group.appendChild(svgElement("line", { x1: "-31", y1: "-31", x2: "31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
                 group.appendChild(svgElement("line", { x1: "31", y1: "-31", x2: "-31", y2: "31", stroke: "#b73232", "stroke-width": "2.7" }));
+            }
+            if (kind === "genograma") {
+                const age = normalizeDiagramAge(node.age);
+                if (age) {
+                    const ageText = svgElement("text", {
+                        x: "0",
+                        y: "6",
+                        "text-anchor": "middle",
+                        fill: "#102b25",
+                        "font-size": "16",
+                        "font-weight": "800",
+                        stroke: "#ffffff",
+                        "stroke-width": "3",
+                        "paint-order": "stroke fill",
+                        "pointer-events": "none",
+                    });
+                    ageText.textContent = age;
+                    group.appendChild(ageText);
+                }
             }
             const text = svgElement("text", {
                 x: "0",
@@ -3877,11 +4269,24 @@ APP_SCRIPT = """
                 if (!label) {
                     return;
                 }
+                let age = "";
+                if (kind === "genograma") {
+                    const ageInput = prompt("Idade (opcional):", "");
+                    if (ageInput === null) {
+                        return;
+                    }
+                    age = normalizeDiagramAge(ageInput);
+                    if (age === null) {
+                        alert("Indique uma idade inteira entre 0 e 130.");
+                        return;
+                    }
+                }
                 const index = state.data.nodes.length;
                 state.data.nodes.push({
                     id: `n${Date.now()}${index}`,
                     type,
                     label,
+                    ...(kind === "genograma" ? { age } : {}),
                     x: 180 + (index % 4) * 190,
                     y: 110 + Math.floor(index / 4) * 120,
                 });
@@ -3933,12 +4338,51 @@ APP_SCRIPT = """
                     return;
                 }
                 const label = prompt("Nome:", node.label || "");
-                if (label !== null && label.trim()) {
-                    node.label = label.trim();
-                    syncDiagram(state);
-                    markUnsaved();
-                    renderDiagram(state);
+                if (label === null || !label.trim()) {
+                    return;
                 }
+                let age = "";
+                if (kind === "genograma") {
+                    const ageInput = prompt("Idade (opcional):", node.age || "");
+                    if (ageInput === null) {
+                        return;
+                    }
+                    age = normalizeDiagramAge(ageInput);
+                    if (age === null) {
+                        alert("Indique uma idade inteira entre 0 e 130.");
+                        return;
+                    }
+                }
+                node.label = label.trim();
+                if (kind === "genograma") {
+                    node.age = age;
+                }
+                syncDiagram(state);
+                markUnsaved();
+                renderDiagram(state);
+            });
+        }
+        const setAge = editor.querySelector("[data-diagram-age]");
+        if (setAge) {
+            setAge.addEventListener("click", () => {
+                const node = findNode(state, state.selectedNodes[0]);
+                if (!node) {
+                    alert("Seleciona uma pessoa para adicionar a idade.");
+                    return;
+                }
+                const ageInput = prompt("Idade (opcional):", node.age || "");
+                if (ageInput === null) {
+                    return;
+                }
+                const age = normalizeDiagramAge(ageInput);
+                if (age === null) {
+                    alert("Indique uma idade inteira entre 0 e 130.");
+                    return;
+                }
+                node.age = age;
+                syncDiagram(state);
+                markUnsaved();
+                renderDiagram(state);
             });
         }
         const deceased = editor.querySelector("[data-diagram-deceased]");
@@ -4042,6 +4486,97 @@ APP_SCRIPT = """
         });
     }
 
+    function initPlanoIntervencaoRows() {
+        const section = form.querySelector("[data-plano-intervencao-records]");
+        if (!section) {
+            return;
+        }
+        const addButton = section.querySelector("[data-plano-intervencao-add]");
+        const countInput = section.querySelector("[data-plano-intervencao-count]");
+        const tableBody = section.querySelector("[data-plano-intervencao-body]");
+        const template = section.querySelector("[data-plano-intervencao-row-template]");
+        const maxRows = Number.parseInt(section.dataset.planoIntervencaoMax || "60", 10);
+        if (!countInput || !tableBody || !template) {
+            return;
+        }
+
+        const refreshRows = () => {
+            const rows = Array.from(tableBody.querySelectorAll("tr"));
+            rows.forEach((row, index) => {
+                row.dataset.planoIntervencaoRow = String(index);
+                row.querySelectorAll("[id], [name]").forEach((field) => {
+                    ["id", "name"].forEach((attribute) => {
+                        const value = field.getAttribute(attribute);
+                        if (value) {
+                            field.setAttribute(attribute, value.replace(/plano_(?:__INDEX__|[0-9]+)_/g, `plano_${index}_`));
+                        }
+                    });
+                });
+            });
+            countInput.value = String(rows.length);
+            tableBody.querySelectorAll("[data-plano-intervencao-remove]").forEach((button) => {
+                button.disabled = rows.length <= 1;
+                button.setAttribute("aria-disabled", rows.length <= 1 ? "true" : "false");
+            });
+        };
+
+        if (addButton) {
+            addButton.addEventListener("click", () => {
+                const currentCount = tableBody.querySelectorAll("tr").length;
+                if (Number.isFinite(maxRows) && currentCount >= maxRows) {
+                    return;
+                }
+                const wrapper = document.createElement("tbody");
+                wrapper.innerHTML = template.innerHTML.replaceAll("__INDEX__", String(currentCount)).trim();
+                const row = wrapper.querySelector("tr");
+                if (!row) {
+                    return;
+                }
+                tableBody.appendChild(row);
+                refreshRows();
+                autoResizePlanoIntervencaoTextareas(row);
+                markUnsaved();
+            });
+        }
+
+        tableBody.addEventListener("click", (event) => {
+            const removeButton = event.target.closest("[data-plano-intervencao-remove]");
+            if (!removeButton || removeButton.disabled) {
+                return;
+            }
+            const row = removeButton.closest("tr");
+            if (!row || tableBody.querySelectorAll("tr").length <= 1) {
+                return;
+            }
+            if (!window.confirm("Eliminar esta linha do plano?")) {
+                return;
+            }
+            row.remove();
+            refreshRows();
+            markUnsaved();
+        });
+
+        refreshRows();
+    }
+
+    function autoResizePlanoIntervencaoTextareas(scope = document) {
+        scope.querySelectorAll(".plano-intervencao-table textarea, .plano-observacoes").forEach((textarea) => {
+            const resize = () => {
+                textarea.style.height = "auto";
+                textarea.style.height = String(textarea.scrollHeight) + "px";
+            };
+            resize();
+            textarea.addEventListener("input", resize);
+        });
+    }
+
+    function autoResizeReadonlyTextareas(scope = document) {
+        scope.querySelectorAll(".readonly-section textarea:disabled:not(.diagram-data)").forEach((textarea) => {
+            textarea.style.height = "auto";
+            textarea.style.height = String(textarea.scrollHeight) + "px";
+        });
+    }
+
     function initPaymentEditing() {
         const editIdInput = form.querySelector("[data-payment-edit-id]");
         const submitButton = form.querySelector("[data-payment-submit]");
@@ -4077,9 +4612,211 @@ APP_SCRIPT = """
         });
     }
 
+    function initUtenteSignatures() {
+        const dialog = document.querySelector("[data-utente-signature-dialog]");
+        const canvas = dialog?.querySelector("[data-utente-signature-canvas]");
+        const dialogLabel = dialog?.querySelector("[data-utente-signature-dialog-label]");
+        const errorBox = dialog?.querySelector("[data-utente-signature-error]");
+        if (!dialog || !canvas) {
+            return;
+        }
+
+        const context = canvas.getContext("2d");
+        let activeInput = null;
+        let isDrawing = false;
+        let hasContent = false;
+
+        const setError = (message = "") => {
+            if (!errorBox) {
+                return;
+            }
+            errorBox.textContent = message;
+            errorBox.hidden = !message;
+        };
+
+        const prepareCanvas = () => {
+            context.save();
+            context.setTransform(1, 0, 0, 1, 0, 0);
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.restore();
+            context.strokeStyle = "#102b25";
+            context.lineWidth = 4;
+            context.lineCap = "round";
+            context.lineJoin = "round";
+            hasContent = false;
+        };
+
+        const loadCanvas = (signature) => {
+            prepareCanvas();
+            if (!signature) {
+                return;
+            }
+            const image = new Image();
+            image.onload = () => {
+                context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                hasContent = true;
+            };
+            image.src = signature;
+        };
+
+        const canvasPoint = (event) => {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: ((event.clientX - rect.left) * canvas.width) / Math.max(1, rect.width),
+                y: ((event.clientY - rect.top) * canvas.height) / Math.max(1, rect.height),
+            };
+        };
+
+        const closeDialog = () => {
+            activeInput = null;
+            isDrawing = false;
+            setError("");
+            if (dialog.open && typeof dialog.close === "function") {
+                dialog.close();
+            } else {
+                dialog.removeAttribute("open");
+            }
+        };
+
+        const updateCard = (input, signature) => {
+            const key = input.name;
+            const card = document.querySelector(`[data-utente-signature-card][data-signature-key="${CSS.escape(key)}"]`);
+            if (!card) {
+                return;
+            }
+            const preview = card.querySelector("[data-utente-signature-preview]");
+            const image = card.querySelector("[data-utente-signature-image]");
+            const empty = card.querySelector("[data-utente-signature-empty]");
+            const removeButton = card.querySelector("[data-utente-signature-remove]");
+            const openLabel = card.querySelector("[data-utente-signature-open-label]");
+            const signed = Boolean(signature);
+            preview?.classList.toggle("has-signature", signed);
+            if (image) {
+                image.src = signature || "";
+                image.hidden = !signed;
+            }
+            if (empty) {
+                empty.hidden = signed;
+            }
+            if (removeButton) {
+                removeButton.hidden = !signed;
+            }
+            if (openLabel) {
+                openLabel.textContent = signed ? "Alterar assinatura" : "Assinar";
+            }
+        };
+
+        document.querySelectorAll("[data-utente-signature-open]").forEach((button) => {
+            button.addEventListener("click", () => {
+                const key = button.getAttribute("data-signature-key") || "";
+                const input = document.querySelector(`[data-utente-signature-input][name="${CSS.escape(key)}"]`);
+                if (!input) {
+                    return;
+                }
+                activeInput = input;
+                if (dialogLabel) {
+                    dialogLabel.textContent = button.getAttribute("data-signature-label") || "";
+                }
+                setError("");
+                try {
+                    if (typeof dialog.showModal === "function") {
+                        dialog.showModal();
+                    } else {
+                        dialog.setAttribute("open", "");
+                    }
+                } catch (_error) {
+                    dialog.setAttribute("open", "");
+                }
+                requestAnimationFrame(() => loadCanvas(input.value));
+            });
+        });
+
+        document.querySelectorAll("[data-utente-signature-remove]").forEach((button) => {
+            button.addEventListener("click", () => {
+                if (!confirm("Remover esta assinatura?")) {
+                    return;
+                }
+                const key = button.getAttribute("data-signature-key") || "";
+                const input = document.querySelector(`[data-utente-signature-input][name="${CSS.escape(key)}"]`);
+                if (!input) {
+                    return;
+                }
+                input.value = "";
+                updateCard(input, "");
+                markUnsaved();
+            });
+        });
+
+        canvas.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            canvas.setPointerCapture?.(event.pointerId);
+            const point = canvasPoint(event);
+            isDrawing = true;
+            hasContent = true;
+            context.beginPath();
+            context.moveTo(point.x, point.y);
+        });
+        canvas.addEventListener("pointermove", (event) => {
+            if (!isDrawing) {
+                return;
+            }
+            event.preventDefault();
+            const point = canvasPoint(event);
+            context.lineTo(point.x, point.y);
+            context.stroke();
+        });
+        const endStroke = (event) => {
+            if (!isDrawing) {
+                return;
+            }
+            event.preventDefault();
+            isDrawing = false;
+        };
+        canvas.addEventListener("pointerup", endStroke);
+        canvas.addEventListener("pointercancel", endStroke);
+
+        dialog.querySelector("[data-utente-signature-clear]")?.addEventListener("click", () => {
+            prepareCanvas();
+            setError("");
+        });
+        dialog.querySelector("[data-utente-signature-save]")?.addEventListener("click", () => {
+            if (!activeInput || !hasContent) {
+                setError("A assinatura está vazia.");
+                return;
+            }
+            const signature = canvas.toDataURL("image/png");
+            activeInput.value = signature;
+            updateCard(activeInput, signature);
+            markUnsaved();
+            closeDialog();
+        });
+        dialog.querySelector("[data-utente-signature-close]")?.addEventListener("click", closeDialog);
+        dialog.addEventListener("cancel", (event) => {
+            event.preventDefault();
+            closeDialog();
+        });
+        dialog.addEventListener("click", (event) => {
+            if (event.target === dialog) {
+                closeDialog();
+            }
+        });
+    }
+
     document.querySelectorAll("[data-diagram-editor]").forEach(initDiagramEditor);
+    autoResizePlanoIntervencaoTextareas();
+    autoResizeReadonlyTextareas();
+
+    // The read-only page has no edit form, but it still needs the visual
+    // initializers above to render saved diagrams and reveal long text.
+    if (!form) {
+        return;
+    }
+
     initAttendanceRows();
+    initPlanoIntervencaoRows();
     initPaymentEditing();
+    initUtenteSignatures();
     initAgeCalculations();
     form.addEventListener("input", markUnsaved);
     form.addEventListener("change", markUnsaved);
@@ -4379,7 +5116,26 @@ def verify_password(password, stored_hash):
 
 
 def ensure_default_admin(conn=None):
+    global DEFAULT_ADMIN_CREDENTIAL_ACTIVE
+
     if supabase_available():
+        existing_default = table_select(
+            "utilizadores",
+            {
+                "select": "id,password_hash",
+                "email": f"eq.{DEFAULT_ADMIN_EMAIL}",
+                "limit": "1",
+            },
+        )
+        if existing_default:
+            if verify_password("admin123", existing_default[0].get("password_hash", "")):
+                table_update(
+                    "utilizadores",
+                    {"id": f"eq.{existing_default[0]['id']}"},
+                    {"password_hash": hash_password(DEFAULT_ADMIN_PASSWORD), "updated_at": now()},
+                )
+                DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
+            return
         if table_select("utilizadores", {"select": "id", "limit": "1"}):
             return
         timestamp = now()
@@ -4397,6 +5153,19 @@ def ensure_default_admin(conn=None):
                 "updated_at": timestamp,
             },
         )
+        DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
+        return
+    existing_default = conn.execute(
+        "SELECT id, password_hash FROM utilizadores WHERE lower(email) = lower(?) LIMIT 1",
+        (DEFAULT_ADMIN_EMAIL,),
+    ).fetchone()
+    if existing_default:
+        if verify_password("admin123", existing_default["password_hash"]):
+            conn.execute(
+                "UPDATE utilizadores SET password_hash = ?, updated_at = ? WHERE id = ?",
+                (hash_password(DEFAULT_ADMIN_PASSWORD), now(), existing_default["id"]),
+            )
+            DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
         return
     total = conn.execute("SELECT COUNT(*) AS total FROM utilizadores").fetchone()["total"]
     if total:
@@ -4409,6 +5178,7 @@ def ensure_default_admin(conn=None):
         """,
         ("Administrador", DEFAULT_ADMIN_EMAIL, hash_password(DEFAULT_ADMIN_PASSWORD), PERFIL_ADMIN, timestamp, timestamp),
     )
+    DEFAULT_ADMIN_CREDENTIAL_ACTIVE = True
 
 
 def is_admin(user):
@@ -4462,13 +5232,14 @@ def full_central_permissions():
         permissions[area].update({"view": True, "edit": True, "export": True, "delete": True})
     permissions["atividades"]["delete"] = False
     permissions["utentes"].update({"view_sensitive": True, "edit_sensitive": True})
+    permissions["atividades"]["view_sensitive"] = True
     permissions["central"].update({"manage_users": True, "view_history": True})
     return permissions
 
 
 def default_central_permissions_for_role(_role=None):
     # Kept for compatibility with old callers. The matrix is the only authority.
-    return full_central_permissions()
+    return empty_central_permissions()
 
 
 def normalize_central_permissions(raw_permissions, _role=None):
@@ -4480,12 +5251,8 @@ def normalize_central_permissions(raw_permissions, _role=None):
     if not isinstance(raw_permissions, dict):
         raw_permissions = {}
 
-    has_stored_matrix = bool(raw_permissions.get("central")) or any(
-        bool(raw_permissions.get(area)) for area in CENTRAL_AREA_KEYS
-    )
-    # Empty permissions are from accounts created before the matrix. They receive
-    # the agreed full-access starting point; an explicit matrix is authoritative.
-    permissions = empty_central_permissions() if has_stored_matrix else full_central_permissions()
+    # Missing or malformed permissions are denied. Access must always be explicit.
+    permissions = empty_central_permissions()
     for area in CENTRAL_AREA_KEYS:
         source = raw_permissions.get(area)
         if not isinstance(source, dict):
@@ -4531,10 +5298,11 @@ def normalize_central_permissions(raw_permissions, _role=None):
                 area_permissions["view"] = True
             if area_permissions["view_sensitive"]:
                 area_permissions["view"] = True
-        if area != "utentes":
+        if area not in {"utentes", "atividades"}:
             area_permissions["view_sensitive"] = False
             area_permissions["edit_sensitive"] = False
         if area == "atividades":
+            area_permissions["edit_sensitive"] = False
             area_permissions["delete"] = False
     return permissions
 
@@ -4546,10 +5314,11 @@ def central_profile_for_user(user):
         return user.get("_central_profile")
 
     role = "viewer"
+    local_admin = not supabase_available() and is_admin(user)
     fallback = {
         "role": role,
-        "active": bool(user.get("ativo", 1)),
-        "permissions": full_central_permissions(),
+        "active": bool(user.get("ativo", 1)) if local_admin else False,
+        "permissions": full_central_permissions() if local_admin else empty_central_permissions(),
     }
     profile = fallback
     email = str(user.get("email") or "").strip().lower()
@@ -4591,7 +5360,7 @@ def central_has_permission(user, area, action):
     profile = central_profile_for_user(user)
     if not profile or not profile.get("active"):
         return False
-    permissions = profile.get("permissions") or full_central_permissions()
+    permissions = profile.get("permissions") or empty_central_permissions()
     if area == "central":
         return bool((permissions.get("central") or {}).get(action))
     return bool((permissions.get(area) or {}).get(action))
@@ -4754,11 +5523,13 @@ def get_current_user(handler):
 
 
 def session_cookie(token):
-    return f"{SESSION_COOKIE}={token}; Path=/; HttpOnly; SameSite=Lax"
+    secure = "; Secure" if os.environ.get("VERCEL") == "1" else ""
+    return f"{SESSION_COOKIE}={token}; Path=/; HttpOnly; SameSite=Lax{secure}"
 
 
 def clear_session_cookie():
-    return f"{SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax"
+    secure = "; Secure" if os.environ.get("VERCEL") == "1" else ""
+    return f"{SESSION_COOKIE}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax{secure}"
 
 
 def language_cookie(language):
@@ -4793,7 +5564,7 @@ TRANSLATIONS = {
         "view": "Ver",
         "edit": "Editar",
         "delete": "Eliminar",
-        "statistics": "Estatísticas",
+        "statistics": "Indicadores",
         "export_backup": "Exportar backup de utentes",
         "backup_error": "Não foi possível gerar o backup",
         "loading": "A carregar",
@@ -4891,7 +5662,7 @@ TRANSLATIONS = {
         "view": "View",
         "edit": "Edit",
         "delete": "Delete",
-        "statistics": "Statistics",
+        "statistics": "Indicators",
         "export_backup": "Export clients backup",
         "backup_error": "Could not generate backup",
         "loading": "Loading",
@@ -4974,6 +5745,20 @@ EN_STATIC_TRANSLATIONS = {
     "Ficha de Inscrição e Avaliação Inicial de Requisitos": "Registration Form and Initial Requirements Assessment",
     "Avaliação Diagnóstica Multidisciplinar": "Multidisciplinary Diagnostic Assessment",
     "Registo de Atendimentos e Acompanhamentos": "Service and Follow-up Records",
+    "Plano Individual de Intervenção": "Individual Intervention Plan",
+    "Plano de intervenção": "Intervention plan",
+    "Nome do utente": "Client name",
+    "Gestor/a de caso": "Case manager",
+    "Segundo/a gestor/a de caso": "Second case manager",
+    "Adicionar objetivo": "Add objective",
+    "Eliminar linha": "Remove row",
+    "Objetivo": "Objective",
+    "Avaliação": "Assessment",
+    "Atividade": "Activity",
+    "Data de registo": "Registration date",
+    "Data de reavaliação": "Reassessment date",
+    "Data de fecho": "Closing date",
+    "Observações técnicas": "Technical observations",
     "Proteção de dados e Termos de Responsabilidade": "Data Protection and Responsibility Terms",
     "Utentes MenteMovimento": "MenteMovimento Clients",
     "Gestão de Utentes": "Client Management",
@@ -5028,8 +5813,8 @@ EN_STATIC_TRANSLATIONS = {
     "Ações": "Actions",
     "Editar": "Edit",
     "Eliminar": "Delete",
-    "Estatísticas": "Statistics",
-    "Estatísticas de utentes": "Client statistics",
+    "Indicadores": "Indicators",
+    "Indicadores de utentes": "Client indicators",
     "Permanência média": "Average stay",
     "Percentagem por concelho": "Percentage by municipality",
     "Distribuição por concelho": "Distribution by municipality",
@@ -5349,6 +6134,8 @@ EN_STATIC_TRANSLATIONS = {
     "Pessoa/Família": "Person/Family",
     "Sistema/Rede": "System/Network",
     "Ligação forte": "Strong link",
+    "Ligação média": "Normal link",
+    "Ligação normal": "Normal link",
     "Ligação fraca/ténue": "Weak link",
     "Ligação stressante": "Stressful link",
     "Fluxo para o utente": "Flow to client",
@@ -5358,6 +6145,10 @@ EN_STATIC_TRANSLATIONS = {
     "Utente / família": "Client / family",
     "Nome do sistema/rede:": "System/network name:",
     "Nome:": "Name:",
+    "Idade (opcional):": "Age (optional):",
+    "Adicionar idade": "Add age",
+    "Seleciona uma pessoa para adicionar a idade.": "Select a person to add an age.",
+    "Indique uma idade inteira entre 0 e 130.": "Enter a whole-number age between 0 and 130.",
     "Seleciona dois elementos para criar a ligação.": "Select two elements to create the link.",
     "Seleciona dois elementos, ou seleciona primeiro os dois progenitores e depois o filho.": "Select two elements, or select the two parents first and then the child.",
     "Seleciona um elemento para editar.": "Select one element to edit.",
@@ -5366,6 +6157,8 @@ EN_STATIC_TRANSLATIONS = {
     "Adicionar registo": "Add record",
     "Rede externa": "External network",
     "Forte": "Strong",
+    "Média": "Normal",
+    "Normal": "Normal",
     "Fraca": "Weak",
     "Para utente": "To client",
     "Do utente": "From client",
@@ -5373,6 +6166,8 @@ EN_STATIC_TRANSLATIONS = {
     "Ligar selecionados": "Connect selected",
     "Editar selecionado": "Edit selected",
     "Apagar selecionado": "Delete selected",
+    "Pessoa índice": "Index person",
+    "Pessoa índice (linha dupla)": "Index person (double line)",
     "Legenda": "Legend",
     "Notas": "Notes",
     "3. Saúde": "3. Health",
@@ -6659,6 +7454,37 @@ ATENDIMENTO_TIPOS = [
 
 ATENDIMENTO_ROW_KEY_RE = re.compile(r"^atend_(\d+)_(?:data|ambito_|tipo|descricao|observacoes|profissionais)")
 
+PLANO_INTERVENCAO_MIN_ROWS = 1
+PLANO_INTERVENCAO_MAX_ROWS = 60
+PLANO_INTERVENCAO_ROW_COUNT_FIELD = "plano_row_count"
+PLANO_INTERVENCAO_TEXT_FIELDS = [
+    "plano_nome",
+    "plano_gestor_caso",
+    "plano_segundo_gestor_caso",
+    "plano_observacoes_tecnicas",
+    "plano_assinatura_gestor",
+    "plano_assinatura_utente",
+]
+PLANO_INTERVENCAO_ROW_FIELDS = (
+    "cifsm",
+    "objetivo",
+    "avaliacao",
+    "atividade",
+    "data_registo",
+    "data_reavaliacao",
+    "data_fecho",
+)
+
+PROTECAO_DADOS_SIGNATURE_FIELDS = (
+    "protecao_assinatura_gestor",
+    "protecao_assinatura_utente",
+)
+SIGNATURE_DATA_URL_RE = re.compile(r"^data:image/png;base64,([A-Za-z0-9+/]+={0,2})$")
+MAX_SIGNATURE_DATA_URL_LENGTH = 400_000
+PLANO_INTERVENCAO_ROW_KEY_RE = re.compile(
+    r"^plano_(\d+)_(?:cifsm|objetivo|avaliacao|atividade|data_registo|data_reavaliacao|data_fecho)$"
+)
+
 
 def referenciacao_checkbox_keys():
     keys = []
@@ -7341,6 +8167,128 @@ def atendimentos_from_post(post_data):
 
 def serialize_atendimentos(post_data):
     return json.dumps(atendimentos_from_post(post_data), ensure_ascii=False)
+
+
+def normalize_signature_data_url(value):
+    signature = str(value or "").strip()
+    if not signature:
+        return ""
+    if len(signature) > MAX_SIGNATURE_DATA_URL_LENGTH:
+        raise ValueError("A assinatura é demasiado grande. Limpe-a e tente novamente.")
+    match = SIGNATURE_DATA_URL_RE.fullmatch(signature)
+    if not match:
+        raise ValueError("A assinatura tem um formato inválido.")
+    try:
+        image_bytes = base64.b64decode(match.group(1), validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise ValueError("A assinatura tem um formato inválido.") from exc
+    if len(image_bytes) < 24 or not image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise ValueError("A assinatura tem um formato inválido.")
+    return signature
+
+
+def default_protecao_dados_data():
+    return {key: "" for key in PROTECAO_DADOS_SIGNATURE_FIELDS}
+
+
+def load_protecao_dados_data(utente_id):
+    raw = get_tab_content(utente_id, "protecao_dados")
+    data = default_protecao_dados_data()
+    if not raw:
+        return data
+    try:
+        stored = json.loads(raw)
+    except json.JSONDecodeError:
+        return data
+    if not isinstance(stored, dict):
+        return data
+    for key in PROTECAO_DADOS_SIGNATURE_FIELDS:
+        try:
+            data[key] = normalize_signature_data_url(stored.get(key))
+        except ValueError:
+            data[key] = ""
+    return data
+
+
+def protecao_dados_from_post(post_data):
+    return {
+        key: normalize_signature_data_url(field_value(post_data, key))
+        for key in PROTECAO_DADOS_SIGNATURE_FIELDS
+    }
+
+
+def clamp_plano_intervencao_row_count(value, fallback=PLANO_INTERVENCAO_MIN_ROWS):
+    try:
+        count = int(str(value or "").strip())
+    except (TypeError, ValueError):
+        count = fallback
+    return max(PLANO_INTERVENCAO_MIN_ROWS, min(PLANO_INTERVENCAO_MAX_ROWS, count))
+
+
+def plano_intervencao_row_count_from_mapping(mapping, fallback=PLANO_INTERVENCAO_MIN_ROWS):
+    explicit = raw_mapping_value(mapping, PLANO_INTERVENCAO_ROW_COUNT_FIELD)
+    explicit_count = clamp_plano_intervencao_row_count(explicit, fallback) if explicit else fallback
+    max_index = -1
+    for key in mapping:
+        match = PLANO_INTERVENCAO_ROW_KEY_RE.match(str(key))
+        if match:
+            max_index = max(max_index, int(match.group(1)))
+    inferred_count = max_index + 1 if max_index >= 0 else fallback
+    return clamp_plano_intervencao_row_count(max(explicit_count, inferred_count), fallback)
+
+
+def plano_intervencao_row_fields(row_count=PLANO_INTERVENCAO_MIN_ROWS):
+    row_count = clamp_plano_intervencao_row_count(row_count)
+    fields = []
+    for row in range(row_count):
+        for key in PLANO_INTERVENCAO_ROW_FIELDS:
+            fields.append(f"plano_{row}_{key}")
+    return fields
+
+
+def default_plano_intervencao_data(row_count=PLANO_INTERVENCAO_MIN_ROWS):
+    row_count = clamp_plano_intervencao_row_count(row_count)
+    data = {key: "" for key in PLANO_INTERVENCAO_TEXT_FIELDS}
+    data[PLANO_INTERVENCAO_ROW_COUNT_FIELD] = str(row_count)
+    data.update({key: "" for key in plano_intervencao_row_fields(row_count)})
+    return data
+
+
+def load_plano_intervencao_data(utente_id):
+    raw = get_tab_content(utente_id, "plano_intervencao")
+    data = default_plano_intervencao_data()
+    if raw:
+        try:
+            stored = json.loads(raw)
+        except json.JSONDecodeError:
+            stored = {"plano_observacoes_tecnicas": raw}
+        if isinstance(stored, dict):
+            data = default_plano_intervencao_data(plano_intervencao_row_count_from_mapping(stored))
+            for key in data:
+                if key in stored:
+                    if key in {"plano_assinatura_gestor", "plano_assinatura_utente"}:
+                        try:
+                            data[key] = normalize_signature_data_url(stored.get(key))
+                        except ValueError:
+                            data[key] = ""
+                    else:
+                        data[key] = str(stored.get(key) or "")
+    return data
+
+
+def plano_intervencao_from_post(post_data):
+    row_count = plano_intervencao_row_count_from_mapping(post_data)
+    data = default_plano_intervencao_data(row_count)
+    for key in PLANO_INTERVENCAO_TEXT_FIELDS:
+        value = field_value(post_data, key)
+        data[key] = normalize_signature_data_url(value) if key in {"plano_assinatura_gestor", "plano_assinatura_utente"} else value
+    for key in plano_intervencao_row_fields(row_count):
+        data[key] = field_value(post_data, key)
+    return data
+
+
+def serialize_plano_intervencao(post_data):
+    return json.dumps(plano_intervencao_from_post(post_data), ensure_ascii=False)
 
 
 SHARED_FIELD_ALIASES = {
@@ -8469,10 +9417,12 @@ def render_diagram_editor(data, key, title, kind, readonly=False, primary_label=
         """
     else:
         toolbar = """
-            <button class="button secondary" type="button" data-diagram-add="central">Pessoa/Família</button>
+            <button class="button secondary" type="button" data-diagram-add="male">Homem</button>
+            <button class="button secondary" type="button" data-diagram-add="female">Mulher</button>
             <button class="button secondary" type="button" data-diagram-add="system">Sistema/Rede</button>
             <select data-diagram-relation>
                 <option value="strong">Ligação forte</option>
+                <option value="medium">Ligação normal</option>
                 <option value="weak">Ligação fraca/ténue</option>
                 <option value="stress">Ligação stressante</option>
                 <option value="resource_to">Fluxo para o utente</option>
@@ -8481,10 +9431,13 @@ def render_diagram_editor(data, key, title, kind, readonly=False, primary_label=
             </select>
         """
         legend = """
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="15" fill="#dff8ee" stroke="#12b886" stroke-width="3"/></svg></span><span class="legend-label">Utente/família</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="15" y="3" width="28" height="28" fill="#dff8ee" stroke="#12805c" stroke-width="3"/></svg></span><span class="legend-label">Homem</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><circle cx="29" cy="17" r="14" fill="#dff8ee" stroke="#12805c" stroke-width="3"/></svg></span><span class="legend-label">Mulher</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="3" y="7" width="17" height="20" fill="#dff8ee" stroke="#12805c" stroke-width="2.2"/><rect x="1" y="5" width="21" height="24" fill="none" stroke="#12805c" stroke-width="1.7"/><circle cx="43" cy="17" r="10" fill="#dff8ee" stroke="#12805c" stroke-width="2.2"/><circle cx="43" cy="17" r="14" fill="none" stroke="#12805c" stroke-width="1.7"/></svg></span><span class="legend-label">Pessoa índice (linha dupla)</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><rect x="8" y="7" width="42" height="20" rx="5" fill="#eef6ff" stroke="#8bb7ff" stroke-width="2.4"/></svg></span><span class="legend-label">Rede externa</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="5"/></svg></span><span class="legend-label">Forte</span></li>
-            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#f3fbf8" stroke-width="3" stroke-dasharray="7 5"/></svg></span><span class="legend-label">Fraca</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#12805c" stroke-width="5"/></svg></span><span class="legend-label">Forte</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#d69e2e" stroke-width="3.2"/></svg></span><span class="legend-label">Normal</span></li>
+            <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><line x1="7" y1="17" x2="51" y2="17" stroke="#d64545" stroke-width="3" stroke-dasharray="7 5"/></svg></span><span class="legend-label">Fraca</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><path d="M6 17 L12 9 L18 25 L24 9 L30 25 L36 9 L42 25 L52 17" fill="none" stroke="#ff6b5f" stroke-width="3"/></svg></span><span class="legend-label">Stress</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><defs><marker id="legend-arrow-in" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#12b886"/></marker></defs><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="3" marker-end="url(#legend-arrow-in)"/></svg></span><span class="legend-label">Para utente</span></li>
             <li><span class="legend-symbol"><svg viewBox="0 0 58 34"><defs><marker id="legend-arrow-out" markerWidth="8" markerHeight="8" refX="1" refY="3" orient="auto"><path d="M8,0 L8,6 L0,3 z" fill="#12b886"/></marker></defs><line x1="7" y1="17" x2="51" y2="17" stroke="#12b886" stroke-width="3" marker-start="url(#legend-arrow-out)"/></svg></span><span class="legend-label">Do utente</span></li>
@@ -8495,7 +9448,8 @@ def render_diagram_editor(data, key, title, kind, readonly=False, primary_label=
             {toolbar}
             <button class="button secondary" type="button" data-diagram-connect>Ligar selecionados</button>
             <button class="button secondary" type="button" data-diagram-edit>Editar selecionado</button>
-            {"<button class='button secondary' type='button' data-diagram-primary>Pessoa índice</button>" if kind == "genograma" else ""}
+            {"<button class='button secondary' type='button' data-diagram-age>Adicionar idade</button>" if kind == "genograma" else ""}
+            {"<button class='button secondary' type='button' data-diagram-primary>Pessoa índice</button>" if kind in ("genograma", "ecomapa") else ""}
             {"<button class='button secondary' type='button' data-diagram-deceased>Falecido</button>" if kind == "genograma" else ""}
             <button class="button danger" type="button" data-diagram-delete>Apagar selecionado</button>
         </div>
@@ -8798,6 +9752,197 @@ def render_atendimentos_form(data, readonly=False):
     """
 
 
+def render_plano_intervencao_row(data, row, readonly=False):
+    disabled = "disabled" if readonly else ""
+    prefix = f"plano_{row}"
+    actions = "" if readonly else f"""
+            <td class="plano-row-actions">
+                <button class="button danger icon-button" type="button" data-plano-intervencao-remove aria-label="Eliminar linha" title="Eliminar linha">{TRASH_ICON}</button>
+            </td>
+    """
+    return f"""
+        <tr>
+            <td>
+                <textarea id="{prefix}_cifsm" name="{prefix}_cifsm" rows="4" aria-label="CIFsm" {disabled}>{esc(data.get(f"{prefix}_cifsm"))}</textarea>
+            </td>
+            <td>
+                <textarea id="{prefix}_objetivo" name="{prefix}_objetivo" rows="4" aria-label="Objetivo" {disabled}>{esc(data.get(f"{prefix}_objetivo"))}</textarea>
+            </td>
+            <td>
+                <textarea id="{prefix}_avaliacao" name="{prefix}_avaliacao" rows="4" aria-label="Avaliação" {disabled}>{esc(data.get(f"{prefix}_avaliacao"))}</textarea>
+            </td>
+            <td>
+                <textarea id="{prefix}_atividade" name="{prefix}_atividade" rows="4" aria-label="Atividade" {disabled}>{esc(data.get(f"{prefix}_atividade"))}</textarea>
+            </td>
+            <td class="plano-dates-cell">
+                <div class="plano-date-fields">
+                    <div>
+                        <label for="{prefix}_data_registo">Registo</label>
+                        <input id="{prefix}_data_registo" name="{prefix}_data_registo" type="date" aria-label="Data de registo" value="{esc(data.get(f"{prefix}_data_registo"))}" {disabled}>
+                    </div>
+                    <div>
+                        <label for="{prefix}_data_reavaliacao">Reavaliação</label>
+                        <input id="{prefix}_data_reavaliacao" name="{prefix}_data_reavaliacao" type="date" aria-label="Data de reavaliação" value="{esc(data.get(f"{prefix}_data_reavaliacao"))}" {disabled}>
+                    </div>
+                    <div>
+                        <label for="{prefix}_data_fecho">Fecho</label>
+                        <input id="{prefix}_data_fecho" name="{prefix}_data_fecho" type="date" aria-label="Data de fecho" value="{esc(data.get(f"{prefix}_data_fecho"))}" {disabled}>
+                    </div>
+                </div>
+            </td>
+            {actions}
+        </tr>
+    """
+
+
+def render_utente_signature_card(data, key, label, readonly=False, form_id=""):
+    signature = str(data.get(key) or "").strip()
+    has_signature = bool(signature)
+    empty_hidden = " hidden" if has_signature else ""
+    image_hidden = "" if has_signature else " hidden"
+    form_attr = f' form="{esc(form_id)}"' if form_id else ""
+    input_html = "" if readonly else f'<input type="hidden" name="{esc(key)}" value="{esc(signature)}"{form_attr} data-utente-signature-input>'
+    actions_html = ""
+    if not readonly:
+        action_label = "Alterar assinatura" if has_signature else "Assinar"
+        remove_hidden = "" if has_signature else " hidden"
+        actions_html = f"""
+        <div class="utente-signature-actions">
+            <button class="button secondary" type="button" data-utente-signature-open data-signature-key="{esc(key)}" data-signature-label="{esc(label)}">
+                <i data-lucide="pen-line"></i><span data-utente-signature-open-label>{esc(action_label)}</span>
+            </button>
+            <button class="button danger" type="button" data-utente-signature-remove data-signature-key="{esc(key)}"{remove_hidden}>
+                <i data-lucide="trash-2"></i>Remover
+            </button>
+        </div>
+        """
+    return f"""
+    <article class="utente-signature-card" data-utente-signature-card data-signature-key="{esc(key)}">
+        <h5>{esc(label)}</h5>
+        {input_html}
+        <div class="utente-signature-preview{' has-signature' if has_signature else ''}" data-utente-signature-preview>
+            <img src="{esc(signature)}" alt="Assinatura de {esc(label)}" data-utente-signature-image{image_hidden}>
+            <span data-utente-signature-empty{empty_hidden}>Sem assinatura registada</span>
+        </div>
+        {actions_html}
+    </article>
+    """
+
+
+def render_utente_signatures_section(data, manager_key, utente_key, readonly=False, form_id="edit-utente-form"):
+    cards = "".join(
+        (
+            render_utente_signature_card(data, manager_key, "Gestor/a de caso", readonly=readonly, form_id=form_id),
+            render_utente_signature_card(data, utente_key, "Utente", readonly=readonly, form_id=form_id),
+        )
+    )
+    dialog_html = ""
+    if not readonly:
+        dialog_html = """
+        <dialog class="utente-signature-dialog" data-utente-signature-dialog>
+            <section class="utente-signature-dialog-panel" aria-label="Registar assinatura">
+                <header class="utente-signature-dialog-head">
+                    <div>
+                        <h3>Registar assinatura</h3>
+                        <p data-utente-signature-dialog-label></p>
+                    </div>
+                    <button class="button secondary icon-button" type="button" data-utente-signature-close aria-label="Fechar" title="Fechar">
+                        <i data-lucide="x"></i>
+                    </button>
+                </header>
+                <div class="utente-signature-canvas-wrap">
+                    <canvas width="1000" height="320" data-utente-signature-canvas aria-label="Área de assinatura"></canvas>
+                </div>
+                <div class="notice utente-signature-error" data-utente-signature-error hidden></div>
+                <footer class="utente-signature-dialog-actions">
+                    <button class="button secondary" type="button" data-utente-signature-clear>
+                        <i data-lucide="eraser"></i>Limpar
+                    </button>
+                    <button class="button" type="button" data-utente-signature-save>
+                        <i data-lucide="save"></i>Guardar assinatura
+                    </button>
+                </footer>
+            </section>
+        </dialog>
+        """
+    return f"""
+    <section class="form-section utente-signatures-section" data-utente-signatures>
+        <h4 class="section-title">Assinaturas</h4>
+        <div class="utente-signatures-grid">{cards}</div>
+        {dialog_html}
+    </section>
+    """
+
+
+def render_plano_intervencao_form(data, readonly=False):
+    row_count = plano_intervencao_row_count_from_mapping(data)
+    disabled = "disabled" if readonly else ""
+    rows = "".join(
+        render_plano_intervencao_row(data, row, readonly=readonly)
+        for row in range(row_count)
+    )
+    template_html = ""
+    if not readonly:
+        template_row = render_plano_intervencao_row({}, "__INDEX__")
+        template_html = f'<template data-plano-intervencao-row-template>{template_row}</template>'
+    action_header = "" if readonly else '<th class="plano-row-actions">Ações</th>'
+    table_class = "sheet-table plano-intervencao-table has-row-actions" if not readonly else "sheet-table plano-intervencao-table"
+    table_columns = (
+        '<col class="plano-text-col">' * 4
+        + '<col class="plano-dates-col">'
+        + ('<col class="plano-actions-col">' if not readonly else "")
+    )
+    return f"""
+    <div class="plano-intervencao-form{' readonly-section' if readonly else ''}">
+        <section class="form-section">
+            <h4 class="section-title">Plano Individual de Intervenção</h4>
+            <div class="form-grid">
+                <div class="field span-12">
+                    <label for="plano_nome">Nome do utente</label>
+                    <input id="plano_nome" name="plano_nome" type="text" value="{esc(data.get("plano_nome"))}" readonly {disabled}>
+                </div>
+                {render_text_input(data, "plano_gestor_caso", "Gestor/a de caso", "span-6", readonly=readonly)}
+                {render_text_input(data, "plano_segundo_gestor_caso", "Segundo/a gestor/a de caso", "span-6", readonly=readonly)}
+            </div>
+        </section>
+
+        <section class="form-section readonly-section" data-plano-intervencao-records data-plano-intervencao-max="{PLANO_INTERVENCAO_MAX_ROWS}">
+            <div class="attendance-section-head">
+                <h4 class="section-title">Plano de intervenção</h4>
+                {"" if readonly else '<button class="button secondary" type="button" data-plano-intervencao-add>Adicionar objetivo</button>'}
+            </div>
+            <input type="hidden" name="{PLANO_INTERVENCAO_ROW_COUNT_FIELD}" value="{esc(row_count)}" data-plano-intervencao-count>
+            <div class="plano-intervencao-table-wrap">
+                <table class="{table_class}">
+                    <colgroup>{table_columns}</colgroup>
+                    <thead>
+                        <tr>
+                            <th>CIFsm</th>
+                            <th>Objetivo</th>
+                            <th>Avaliação</th>
+                            <th>Atividade</th>
+                            <th>Datas</th>
+                            {action_header}
+                        </tr>
+                    </thead>
+                    <tbody data-plano-intervencao-body>{rows}</tbody>
+                </table>
+            </div>
+            {template_html}
+        </section>
+
+        <section class="form-section">
+            <div class="field span-12">
+                <label for="plano_observacoes_tecnicas">Observações técnicas</label>
+                <textarea class="plano-observacoes" id="plano_observacoes_tecnicas" name="plano_observacoes_tecnicas" {disabled}>{esc(data.get("plano_observacoes_tecnicas"))}</textarea>
+            </div>
+        </section>
+
+        {render_utente_signatures_section(data, "plano_assinatura_gestor", "plano_assinatura_utente", readonly=readonly)}
+    </div>
+    """
+
+
 def render_pdf_attachments_panel(
     utente_id,
     readonly=False,
@@ -8866,8 +10011,14 @@ def render_pdf_attachments_panel(
     """
 
 
-def render_protecao_dados_form(utente_id, readonly=False):
-    return render_pdf_attachments_panel(
+def render_protecao_dados_form(utente_id, data, readonly=False):
+    signatures = render_utente_signatures_section(
+        data,
+        "protecao_assinatura_gestor",
+        "protecao_assinatura_utente",
+        readonly=readonly,
+    )
+    attachments = render_pdf_attachments_panel(
         utente_id,
         readonly=readonly,
         active_tab="protecao_dados",
@@ -8875,6 +10026,7 @@ def render_protecao_dados_form(utente_id, readonly=False):
         list_title="PDFs deste utente",
         wrapper_class="protecao-form",
     )
+    return f'<div class="protecao-dados-content">{signatures}{attachments}</div>'
 
 
 def render_outros_form(utente_id, readonly=False):
@@ -8900,7 +10052,7 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     active_label = next((label for key, label in tab_sections if key == active_tab), "")
     readonly = not can_edit_tab(current_user, active_tab)
     save_button = "" if readonly else '<button class="button" type="submit" form="edit-utente-form"><i data-lucide="save"></i>Guardar</button>'
-    if active_tab in {"protecao_dados", "outros"}:
+    if active_tab == "outros":
         save_button = ""
     tab_links = ""
     for key, label in tab_sections:
@@ -8913,6 +10065,8 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
 
     tab_content = get_tab_content(utente["id"], active_tab)
     ref_data, em_data, ins_data, diag_data, atend_data = load_structured_tab_data(utente["id"])
+    plano_data = load_plano_intervencao_data(utente["id"])
+    protecao_data = load_protecao_dados_data(utente["id"])
     extra_after_form = ""
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
@@ -8940,8 +10094,11 @@ def render_edit_page(utente, active_tab=None, error="", notice="", current_user=
     elif active_tab == "atendimentos":
         atend_data["atend_nome"] = atend_data.get("atend_nome") or utente.get("nome") or ""
         tab_body = render_atendimentos_form(atend_data, readonly=readonly)
+    elif active_tab == "plano_intervencao":
+        plano_data["plano_nome"] = utente.get("nome") or plano_data.get("plano_nome") or ""
+        tab_body = render_plano_intervencao_form(plano_data, readonly=readonly)
     elif active_tab == "protecao_dados":
-        tab_body = render_protecao_dados_form(utente["id"], readonly=readonly)
+        tab_body = render_protecao_dados_form(utente["id"], protecao_data, readonly=readonly)
     elif active_tab == "outros":
         tab_body = render_outros_form(utente["id"], readonly=readonly)
     else:
@@ -9035,6 +10192,8 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
 
     tab_content = get_tab_content(utente["id"], active_tab)
     ref_data, em_data, ins_data, diag_data, atend_data = load_structured_tab_data(utente["id"])
+    plano_data = load_plano_intervencao_data(utente["id"])
+    protecao_data = load_protecao_dados_data(utente["id"])
     if active_tab == "referenciacao":
         ref_data["ref_nome"] = ref_data.get("ref_nome") or utente.get("nome") or ""
         tab_body = render_referenciacao_form(ref_data, utente["id"], readonly=True)
@@ -9053,8 +10212,11 @@ def render_view_page(utente, active_tab=None, notice="", current_user=None):
     elif active_tab == "atendimentos":
         atend_data["atend_nome"] = atend_data.get("atend_nome") or utente.get("nome") or ""
         tab_body = render_atendimentos_form(atend_data, readonly=True)
+    elif active_tab == "plano_intervencao":
+        plano_data["plano_nome"] = utente.get("nome") or plano_data.get("plano_nome") or ""
+        tab_body = render_plano_intervencao_form(plano_data, readonly=True)
     elif active_tab == "protecao_dados":
-        tab_body = render_protecao_dados_form(utente["id"], readonly=True)
+        tab_body = render_protecao_dados_form(utente["id"], protecao_data, readonly=True)
     elif active_tab == "outros":
         tab_body = render_outros_form(utente["id"], readonly=True)
     else:
@@ -9550,14 +10712,14 @@ def render_statistics_page(current_user):
 <div class="edit-layout">
     <div class="edit-title stats-page-title">
         <div>
-            <h2>Estatísticas de utentes</h2>
+            <h2>Indicadores de utentes</h2>
         </div>
         <div class="title-actions">
             {render_print_page_button(current_user)}
             <a class="button secondary" href="/">Voltar</a>
         </div>
     </div>
-    <h2 class="stats-print-heading">Estatísticas de utentes</h2>
+    <h2 class="stats-print-heading">Indicadores de utentes</h2>
     <section class="stats-grid">
         <article class="stat-card">
             <span>{esc(tr(current_user, "average_stay"))}</span>
@@ -9612,7 +10774,7 @@ def render_statistics_page(current_user):
     </section>
 </div>
 """
-    return render_page("Estatísticas de utentes", content, current_user=current_user)
+    return render_page("Indicadores de utentes", content, current_user=current_user)
 
 
 def get_utente(utente_id):
@@ -10143,8 +11305,34 @@ def build_utentes_backup_zip():
     return f"backup-utentes-{exported_at}.zip", buffer.getvalue()
 
 
+def request_content_length(handler, maximum):
+    raw_length = str(handler.headers.get("Content-Length", "0")).strip()
+    try:
+        length = int(raw_length or "0")
+    except ValueError as exc:
+        raise ValueError("Tamanho do pedido invalido.") from exc
+    if length < 0:
+        raise ValueError("Tamanho do pedido invalido.")
+    if length > maximum:
+        raise ValueError("Pedido demasiado grande.")
+    return length
+
+
+def request_is_same_origin(handler):
+    source = str(handler.headers.get("Origin") or handler.headers.get("Referer") or "").strip()
+    if not source:
+        return True
+    parsed_source = urlparse(source)
+    if parsed_source.scheme not in {"http", "https"} or not parsed_source.netloc:
+        return False
+    expected_host = str(
+        handler.headers.get("X-Forwarded-Host") or handler.headers.get("Host") or ""
+    ).split(",", 1)[0].strip().lower()
+    return bool(expected_host) and hmac.compare_digest(parsed_source.netloc.lower(), expected_host)
+
+
 def read_post(handler):
-    length = int(handler.headers.get("Content-Length", "0"))
+    length = request_content_length(handler, MAX_FORM_BYTES)
     raw = handler.rfile.read(length).decode("utf-8")
     return parse_qs(raw, keep_blank_values=True)
 
@@ -10153,7 +11341,7 @@ def read_multipart(handler):
     content_type = handler.headers.get("Content-Type", "")
     if "multipart/form-data" not in content_type:
         raise ValueError("Pedido inválido.")
-    length = int(handler.headers.get("Content-Length", "0"))
+    length = request_content_length(handler, MAX_MULTIPART_BYTES)
     raw = handler.rfile.read(length)
     message = BytesParser(policy=policy.default).parsebytes(
         f"Content-Type: {content_type}\r\nMIME-Version: 1.0\r\n\r\n".encode("utf-8") + raw
@@ -10748,6 +11936,7 @@ def render_user_manual_page(current_user):
             <li><strong>Registration Form and Initial Requirements Assessment:</strong> request, preferred services, admissibility questions and requirements weighting table.</li>
             <li><strong>Multidisciplinary Diagnostic Assessment:</strong> socio-demographic data, education, work, economic and housing situation, family/social network, genogram, ecomap, health, routine and IADL assessment.</li>
             <li><strong>Service and Follow-up Records:</strong> one structured intervention record with date, scope, type, intervention description, recommendations and professionals involved.</li>
+            <li><strong>Individual Intervention Plan:</strong> sensitive plan with the client name, two case managers, CIFsm, goals, assessment, activities, dates and expandable technical observations.</li>
             <li><strong>Data Protection and Responsibility Terms:</strong> area for attaching scanned PDF documents for that specific client.</li>
         </ul>
     </div>
@@ -10872,6 +12061,7 @@ def render_user_manual_page(current_user):
             <li><strong>Ficha de Inscrição e Avaliação Inicial de Requisitos:</strong> pedido, serviços pretendidos, admissibilidade e tabela de ponderação dos requisitos.</li>
             <li><strong>Avaliação Diagnóstica Multidisciplinar:</strong> dados sociodemográficos, escolaridade, trabalho, situação económica e habitacional, rede familiar/social, genograma, ecomapa, saúde, rotina e avaliação de AVDI.</li>
             <li><strong>Registo de Atendimentos e Acompanhamentos:</strong> registo estruturado de intervenção com data, âmbito, tipo, descrição, recomendações e profissionais envolvidos.</li>
+            <li><strong>Plano Individual de Intervenção:</strong> separador sensível com nome do utente, dois gestores de caso, CIFsm, objetivos, avaliação, atividades, datas e observações técnicas expansíveis.</li>
             <li><strong>Proteção de dados e Termos de Responsabilidade:</strong> zona para anexar PDFs digitalizados desse utente específico.</li>
         </ul>
     </div>
@@ -11092,6 +12282,8 @@ def render_manual_choice_dialog(current_user):
     if user_language(current_user) == "en":
         title = "Manual"
         subtitle = "Choose the right manual for what you need to check."
+        initial_title = "Getting started guide"
+        initial_description = "For first access: sign in, navigate safely, understand permissions and start in each area."
         user_title = "User manual"
         user_description = "For daily use: login, service users, tabs, PDF attachments, history, theme and language."
         developer_title = "Programmer manual"
@@ -11102,13 +12294,15 @@ def render_manual_choice_dialog(current_user):
     else:
         title = "Manual"
         subtitle = "Escolha o manual adequado ao que pretende consultar."
+        initial_title = "Manual Inicial"
+        initial_description = "Para os primeiros passos: entrar, navegar em segurança, compreender permissões e começar em cada área."
         user_title = "Manual do Utilizador"
         user_description = "Para quem usa a app no dia a dia: login, utentes, separadores, PDFs, historico, tema e idioma."
         developer_title = "Manual do Programador"
         developer_description = "Para quem mantem o projeto: ficheiros, GitHub, Vercel, Supabase, SQL, seguranca e atualizacoes."
         close_label = "Fechar"
-        user_href = "/docs/Manual_Utilizador_Utentes.pdf"
-        developer_href = "/docs/Manual_Programador_Utentes.pdf"
+        user_href = "/docs/Manual_Utilizador_Utentes.pdf?v=20260723"
+        developer_href = "/docs/Manual_Programador_Utentes.pdf?v=20260723"
     return f"""
     <dialog class="manual-dialog" id="manualChoiceDialog">
         <section class="manual-dialog-panel" aria-label="{esc(title)}">
@@ -11519,7 +12713,8 @@ class UtentesHandler(BaseHTTPRequestHandler):
             try:
                 filename, data = build_utentes_backup_zip()
             except (ValueError, SupabaseError, OSError) as exc:
-                self.send_error(500, f"{tr(user, 'backup_error')}: {exc}")
+                print(f"Utentes backup failed: {exc}")
+                self.send_error(500, tr(user, "backup_error"))
                 return
             log_action(user, "Exportou backup de utentes", "Utente", None, filename)
             self.send_zip(filename, data)
@@ -11600,13 +12795,25 @@ class UtentesHandler(BaseHTTPRequestHandler):
         self.send_error(404, "Página não encontrada")
 
     def do_POST(self):
+        if not request_is_same_origin(self):
+            self.send_error(403, "Origem do pedido nao autorizada")
+            return
+
         parsed = urlparse(self.path)
 
         if parsed.path == "/anexos/upload":
             self.handle_pdf_upload()
             return
 
-        data = read_post(self)
+        try:
+            data = read_post(self)
+        except UnicodeDecodeError:
+            self.send_error(400, "Codificacao do pedido invalida")
+            return
+        except ValueError as exc:
+            status = 413 if "grande" in str(exc).lower() else 400
+            self.send_error(status, str(exc))
+            return
 
         if parsed.path == "/login":
             email = field_value(data, "email")
@@ -11712,6 +12919,18 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 elif active_tab == "atendimentos":
                     active_data = atendimentos_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
+                elif active_tab == "plano_intervencao":
+                    save_tab_content(
+                        int(utente_id),
+                        active_tab,
+                        json.dumps(plano_intervencao_from_post(data), ensure_ascii=False),
+                    )
+                elif active_tab == "protecao_dados":
+                    save_tab_content(
+                        int(utente_id),
+                        active_tab,
+                        json.dumps(protecao_dados_from_post(data), ensure_ascii=False),
+                    )
                 else:
                     save_tab_content(int(utente_id), active_tab, field_value(data, "conteudo"))
             except ValueError as exc:
@@ -11732,7 +12951,13 @@ class UtentesHandler(BaseHTTPRequestHandler):
                 log_action(admin, "Editou pagamento", "Utente", int(utente_id), field_value(data, "pag_mensalidade_ate"))
                 self.redirect(f"/editar?id={utente_id}&tab=pagamentos&msg={quote('Mensalidade atualizada com sucesso')}")
                 return
-            log_action(admin, "Guardou utente", "Utente", int(utente_id), f"{field_value(data, 'nome')} - {get_tab_title(active_tab)}")
+            log_action(
+                admin,
+                "Guardou utente",
+                "Utente",
+                int(utente_id),
+                f"{field_value(data, 'nome') or field_value(data, 'plano_nome')} - {get_tab_title(active_tab)}",
+            )
             self.redirect(f"/?msg={quote('Dados guardados com sucesso')}")
             return
 
@@ -11783,6 +13008,18 @@ class UtentesHandler(BaseHTTPRequestHandler):
                     update_utente_core_from_shared(int(utente_id), data)
                     active_data = atendimentos_from_post(data)
                     sync_saved_shared_tabs(int(utente_id), active_tab, active_data)
+                elif active_tab == "plano_intervencao":
+                    save_tab_content(
+                        int(utente_id),
+                        active_tab,
+                        json.dumps(plano_intervencao_from_post(data), ensure_ascii=False),
+                    )
+                elif active_tab == "protecao_dados":
+                    save_tab_content(
+                        int(utente_id),
+                        active_tab,
+                        json.dumps(protecao_dados_from_post(data), ensure_ascii=False),
+                    )
                 else:
                     save_tab_content(int(utente_id), active_tab, field_value(data, "conteudo"))
             except ValueError as exc:
@@ -11979,6 +13216,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "application/pdf")
         self.send_header("Content-Disposition", f"inline; filename=\"{filename}\"; filename*=UTF-8''{quote(filename)}")
+        self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)
@@ -12004,6 +13242,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         encoded = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
@@ -12022,6 +13261,7 @@ class UtentesHandler(BaseHTTPRequestHandler):
         encoded = body.encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "private, no-store")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
@@ -12064,6 +13304,9 @@ def run():
     server = ThreadingHTTPServer(("127.0.0.1", port), UtentesHandler)
     print(f"Base de dados: {DB_PATH}")
     print(f"A abrir em: http://127.0.0.1:{port}")
+    if DEFAULT_ADMIN_CREDENTIAL_ACTIVE:
+        print(f"Login local: {DEFAULT_ADMIN_EMAIL}")
+        print(f"Password local temporaria: {DEFAULT_ADMIN_PASSWORD}")
     server.serve_forever()
 
 

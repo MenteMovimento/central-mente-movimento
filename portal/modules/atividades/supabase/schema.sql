@@ -1,32 +1,16 @@
 create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to authenticated;
 
-create or replace function private.jsonb_bool(source jsonb, path text[])
+create or replace function private.jsonb_bool(value jsonb, path text[])
 returns boolean
 language sql
 immutable
 as $$
-  select case
-    when source #> path is null then null
-    when jsonb_typeof(source #> path) = 'boolean' then (source #>> path)::boolean
-    when lower(source #>> path) in ('true', '1', 'yes', 'sim') then true
-    when lower(source #>> path) in ('false', '0', 'no', 'nao') then false
+  select case jsonb_extract_path_text(coalesce(value, '{}'::jsonb), variadic path)
+    when 'true' then true
+    when 'false' then false
     else null
-  end
-$$;
-
-create or replace function private.default_app_permission(role public.app_role, area text, action text)
-returns boolean
-language sql
-immutable
-as $$
-  select case
-    when role = 'admin' then true
-    when area = 'central' and action in ('manage_users', 'view_history') then role = 'admin'
-    when area in ('socios', 'utentes', 'dispositivos', 'atividades') and action = 'view' then role in ('admin', 'operator', 'viewer')
-    when area in ('socios', 'utentes', 'dispositivos', 'atividades') and action in ('edit', 'export') then role in ('admin', 'operator')
-    when area in ('socios', 'utentes', 'dispositivos') and action = 'delete' then role = 'admin'
-    when area = 'utentes' and action in ('view_sensitive', 'edit_sensitive') then role in ('admin', 'operator')
-    else false
   end
 $$;
 
@@ -39,7 +23,6 @@ stable
 as $$
   select coalesce(
     private.jsonb_bool(app_users.permissions, array[area, action]),
-    private.default_app_permission(app_users.role, area, action),
     false
   )
   from public.app_users
@@ -48,7 +31,33 @@ as $$
   limit 1
 $$;
 
+drop function if exists private.default_app_permission(public.app_role, text, text);
+
+revoke all on function private.jsonb_bool(jsonb, text[]) from public, anon, authenticated;
+revoke all on function private.current_app_permission(text, text) from public, anon;
 grant execute on function private.current_app_permission(text, text) to authenticated;
+
+-- Migrate the former activity management permission once. Future permission
+-- changes are respected because the migration marker prevents reapplying it.
+update public.app_users
+set permissions = jsonb_set(
+  coalesce(permissions, '{}'::jsonb),
+  '{atividades}',
+  coalesce(permissions -> 'atividades', '{}'::jsonb) || jsonb_build_object(
+    'view_sensitive',
+    coalesce(private.jsonb_bool(permissions, array['atividades', 'view_sensitive']), false)
+      or coalesce(private.jsonb_bool(permissions, array['atividades', 'edit']), false)
+  ),
+  true
+) || jsonb_build_object(
+  '_permission_migrations',
+  coalesce(permissions -> '_permission_migrations', '{}'::jsonb)
+    || jsonb_build_object('activities_sensitive_v1', true)
+)
+where not coalesce(
+  private.jsonb_bool(permissions, array['_permission_migrations', 'activities_sensitive_v1']),
+  false
+);
 
 create or replace function private.touch_updated_at()
 returns trigger
@@ -183,6 +192,12 @@ alter table public.activities_schedule enable row level security;
 alter table public.activities_history enable row level security;
 alter table public.activities_summaries enable row level security;
 
+revoke all on public.activities_catalog from anon, authenticated;
+revoke all on public.activities_monitors from anon, authenticated;
+revoke all on public.activities_schedule from anon, authenticated;
+revoke all on public.activities_history from anon, authenticated;
+revoke all on public.activities_summaries from anon, authenticated;
+
 drop policy if exists "authorized users read activity catalog" on public.activities_catalog;
 drop policy if exists "authorized users create activity catalog" on public.activities_catalog;
 drop policy if exists "authorized users update activity catalog" on public.activities_catalog;
@@ -198,20 +213,20 @@ create policy "authorized users create activity catalog"
 on public.activities_catalog
 for insert
 to authenticated
-with check (private.current_app_permission('atividades', 'edit'));
+with check (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users update activity catalog"
 on public.activities_catalog
 for update
 to authenticated
-using (private.current_app_permission('atividades', 'edit'))
-with check (private.current_app_permission('atividades', 'edit'));
+using (private.current_app_permission('atividades', 'view_sensitive'))
+with check (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users delete activity catalog"
 on public.activities_catalog
 for delete
 to authenticated
-using (private.current_app_permission('atividades', 'edit'));
+using (private.current_app_permission('atividades', 'view_sensitive'));
 
 drop policy if exists "authorized users read activity monitors" on public.activities_monitors;
 drop policy if exists "authorized users create activity monitors" on public.activities_monitors;
@@ -222,26 +237,26 @@ create policy "authorized users read activity monitors"
 on public.activities_monitors
 for select
 to authenticated
-using (private.current_app_permission('atividades', 'view'));
+using (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users create activity monitors"
 on public.activities_monitors
 for insert
 to authenticated
-with check (private.current_app_permission('atividades', 'edit'));
+with check (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users update activity monitors"
 on public.activities_monitors
 for update
 to authenticated
-using (private.current_app_permission('atividades', 'edit'))
-with check (private.current_app_permission('atividades', 'edit'));
+using (private.current_app_permission('atividades', 'view_sensitive'))
+with check (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users delete activity monitors"
 on public.activities_monitors
 for delete
 to authenticated
-using (private.current_app_permission('atividades', 'edit'));
+using (private.current_app_permission('atividades', 'view_sensitive'));
 
 drop policy if exists "authorized users read activities" on public.activities_schedule;
 drop policy if exists "authorized users create activities" on public.activities_schedule;
@@ -258,20 +273,20 @@ create policy "authorized users create activities"
 on public.activities_schedule
 for insert
 to authenticated
-with check (private.current_app_permission('atividades', 'edit'));
+with check (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users update activities"
 on public.activities_schedule
 for update
 to authenticated
-using (private.current_app_permission('atividades', 'edit'))
-with check (private.current_app_permission('atividades', 'edit'));
+using (private.current_app_permission('atividades', 'view_sensitive'))
+with check (private.current_app_permission('atividades', 'view_sensitive'));
 
 create policy "authorized users delete activities"
 on public.activities_schedule
 for delete
 to authenticated
-using (private.current_app_permission('atividades', 'edit'));
+using (private.current_app_permission('atividades', 'view_sensitive'));
 
 drop policy if exists "authorized users read activity history" on public.activities_history;
 drop policy if exists "authorized users create activity history" on public.activities_history;
@@ -288,6 +303,7 @@ for insert
 to authenticated
 with check (
   private.current_app_permission('atividades', 'edit')
+  or private.current_app_permission('atividades', 'view_sensitive')
   or private.current_app_permission('atividades', 'export')
 );
 
@@ -300,7 +316,7 @@ create policy "authorized users read activity summaries"
 on public.activities_summaries
 for select
 to authenticated
-using (private.current_app_permission('atividades', 'view'));
+using (private.current_app_permission('atividades', 'edit'));
 
 create policy "authorized users create activity summaries"
 on public.activities_summaries
@@ -326,7 +342,7 @@ grant usage on schema private to authenticated;
 grant select, insert, update, delete on public.activities_catalog to authenticated;
 grant select, insert, update, delete on public.activities_monitors to authenticated;
 grant select, insert, update, delete on public.activities_schedule to authenticated;
-grant select, insert, update on public.activities_history to authenticated;
+grant select, insert on public.activities_history to authenticated;
 grant select, insert, update, delete on public.activities_summaries to authenticated;
 
 notify pgrst, 'reload schema';

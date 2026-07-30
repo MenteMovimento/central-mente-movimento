@@ -6,9 +6,11 @@
     <link rel="shortcut icon" href="/static/favicon.png?v=1" type="image/png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Gestão de Sócios</title>
+    <title>Gestão de Sócios | MenteMovimento</title>
     <script>
       (() => {
+        const shouldWaitForSession = true;
+        if (!shouldWaitForSession) return;
         document.documentElement.dataset.centralAuthPending = "true";
         const isStillPending = () => document.documentElement.dataset.centralAuthPending === "true";
         const renderLoading = () => {
@@ -37,6 +39,10 @@
         background: #f4fbf8;
       }
 
+      html[data-central-auth-pending="true"] body {
+        visibility: hidden;
+      }
+
       html[data-theme="dark"][data-central-auth-pending="true"] {
         background: #07131f;
       }
@@ -45,6 +51,7 @@
         position: fixed;
         inset: 0;
         z-index: 2147483647;
+        visibility: visible;
         display: grid;
         place-items: center;
         background: #f4fbf8;
@@ -84,10 +91,10 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="config.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="/static/central-module-auth.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="app.js?v=20260608-header-i18n-icons" defer></script>
+    <script src="/static/central-config.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="config.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/central-module-auth.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="app.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
   </head>
   <body>
     <section class="setup-view" id="setupView" hidden>
@@ -159,11 +166,6 @@
             </span>
             <div>
               <h1>MenteMovimento</h1>
-            <h1 id="appTitle">Gestão de Sócios</h1>
-            <div class="user-chip" id="userChip">
-              <span id="userEmail"></span>
-              <strong id="userRole"></strong>
-            </div>
           </div>
           </a>
 
@@ -178,7 +180,11 @@
           </a>
           <a class="topnav-link" href="/area/dispositivos/">
             <i data-lucide="monitor-cog"></i>
-            <span data-i18n="nav.dispositivos">Dispositivos</span>
+            <span data-i18n="nav.dispositivos">Cibersegurança</span>
+          </a>
+          <a class="topnav-link" href="/area/atividades/">
+            <i data-lucide="calendar-days"></i>
+            <span data-i18n="nav.atividades">Atividades</span>
           </a>
         </nav>
 
@@ -210,10 +216,19 @@
               </button>
             </div>
           </div>
-          <button class="icon-link" id="logoutBtn" type="button" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
-            <i data-lucide="log-out"></i>
-            <span class="icon-label">Terminar sessão</span>
-          </button>
+          <details class="account-menu-wrap">
+            <summary class="icon-link account-menu-trigger" title="Conta" aria-label="Conta">
+              <i data-lucide="user-round"></i>
+              <span class="icon-label">Conta</span>
+            </summary>
+            <div class="account-menu" role="menu">
+              <strong class="account-menu-name" id="accountMenuName"></strong>
+              <button class="account-logout-button" id="logoutBtn" type="button" role="menuitem" title="Terminar sessão" aria-label="Terminar sessão" data-i18n-title="nav.logout" data-i18n-aria-label="nav.logout">
+                <i data-lucide="log-out"></i>
+                <span>Terminar sessão</span>
+              </button>
+            </div>
+          </details>
           <div class="action-stack topbar-legacy-actions" aria-hidden="true">
             <div class="action-row">
               <button class="secondary-button admin-manager-action" id="legacyAdminManagerBtn" type="button" hidden>
@@ -299,13 +314,13 @@
               <i data-lucide="check-circle-2"></i>
             </div>
             <div>
-              <span>Estado das quotas</span>
-              <strong id="quotaInsightTitle">Sem quotas em atraso</strong>
+              <span>Quotas em Atraso</span>
+              <strong id="quotaInsightTitle">Nenhuma</strong>
               <p id="quotaInsightDetail">As quotas registadas aparecem aqui em resumo.</p>
             </div>
           </article>
 
-          <article class="insight-card">
+          <article class="insight-card insight-card-primary">
             <div class="insight-icon" aria-hidden="true">
               <i data-lucide="badge-check"></i>
             </div>
@@ -316,7 +331,7 @@
             </div>
           </article>
 
-          <article class="insight-card">
+          <article class="insight-card insight-card-secondary">
             <div class="insight-icon" aria-hidden="true">
               <i data-lucide="clock-3"></i>
             </div>
@@ -421,7 +436,7 @@
             <label class="field" for="userPassword" style="margin-bottom: 16px;">
               <span data-i18n="users.password">Password</span>
               <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                <input id="userPassword" name="password" type="password" required style="width: 100%; padding-right: 42px;" />
+                <input id="userPassword" name="password" type="password" autocomplete="new-password" minlength="8" title="A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial." required style="width: 100%; padding-right: 42px;" />
                 <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
                   <i data-lucide="eye">👁️</i>
                 </button>
@@ -594,7 +609,7 @@
         </div>
 
         <div class="manual-options">
-          <a class="manual-card" href="docs/Manual_Utilizador_Gestao_Socios.pdf" target="_blank" rel="noopener">
+          <a class="manual-card" href="docs/Manual_Utilizador_Gestao_Socios.pdf?v=20260716" target="_blank" rel="noopener">
             <span class="manual-card-icon" aria-hidden="true">
               <i data-lucide="users"></i>
             </span>
@@ -604,7 +619,7 @@
             </span>
           </a>
 
-          <a class="manual-card" href="docs/Manual_Programador_Gestao_Socios.pdf" target="_blank" rel="noopener">
+          <a class="manual-card" href="docs/Manual_Programador_Gestao_Socios.pdf?v=20260716" target="_blank" rel="noopener">
             <span class="manual-card-icon" aria-hidden="true">
               <i data-lucide="code-2"></i>
             </span>

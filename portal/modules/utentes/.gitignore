@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+*.zip
+
+# Dados locais/sensiveis
+utentes.db
+utentes.db-*
+anexos/
+
+# Ambiente local
+.env
+.env*.local
+.vercel/
+.venv/
+venv/
+
+# Sistema/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+.vercel

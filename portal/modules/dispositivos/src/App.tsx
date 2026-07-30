@@ -49,7 +49,7 @@ import {
 } from 'lucide-react'
 import './App.css'
 import { BrandLogo } from './components/BrandLogo'
-import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { isDemoModeEnabled, isSupabaseConfigured, supabase } from './lib/supabase'
 import {
   csvRowToDeviceForm,
   deviceToCsvRow,
@@ -206,13 +206,8 @@ const emptyCentralPermissions = (): Required<CentralPermissions> => ({
 
 const normalizeCentralPermissions = (
   permissions?: CentralPermissions | null,
-  _legacyRole?: string | null,
 ): Required<CentralPermissions> => {
-  const source = permissions && typeof permissions === 'object' ? permissions : {}
-  const hasStoredMatrix =
-    Object.keys(source.central ?? {}).length > 0 ||
-    centralAreas.some((area) => Object.keys(source[area] ?? {}).length > 0)
-  const normalized = hasStoredMatrix ? emptyCentralPermissions() : fullCentralPermissions()
+  const normalized = emptyCentralPermissions()
 
   if (permissions && typeof permissions === 'object') {
     centralAreas.forEach((area) => {
@@ -359,6 +354,8 @@ const formatFileSize = (size: number | null) => {
   if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`
   return `${(size / (1024 * 1024)).toFixed(1)} MB`
 }
+
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024
 
 const getCountItems = (values: string[]) =>
   Array.from(
@@ -599,10 +596,10 @@ const manualSectionsByLanguage: Record<
       ],
     },
     {
-      title: '8. Relatorios, anexos e estatisticas',
+      title: '8. Relatorios, anexos e indicadores',
       steps: [
         'Usa Imprimir relatorio para gerar um relatorio dos registos visiveis.',
-        'Abre Estatisticas para ver totais, marcas, tecnicos, avarias e resultados finais.',
+        'Abre Indicadores para ver totais, marcas, tecnicos, avarias e resultados finais.',
         'Ao editar um registo, usa Anexar foto/fatura para guardar fotos, PDFs ou faturas.',
         'Executa supabase/feature-upgrades.sql para ativar anexos e historico em producao.',
       ],
@@ -672,10 +669,10 @@ const manualSectionsByLanguage: Record<
       ],
     },
     {
-      title: '8. Reports, attachments and statistics',
+      title: '8. Reports, attachments and indicators',
       steps: [
         'Use Print report to generate a report of the visible records.',
-        'Open Statistics to see totals, brands, technicians, faults and final results.',
+        'Open Indicators to see totals, brands, technicians, faults and final results.',
         'When editing a record, use Attach photo/invoice to store photos, PDFs or invoices.',
         'Run supabase/feature-upgrades.sql to enable attachments and history in production.',
       ],
@@ -865,7 +862,7 @@ const translations = {
     sortBy: 'Ordenar por',
     sortDescending: 'Ordenacao decrescente',
     sortDirection: 'Direcao',
-    statistics: 'Estatisticas',
+    statistics: 'Indicadores',
     status: 'Estado',
     storageSetupRequired:
       'Para anexos e historico, executa supabase/feature-upgrades.sql no SQL Editor do Supabase.',
@@ -926,6 +923,7 @@ const translations = {
     userNameUpdatedDemo: 'Nome do utilizador atualizado em modo demonstracao.',
     attachmentDeleted: 'Anexo apagado.',
     attachmentUploaded: 'Anexo guardado.',
+    attachmentTooLarge: 'O anexo nao pode exceder 20 MB.',
     resendIn: (seconds: number) => `Reenviar em ${seconds}s`,
     waitSeconds: (seconds: number) => `Aguarda ${seconds}s`,
     changePermissionFor: (name: string) => `Alterar permissao de ${name}`,
@@ -1050,7 +1048,7 @@ const translations = {
     sortBy: 'Sort by',
     sortDescending: 'Descending order',
     sortDirection: 'Direction',
-    statistics: 'Statistics',
+    statistics: 'Indicators',
     status: 'Status',
     storageSetupRequired:
       'For attachments and history, run supabase/feature-upgrades.sql in the Supabase SQL Editor.',
@@ -1111,6 +1109,7 @@ const translations = {
     userNameUpdatedDemo: 'User name updated in demo mode.',
     attachmentDeleted: 'Attachment deleted.',
     attachmentUploaded: 'Attachment saved.',
+    attachmentTooLarge: 'The attachment cannot exceed 20 MB.',
     resendIn: (seconds: number) => `Resend in ${seconds}s`,
     waitSeconds: (seconds: number) => `Wait ${seconds}s`,
     changePermissionFor: (name: string) => `Change permission for ${name}`,
@@ -1307,10 +1306,10 @@ function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profiles, setProfiles] = useState<Profile[]>(() =>
-    isSupabaseConfigured ? [] : loadDemoProfiles(),
+    isDemoModeEnabled ? loadDemoProfiles() : [],
   )
   const [devices, setDevices] = useState<Device[]>(() =>
-    isSupabaseConfigured ? [] : loadDemoDevices(),
+    isDemoModeEnabled ? loadDemoDevices() : [],
   )
   const [isLoading, setIsLoading] = useState(isSupabaseConfigured)
   const [isUsersLoading, setIsUsersLoading] = useState(false)
@@ -1322,18 +1321,15 @@ function App() {
   const [deletingProfileId, setDeletingProfileId] = useState<string | null>(null)
   const [editingProfileId, setEditingProfileId] = useState<string | null>(null)
   const [editingProfileName, setEditingProfileName] = useState('')
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
   const [authLoading, setAuthLoading] = useState(false)
   const [authClock, setAuthClock] = useState(() => Date.now())
   const [authForm, setAuthForm] = useState({
     email: '',
     password: '',
-    fullName: '',
   })
   const [authError, setAuthError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState('')
-  const [signupCooldownUntil, setSignupCooldownUntil] = useState(0)
   const [resendCooldownUntil, setResendCooldownUntil] = useState(0)
   const [deviceForm, setDeviceForm] = useState<DeviceForm>(emptyDeviceForm)
   const [createUserForm, setCreateUserForm] = useState(emptyCreateUserForm)
@@ -1362,7 +1358,8 @@ function App() {
   const toolsMenuRef = useRef<HTMLDivElement | null>(null)
   const accountMenuRef = useRef<HTMLDivElement | null>(null)
 
-  const isDemoMode = !isSupabaseConfigured
+  const isDemoMode = isDemoModeEnabled
+  const isConfigurationMissing = !isSupabaseConfigured && !isDemoMode
   const effectiveProfile: Profile | null = isDemoMode
     ? {
         id: 'demo-admin',
@@ -1370,7 +1367,7 @@ function App() {
         full_name: 'Administrador',
         role: 'member',
         active: true,
-        permissions: normalizeCentralPermissions(null),
+        permissions: fullCentralPermissions(),
       }
     : profile
   const currentProfileId = isDemoMode ? 'demo-admin' : profile?.id
@@ -1382,7 +1379,6 @@ function App() {
   const canManageUsers = isAuthenticated && hasCentralPermission(effectiveProfile, 'central', 'manage_users')
   const selectedView = (activeView === 'stats' ? 'stats' : 'devices') as AppView
   const currentAuthEmail = normalizeEmail(authForm.email)
-  const signupCooldownRemaining = getRemainingSeconds(signupCooldownUntil, authClock)
   const resendCooldownRemaining = getRemainingSeconds(resendCooldownUntil, authClock)
   const t = translations[language]
   const accountDisplayName =
@@ -1409,7 +1405,7 @@ function App() {
       email: userEmail ?? null,
       full_name: null,
       role: 'member',
-      active: true,
+      active: false,
       permissions: normalizeCentralPermissions(null),
     }
 
@@ -1874,30 +1870,16 @@ function App() {
     }
   }, [devices])
 
-  const checkEmailRegistered = useCallback(async (email: string) => {
-    if (!email) return false
-
-    try {
-      const response = await fetch('/api/auth-check', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      })
-
-      if (!response.ok) return false
-
-      const result = (await response.json()) as { canCheck?: boolean; exists?: boolean }
-      return Boolean(result.canCheck && result.exists)
-    } catch {
-      return false
-    }
-  }, [])
-
   const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!supabase) return
+    if (!supabase) {
+      setAuthError(
+        language === 'pt'
+          ? 'A ligacao segura ao Supabase nao esta configurada. Contacte o administrador.'
+          : 'The secure Supabase connection is not configured. Contact the administrator.',
+      )
+      return
+    }
 
     const email = normalizeEmail(authForm.email)
 
@@ -1915,68 +1897,15 @@ function App() {
         return
       }
 
-      if (authMode !== 'login' && !isStrongPassword(authForm.password)) {
-        throw new Error(t.passwordMin)
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password: authForm.password,
+      })
 
-      if (authMode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password: authForm.password,
-        })
-
-        if (error) throw error
-        setPendingConfirmationEmail('')
-      } else {
-        const storedSignupCooldown = getCooldownUntil('signup', email)
-        setSignupCooldownUntil(storedSignupCooldown)
-
-        if (getRemainingSeconds(storedSignupCooldown, Date.now()) > 0) {
-          setPendingConfirmationEmail(email)
-          setNotice(t.recentConfirmation(getRemainingSeconds(storedSignupCooldown, Date.now())))
-          return
-        }
-
-        const isRegistered = await checkEmailRegistered(email)
-
-        if (isRegistered) {
-          setAuthMode('login')
-          setNotice(t.emailRegistered)
-          return
-        }
-
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password: authForm.password,
-          options: {
-            data: {
-              full_name: authForm.fullName,
-            },
-            emailRedirectTo: window.location.origin,
-          },
-        })
-
-        if (error) throw error
-
-        if (data.user?.identities && data.user.identities.length === 0) {
-          setAuthMode('login')
-          setNotice(t.emailRegistered)
-          return
-        }
-
-        if (data.user && !data.session) {
-          setPendingConfirmationEmail(email)
-          setSignupCooldownUntil(setCooldownUntil('signup', email))
-          setResendCooldownUntil(setCooldownUntil('resend', email))
-          setNotice(t.accountCreatedConfirm)
-        } else {
-          setPendingConfirmationEmail('')
-          setNotice(t.accountCreated)
-        }
-      }
+      if (error) throw error
+      setPendingConfirmationEmail('')
     } catch (error) {
       if (isExistingAccountError(error)) {
-        setAuthMode('login')
         setNotice(t.emailRegistered)
         return
       }
@@ -1988,8 +1917,7 @@ function App() {
 
       if (isEmailRateLimitError(error)) {
         setPendingConfirmationEmail(email)
-        const nextCooldown = setCooldownUntil(authMode === 'signup' ? 'signup' : 'resend', email)
-        setSignupCooldownUntil(nextCooldown)
+        const nextCooldown = setCooldownUntil('resend', email)
         setResendCooldownUntil(nextCooldown)
       }
 
@@ -2696,6 +2624,12 @@ function App() {
 
     if (!file || !editingId || !supabase || !session) return
 
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      setAuthError(t.attachmentTooLarge)
+      setNotice(null)
+      return
+    }
+
     const currentDevice = devices.find((device) => device.id === editingId)
     if (!currentDevice) return
 
@@ -2921,7 +2855,7 @@ function App() {
             <div className="manual-options">
               <a
                 className="manual-card"
-                href="docs/Manual_Utilizador_Ciberseguranca.pdf"
+                href="docs/Manual_Utilizador_Ciberseguranca.pdf?v=20260716"
                 target="_blank"
                 rel="noopener"
               >
@@ -2935,7 +2869,7 @@ function App() {
               </a>
               <a
                 className="manual-card"
-                href="docs/Manual_Programador_Ciberseguranca.pdf"
+                href="docs/Manual_Programador_Ciberseguranca.pdf?v=20260716"
                 target="_blank"
                 rel="noopener"
               >
@@ -3150,45 +3084,7 @@ function App() {
             </button>
           </div>
 
-          <div className="mode-tabs" role="tablist" aria-label={t.authTabLabel}>
-            <button
-              type="button"
-              className={authMode === 'login' ? 'active' : ''}
-              onClick={() => {
-                setAuthMode('login')
-                setAuthError(null)
-                setNotice(null)
-              }}
-            >
-              {t.signIn}
-            </button>
-            <button
-              type="button"
-              className={authMode === 'signup' ? 'active' : ''}
-              onClick={() => {
-                setAuthMode('signup')
-                setAuthError(null)
-                setNotice(null)
-                setSignupCooldownUntil(getCooldownUntil('signup', currentAuthEmail))
-              }}
-            >
-              {t.createAccount}
-            </button>
-          </div>
-
           <form className="stack-form" onSubmit={handleAuthSubmit}>
-            {authMode === 'signup' && (
-              <label>
-                {t.name}
-                <input
-                  autoComplete="name"
-                  value={authForm.fullName}
-                  onChange={(event) =>
-                    setAuthForm((current) => ({ ...current, fullName: event.target.value }))
-                  }
-                />
-              </label>
-            )}
             <label>
               {t.email}
               <input
@@ -3200,7 +3096,6 @@ function App() {
                   const nextEmail = normalizeEmail(event.target.value)
 
                   setAuthForm((current) => ({ ...current, email: event.target.value }))
-                  setSignupCooldownUntil(getCooldownUntil('signup', nextEmail))
                   setResendCooldownUntil(getCooldownUntil('resend', nextEmail))
                 }}
               />
@@ -3209,10 +3104,8 @@ function App() {
               {t.password}
               <input
                 required
-                minLength={authMode === 'login' ? undefined : 8}
                 type="password"
-                autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
-                title={authMode === 'login' ? undefined : t.passwordMin}
+                autoComplete="current-password"
                 value={authForm.password}
                 onChange={(event) =>
                   setAuthForm((current) => ({ ...current, password: event.target.value }))
@@ -3220,7 +3113,15 @@ function App() {
               />
             </label>
 
-            {authError && (
+            {isConfigurationMissing && (
+              <p className="feedback error" role="alert">
+                <CircleAlert size={18} aria-hidden="true" />
+                {language === 'pt'
+                  ? 'A ligacao segura ao Supabase nao esta configurada. Contacte o administrador.'
+                  : 'The secure Supabase connection is not configured. Contact the administrator.'}
+              </p>
+            )}
+            {authError && !isConfigurationMissing && (
               <p className="feedback error">
                 <CircleAlert size={18} aria-hidden="true" />
                 {authError}
@@ -3260,14 +3161,10 @@ function App() {
             <button
               className="primary-action"
               type="submit"
-              disabled={authLoading || (authMode === 'signup' && signupCooldownRemaining > 0)}
+              disabled={authLoading || isConfigurationMissing}
             >
               {authLoading ? <Loader2 className="spin" aria-hidden="true" /> : <KeyRound />}
-              {authMode === 'login'
-                ? t.signIn
-                : signupCooldownRemaining > 0
-                  ? t.waitSeconds(signupCooldownRemaining)
-                  : t.createAccount}
+              {t.signIn}
             </button>
           </form>
         </section>

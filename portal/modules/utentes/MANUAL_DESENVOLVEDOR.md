@@ -387,6 +387,7 @@ TAB_SECTIONS = [
     ("inscricao", "..."),
     ("diagnostica", "..."),
     ("atendimentos", "..."),
+    ("plano_intervencao", "..."),
     ("protecao_dados", "..."),
 ]
 ```
@@ -401,7 +402,29 @@ Ao adicionar um novo separador:
 6. Atualizar o fluxo de guardar em `do_POST()`.
 7. Atualizar o manual do utilizador, se necessario.
 
-### 11.6 Campos Interligados
+O separador plano_intervencao pertence a UTENTES_SENSITIVE_TABS. Por isso, a consulta requer
+utentes.view_sensitive e a alteracao requer utentes.edit_sensitive. Nao o mover para as abas
+publicas sem uma decisao explicita sobre acesso a informacao clinica e tecnica.
+
+### 11.6 Plano Individual de Intervenção
+
+O Plano Individual de Intervencao e guardado na tabela generica utente_abas, com a chave
+plano_intervencao, sem criar uma tabela nova no Supabase.
+
+- load_plano_intervencao_data() carrega e normaliza o JSON guardado.
+- plano_intervencao_from_post() le o formulario e preserva todas as linhas da tabela.
+- render_plano_intervencao_form() mostra o nome do utente, os dois gestores de caso, a tabela e as observacoes tecnicas.
+- As linhas usam as chaves plano_{n}_cifsm, plano_{n}_objetivo, plano_{n}_avaliacao,
+  plano_{n}_atividade, plano_{n}_data_registo, plano_{n}_data_reavaliacao e
+  plano_{n}_data_fecho.
+- plano_row_count indica quantas linhas existem. Nunca reduzir ou renumerar linhas por
+  manipulacao manual do JSON, porque isso pode associar texto ao objetivo errado.
+- O botao Adicionar objetivo cria uma linha nova no browser. As areas de texto aumentam
+  automaticamente para manter o conteudo visivel e continuam a poder ser redimensionadas.
+- A tabela usa sheet-table, pelo que os campos sao convertidos para valores legiveis no fluxo
+  de impressao ja existente.
+
+### 11.7 Campos Interligados
 
 Campos iguais entre separadores sao sincronizados por:
 
@@ -414,7 +437,7 @@ Campos iguais entre separadores sao sincronizados por:
 
 Antes de criar um novo campo duplicado em varios separadores, verificar se deve entrar em `SHARED_FIELD_ALIASES`.
 
-### 11.7 PDFs
+### 11.8 PDFs
 
 Funcoes principais:
 
@@ -517,10 +540,10 @@ Se a tabela `utilizadores` estiver vazia, a app cria:
 
 ```text
 Email: admin@mentemovimento.local
-Password: admin123
+Password: valor de UTENTES_ADMIN_PASSWORD ou valor aleatorio mostrado no arranque
 ```
 
-Depois deve ser criada uma conta real e a password inicial deve deixar de ser usada.
+Ao arrancar pela Central local, consulte `.runtime/local-credentials.json`, que nao e versionado.
 
 ### PDFs nao abrem
 

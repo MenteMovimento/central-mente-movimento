@@ -1,7 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
-import { canViewArea, fullPermissions, normalizePermissions } from '../api-lib/permissions.js'
+import { exposedErrorMessage, readJsonBody as readBody } from '../api-lib/http.js'
+import { canViewArea, normalizePermissions } from '../api-lib/permissions.js'
+import { assertVerifiedCentralSession } from '../api-lib/central-session.js'
 
 const sendJson = (response, status, body) => {
+  response.setHeader('Cache-Control', 'private, no-store')
   response.status(status).json(body)
 }
 
@@ -59,6 +62,13 @@ const errorMessage = (error) => {
   return 'Nao foi possivel preparar o acesso.'
 }
 
+const accessError = (status, message) => {
+  const error = new Error(message)
+  error.status = status
+  error.expose = true
+  return error
+}
+
 const getDisplayName = (user) => {
   const metadataName =
     typeof user.user_metadata?.full_name === 'string'
@@ -106,19 +116,10 @@ const ensureExistingAccess = async (userClient, user) => {
 
   if (appUserError) {
     const message = errorMessage(appUserError).toLowerCase()
-    if (!message.includes('permissions')) throw appUserError
-
-    const { data: fallbackUser, error: fallbackError } = await userClient
-      .from('app_users')
-      .select('id, email, full_name, role, active')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (fallbackError) throw fallbackError
-    if (fallbackUser) {
-      fallbackUser.permissions = fullPermissions()
-      return ensureAuthorizedProfile(fallbackUser)
+    if (message.includes('permissions')) {
+      throw accessError(503, 'A matriz de permissoes ainda nao foi instalada na base de dados.')
     }
+    throw appUserError
   }
 
   if (appUser) {
@@ -130,22 +131,13 @@ const ensureExistingAccess = async (userClient, user) => {
 
 const ensureAuthorizedProfile = (appUser) => {
   if (appUser?.active === false) {
-    throw new Error('Utilizador sem acesso ativo.')
+    throw accessError(403, 'Utilizador sem acesso ativo.')
   }
   if (!appUser) {
-    throw new Error('Utilizador ainda nao preparado.')
+    throw accessError(403, 'Utilizador ainda nao preparado.')
   }
 
   return { appUser, profile: null }
-}
-
-const readBody = async (request) => {
-  if (request.body && typeof request.body === 'object') return request.body
-  if (typeof request.body === 'string') return request.body ? JSON.parse(request.body) : {}
-  const chunks = []
-  for await (const chunk of request) chunks.push(chunk)
-  const rawBody = Buffer.concat(chunks).toString('utf8')
-  return rawBody ? JSON.parse(rawBody) : {}
 }
 
 const requestedArea = (body) => {
@@ -155,7 +147,7 @@ const requestedArea = (body) => {
 
 const enforceAreaAccess = (appUser, area) => {
   if (area && !canViewArea(appUser, area)) {
-    throw new Error(`Sem permissao para aceder a ${area}.`)
+    throw accessError(403, `Sem permissao para aceder a ${area}.`)
   }
 }
 
@@ -168,7 +160,7 @@ export default async function handler(request, response) {
 
   try {
     const token = getBearerToken(request)
-    const body = await readBody(request).catch(() => ({}))
+    const body = await readBody(request)
     const area = requestedArea(body)
 
     if (!token) {
@@ -190,17 +182,29 @@ export default async function handler(request, response) {
     }
 
     try {
+      const adminClient = createAdminClient()
+      if (!adminClient) {
+        throw accessError(500, 'Falta configurar SUPABASE_SERVICE_ROLE_KEY na Vercel.')
+      }
+      await assertVerifiedCentralSession(adminClient, token, { user })
       const { appUser, profile } = await ensureExistingAccess(userClient, user)
       enforceAreaAccess(appUser, area)
       sendJson(response, 200, { ok: true, appUser, profile })
       return
     } catch (accessError) {
-      sendJson(response, 403, { error: errorMessage(accessError) })
+      const status = Number(accessError?.status)
+      sendJson(response, status >= 400 && status < 600 ? status : 503, {
+        error: exposedErrorMessage(accessError, 'Nao foi possivel validar o acesso.'),
+        code: accessError?.code ?? null,
+      })
       return
     }
   } catch (error) {
-    sendJson(response, 400, {
-      error: errorMessage(error),
+    console.error('ensure-access failed', error)
+    const status = Number(error?.status)
+    sendJson(response, status >= 400 && status < 500 ? status : 500, {
+      error: exposedErrorMessage(error, 'Nao foi possivel preparar o acesso.'),
+      code: error?.code ?? null,
     })
   }
 }

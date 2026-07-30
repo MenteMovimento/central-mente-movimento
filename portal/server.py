@@ -33,7 +33,10 @@ UTENTES_PORT = int(os.environ.get("UTENTES_INTERNAL_PORT", "8091"))
 DISPOSITIVOS_PORT = int(os.environ.get("DISPOSITIVOS_INTERNAL_PORT", "8092"))
 
 CENTRAL_EMAIL = os.environ.get("CENTRAL_EMAIL", "admin@mentemovimento.local")
-CENTRAL_PASSWORD = os.environ.get("CENTRAL_PASSWORD", "admin123")
+_CENTRAL_PASSWORD_ENV = os.environ.get("CENTRAL_PASSWORD", "").strip()
+CENTRAL_PASSWORD = _CENTRAL_PASSWORD_ENV or secrets.token_urlsafe(24)
+CENTRAL_PASSWORD_GENERATED = not bool(_CENTRAL_PASSWORD_ENV)
+PASSWORD_POLICY_MESSAGE = "A password deve ter pelo menos 8 caracteres, uma letra maiuscula e um caracter especial."
 SESSION_COOKIE = "central_session"
 SESSION_SECONDS = 12 * 60 * 60
 
@@ -147,6 +150,10 @@ def hash_password(password, salt=None):
 def verify_password(password, salt, digest):
     _salt, candidate = hash_password(password, salt)
     return hmac.compare_digest(candidate, digest or "")
+
+
+def is_strong_password(password):
+    return len(password) >= 8 and any(char.isupper() for char in password) and any(not char.isalnum() for char in password)
 
 
 def db_connection():
@@ -600,7 +607,7 @@ def module_cards():
               <p data-i18n="module.{html.escape(module["id"])}.detail">{html.escape(module["detail"])}</p>
               <a class="module-action" href="{path}">
                 <i data-lucide="arrow-right"></i>
-                <span data-i18n="module.enter">Entrar</span>
+                <span data-i18n="module.enter">Entrar na area</span>
               </a>
             </article>
             """
@@ -724,7 +731,7 @@ def area_panels(module):
             ("Listagem", "table-2"),
             ("Reparações", "wrench"),
             ("Estados", "list-checks"),
-            ("Estatísticas", "bar-chart-3"),
+            ("Indicadores", "bar-chart-3"),
             ("Anexos", "paperclip"),
             ("CSV", "file-spreadsheet"),
         ],
@@ -782,7 +789,7 @@ GLOBAL_PAGES = {
         "items": [
             ("Manual de sócios", "Quotas, exportações e gestão de sócios."),
             ("Manual de utentes", "Fichas, separadores, anexos PDF, genograma e ecomapa."),
-            ("Manual de cibersegurança", "Registos, reparações, estados, estatísticas, anexos e CSV."),
+            ("Manual de cibersegurança", "Registos, reparações, estados, indicadores, anexos e CSV."),
         ],
     },
 }
@@ -981,7 +988,7 @@ class PortalHandler(BaseHTTPRequestHandler):
             self.handle_socios_query()
             return
 
-        if request_path == "/api/create-user":
+        if request_path in ("/api/create-user", "/api/central-users"):
             self.handle_create_user()
             return
 
@@ -1015,6 +1022,14 @@ class PortalHandler(BaseHTTPRequestHandler):
 
         token = create_session(user)
         self.redirect(next_path, session_token=token)
+
+    def do_DELETE(self):
+        request_path = self.path.split("?", 1)[0]
+        if request_path == "/api/central-users":
+            self.handle_delete_user()
+            return
+
+        self.send_error(404, "Página não encontrada")
 
     def path_query(self):
         return self.path.split("?", 1)[1] if "?" in self.path else ""
@@ -1095,8 +1110,8 @@ class PortalHandler(BaseHTTPRequestHandler):
                 role = "viewer"
             if not email or "@" not in email:
                 raise ValueError("Email invalido.")
-            if len(password) < 6:
-                raise ValueError("A password deve ter pelo menos 6 caracteres.")
+            if not is_strong_password(password):
+                raise ValueError(PASSWORD_POLICY_MESSAGE)
             user_id = str(uuid.uuid4())
             salt, digest = hash_password(password)
             now_iso = utc_now()
@@ -1410,8 +1425,10 @@ def run():
     init_database()
     port = int(os.environ.get("CENTRAL_PORT") or os.environ.get("PORT") or "8090")
     server = ThreadingHTTPServer(("127.0.0.1", port), PortalHandler)
-    print(f"MenteMovimento: http://127.0.0.1:{port}")
+    print(f"Central MenteMovimento: http://127.0.0.1:{port}")
     print(f"Login local: {CENTRAL_EMAIL}")
+    if CENTRAL_PASSWORD_GENERATED:
+        print(f"Password local temporaria: {CENTRAL_PASSWORD}")
     server.serve_forever()
 
 

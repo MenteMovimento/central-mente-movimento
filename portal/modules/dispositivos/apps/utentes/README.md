@@ -48,9 +48,9 @@ http://127.0.0.1:8000
 Na primeira execucao, se ainda nao existirem utilizadores, e criado automaticamente um administrador inicial:
 
 - Email: `admin@mentemovimento.local`
-- Password: `admin123`
+- Password: definida em `UTENTES_ADMIN_PASSWORD` ou gerada aleatoriamente no arranque.
 
-Depois de entrar, use `Gestor de Utilizadores` para criar contas reais e trocar a password inicial.
+Ao usar `start-local.ps1`, a password fica em `.runtime/local-credentials.json`, fora do Git.
 
 ## Usar Supabase
 

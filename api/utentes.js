@@ -1,1 +1,1 @@
-export { default } from '../portal/modules/dispositivos/api/utentes.js'
+export { default } from '../portal/modules/dispositivos/server/utentes.js'

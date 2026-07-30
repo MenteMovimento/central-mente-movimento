@@ -5,7 +5,7 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text unique,
   full_name text,
-  role public.member_role not null default 'admin',
+  role public.member_role not null default 'member',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -77,17 +77,13 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, full_name, role)
-  values (new.id, new.email, nullif(new.raw_user_meta_data->>'full_name', ''), 'admin')
-  on conflict (id) do nothing;
-
+  -- Access profiles are created only by the protected central user API.
   return new;
 end;
 $$;
 
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute function public.handle_new_user();
+drop trigger if exists on_auth_user_created on auth.users;
+revoke all on function public.handle_new_user() from public, anon, authenticated;
 
 create or replace function public.current_member_role()
 returns public.member_role
@@ -98,6 +94,9 @@ set search_path = public
 as $$
   select role from public.profiles where id = auth.uid();
 $$;
+
+revoke all on function public.current_member_role() from public, anon;
+grant execute on function public.current_member_role() to authenticated;
 
 alter table public.profiles enable row level security;
 alter table public.devices enable row level security;
@@ -166,9 +165,11 @@ for delete
 to authenticated
 using (private.current_app_permission('dispositivos', 'edit'));
 
-insert into storage.buckets (id, name, public)
-values ('device-attachments', 'device-attachments', false)
-on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('device-attachments', 'device-attachments', false, 20971520)
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit;
 
 create policy "authorized users read device attachment files"
 on storage.objects

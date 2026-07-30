@@ -26,6 +26,26 @@ Como estes ficheiros vieram de projetos separados, alguns nomes vivem no schema 
 7. Cria um utilizador administrador de teste em Authentication.
 8. Liga a Vercel com as variaveis de ambiente.
 
+## Verificacao do login por codigo de email
+
+Antes de publicar uma versao que inclua o segundo passo do login:
+
+1. No SQL Editor do Supabase, executa todo o ficheiro
+   `supabase/email-login-verification.sql`.
+2. Confirma que a execucao termina sem erros. O SQL cria as tabelas
+   `central_email_verification_challenges` e `central_verified_sessions` e
+   passa a exigir uma sessao confirmada nas funcoes centrais de permissoes.
+3. Em **Authentication > Email Templates**, edita o modelo usado em
+   **Magic Link / Passwordless sign-in**.
+4. Define o assunto como `Codigo de verificacao MenteMovimento` e usa o
+   conteudo de `supabase/email-code-template.html`. O modelo tem de manter
+   `{{ .Token }}`, porque e esse valor que apresenta o codigo ao utilizador.
+5. Guarda o modelo e testa com uma conta ativa antes de publicar para todos.
+
+O pedido de codigo expira na aplicacao ao fim de 10 minutos. Uma sessao
+confirmada permanece valida durante 12 horas. Sem as tabelas acima, as APIs
+recusam o acesso de forma intencional para nao contornar a verificacao.
+
 ## Producao final
 
 Para a versao final, o ideal e consolidar os nomes comuns numa estrutura unica:

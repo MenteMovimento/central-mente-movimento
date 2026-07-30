@@ -6,12 +6,76 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260608-header-i18n-icons" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260729-activities-questionnaire-manuals-v1" />
+    <script>
+      (() => {
+        const shouldWaitForSession = (() => {
+          try {
+            return Boolean(sessionStorage.getItem("central-mm-auth-token"));
+          } catch (_error) {
+            return false;
+          }
+        })();
+        if (!shouldWaitForSession) return;
+        document.documentElement.dataset.centralAuthPending = "true";
+        const isStillPending = () => document.documentElement.dataset.centralAuthPending === "true";
+        const renderLoading = () => {
+          if (!isStillPending()) {
+            document.getElementById("centralAuthLoading")?.remove();
+            return;
+          }
+          if (document.getElementById("centralAuthLoading")) return;
+          const node = document.createElement("div");
+          node.id = "centralAuthLoading";
+          node.setAttribute("role", "status");
+          node.setAttribute("aria-live", "polite");
+          node.textContent = "A validar sessão...";
+          document.body.prepend(node);
+        };
+        if (document.body) {
+          renderLoading();
+        } else {
+          document.addEventListener("DOMContentLoaded", renderLoading, { once: true });
+        }
+      })();
+    </script>
+    <style>
+      html[data-central-auth-pending="true"] {
+        min-height: 100%;
+        background: #f4fbf8;
+      }
+
+      html[data-central-auth-pending="true"] body {
+        visibility: hidden;
+      }
+
+      html[data-theme="dark"][data-central-auth-pending="true"] {
+        background: #07131f;
+      }
+
+      #centralAuthLoading {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        visibility: visible;
+        display: grid;
+        place-items: center;
+        background: #f4fbf8;
+        color: #05285a;
+        font: 700 22px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      html[data-theme="dark"] #centralAuthLoading {
+        background: #07131f;
+        color: #dff7f0;
+      }
+    </style>
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="/static/app.js?v=20260608-header-i18n-icons" defer></script>
-    <script src="/static/central-auth.js?v=20260608-header-i18n-icons" defer></script>
+    
+    <script src="/static/central-config.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/app.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/central-auth.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
   </head>
   <body class="login-page" data-central-page="login">
     
@@ -23,32 +87,75 @@
       </span>
       <span data-i18n="app.title">MenteMovimento</span>
     </div>
-    <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
-    <p class="login-copy" data-i18n="login.copy">Acesso reservado à gestão da associação.</p>
-    <form class="login-form" id="centralLoginForm">
-      <label class="field" for="email">
-        <span data-i18n="login.email">Email</span>
-        <input id="email" name="email" type="email" autocomplete="email" required />
-      </label>
-      <label class="field" for="password" style="margin-bottom: 6px;">
-        <span data-i18n="login.password">Password</span>
-        <div style="position: relative; width: 100%; display: flex; align-items: center;">
-          <input id="password" name="password" type="password" autocomplete="current-password" required autofocus style="width: 100%; padding-right: 42px;" />
-          <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
-            <i data-lucide="eye">👁️</i>
+    <div class="login-step" id="centralPasswordStep">
+      <h1 id="loginTitle" data-i18n="login.title">Entrar</h1>
+      <p class="login-copy" data-i18n="login.copy">Acesso reservado à gestão da associação.</p>
+      <form class="login-form" id="centralLoginForm">
+        <label class="field" for="email">
+          <span data-i18n="login.email">Email</span>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </label>
+        <label class="field" for="password" style="margin-bottom: 6px;">
+          <span data-i18n="login.password">Password</span>
+          <div style="position: relative; width: 100%; display: flex; align-items: center;">
+            <input id="password" name="password" type="password" autocomplete="current-password" required autofocus style="width: 100%; padding-right: 42px;" />
+            <button type="button" data-password-toggle style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #00d293; padding: 0; display: flex; align-items: center; z-index: 2;">
+              <i data-lucide="eye">👁️</i>
+            </button>
+          </div>
+        </label>
+        <label class="remember-field" for="rememberCredentials">
+          <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
+          <span data-i18n="login.remember">Lembrar neste browser</span>
+        </label>
+        <button class="primary-button" type="submit">
+          <i data-lucide="mail-check"></i>
+          <span data-i18n="login.submit">Entrar</span>
+        </button>
+      </form>
+    </div>
+    <div class="login-step" id="centralVerificationStep" aria-labelledby="verificationTitle" hidden>
+      <h1 id="verificationTitle" data-i18n="login.verifyTitle">Confirmar email</h1>
+      <p class="login-copy login-verification-copy">
+        <span data-i18n="login.verifyCopy">Enviámos um código para</span>
+        <strong id="centralVerificationEmail"></strong>
+      </p>
+      <form class="login-form" id="centralVerificationForm">
+        <label class="field" for="verificationCode">
+          <span data-i18n="login.code">Código de verificação</span>
+          <input
+            class="verification-code-input"
+            id="verificationCode"
+            name="code"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            minlength="6"
+            maxlength="8"
+            pattern="[0-9]{6,8}"
+            data-i18n-placeholder="login.codePlaceholder"
+            placeholder="000000"
+            required
+          />
+        </label>
+        <button class="primary-button" type="submit">
+          <i data-lucide="shield-check"></i>
+          <span data-i18n="login.verify">Confirmar e entrar</span>
+        </button>
+        <div class="login-verification-actions">
+          <button class="secondary-button" id="centralResendCode" type="button">
+            <i data-lucide="refresh-cw"></i>
+            <span data-resend-label data-i18n="login.resend">Reenviar código</span>
+          </button>
+          <button class="secondary-button" id="centralBackToPassword" type="button">
+            <i data-lucide="arrow-left"></i>
+            <span data-i18n="login.back">Voltar</span>
           </button>
         </div>
-      </label>
-      <label class="remember-field" for="rememberCredentials">
-        <input id="rememberCredentials" name="rememberCredentials" type="checkbox" />
-        <span data-i18n="login.remember">Lembrar neste browser</span>
-      </label>
-      <p class="form-error" id="centralAuthError" role="alert" hidden></p>
-      <button class="primary-button" type="submit">
-        <i data-lucide="log-in"></i>
-        <span data-i18n="login.submit">Entrar</span>
-      </button>
-    </form>
+        <p class="login-status" id="centralVerificationStatus" role="status" hidden></p>
+      </form>
+    </div>
+    <p class="form-error login-form-error" id="centralAuthError" role="alert" hidden></p>
   </section>
 </main>
   </body>

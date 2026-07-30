@@ -27,7 +27,7 @@ const allAreaPermissions = ({ sensitive = true, deleteAllowed = true } = {}) => 
   delete: Boolean(deleteAllowed),
 })
 
-const emptyPermissions = () => ({
+export const emptyPermissions = () => ({
   central: { manage_users: false, view_history: false },
   socios: emptyAreaPermissions(),
   utentes: emptyAreaPermissions(),
@@ -40,7 +40,10 @@ export const fullPermissions = () => ({
   socios: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
   utentes: allAreaPermissions({ sensitive: true, deleteAllowed: true }),
   dispositivos: allAreaPermissions({ sensitive: false, deleteAllowed: true }),
-  atividades: allAreaPermissions({ sensitive: false, deleteAllowed: false }),
+  atividades: {
+    ...allAreaPermissions({ sensitive: false, deleteAllowed: false }),
+    view_sensitive: true,
+  },
 })
 
 const toBoolean = (value) => value === true || value === 'true' || value === 1 || value === '1'
@@ -50,13 +53,9 @@ const hasOwnPermission = (permissions, action) =>
 
 export const normalizePermissions = (input) => {
   const source = input && typeof input === 'object' ? input : {}
-  const hasStoredMatrix =
-    Object.keys(source.central ?? {}).length > 0 ||
-    AREA_IDS.some((area) => Object.keys(source[area] ?? {}).length > 0)
-
-  // `{}` is the old pre-migration value. Treat it as the agreed initial full-access
-  // matrix, while an explicit matrix (including unchecked boxes) remains authoritative.
-  const normalized = hasStoredMatrix ? emptyPermissions() : fullPermissions()
+  // Missing or malformed permissions must never become full access. Existing accounts
+  // receive their explicit matrix through the database migration.
+  const normalized = emptyPermissions()
 
   normalized.central = {
     ...normalized.central,
@@ -105,11 +104,12 @@ export const normalizePermissions = (input) => {
       }
     }
 
-    if (area !== 'utentes') {
+    if (!['utentes', 'atividades'].includes(area)) {
       nextArea.view_sensitive = false
       nextArea.edit_sensitive = false
     }
     if (area === 'atividades') {
+      nextArea.edit_sensitive = false
       nextArea.delete = false
     }
 

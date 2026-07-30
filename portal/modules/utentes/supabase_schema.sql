@@ -96,6 +96,13 @@ alter table public.utente_abas enable row level security;
 alter table public.historico enable row level security;
 alter table public.utente_anexos enable row level security;
 
+revoke all on public.utentes from anon, authenticated;
+revoke all on public.utilizadores from anon, authenticated;
+revoke all on public.sessoes from anon, authenticated;
+revoke all on public.utente_abas from anon, authenticated;
+revoke all on public.historico from anon, authenticated;
+revoke all on public.utente_anexos from anon, authenticated;
+
 -- Private bucket for scanned PDF documents.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('documentos-utentes', 'documentos-utentes', false, 31457280, array['application/pdf'])

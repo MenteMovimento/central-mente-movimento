@@ -2,6 +2,10 @@
 -- Executar no SQL Editor do Supabase do projeto de producao.
 -- A matriz permissions e a unica fonte de verdade. Os cargos antigos deixam de decidir acessos.
 
+create schema if not exists private;
+revoke all on schema private from public;
+grant usage on schema private to authenticated;
+
 alter table public.app_users
 add column if not exists permissions jsonb not null default '{}'::jsonb;
 
@@ -36,23 +40,12 @@ as $$
   limit 1
 $$;
 
+revoke all on function private.jsonb_bool(jsonb, text[]) from public, anon, authenticated;
+revoke all on function private.current_app_permission(text, text) from public, anon;
 grant execute on function private.current_app_permission(text, text) to authenticated;
 
--- Converte todas as contas existentes para a nova matriz, com acesso total inicial.
--- A partir daqui cada conta pode ser ajustada individualmente na grelha de permissoes.
-update public.app_users
-set role = 'viewer';
-
-update public.app_users
-set
-  permissions = jsonb_build_object(
-    'central', jsonb_build_object('manage_users', true, 'view_history', true),
-    'socios', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
-    'utentes', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', true, 'edit_sensitive', true, 'export', true, 'delete', true),
-    'dispositivos', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', true),
-    'atividades', jsonb_build_object('view', true, 'edit', true, 'view_sensitive', false, 'edit_sensitive', false, 'export', true, 'delete', false)
-  )
-where permissions is null or permissions = '{}'::jsonb;
+-- Do not auto-fill empty matrices. An empty matrix intentionally means no access;
+-- permissions are granted explicitly from the Central user-management screen.
 
 drop policy if exists "active users read own profile" on public.app_users;
 create policy "active users read own profile"

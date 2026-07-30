@@ -6,15 +6,16 @@
     <meta name="robots" content="noindex,nofollow" />
     <title>Manual de Utilizador - Atividades | MenteMovimento</title>
     <link rel="icon" href="/static/favicon.png?v=1" type="image/png" />
-    <link rel="stylesheet" href="/static/styles.css?v=20260714-activity-statistics-filter-print" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260729-activities-questionnaire-manuals-v1" />
     
     <script src="/static/vendor/lucide.min.js" defer></script>
     <script src="/static/vendor/supabase.js" defer></script>
-    <script src="/static/central-config.js?v=20260714-activity-statistics-filter-print" defer></script>
-    <script src="/static/app.js?v=20260714-activity-statistics-filter-print" defer></script>
-    <script src="/static/central-auth.js?v=20260714-activity-statistics-filter-print" defer></script>
+    
+    <script src="/static/central-config.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/app.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
+    <script src="/static/central-auth.js?v=20260729-activities-questionnaire-manuals-v1" defer></script>
   </head>
-  <body data-central-page="atividades-manual-utilizador">
+  <body data-central-page="atividades-manual-utilizador" data-title-key="activities.userManualPageTitle">
     
 
 <header class="topbar">
@@ -52,21 +53,21 @@
         </summary>
         <div class="global-tools-menu" role="menu">
 
-          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <button class="menu-item" type="button" data-activities-catalog-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view_sensitive" data-hide-when-restricted="true">
             <i data-lucide="calendar-days"></i>
-            <span>Atividades</span>
+            <span data-i18n="nav.atividades">Atividades</span>
           </button>
-          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="edit">
+          <button class="menu-item" type="button" data-activities-monitors-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view_sensitive" data-hide-when-restricted="true">
             <i data-lucide="users-round"></i>
-            <span>Monitores</span>
+            <span data-i18n="activities.menuMonitors">Monitores</span>
           </button>
           <a class="menu-item" href="/area/atividades/historico/" role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="history"></i>
-            <span>Hist&oacute;rico</span>
+            <span data-i18n="menu.history">Hist&oacute;rico</span>
           </a>
           <button class="menu-item" type="button" data-activities-manuals-toggle role="menuitem" data-requires-permission-area="atividades" data-requires-permission-action="view">
             <i data-lucide="book-open"></i>
-            <span>Manuais</span>
+            <span data-i18n="menu.manuals">Manuais</span>
           </button>
         </div>
       </details>
@@ -91,10 +92,10 @@
   <div class="activities-manual-panel">
     <header class="activities-manual-head">
       <div>
-        <h2 id="activitiesManualTitle">Manual</h2>
-        <p>Escolha o manual adequado ao que pretende consultar.</p>
+        <h2 id="activitiesManualTitle" data-i18n="activities.manualTitle">Manual</h2>
+        <p data-i18n="activities.manualSubtitle">Escolha o manual adequado ao que pretende consultar.</p>
       </div>
-      <button class="icon-link" type="button" data-activities-manuals-close aria-label="Fechar">
+      <button class="icon-link" type="button" data-activities-manuals-close aria-label="Fechar" data-i18n-aria-label="language.close">
         <i data-lucide="x"></i>
       </button>
     </header>
@@ -104,8 +105,8 @@
           <i data-lucide="users-round"></i>
         </span>
         <span>
-          <strong>Manual do Utilizador</strong>
-          <small>Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
+          <strong data-i18n="activities.manualUserTitle">Manual do Utilizador</strong>
+          <small data-i18n="activities.manualUserCopy">Para quem usa a app no dia a dia: criar, consultar, organizar e imprimir atividades.</small>
         </span>
       </a>
       <a class="activities-manual-option" href="/area/atividades/docs/Manual_Programador_Atividades.pdf" target="_blank" rel="noopener" data-requires-permission-area="atividades" data-requires-permission-action="view">
@@ -113,8 +114,8 @@
           <i data-lucide="code-2"></i>
         </span>
         <span>
-          <strong>Manual do Programador</strong>
-          <small>Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e armazenamento local.</small>
+          <strong data-i18n="activities.manualDeveloperTitle">Manual do Programador</strong>
+          <small data-i18n="activities.manualDeveloperCopy">Para quem mant&eacute;m o m&oacute;dulo: ficheiros, gera&ccedil;&atilde;o, permiss&otilde;es e base de dados.</small>
         </span>
       </a>
     </div>
@@ -124,26 +125,26 @@
   <div class="activities-manual-panel activities-monitors-panel">
     <header class="activities-manual-head">
       <div>
-        <h2 id="activitiesCatalogTitle">Atividades</h2>
-        <p>Crie e consulte os nomes das atividades usadas no horário.</p>
+        <h2 id="activitiesCatalogTitle" data-i18n="nav.atividades">Atividades</h2>
+        <p data-i18n="activities.catalogSubtitle">Crie e consulte os nomes das atividades usadas no hor&aacute;rio.</p>
       </div>
-      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar">
+      <button class="icon-link" type="button" data-activities-catalog-close aria-label="Fechar" data-i18n-aria-label="language.close">
         <i data-lucide="x"></i>
       </button>
     </header>
     <form class="activities-monitor-form" data-activities-catalog-form>
       <label class="activity-field">
-        <span>Nome da atividade</span>
+        <span data-i18n="activities.name">Nome da atividade</span>
         <input type="text" name="name" autocomplete="off" required />
       </label>
       <button class="primary-button" type="submit">
         <i data-lucide="save"></i>
-        <span>Guardar</span>
+        <span data-i18n="activities.save">Guardar</span>
       </button>
     </form>
     <p class="form-error activity-error" data-activities-catalog-error role="alert" hidden></p>
     <div class="activities-monitor-list" data-activities-catalog-list>
-      <p class="activity-empty-state">Sem atividades registadas.</p>
+      <p class="activity-empty-state" data-i18n="activities.catalogEmpty">Sem atividades registadas.</p>
     </div>
   </div>
 </dialog>
@@ -151,26 +152,82 @@
   <div class="activities-manual-panel activities-monitors-panel">
     <header class="activities-manual-head">
       <div>
-        <h2 id="activitiesMonitorsTitle">Monitores</h2>
-        <p>Crie e consulte os monitores usados nas atividades.</p>
+        <h2 id="activitiesMonitorsTitle" data-i18n="activities.menuMonitors">Monitores</h2>
+        <p data-i18n="activities.monitorsSubtitle">Crie e consulte os monitores usados nas atividades.</p>
       </div>
-      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar">
+      <button class="icon-link" type="button" data-activities-monitors-close aria-label="Fechar" data-i18n-aria-label="language.close">
         <i data-lucide="x"></i>
       </button>
     </header>
-    <form class="activities-monitor-form" data-activities-monitor-form>
+    <div class="activities-monitor-toolbar">
+      <button class="secondary-button activities-monitor-form-toggle" type="button" data-activities-monitor-form-toggle aria-expanded="false">
+        <i data-lucide="plus"></i>
+        <span data-activities-monitor-form-toggle-label data-i18n="activities.monitorNew">Novo monitor</span>
+      </button>
+    </div>
+    <form class="activities-monitor-form activities-monitor-form-expanded" data-activities-monitor-form hidden>
       <label class="activity-field">
-        <span>Nome do monitor</span>
+        <span data-i18n="activities.monitorName">Nome do monitor</span>
         <input type="text" name="name" autocomplete="off" required />
       </label>
-      <button class="primary-button" type="submit">
-        <i data-lucide="save"></i>
-        <span>Guardar</span>
-      </button>
+      <label class="activity-field">
+        <span data-i18n="activities.monitorPhone">Telem&oacute;vel</span>
+        <input type="tel" name="phone" autocomplete="off" />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.monitorEmail">Email</span>
+        <input type="email" name="email" autocomplete="off" />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.monitorNif">NIF</span>
+        <input type="text" name="nif" inputmode="numeric" autocomplete="off" />
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.monitorVolunteer">Voluntariado</span>
+        <select name="volunteer">
+          <option value="false" data-i18n="activities.monitorNo">N&atilde;o</option>
+          <option value="true" data-i18n="activities.monitorYes">Sim</option>
+        </select>
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.monitorProfession">Profiss&atilde;o</span>
+        <input type="text" name="profession" autocomplete="off" />
+      </label>
+      <label class="activity-field activity-field-wide">
+        <span data-i18n="activities.monitorDescription">Descri&ccedil;&atilde;o de atividade</span>
+        <textarea name="activityDescription" rows="3"></textarea>
+      </label>
+      <div class="activities-monitor-form-actions">
+        <button class="primary-button" type="submit">
+          <i data-lucide="save"></i>
+          <span data-i18n="activities.save">Guardar</span>
+        </button>
+        <button class="secondary-button" type="button" data-activities-monitor-form-cancel>
+          <i data-lucide="x"></i>
+          <span data-i18n="activities.cancel">Cancelar</span>
+        </button>
+      </div>
     </form>
     <p class="form-error activity-error" data-activities-monitors-error role="alert" hidden></p>
+    <section class="activities-monitor-hours-controls" aria-label="Horas dos monitores" data-i18n-aria-label="activities.monitorHoursAria">
+      <label class="activity-field">
+        <span data-i18n="activities.monitorHours">Horas</span>
+        <select data-activities-monitor-hours-period>
+          <option value="month" data-i18n="activities.statisticsPeriodMonthly">Mensal</option>
+          <option value="year" data-i18n="activities.statisticsPeriodAnnual">Anual</option>
+        </select>
+      </label>
+      <label class="activity-field" data-activities-monitor-hours-month-field>
+        <span data-i18n="activities.statisticsMonth">M&ecirc;s</span>
+        <select data-activities-monitor-hours-month></select>
+      </label>
+      <label class="activity-field">
+        <span data-i18n="activities.statisticsYear">Ano</span>
+        <select data-activities-monitor-hours-year></select>
+      </label>
+    </section>
     <div class="activities-monitor-list" data-activities-monitor-list>
-      <p class="activity-empty-state">Sem monitores registados.</p>
+      <p class="activity-empty-state" data-i18n="activities.monitorEmpty">Sem monitores registados.</p>
     </div>
   </div>
 </dialog>
@@ -178,27 +235,27 @@
   <section class="global-panel activity-document-panel">
     <a class="secondary-button activity-back-link" href="/area/atividades/">
       <i data-lucide="arrow-left"></i>
-      <span>Voltar</span>
+      <span data-i18n="activities.back">Voltar</span>
     </a>
-    <p class="eyebrow">Manual de utilizador</p>
-    <h2>Atividades</h2>
-    <p class="global-copy">Guia r&aacute;pido para consultar, criar, organizar e imprimir o hor&aacute;rio semanal de atividades.</p>
+    <p class="eyebrow" data-i18n="activities.userManualEyebrow">Manual de utilizador</p>
+    <h2 data-i18n="nav.atividades">Atividades</h2>
+    <p class="global-copy" data-i18n="activities.userManualCopy">Guia r&aacute;pido para consultar, criar, organizar e imprimir o hor&aacute;rio semanal de atividades.</p>
     <div class="activity-manual-grid">
       <article class="activity-manual-section">
-        <h3>Criar atividade</h3>
-        <p>Use o bot&atilde;o <strong>Criar Atividade</strong>, escolha o dia, as horas, o nome da atividade e at&eacute; dois monitores, e grave.</p>
+        <h3 data-i18n="activities.userManualCreateTitle">Criar atividade</h3>
+        <p data-i18n="activities.userManualCreateCopy">Use o bot&atilde;o Criar Atividade, escolha o dia, as horas, o nome da atividade e at&eacute; dois monitores, e grave.</p>
       </article>
       <article class="activity-manual-section">
-        <h3>Consultar e editar</h3>
-        <p>O olho abre a atividade em modo consulta. O l&aacute;pis permite alterar os dados. O caixote remove a atividade.</p>
+        <h3 data-i18n="activities.userManualEditTitle">Consultar e editar</h3>
+        <p data-i18n="activities.userManualEditCopy">O olho abre a atividade em modo consulta. O l&aacute;pis permite alterar os dados. O caixote remove a atividade.</p>
       </article>
       <article class="activity-manual-section">
-        <h3>Organizar a semana</h3>
-        <p>Quando houver v&aacute;rias atividades no mesmo hor&aacute;rio, arraste o cart&atilde;o inteiro para mudar a ordem.</p>
+        <h3 data-i18n="activities.userManualOrganizeTitle">Organizar a semana</h3>
+        <p data-i18n="activities.userManualOrganizeCopy">Quando houver v&aacute;rias atividades no mesmo hor&aacute;rio, arraste o cart&atilde;o inteiro para mudar a ordem.</p>
       </article>
       <article class="activity-manual-section">
-        <h3>Imprimir</h3>
-        <p>O bot&atilde;o de impress&atilde;o gera uma folha semanal em formato de hor&aacute;rio escolar.</p>
+        <h3 data-i18n="activities.userManualPrintTitle">Imprimir</h3>
+        <p data-i18n="activities.userManualPrintCopy">O bot&atilde;o de impress&atilde;o gera uma folha semanal em formato de hor&aacute;rio escolar.</p>
       </article>
     </div>
   </section>

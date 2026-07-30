@@ -10,6 +10,7 @@ export const supabaseAnonKey =
   ''
 
 export const isSupabaseConfigured = supabaseUrl.length > 0 && supabaseAnonKey.length > 0
+export const isDemoModeEnabled = String(env.VITE_DEMO_MODE ?? '').trim().toLowerCase() === 'true'
 
 const authStorageKey = 'central-mm-auth-token'
 

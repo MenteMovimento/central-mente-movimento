@@ -26,3 +26,7 @@ sources/
 # Local uploaded files
 anexos/
 portal/modules/utentes/anexos/
+.vercel
+
+# Temporary visual QA output
+tmp/

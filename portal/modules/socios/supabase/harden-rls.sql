@@ -18,22 +18,22 @@ create policy "admins insert app users"
 on public.app_users
 for insert
 to authenticated
-with check (private.current_app_role() = 'admin');
+with check (private.current_app_permission('central', 'manage_users'));
 
 create policy "admins update app users"
 on public.app_users
 for update
 to authenticated
-using (private.current_app_role() = 'admin')
+using (private.current_app_permission('central', 'manage_users'))
 with check (
-  private.current_app_role() = 'admin'
+  private.current_app_permission('central', 'manage_users')
   and (
     id <> auth.uid()
-    or (role = 'admin' and active = true)
+    or active = true
   )
 );
 
 -- No direct client-side DELETE policy for app_users.
--- Deletions should go through /api/delete-user, which verifies the caller,
+-- Deletions should go through DELETE /api/central-users, which verifies the caller,
 -- uses the server-only service role key, prevents self-delete, and protects
 -- the last active administrator.

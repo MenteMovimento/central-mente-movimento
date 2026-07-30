@@ -317,7 +317,7 @@ const translations = {
       languageComing: "A mudança de idioma fica preparada para a próxima fase.",
       noPermissionMembers: "Não tem permissão para alterar sócios.",
       adminUsersOnly: "Só administradores podem gerir utilizadores.",
-      adminHistoryOnly: "Só administradores podem consultar o histórico.",
+      adminHistoryOnly: "É necessária permissão para consultar Sócios.",
       manualsOnly: "Só administradores e operadores podem consultar os manuais.",
       approvalMinuteMissing: "Falta aplicar o SQL para guardar o Nº de Ata de Aprovação.",
       quotaPaidAtMissing: "Falta aplicar o SQL para guardar a data do pagamento das quotas.",
@@ -536,7 +536,7 @@ const translations = {
       languageComing: "Language switching is ready for the next phase.",
       noPermissionMembers: "You do not have permission to edit members.",
       adminUsersOnly: "Only administrators can manage users.",
-      adminHistoryOnly: "Only administrators can view the history.",
+      adminHistoryOnly: "Permission to view Members is required.",
       manualsOnly: "Only administrators and operators can view the manuals.",
       approvalMinuteMissing: "Run the SQL update before saving approval minute numbers.",
       quotaPaidAtMissing: "Run the SQL update before saving fee payment dates.",
@@ -1506,7 +1506,7 @@ function canManageUsers() {
 }
 
 function canViewHistory() {
-  return hasCentralPermission("central", "view_history");
+  return canViewMembers();
 }
 
 function canViewManuals() {
@@ -1579,11 +1579,31 @@ async function refreshHistory() {
 
   elements.historyError.textContent = "";
 
-  const { data, error } = await supabaseClient
-    .from("member_audit_log")
-    .select("id,member_id,action,changed_at,changed_by,old_data,new_data")
-    .order("changed_at", { ascending: false })
-    .limit(120);
+  let data;
+  let error;
+
+  try {
+    const session = state.session || (await supabaseClient.auth.getSession()).data.session;
+    const response = await fetch("/api/central-users?kind=member-history&limit=120", {
+      headers: {
+        Authorization: `Bearer ${session?.access_token || ""}`,
+      },
+      credentials: "same-origin",
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(payload.error || "Não foi possível carregar o histórico de sócios.");
+    }
+    data = Array.isArray(payload.history) ? payload.history : [];
+  } catch (apiError) {
+    const fallback = await supabaseClient
+      .from("member_audit_log")
+      .select("id,member_id,action,changed_at,changed_by,old_data,new_data")
+      .order("changed_at", { ascending: false })
+      .limit(120);
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) {
     state.auditLogs = [];
@@ -1629,7 +1649,7 @@ function renderHistory() {
 
 function renderHistoryRow(entry) {
   const subject = getAuditSubject(entry);
-  const actor = getAuditActor(entry.changed_by);
+  const actor = getAuditActor(entry);
   const actionClass = `is-${entry.action}`;
 
   return `
@@ -1655,7 +1675,12 @@ function getAuditSubject(entry) {
   return { name, detail: memberNumber };
 }
 
-function getAuditActor(userId) {
+function getAuditActor(entry) {
+  if (entry?.actor_name) {
+    return entry.actor_name;
+  }
+
+  const userId = entry?.changed_by;
   if (!userId) {
     return t("history.system");
   }
@@ -2461,7 +2486,7 @@ async function handleCreateUserSubmit(event) {
 
   try {
     const session = state.session || (await supabaseClient.auth.getSession()).data.session;
-    const response = await fetch("/api/create-user", {
+    const response = await fetch("/api/central-users", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${session?.access_token || ""}`,
@@ -2478,7 +2503,7 @@ async function handleCreateUserSubmit(event) {
 
     clearCreateUserForm();
     await refreshAppUsers();
-    showToast(`Utilizador criado: ${result.email || user.email}.`);
+    showToast(`Utilizador criado: ${result.user?.email || user.email}.`);
   } catch (error) {
     elements.createUserError.textContent = friendlyCreateUserError(error);
   } finally {
@@ -2579,8 +2604,8 @@ async function handleDeleteUser(id) {
 
   try {
     const session = state.session || (await supabaseClient.auth.getSession()).data.session;
-    const response = await fetch("/api/delete-user", {
-      method: "POST",
+    const response = await fetch("/api/central-users", {
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${session?.access_token || ""}`,
         "Content-Type": "application/json",
@@ -2599,7 +2624,7 @@ async function handleDeleteUser(id) {
     }
 
     await refreshAppUsers();
-    showToast(`Utilizador eliminado: ${result.email || user.email || "acesso removido"}.`);
+    showToast(`Utilizador eliminado: ${user.email || "acesso removido"}.`);
   } catch (error) {
     showToast(friendlyAdminActionError(error));
   }

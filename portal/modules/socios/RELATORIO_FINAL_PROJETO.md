@@ -78,8 +78,7 @@ Os principais ficheiros do projeto são:
 | `app.js` | Lógica da aplicação |
 | `config.js` | Configuração pública do Supabase e opções da app |
 | `vercel.json` | Headers de segurança e configuração da Vercel |
-| `api/create-user.js` | Função segura para criar utilizadores |
-| `api/delete-user.js` | Função segura para eliminar utilizadores |
+| `api/central-users.js` | Função segura consolidada para criar, editar e eliminar utilizadores |
 | `supabase/schema.sql` | Estrutura inicial da base de dados |
 | `supabase/harden-rls.sql` | Reforço das políticas de segurança |
 | `assets/` | Logotipos da associação |
@@ -176,9 +175,9 @@ Existe uma área própria chamada "Gestor de Administradores". Nessa área, um a
 - Ativar ou desativar acessos.
 - Eliminar utilizadores autorizados.
 
-A criação de utilizadores é feita através da função segura `api/create-user.js`, evitando a necessidade de criar utilizadores manualmente no painel do Supabase.
+A criação de utilizadores é feita através de `POST api/central-users.js`, evitando a necessidade de criar utilizadores manualmente no painel do Supabase.
 
-A eliminação de utilizadores passa por `api/delete-user.js`, que impede eliminar a própria conta e protege contra a eliminação do último administrador ativo.
+A eliminação de utilizadores passa por `DELETE api/central-users.js`, que impede eliminar a própria conta e protege contra a eliminação do último administrador ativo.
 
 #### 6.8 Temas e Idiomas
 

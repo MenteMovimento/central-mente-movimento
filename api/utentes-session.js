@@ -1,13 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'node:crypto'
+import { exposedErrorMessage } from '../api-lib/http.js'
+import { assertVerifiedCentralSession } from '../api-lib/central-session.js'
 import {
   canViewArea,
-  fullPermissions,
   hasPermission,
   normalizePermissions,
 } from '../api-lib/permissions.js'
 
 const sendJson = (response, status, body) => {
+  response.setHeader('Cache-Control', 'private, no-store')
   response.status(status).json(body)
 }
 
@@ -110,23 +112,23 @@ const requireCentralUser = async (response, userClient, adminClient, token) => {
     return null
   }
 
-  let { data: profile, error: profileError } = await adminClient
+  await assertVerifiedCentralSession(adminClient, token, { user })
+
+  const { data: profile, error: profileError } = await adminClient
     .from('app_users')
     .select('role, active, full_name, permissions')
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profileError && getErrorMessage(profileError).toLowerCase().includes('permissions')) {
-    const fallback = await adminClient
-      .from('app_users')
-      .select('role, active, full_name')
-      .eq('id', user.id)
-      .maybeSingle()
-    profile = fallback.data ? { ...fallback.data, permissions: fullPermissions() } : null
-    profileError = fallback.error
+  if (profileError) {
+    if (getErrorMessage(profileError).toLowerCase().includes('permissions')) {
+      const setupError = new Error('A matriz de permissoes ainda nao foi instalada na base de dados.')
+      setupError.status = 503
+      setupError.expose = true
+      throw setupError
+    }
+    throw profileError
   }
-
-  if (profileError) throw profileError
 
   const effectiveProfile = profile
   if (!effectiveProfile) {
@@ -258,11 +260,15 @@ export default async function handler(request, response) {
     sendJson(response, 200, { ok: true, expiresAt: expires.toISOString() })
   } catch (error) {
     const message = getErrorMessage(error)
-    sendJson(response, 400, {
+    console.error('utentes-session failed', error)
+    const permissionFailure = message.toLowerCase().includes('permission denied')
+    const status = Number(error?.status)
+    sendJson(response, status >= 400 && status < 600 ? status : 500, {
       error:
-        message.toLowerCase().includes('permission denied')
-          ? 'A chave service_role da Vercel nao tem permissao para criar a sessao de Utentes. Confirma SUPABASE_SERVICE_ROLE_KEY.'
-          : message,
+        permissionFailure
+          ? 'Nao foi possivel iniciar Utentes devido a configuracao da base de dados.'
+          : exposedErrorMessage(error, 'Nao foi possivel iniciar Utentes.'),
+      code: error?.code ?? null,
     })
   }
 }

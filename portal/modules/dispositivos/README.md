@@ -4,7 +4,7 @@ Repositorio com os aplicativos internos da MenteMovimento.
 
 ## Aplicacoes
 
-- `.`: site principal em React/Vite, preparado para Vercel e Supabase, com areas de `Ciberseguranca`, `Utentes`, `Estatisticas` e `Utilizadores`.
+- `.`: site principal em React/Vite, preparado para Vercel e Supabase, com areas de `Ciberseguranca`, `Utentes`, `Indicadores` e `Utilizadores`.
 - `apps/utentes`: versao Python original do gestor de utentes, preservada como referencia do projeto `Utentes-MenteMovimento`.
 
 O site principal fica na raiz para a Vercel publicar tudo como uma unica aplicacao. A pasta `apps/utentes` mantem a versao Python original sem desformatar, mas a area de utentes usada no site esta integrada no React.
@@ -18,7 +18,7 @@ O site principal fica na raiz para a Vercel publicar tudo como uma unica aplicac
 - Listagem, pesquisa, filtro por estado e ordenacao crescente/decrescente por coluna.
 - Criacao, edicao e remocao de registos.
 - Relatorio imprimivel dos registos visiveis.
-- Pagina de estatisticas com totais, marcas, tecnicos, avarias e resultados finais.
+- Pagina de indicadores com totais, marcas, tecnicos, avarias e resultados finais.
 - Historico e anexos por registo atraves do Supabase Storage.
 - Aviso visivel para numeros de serie duplicados.
 - Campos principais: nome, numero de serie, modelo, local, estado e notas.
