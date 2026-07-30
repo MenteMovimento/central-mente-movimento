@@ -1076,6 +1076,45 @@ body.dark-mode .dashboard-manual-link:hover {
   background: rgba(8, 22, 20, 0.52);
 }
 
+.central-user-editor-dialog {
+  width: min(1120px, calc(100% - 40px));
+  max-height: min(880px, calc(100% - 40px));
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+}
+
+.central-user-editor-dialog::backdrop {
+  background: rgba(8, 22, 20, 0.62);
+}
+
+.central-user-editor-dialog .central-admin-panel {
+  max-height: min(880px, calc(100vh - 40px));
+  overflow: auto;
+}
+
+.central-user-editor-dialog .central-admin-forms {
+  display: block;
+  border-bottom: 0;
+}
+
+.central-user-editor-dialog .central-admin-form + .central-admin-form {
+  border: 0;
+}
+
+.central-user-editor-dialog .form-section-title {
+  display: none;
+}
+
+.central-user-editor-dialog .permission-matrix-wrap {
+  overflow-x: visible;
+}
+
+.central-users-error {
+  margin: 16px 24px 0;
+}
+
 .central-admin-panel {
   overflow: hidden;
   border-radius: 8px;
@@ -3772,6 +3811,92 @@ body.dark-mode .activity-questionnaire-existing.is-existing {
   .central-admin-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .central-user-editor-dialog {
+    width: min(calc(100% - 24px), 620px);
+    max-height: calc(100% - 24px);
+  }
+
+  .central-user-editor-dialog .central-admin-panel {
+    max-height: calc(100vh - 24px);
+  }
+
+  .central-admin-actions,
+  .central-user-form-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .central-admin-actions .primary-button,
+  .central-admin-actions .secondary-button,
+  .central-user-form-actions .primary-button,
+  .central-user-form-actions .secondary-button {
+    flex: 1 1 auto;
+  }
+
+  .central-user-editor-dialog .permission-matrix-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .central-user-editor-dialog .permission-matrix,
+  .central-user-editor-dialog .permission-matrix tbody,
+  .central-user-editor-dialog .permission-matrix tr {
+    display: block;
+    width: 100%;
+  }
+
+  .central-user-editor-dialog .permission-matrix thead {
+    display: none;
+  }
+
+  .central-user-editor-dialog .permission-matrix tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+
+  .central-user-editor-dialog .permission-matrix th,
+  .central-user-editor-dialog .permission-matrix td,
+  .central-user-editor-dialog .permission-matrix th:first-child,
+  .central-user-editor-dialog .permission-matrix td:first-child,
+  .central-user-editor-dialog .permission-matrix th:not(:first-child),
+  .central-user-editor-dialog .permission-matrix td:not(:first-child) {
+    display: flex;
+    width: auto;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+  }
+
+  .central-user-editor-dialog .permission-matrix th {
+    grid-column: 1 / -1;
+    color: var(--navy);
+    font-size: 0.9rem;
+  }
+
+  .central-user-editor-dialog .permission-matrix td::before {
+    content: attr(data-permission-label);
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 850;
+    line-height: 1.2;
+    text-transform: uppercase;
+  }
+
+  .central-user-editor-dialog .permission-matrix td:nth-last-child(-n + 2) {
+    border-bottom: 0;
   }
 
   .area-shell {

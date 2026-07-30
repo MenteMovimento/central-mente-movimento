@@ -6,10 +6,43 @@
   const rememberEmailKey = "central-remember-email";
   const verificationStateKey = "central-email-verification-state";
   let verificationCountdownTimer = 0;
+  let inMemoryVerificationState = null;
+  const inMemorySessionStorage = new Map();
+  const safeSessionStorage = {
+    getItem: (key) => {
+      const normalizedKey = String(key);
+      try {
+        const value = sessionStorage.getItem(normalizedKey);
+        if (value !== null) inMemorySessionStorage.set(normalizedKey, value);
+        return value === null ? inMemorySessionStorage.get(normalizedKey) || null : value;
+      } catch (_error) {
+        return inMemorySessionStorage.get(normalizedKey) || null;
+      }
+    },
+    setItem: (key, value) => {
+      const normalizedKey = String(key);
+      const normalizedValue = String(value);
+      inMemorySessionStorage.set(normalizedKey, normalizedValue);
+      try {
+        sessionStorage.setItem(normalizedKey, normalizedValue);
+      } catch (_error) {
+        // Mantém apenas a sessão desta página quando o browser bloqueia o armazenamento.
+      }
+    },
+    removeItem: (key) => {
+      const normalizedKey = String(key);
+      inMemorySessionStorage.delete(normalizedKey);
+      try {
+        sessionStorage.removeItem(normalizedKey);
+      } catch (_error) {
+        // Não há dados persistentes para remover quando o armazenamento está bloqueado.
+      }
+    }
+  };
   const authStorage = {
-    getItem: (key) => sessionStorage.getItem(key),
-    setItem: (key, value) => sessionStorage.setItem(key, value),
-    removeItem: (key) => sessionStorage.removeItem(key)
+    getItem: (key) => safeSessionStorage.getItem(key),
+    setItem: (key, value) => safeSessionStorage.setItem(key, value),
+    removeItem: (key) => safeSessionStorage.removeItem(key)
   };
   const showPage = () => {
     document.documentElement.removeAttribute("data-central-auth-pending");
@@ -278,11 +311,8 @@
     );
   };
   const writeVerificationState = (state) => {
-    try {
-      sessionStorage.setItem(verificationStateKey, JSON.stringify(state));
-    } catch (_error) {
-      // O passo de verificação continua nesta página mesmo sem persistência.
-    }
+    inMemoryVerificationState = state;
+    safeSessionStorage.setItem(verificationStateKey, JSON.stringify(state));
     return state;
   };
   const saveVerificationState = (payload, remember = false) => writeVerificationState({
@@ -294,21 +324,20 @@
   });
   const loadVerificationState = () => {
     try {
-      const state = JSON.parse(sessionStorage.getItem(verificationStateKey) || "null");
+      const storedState = JSON.parse(safeSessionStorage.getItem(verificationStateKey) || "null");
+      const state = storedState || inMemoryVerificationState;
       if (!state?.challengeId || !state?.email || !state?.expiresAt) return null;
+      inMemoryVerificationState = state;
       return state;
     } catch (_error) {
-      return null;
+      return inMemoryVerificationState;
     }
   };
   const clearVerificationState = () => {
     window.clearInterval(verificationCountdownTimer);
     verificationCountdownTimer = 0;
-    try {
-      sessionStorage.removeItem(verificationStateKey);
-    } catch (_error) {
-      // Sem impacto quando o browser bloqueia sessionStorage.
-    }
+    inMemoryVerificationState = null;
+    safeSessionStorage.removeItem(verificationStateKey);
   };
   const showVerificationStatus = (message) => {
     const status = document.querySelector("#centralVerificationStatus");

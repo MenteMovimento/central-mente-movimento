@@ -6905,20 +6905,29 @@ const wireActivitiesCalendar = () => {
 const centralUsersElements = () => ({
   dialog: document.querySelector("#centralUsersDialog"),
   closeBtn: document.querySelector("#centralCloseUsersBtn"),
+  cancelBtn: document.querySelector("#centralCancelUsersBtn"),
   refreshBtn: document.querySelector("#centralRefreshUsersBtn"),
+  openCreateBtn: document.querySelector("#centralOpenCreateUserBtn"),
+  listError: document.querySelector("#centralUsersError"),
   table: document.querySelector("#centralUsersTable"),
+  editorDialog: document.querySelector("#centralUserEditorDialog"),
+  editorCloseBtn: document.querySelector("#centralCloseUserEditorBtn"),
+  editorCancelBtn: document.querySelector("#centralCancelUserEditorBtn"),
   createForm: document.querySelector("#centralCreateUserForm"),
   createError: document.querySelector("#centralCreateUserError"),
+  createCancelBtn: document.querySelector("#centralCancelCreateUserBtn"),
   editForm: document.querySelector("#centralEditUserForm"),
   editError: document.querySelector("#centralEditUserError"),
+  editCancelBtn: document.querySelector("#centralCancelEditUserBtn"),
   editHint: document.querySelector("#centralEditingUserHint"),
+  editorTitle: document.querySelector("#centralUserEditorTitle"),
+  editorHint: document.querySelector("#centralUserEditorHint"),
   editId: document.querySelector("#centralEditUserId"),
   editName: document.querySelector("#centralEditUserName"),
   editEmail: document.querySelector("#centralEditUserEmail"),
   editActive: document.querySelector("#centralEditUserActive"),
   createPermissions: document.querySelector('[data-permission-grid="create"]'),
   editPermissions: document.querySelector('[data-permission-grid="edit"]'),
-  clearBtn: document.querySelector("#centralClearUserBtn"),
 });
 
 const showCentralFormError = (node, message) => {
@@ -6987,17 +6996,18 @@ const renderPermissionGrid = (container, scope, permissions) => {
       const areaPermissions = permissions[area] || emptyAreaPermissions();
       const cells = centralAreaActions
         .map((action) => {
+          const actionLabel = escapeHtml(getTranslation(`permissions.${permissionActionKey(action)}`, language));
           const isUnsupportedSensitive =
             (action === "view_sensitive" && !["utentes", "atividades"].includes(area)) ||
             (action === "edit_sensitive" && area !== "utentes");
           const isActivityDelete = area === "atividades" && action === "delete";
           if (isUnsupportedSensitive || isActivityDelete) {
-            return `<td class="permission-na">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
+            return `<td class="permission-na" data-permission-label="${actionLabel}">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
           }
           const name = permissionInputName(scope, area, action);
           return `
-            <td>
-              <label class="permission-check" title="${escapeHtml(getTranslation(`permissions.${permissionActionKey(action)}`, language))}">
+            <td data-permission-label="${actionLabel}">
+              <label class="permission-check" title="${actionLabel}">
                 <input type="checkbox" name="${escapeHtml(name)}" data-permission-input="${escapeHtml(scope)}" data-area="${escapeHtml(area)}" data-action="${escapeHtml(action)}" ${areaPermissions[action] ? "checked" : ""}>
                 <span></span>
               </label>
@@ -7144,14 +7154,63 @@ const resetCentralUserForms = () => {
   const elements = centralUsersElements();
   elements.createForm?.reset();
   elements.editForm?.reset();
+  if (elements.createForm) elements.createForm.hidden = false;
+  if (elements.editForm) elements.editForm.hidden = true;
   centralUsersState.editingId = "";
   if (elements.editId) elements.editId.value = "";
   if (elements.editActive) elements.editActive.checked = true;
   if (elements.editHint) elements.editHint.textContent = getTranslation("users.editHint");
+  if (elements.editorTitle) elements.editorTitle.textContent = getTranslation("users.createTitle");
+  if (elements.editorHint) elements.editorHint.textContent = getTranslation("users.createHint");
   renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole());
   renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole());
   showCentralFormError(elements.createError, "");
   showCentralFormError(elements.editError, "");
+};
+
+const closeCentralUserEditor = () => {
+  const elements = centralUsersElements();
+  if (elements.editorDialog?.open) elements.editorDialog.close();
+  resetCentralUserForms();
+};
+
+const moveCentralUserEditorToTopLevel = () => {
+  const { editorDialog } = centralUsersElements();
+  if (editorDialog && editorDialog.parentElement !== document.body) {
+    document.body.append(editorDialog);
+  }
+};
+
+const openCentralUserEditor = (mode, user = null) => {
+  const elements = centralUsersElements();
+  if (!elements.editorDialog) return;
+  moveCentralUserEditorToTopLevel();
+  const editing = mode === "edit" && user;
+
+  if (elements.createForm) elements.createForm.hidden = Boolean(editing);
+  if (elements.editForm) elements.editForm.hidden = !editing;
+  if (elements.editorTitle) {
+    elements.editorTitle.textContent = getTranslation(editing ? "users.editTitle" : "users.createTitle");
+  }
+  if (elements.editorHint) {
+    elements.editorHint.textContent = editing
+      ? `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`
+      : getTranslation("users.createHint");
+  }
+
+  if (editing) {
+    fillCentralUserForm(user);
+  } else {
+    elements.createForm?.reset();
+    renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole());
+    showCentralFormError(elements.createError, "");
+  }
+
+  if (!elements.editorDialog.open) elements.editorDialog.showModal();
+  refreshIcons();
+  window.setTimeout(() => {
+    (editing ? elements.editName : document.querySelector("#centralCreateUserName"))?.focus();
+  }, 0);
 };
 
 const formatUserDate = (value) => {
@@ -7282,7 +7341,7 @@ const handleCentralCreateUser = async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || getTranslation("users.created"));
-    elements.createForm.reset();
+    closeCentralUserEditor();
     await refreshCentralUsers();
   } catch (error) {
     showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
@@ -7328,7 +7387,7 @@ const handleCentralEditUser = async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || getTranslation("users.adminOnly"));
-    resetCentralUserForms();
+    closeCentralUserEditor();
     await refreshCentralUsers();
   } catch (error) {
     showCentralFormError(elements.editError, error.message || getTranslation("users.adminOnly"));
@@ -7385,17 +7444,19 @@ const openCentralUsersDialog = async () => {
   if (!elements.dialog) return;
   closeToolsMenus();
   resetCentralUserForms();
-  elements.dialog.showModal();
+  if (!elements.dialog.open) elements.dialog.showModal();
   try {
     await refreshCentralUsers();
+    showCentralFormError(elements.listError, "");
   } catch (error) {
-    showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+    showCentralFormError(elements.listError, error.message || getTranslation("users.adminOnly"));
   }
   refreshIcons();
 };
 
 const closeCentralUsersDialog = () => {
   const { dialog } = centralUsersElements();
+  closeCentralUserEditor();
   if (dialog?.open) dialog.close();
   resetCentralUserForms();
 };
@@ -7425,16 +7486,22 @@ const wireCentralUsersDialog = () => {
     button.addEventListener("click", openCentralUsersDialog);
   });
   elements.closeBtn?.addEventListener("click", closeCentralUsersDialog);
+  elements.cancelBtn?.addEventListener("click", closeCentralUsersDialog);
+  elements.openCreateBtn?.addEventListener("click", () => openCentralUserEditor("create"));
   elements.refreshBtn?.addEventListener("click", async () => {
     try {
       await refreshCentralUsers();
+      showCentralFormError(elements.listError, "");
     } catch (error) {
-      showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+      showCentralFormError(elements.listError, error.message || getTranslation("users.adminOnly"));
     }
   });
   elements.createForm?.addEventListener("submit", handleCentralCreateUser);
   elements.editForm?.addEventListener("submit", handleCentralEditUser);
-  elements.clearBtn?.addEventListener("click", resetCentralUserForms);
+  elements.editorCloseBtn?.addEventListener("click", closeCentralUserEditor);
+  elements.editorCancelBtn?.addEventListener("click", closeCentralUserEditor);
+  elements.createCancelBtn?.addEventListener("click", closeCentralUserEditor);
+  elements.editCancelBtn?.addEventListener("click", closeCentralUserEditor);
   elements.table?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-central-user-action]");
     if (!button) return;
@@ -7443,18 +7510,21 @@ const wireCentralUsersDialog = () => {
     try {
       if (action === "edit") {
         const user = centralUsersState.users.find((item) => item.id === id);
-        if (user) fillCentralUserForm(user);
+        if (user) openCentralUserEditor("edit", user);
       } else if (action === "toggle") {
         await toggleCentralUser(id);
       } else if (action === "delete") {
         await deleteCentralUser(id);
       }
     } catch (error) {
-      showCentralFormError(elements.editError, error.message || getTranslation("users.adminOnly"));
+      showCentralFormError(elements.listError, error.message || getTranslation("users.adminOnly"));
     }
   });
   elements.dialog.addEventListener("click", (event) => {
     if (event.target === elements.dialog) closeCentralUsersDialog();
+  });
+  elements.editorDialog?.addEventListener("click", (event) => {
+    if (event.target === elements.editorDialog) closeCentralUserEditor();
   });
 };
 

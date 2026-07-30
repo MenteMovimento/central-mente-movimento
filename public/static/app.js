@@ -2557,6 +2557,7 @@ const activityQuestionnaireElements = () => ({
   averageActivitySelect: document.querySelector("[data-questionnaire-average-activity]"),
   averageMonthSelect: document.querySelector("[data-questionnaire-average-month]"),
   averageYearSelect: document.querySelector("[data-questionnaire-average-year]"),
+  averagePrintBtn: document.querySelector("[data-questionnaire-average-print]"),
   averageContent: document.querySelector("[data-questionnaire-average-content]"),
   detailBackBtn: document.querySelector("[data-questionnaire-detail-back]"),
   detailContent: document.querySelector("[data-questionnaire-detail-content]"),
@@ -2997,6 +2998,7 @@ const renderActivityQuestionnaireAverage = () => {
     averageActivitySelect,
     averageMonthSelect,
     averageYearSelect,
+    averagePrintBtn,
     averageContent,
   } = activityQuestionnaireElements();
   if (!averageContent) return;
@@ -3012,6 +3014,7 @@ const renderActivityQuestionnaireAverage = () => {
   );
 
   if (!records.length) {
+    if (averagePrintBtn) averagePrintBtn.disabled = true;
     averageContent.innerHTML = `<p class="activity-empty-state">${escapeHtml(
       getTranslation("activities.questionnaireAverageEmpty"),
     )}</p>`;
@@ -3080,6 +3083,28 @@ const renderActivityQuestionnaireAverage = () => {
         .join("")}
     </div>
   `;
+  if (averagePrintBtn) averagePrintBtn.disabled = false;
+};
+
+const printActivityQuestionnaireAverage = () => {
+  const {
+    averageActivitySelect,
+    averageMonthSelect,
+    averageYearSelect,
+    averageContent,
+  } = activityQuestionnaireElements();
+  if (!averageContent?.querySelector(".activity-questionnaire-average-summary")) return;
+
+  const selectedText = (select) => String(select?.selectedOptions?.[0]?.textContent || "").trim();
+  printActivityHtmlDocument(
+    activityQuestionnaireAveragePrintDocument({
+      activity: selectedText(averageActivitySelect),
+      month: selectedText(averageMonthSelect),
+      year: selectedText(averageYearSelect),
+      content: averageContent.innerHTML,
+    }),
+    `${getTranslation("activities.questionnaireTitle")} - ${getTranslation("activities.questionnaireAverageTab")}`,
+  );
 };
 
 const setActivityQuestionnaireTab = (tab) => {
@@ -3273,6 +3298,7 @@ const wireActivitiesQuestionnaireDialog = () => {
     averageActivitySelect,
     averageMonthSelect,
     averageYearSelect,
+    averagePrintBtn,
     historyList,
     existingOpenBtn,
     detailBackBtn,
@@ -3293,6 +3319,7 @@ const wireActivitiesQuestionnaireDialog = () => {
   [averageActivitySelect, averageMonthSelect, averageYearSelect].forEach((select) => {
     select?.addEventListener("change", renderActivityQuestionnaireAverage);
   });
+  averagePrintBtn?.addEventListener("click", printActivityQuestionnaireAverage);
   form.addEventListener("submit", handleActivityQuestionnaireSubmit);
   clearBtn?.addEventListener("click", clearActivityQuestionnaireResponses);
   existingOpenBtn?.addEventListener("click", () => {
@@ -5752,6 +5779,109 @@ const activityPrintDocument = () => {
 </html>`;
 };
 
+const activityQuestionnaireAveragePrintDocument = ({ activity, month, year, content }) => {
+  const filters = [
+    [getTranslation("activities.questionnaireActivity"), activity],
+    [getTranslation("activities.questionnaireMonth"), month],
+    [getTranslation("activities.questionnaireYear"), year],
+  ]
+    .map(
+      ([label, value]) => `
+        <div class="filter">
+          <span>${escapeHtml(label)}</span>
+          <strong>${escapeHtml(value || "-")}</strong>
+        </div>
+      `,
+    )
+    .join("");
+
+  return `<!doctype html>
+<html lang="${escapeHtml(getLanguage() === "en" ? "en" : "pt")}">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <style>
+    @page { size: A4 portrait; margin: 11mm; }
+    * { box-sizing: border-box; }
+    body {
+      color: #081614;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      margin: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .print-sheet { display: grid; gap: 6mm; }
+    header {
+      align-items: end;
+      border-bottom: 2px solid #23776b;
+      display: flex;
+      gap: 8mm;
+      justify-content: space-between;
+      padding-bottom: 3mm;
+    }
+    h1 { font-size: 20px; line-height: 1.15; margin: 0; }
+    header p { color: #506560; font-size: 11px; font-weight: 700; margin: 0; text-align: right; }
+    .filters { display: grid; gap: 3mm; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .filter, .activity-questionnaire-average-stat, .activity-questionnaire-average-group {
+      border: 1px solid #9bb9b2;
+      border-radius: 2mm;
+    }
+    .filter { display: grid; gap: 1.5mm; padding: 3mm; }
+    .filter span, .activity-questionnaire-average-stat span, .activity-questionnaire-average-group header span {
+      color: #506560;
+      font-size: 9px;
+      font-weight: 800;
+    }
+    .filter strong { font-size: 12px; overflow-wrap: anywhere; }
+    .activity-questionnaire-average { display: grid; gap: 4mm; }
+    .activity-questionnaire-average-summary { display: grid; gap: 3mm; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .activity-questionnaire-average-stat { display: grid; gap: 2mm; padding: 3mm; }
+    .activity-questionnaire-average-stat strong { font-size: 16px; }
+    .activity-questionnaire-average-groups { display: grid; gap: 4mm; }
+    .activity-questionnaire-average-group { break-inside: avoid; overflow: hidden; }
+    .activity-questionnaire-average-group > header {
+      align-items: center;
+      background: #eef5f3;
+      border-bottom: 1px solid #c5d7d1;
+      display: flex;
+      justify-content: space-between;
+      gap: 5mm;
+      padding: 3mm;
+    }
+    .activity-questionnaire-average-group header > div { display: grid; gap: 1mm; }
+    .activity-questionnaire-average-group h3 { color: #005f56; font-size: 14px; margin: 0; }
+    .activity-questionnaire-average-group > header > strong,
+    .activity-questionnaire-average-section strong { color: #005f56; font-size: 10px; }
+    .activity-questionnaire-average-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .activity-questionnaire-average-section {
+      border-bottom: 1px solid #d8e5e1;
+      border-right: 1px solid #d8e5e1;
+      display: grid;
+      gap: 2mm;
+      padding: 3mm;
+    }
+    .activity-questionnaire-average-section:nth-child(2n) { border-right: 0; }
+    .activity-questionnaire-average-section:nth-last-child(-n + 2) { border-bottom: 0; }
+    .activity-questionnaire-average-section > div:first-child { align-items: center; display: flex; gap: 4mm; justify-content: space-between; }
+    .activity-questionnaire-average-section span { font-weight: 700; overflow-wrap: anywhere; }
+    .activity-questionnaire-average-meter { background: #e4efec; border-radius: 2mm; height: 2mm; overflow: hidden; }
+    .activity-questionnaire-average-meter i { background: #23776b; display: block; height: 100%; }
+  </style>
+</head>
+<body>
+  <main class="print-sheet">
+    <header>
+      <h1>${escapeHtml(getTranslation("activities.questionnaireTitle"))}</h1>
+      <p>${escapeHtml(getTranslation("activities.questionnaireAverageTab"))}</p>
+    </header>
+    <div class="filters">${filters}</div>
+    <div class="activity-questionnaire-average">${content}</div>
+  </main>
+</body>
+</html>`;
+};
+
 const activityStatisticsPrintDocument = (statistics) => {
   const totals = statistics?.totals || {};
   const activitiesLabel =
@@ -6775,20 +6905,29 @@ const wireActivitiesCalendar = () => {
 const centralUsersElements = () => ({
   dialog: document.querySelector("#centralUsersDialog"),
   closeBtn: document.querySelector("#centralCloseUsersBtn"),
+  cancelBtn: document.querySelector("#centralCancelUsersBtn"),
   refreshBtn: document.querySelector("#centralRefreshUsersBtn"),
+  openCreateBtn: document.querySelector("#centralOpenCreateUserBtn"),
+  listError: document.querySelector("#centralUsersError"),
   table: document.querySelector("#centralUsersTable"),
+  editorDialog: document.querySelector("#centralUserEditorDialog"),
+  editorCloseBtn: document.querySelector("#centralCloseUserEditorBtn"),
+  editorCancelBtn: document.querySelector("#centralCancelUserEditorBtn"),
   createForm: document.querySelector("#centralCreateUserForm"),
   createError: document.querySelector("#centralCreateUserError"),
+  createCancelBtn: document.querySelector("#centralCancelCreateUserBtn"),
   editForm: document.querySelector("#centralEditUserForm"),
   editError: document.querySelector("#centralEditUserError"),
+  editCancelBtn: document.querySelector("#centralCancelEditUserBtn"),
   editHint: document.querySelector("#centralEditingUserHint"),
+  editorTitle: document.querySelector("#centralUserEditorTitle"),
+  editorHint: document.querySelector("#centralUserEditorHint"),
   editId: document.querySelector("#centralEditUserId"),
   editName: document.querySelector("#centralEditUserName"),
   editEmail: document.querySelector("#centralEditUserEmail"),
   editActive: document.querySelector("#centralEditUserActive"),
   createPermissions: document.querySelector('[data-permission-grid="create"]'),
   editPermissions: document.querySelector('[data-permission-grid="edit"]'),
-  clearBtn: document.querySelector("#centralClearUserBtn"),
 });
 
 const showCentralFormError = (node, message) => {
@@ -6857,17 +6996,18 @@ const renderPermissionGrid = (container, scope, permissions) => {
       const areaPermissions = permissions[area] || emptyAreaPermissions();
       const cells = centralAreaActions
         .map((action) => {
+          const actionLabel = escapeHtml(getTranslation(`permissions.${permissionActionKey(action)}`, language));
           const isUnsupportedSensitive =
             (action === "view_sensitive" && !["utentes", "atividades"].includes(area)) ||
             (action === "edit_sensitive" && area !== "utentes");
           const isActivityDelete = area === "atividades" && action === "delete";
           if (isUnsupportedSensitive || isActivityDelete) {
-            return `<td class="permission-na">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
+            return `<td class="permission-na" data-permission-label="${actionLabel}">${escapeHtml(getTranslation("permissions.notApplicable", language))}</td>`;
           }
           const name = permissionInputName(scope, area, action);
           return `
-            <td>
-              <label class="permission-check" title="${escapeHtml(getTranslation(`permissions.${permissionActionKey(action)}`, language))}">
+            <td data-permission-label="${actionLabel}">
+              <label class="permission-check" title="${actionLabel}">
                 <input type="checkbox" name="${escapeHtml(name)}" data-permission-input="${escapeHtml(scope)}" data-area="${escapeHtml(area)}" data-action="${escapeHtml(action)}" ${areaPermissions[action] ? "checked" : ""}>
                 <span></span>
               </label>
@@ -7014,14 +7154,63 @@ const resetCentralUserForms = () => {
   const elements = centralUsersElements();
   elements.createForm?.reset();
   elements.editForm?.reset();
+  if (elements.createForm) elements.createForm.hidden = false;
+  if (elements.editForm) elements.editForm.hidden = true;
   centralUsersState.editingId = "";
   if (elements.editId) elements.editId.value = "";
   if (elements.editActive) elements.editActive.checked = true;
   if (elements.editHint) elements.editHint.textContent = getTranslation("users.editHint");
+  if (elements.editorTitle) elements.editorTitle.textContent = getTranslation("users.createTitle");
+  if (elements.editorHint) elements.editorHint.textContent = getTranslation("users.createHint");
   renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole());
   renderPermissionGrid(elements.editPermissions, "edit", defaultCentralPermissionsForRole());
   showCentralFormError(elements.createError, "");
   showCentralFormError(elements.editError, "");
+};
+
+const closeCentralUserEditor = () => {
+  const elements = centralUsersElements();
+  if (elements.editorDialog?.open) elements.editorDialog.close();
+  resetCentralUserForms();
+};
+
+const moveCentralUserEditorToTopLevel = () => {
+  const { editorDialog } = centralUsersElements();
+  if (editorDialog && editorDialog.parentElement !== document.body) {
+    document.body.append(editorDialog);
+  }
+};
+
+const openCentralUserEditor = (mode, user = null) => {
+  const elements = centralUsersElements();
+  if (!elements.editorDialog) return;
+  moveCentralUserEditorToTopLevel();
+  const editing = mode === "edit" && user;
+
+  if (elements.createForm) elements.createForm.hidden = Boolean(editing);
+  if (elements.editForm) elements.editForm.hidden = !editing;
+  if (elements.editorTitle) {
+    elements.editorTitle.textContent = getTranslation(editing ? "users.editTitle" : "users.createTitle");
+  }
+  if (elements.editorHint) {
+    elements.editorHint.textContent = editing
+      ? `${getTranslation("users.editTitle")}: ${user.full_name || user.email || user.id}`
+      : getTranslation("users.createHint");
+  }
+
+  if (editing) {
+    fillCentralUserForm(user);
+  } else {
+    elements.createForm?.reset();
+    renderPermissionGrid(elements.createPermissions, "create", defaultCentralPermissionsForRole());
+    showCentralFormError(elements.createError, "");
+  }
+
+  if (!elements.editorDialog.open) elements.editorDialog.showModal();
+  refreshIcons();
+  window.setTimeout(() => {
+    (editing ? elements.editName : document.querySelector("#centralCreateUserName"))?.focus();
+  }, 0);
 };
 
 const formatUserDate = (value) => {
@@ -7152,7 +7341,7 @@ const handleCentralCreateUser = async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || getTranslation("users.created"));
-    elements.createForm.reset();
+    closeCentralUserEditor();
     await refreshCentralUsers();
   } catch (error) {
     showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
@@ -7198,7 +7387,7 @@ const handleCentralEditUser = async (event) => {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result.error || getTranslation("users.adminOnly"));
-    resetCentralUserForms();
+    closeCentralUserEditor();
     await refreshCentralUsers();
   } catch (error) {
     showCentralFormError(elements.editError, error.message || getTranslation("users.adminOnly"));
@@ -7255,17 +7444,19 @@ const openCentralUsersDialog = async () => {
   if (!elements.dialog) return;
   closeToolsMenus();
   resetCentralUserForms();
-  elements.dialog.showModal();
+  if (!elements.dialog.open) elements.dialog.showModal();
   try {
     await refreshCentralUsers();
+    showCentralFormError(elements.listError, "");
   } catch (error) {
-    showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+    showCentralFormError(elements.listError, error.message || getTranslation("users.adminOnly"));
   }
   refreshIcons();
 };
 
 const closeCentralUsersDialog = () => {
   const { dialog } = centralUsersElements();
+  closeCentralUserEditor();
   if (dialog?.open) dialog.close();
   resetCentralUserForms();
 };
@@ -7295,16 +7486,22 @@ const wireCentralUsersDialog = () => {
     button.addEventListener("click", openCentralUsersDialog);
   });
   elements.closeBtn?.addEventListener("click", closeCentralUsersDialog);
+  elements.cancelBtn?.addEventListener("click", closeCentralUsersDialog);
+  elements.openCreateBtn?.addEventListener("click", () => openCentralUserEditor("create"));
   elements.refreshBtn?.addEventListener("click", async () => {
     try {
       await refreshCentralUsers();
+      showCentralFormError(elements.listError, "");
     } catch (error) {
-      showCentralFormError(elements.createError, error.message || getTranslation("users.adminOnly"));
+      showCentralFormError(elements.listError, error.message || getTranslation("users.adminOnly"));
     }
   });
   elements.createForm?.addEventListener("submit", handleCentralCreateUser);
   elements.editForm?.addEventListener("submit", handleCentralEditUser);
-  elements.clearBtn?.addEventListener("click", resetCentralUserForms);
+  elements.editorCloseBtn?.addEventListener("click", closeCentralUserEditor);
+  elements.editorCancelBtn?.addEventListener("click", closeCentralUserEditor);
+  elements.createCancelBtn?.addEventListener("click", closeCentralUserEditor);
+  elements.editCancelBtn?.addEventListener("click", closeCentralUserEditor);
   elements.table?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-central-user-action]");
     if (!button) return;
@@ -7313,18 +7510,21 @@ const wireCentralUsersDialog = () => {
     try {
       if (action === "edit") {
         const user = centralUsersState.users.find((item) => item.id === id);
-        if (user) fillCentralUserForm(user);
+        if (user) openCentralUserEditor("edit", user);
       } else if (action === "toggle") {
         await toggleCentralUser(id);
       } else if (action === "delete") {
         await deleteCentralUser(id);
       }
     } catch (error) {
-      showCentralFormError(elements.editError, error.message || getTranslation("users.adminOnly"));
+      showCentralFormError(elements.listError, error.message || getTranslation("users.adminOnly"));
     }
   });
   elements.dialog.addEventListener("click", (event) => {
     if (event.target === elements.dialog) closeCentralUsersDialog();
+  });
+  elements.editorDialog?.addEventListener("click", (event) => {
+    if (event.target === elements.editorDialog) closeCentralUserEditor();
   });
 };
 

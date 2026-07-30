@@ -446,15 +446,36 @@ const centralUsersDialog = `
         <p data-i18n="users.subtitle">Crie acessos novos e edite permissões de utilizadores existentes.</p>
       </div>
       <div class="central-admin-actions">
+        <button class="primary-button" id="centralOpenCreateUserBtn" type="button">
+          <i data-lucide="user-plus"></i>
+          <span data-i18n="users.createButton">Criar utilizador</span>
+        </button>
         <button class="secondary-button" id="centralRefreshUsersBtn" type="button">
           <i data-lucide="refresh-cw"></i>
           <span data-i18n="users.refresh">Atualizar</span>
         </button>
+        <button class="secondary-button" id="centralCancelUsersBtn" type="button" data-i18n="activities.cancel">Cancelar</button>
         <button class="icon-link" id="centralCloseUsersBtn" type="button" title="Fechar" aria-label="Fechar" data-i18n-title="language.close" data-i18n-aria-label="language.close">
           <i data-lucide="x"></i>
         </button>
       </div>
     </div>
+
+    <dialog class="central-user-editor-dialog" id="centralUserEditorDialog" aria-labelledby="centralUserEditorTitle">
+      <section class="central-admin-panel">
+        <div class="central-admin-head">
+          <div>
+            <i data-lucide="user-cog"></i>
+            <h2 id="centralUserEditorTitle" data-i18n="users.createTitle">Criar utilizador</h2>
+            <p id="centralUserEditorHint" data-i18n="users.createHint">O utilizador é adicionado automaticamente à base de dados da associação.</p>
+          </div>
+          <div class="central-admin-actions">
+            <button class="secondary-button" id="centralCancelUserEditorBtn" type="button" data-i18n="activities.cancel">Cancelar</button>
+            <button class="icon-link" id="centralCloseUserEditorBtn" type="button" title="Fechar" aria-label="Fechar" data-i18n-title="language.close" data-i18n-aria-label="language.close">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+        </div>
 
     <div class="central-admin-forms">
       <form class="central-admin-form" id="centralCreateUserForm">
@@ -482,13 +503,16 @@ const centralUsersDialog = `
         </label>
         <div class="permission-editor" data-permission-grid="create"></div>
         <p class="form-error" id="centralCreateUserError" role="alert" hidden></p>
-        <button class="primary-button" type="submit">
-          <i data-lucide="user-plus"></i>
-          <span data-i18n="users.createButton">Criar utilizador</span>
-        </button>
+        <div class="central-user-form-actions">
+          <button class="secondary-button" id="centralCancelCreateUserBtn" type="button" data-i18n="activities.cancel">Cancelar</button>
+          <button class="primary-button" type="submit">
+            <i data-lucide="user-plus"></i>
+            <span data-i18n="users.createButton">Criar utilizador</span>
+          </button>
+        </div>
       </form>
 
-      <form class="central-admin-form" id="centralEditUserForm">
+      <form class="central-admin-form" id="centralEditUserForm" hidden>
         <div class="form-section-title">
           <i data-lucide="user-pen"></i>
           <h3 data-i18n="users.editTitle">Editar utilizador</h3>
@@ -506,7 +530,7 @@ const centralUsersDialog = `
         <div class="permission-editor" data-permission-grid="edit"></div>
         <p class="form-error" id="centralEditUserError" role="alert" hidden></p>
         <div class="central-user-form-actions">
-          <button class="secondary-button" id="centralClearUserBtn" type="button" data-i18n="users.clear">Limpar</button>
+          <button class="secondary-button" id="centralCancelEditUserBtn" type="button" data-i18n="activities.cancel">Cancelar</button>
           <button class="primary-button" type="submit">
             <i data-lucide="save"></i>
             <span data-i18n="users.save">Guardar alterações</span>
@@ -515,6 +539,10 @@ const centralUsersDialog = `
       </form>
     </div>
 
+      </section>
+    </dialog>
+
+    <p class="form-error central-users-error" id="centralUsersError" role="alert" hidden></p>
     <div class="central-users-table-wrap">
       <table class="central-users-table">
         <thead>
@@ -744,10 +772,43 @@ await writeFile(
   const rememberEmailKey = "central-remember-email";
   const verificationStateKey = "central-email-verification-state";
   let verificationCountdownTimer = 0;
+  let inMemoryVerificationState = null;
+  const inMemorySessionStorage = new Map();
+  const safeSessionStorage = {
+    getItem: (key) => {
+      const normalizedKey = String(key);
+      try {
+        const value = sessionStorage.getItem(normalizedKey);
+        if (value !== null) inMemorySessionStorage.set(normalizedKey, value);
+        return value === null ? inMemorySessionStorage.get(normalizedKey) || null : value;
+      } catch (_error) {
+        return inMemorySessionStorage.get(normalizedKey) || null;
+      }
+    },
+    setItem: (key, value) => {
+      const normalizedKey = String(key);
+      const normalizedValue = String(value);
+      inMemorySessionStorage.set(normalizedKey, normalizedValue);
+      try {
+        sessionStorage.setItem(normalizedKey, normalizedValue);
+      } catch (_error) {
+        // Mantém apenas a sessão desta página quando o browser bloqueia o armazenamento.
+      }
+    },
+    removeItem: (key) => {
+      const normalizedKey = String(key);
+      inMemorySessionStorage.delete(normalizedKey);
+      try {
+        sessionStorage.removeItem(normalizedKey);
+      } catch (_error) {
+        // Não há dados persistentes para remover quando o armazenamento está bloqueado.
+      }
+    }
+  };
   const authStorage = {
-    getItem: (key) => sessionStorage.getItem(key),
-    setItem: (key, value) => sessionStorage.setItem(key, value),
-    removeItem: (key) => sessionStorage.removeItem(key)
+    getItem: (key) => safeSessionStorage.getItem(key),
+    setItem: (key, value) => safeSessionStorage.setItem(key, value),
+    removeItem: (key) => safeSessionStorage.removeItem(key)
   };
   const showPage = () => {
     document.documentElement.removeAttribute("data-central-auth-pending");
@@ -1016,11 +1077,8 @@ await writeFile(
     );
   };
   const writeVerificationState = (state) => {
-    try {
-      sessionStorage.setItem(verificationStateKey, JSON.stringify(state));
-    } catch (_error) {
-      // O passo de verificação continua nesta página mesmo sem persistência.
-    }
+    inMemoryVerificationState = state;
+    safeSessionStorage.setItem(verificationStateKey, JSON.stringify(state));
     return state;
   };
   const saveVerificationState = (payload, remember = false) => writeVerificationState({
@@ -1032,21 +1090,20 @@ await writeFile(
   });
   const loadVerificationState = () => {
     try {
-      const state = JSON.parse(sessionStorage.getItem(verificationStateKey) || "null");
+      const storedState = JSON.parse(safeSessionStorage.getItem(verificationStateKey) || "null");
+      const state = storedState || inMemoryVerificationState;
       if (!state?.challengeId || !state?.email || !state?.expiresAt) return null;
+      inMemoryVerificationState = state;
       return state;
     } catch (_error) {
-      return null;
+      return inMemoryVerificationState;
     }
   };
   const clearVerificationState = () => {
     window.clearInterval(verificationCountdownTimer);
     verificationCountdownTimer = 0;
-    try {
-      sessionStorage.removeItem(verificationStateKey);
-    } catch (_error) {
-      // Sem impacto quando o browser bloqueia sessionStorage.
-    }
+    inMemoryVerificationState = null;
+    safeSessionStorage.removeItem(verificationStateKey);
   };
   const showVerificationStatus = (message) => {
     const status = document.querySelector("#centralVerificationStatus");
