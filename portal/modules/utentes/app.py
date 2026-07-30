@@ -1635,6 +1635,110 @@ tr:last-child td {
     font-weight: 700;
 }
 
+.gender-stat-card {
+    align-content: start;
+}
+
+.gender-card-body {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    min-height: 108px;
+}
+
+.gender-donut {
+    background: conic-gradient(
+        #2f7d73 0 var(--gender-men-end),
+        #e58a9b var(--gender-men-end) var(--gender-women-end),
+        #d8dfdc var(--gender-women-end) 100%
+    );
+    border-radius: 50%;
+    flex: 0 0 108px;
+    height: 108px;
+    position: relative;
+    width: 108px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.gender-donut::after {
+    background: var(--panel);
+    border-radius: 50%;
+    content: "";
+    inset: 18px;
+    position: absolute;
+}
+
+.gender-donut-center {
+    align-content: center;
+    display: grid;
+    inset: 18px;
+    justify-items: center;
+    position: absolute;
+    z-index: 1;
+}
+
+.gender-donut-center strong {
+    font-size: 1.45rem;
+}
+
+.gender-donut-center small {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+}
+
+.gender-legend {
+    display: grid;
+    flex: 1;
+    gap: 7px;
+    list-style: none;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+}
+
+.gender-legend li {
+    align-items: center;
+    display: grid;
+    gap: 7px;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+}
+
+.gender-legend .gender-label {
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.gender-legend b {
+    color: var(--navy);
+    font-size: 0.9rem;
+}
+
+.gender-swatch {
+    border-radius: 50%;
+    height: 10px;
+    width: 10px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.gender-swatch-men {
+    background: #2f7d73;
+}
+
+.gender-swatch-women {
+    background: #e58a9b;
+}
+
+.gender-swatch-unknown {
+    background: #d8dfdc;
+}
+
 .section-heading {
     padding: 18px 18px;
 }
@@ -5818,6 +5922,12 @@ EN_STATIC_TRANSLATIONS = {
     "Permanência média": "Average stay",
     "Percentagem por concelho": "Percentage by municipality",
     "Distribuição por concelho": "Distribution by municipality",
+    "Distribuição por género": "Gender distribution",
+    "Género": "Gender",
+    "Homens": "Men",
+    "Mulheres": "Women",
+    "Outro / não especificado": "Other / unspecified",
+    "Outro / sem indicação": "Other / not specified",
     "Utentes considerados": "Clients included",
     "Sem concelho preenchido": "No municipality filled in",
     "Sem dados suficientes": "Not enough data",
@@ -7187,6 +7297,7 @@ INSCRICAO_TEXT_FIELDS = [
     "ins_morada",
     "ins_codigo_postal",
     "ins_data_nascimento",
+    "ins_genero",
     "ins_naturalidade",
     "ins_cartao_cidadao",
     "ins_nif",
@@ -7203,6 +7314,13 @@ INSCRICAO_TEXT_FIELDS = [
     "ins_resposta_social_resposta",
     "ins_resposta_social_motivo",
     "ins_ponder_total",
+]
+
+INSCRICAO_GENDER_OPTIONS = [
+    ("", "Selecionar"),
+    ("homem", "Homem"),
+    ("mulher", "Mulher"),
+    ("outro", "Outro / não especificado"),
 ]
 
 
@@ -9249,6 +9367,7 @@ def render_inscricao_form(data, readonly=False):
                 {render_text_input(data, "ins_morada", "Morada", "span-8", readonly=readonly)}
                 {render_text_input(data, "ins_codigo_postal", "Código Postal", "span-4", readonly=readonly)}
                 {render_text_input(data, "ins_data_nascimento", "Data de Nascimento", "span-3", "date", readonly)}
+                {render_select_input(data, "ins_genero", "Género", INSCRICAO_GENDER_OPTIONS, "span-3", readonly)}
                 {render_text_input(data, "ins_naturalidade", "Naturalidade", "span-5", readonly=readonly)}
                 {render_text_input(data, "ins_cartao_cidadao", "Cartão de Cidadão", "span-4", readonly=readonly)}
                 {render_text_input(data, "ins_nif", "NIF", "span-4", readonly=readonly)}
@@ -10525,6 +10644,49 @@ def utente_age_for_stats(row, ref_data, today):
         return None
 
 
+def normalize_utente_gender(value):
+    normalized = normalize_stats_text(value)
+    if normalized in {"homem", "masculino", "male", "m"}:
+        return "homem"
+    if normalized in {"mulher", "feminino", "female", "f", "pregnant", "mulher gravida"}:
+        return "mulher"
+    return None
+
+
+def gender_from_genogram(raw_value, utente_name=""):
+    try:
+        diagram = json.loads(str(raw_value or ""))
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
+    if not isinstance(diagram, dict):
+        return None
+    nodes = [node for node in diagram.get("nodes", []) if isinstance(node, dict)]
+    people = [node for node in nodes if normalize_utente_gender(node.get("type"))]
+    if not people:
+        return None
+    candidate = next((node for node in people if node.get("primary")), None)
+    if candidate is None:
+        normalized_name = normalize_stats_text(utente_name)
+        candidate = next(
+            (
+                node
+                for node in people
+                if normalized_name and normalize_stats_text(node.get("label")) == normalized_name
+            ),
+            None,
+        )
+    if candidate is None and len(people) == 1:
+        candidate = people[0]
+    return normalize_utente_gender(candidate.get("type")) if candidate else None
+
+
+def utente_gender_for_stats(row, ins_data, diag_data):
+    explicit_gender = normalize_utente_gender(ins_data.get("ins_genero"))
+    if explicit_gender:
+        return explicit_gender
+    return gender_from_genogram(diag_data.get("diag_genograma"), row["nome"])
+
+
 def render_stats_distribution_section(title, rows, first_header="Categoria"):
     rows_html = ""
     for item in rows:
@@ -10566,6 +10728,54 @@ def render_stats_distribution_section(title, rows, first_header="Categoria"):
 """
 
 
+def render_gender_chart_card(rows, total):
+    counts = {item["name"]: item["count"] for item in rows}
+    men = counts.get("Homens", 0)
+    women = counts.get("Mulheres", 0)
+    unknown = counts.get("Outro / sem indicação", 0)
+    men_end = round((men / total) * 100, 2) if total else 0
+    women_end = round(((men + women) / total) * 100, 2) if total else 0
+    aria_label = (
+        f"Distribuição por género. Homens: {men}. Mulheres: {women}. "
+        f"Outro ou sem indicação: {unknown}."
+    )
+    return f"""
+        <article class="stat-card gender-stat-card">
+            <span>Distribuição por género</span>
+            <div class="gender-card-body">
+                <div
+                    class="gender-donut"
+                    role="img"
+                    aria-label="{esc(aria_label)}"
+                    style="--gender-men-end: {men_end:g}%; --gender-women-end: {women_end:g}%"
+                >
+                    <div class="gender-donut-center">
+                        <strong>{total}</strong>
+                        <small>utentes</small>
+                    </div>
+                </div>
+                <ul class="gender-legend" aria-hidden="true">
+                    <li>
+                        <i class="gender-swatch gender-swatch-men"></i>
+                        <span class="gender-label">Homens</span>
+                        <b>{men}</b>
+                    </li>
+                    <li>
+                        <i class="gender-swatch gender-swatch-women"></i>
+                        <span class="gender-label">Mulheres</span>
+                        <b>{women}</b>
+                    </li>
+                    <li>
+                        <i class="gender-swatch gender-swatch-unknown"></i>
+                        <span class="gender-label">Outro / sem indicação</span>
+                        <b>{unknown}</b>
+                    </li>
+                </ul>
+            </div>
+        </article>
+    """
+
+
 def calculate_utentes_statistics():
     rows = fetch_utentes()
     today = datetime.now().date()
@@ -10575,6 +10785,7 @@ def calculate_utentes_statistics():
     entity_counts = {label: 0 for label, _aliases in UTENTES_REFERENCING_ENTITIES}
     reason_counts = {label: 0 for label, _aliases in UTENTES_REFERRAL_REASONS}
     diagnosis_counts = {label: 0 for label, _aliases in UTENTES_DIAGNOSIS_OPTIONS}
+    gender_counts = {"Homens": 0, "Mulheres": 0, "Outro / sem indicação": 0}
     active_count = 0
     inactive_count = 0
     payment_scope_count = 0
@@ -10597,6 +10808,7 @@ def calculate_utentes_statistics():
                 paid_count += 1
         ref_data = load_referenciacao_data(row["id"])
         ins_data = load_inscricao_data(row["id"])
+        diag_data = load_diagnostica_data(row["id"])
         start_date = utente_start_date(row, ref_data, ins_data)
         if start_date:
             end_date = today if is_active else (parse_stored_date(row["updated_at"]) or today)
@@ -10611,6 +10823,14 @@ def calculate_utentes_statistics():
                 if minimum <= age <= maximum:
                     age_group_counts[label] += 1
                     break
+
+        gender = utente_gender_for_stats(row, ins_data, diag_data)
+        if gender == "homem":
+            gender_counts["Homens"] += 1
+        elif gender == "mulher":
+            gender_counts["Mulheres"] += 1
+        else:
+            gender_counts["Outro / sem indicação"] += 1
 
         entity_text = normalize_stats_text(ref_data.get("entidade"))
         for label, aliases in UTENTES_REFERENCING_ENTITIES:
@@ -10631,7 +10851,6 @@ def calculate_utentes_statistics():
         if option_matches_text(reason_haystack, ["sem informacao"]) or not has_any_reason_data:
             reason_counts["Sem informação"] += 1
 
-        diag_data = load_diagnostica_data(row["id"])
         diagnosis_haystack = normalize_stats_text(
             " ".join(
                 [
@@ -10675,6 +10894,7 @@ def calculate_utentes_statistics():
         "overdue_percentage": overdue_percentage,
         "average_payment_delay": average_payment_delay,
         "municipalities": municipalities,
+        "gender": stats_rows_from_counts(gender_counts, total),
         "age_groups": stats_rows_from_counts(age_group_counts, total),
         "referencing_entities": stats_rows_from_counts(entity_counts, total),
         "referral_reasons": stats_rows_from_counts(reason_counts, total),
@@ -10704,6 +10924,7 @@ def render_statistics_page(current_user):
             <td colspan="3">Sem dados suficientes</td>
         </tr>
         """
+    gender_card = render_gender_chart_card(stats["gender"], stats["total"])
     age_group_section = render_stats_distribution_section("Distribuição por idade", stats["age_groups"], "Faixa etária")
     entity_section = render_stats_distribution_section("Entidade referenciadora", stats["referencing_entities"], "Entidade")
     reason_section = render_stats_distribution_section("Motivo do encaminhamento", stats["referral_reasons"], "Motivo")
@@ -10752,6 +10973,7 @@ def render_statistics_page(current_user):
             <strong>{esc(format_delay_months(stats["average_payment_delay"], current_user))}</strong>
             <small>{esc(tr(current_user, "fees_overdue"))}</small>
         </article>
+        {gender_card}
     </section>
     {age_group_section}
     {entity_section}
