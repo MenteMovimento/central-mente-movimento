@@ -656,6 +656,36 @@ p {
   display: none;
 }
 
+.dashboard-user-trigger {
+  width: auto;
+  min-width: 52px;
+  max-width: 140px;
+  min-height: 56px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+}
+
+.dashboard-user-trigger svg {
+  flex: 0 0 auto;
+}
+
+.dashboard-account-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-account-label[hidden] {
+  display: none;
+}
+
 .dashboard-user-menu {
   position: absolute;
   top: calc(100% + 8px);
