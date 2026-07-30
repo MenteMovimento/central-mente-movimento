@@ -471,10 +471,15 @@
   };
   const setDashboardAccountName = (session, profile = null) => {
     const name = displayNameFromSession(session, profile);
-    document.querySelectorAll("[data-dashboard-account-name]").forEach((node) => {
+    document.querySelectorAll("[data-dashboard-account-name], [data-dashboard-account-label]").forEach((node) => {
       node.textContent = name;
       node.title = name;
       node.hidden = !name;
+    });
+    document.querySelectorAll("[data-dashboard-user-trigger]").forEach((node) => {
+      const accountLabel = name ? `Conta: ${name}` : "Conta";
+      node.title = accountLabel;
+      node.setAttribute("aria-label", accountLabel);
     });
   };
   const utentesSessionCachePrefix = "central-utentes-session:";

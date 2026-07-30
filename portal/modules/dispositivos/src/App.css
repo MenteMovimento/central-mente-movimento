@@ -699,6 +699,29 @@ textarea:focus {
   border-radius: 6px;
 }
 
+.portal-account-trigger {
+  width: auto;
+  height: auto;
+  min-width: 52px;
+  max-width: 140px;
+  min-height: 56px;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 8px;
+}
+
+.portal-account-trigger-label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .portal-menu-wrap {
   position: relative;
 }

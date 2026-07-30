@@ -345,8 +345,9 @@ const atividadesMonitorsDialog = () => `
 
 const dashboardUserMenu = () => `
       <details class="dashboard-user-menu-wrap">
-        <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+        <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta" data-dashboard-user-trigger>
           <i data-lucide="user-round"></i>
+          <span class="dashboard-account-label" data-dashboard-account-label hidden></span>
         </summary>
         <div class="dashboard-user-menu" role="menu">
           <strong class="dashboard-account-name" data-dashboard-account-name hidden></strong>
@@ -1237,10 +1238,15 @@ await writeFile(
   };
   const setDashboardAccountName = (session, profile = null) => {
     const name = displayNameFromSession(session, profile);
-    document.querySelectorAll("[data-dashboard-account-name]").forEach((node) => {
+    document.querySelectorAll("[data-dashboard-account-name], [data-dashboard-account-label]").forEach((node) => {
       node.textContent = name;
       node.title = name;
       node.hidden = !name;
+    });
+    document.querySelectorAll("[data-dashboard-user-trigger]").forEach((node) => {
+      const accountLabel = name ? \`Conta: \${name}\` : "Conta";
+      node.title = accountLabel;
+      node.setAttribute("aria-label", accountLabel);
     });
   };
   const utentesSessionCachePrefix = "central-utentes-session:";

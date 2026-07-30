@@ -620,10 +620,12 @@ def topbar(active_id="", show_account_menu=False, account_name=""):
     account_name = (account_name or "").strip()
     account_menu = ""
     if show_account_menu:
+        account_label = f"Conta: {account_name}" if account_name else "Conta"
         account_menu = f"""
           <details class="dashboard-user-menu-wrap">
-            <summary class="icon-link dashboard-user-trigger" title="Conta" aria-label="Conta">
+            <summary class="icon-link dashboard-user-trigger" title="{html.escape(account_label, quote=True)}" aria-label="{html.escape(account_label, quote=True)}">
               <i data-lucide="user-round"></i>
+              <span class="dashboard-account-label" title="{html.escape(account_name, quote=True)}">{html.escape(account_name)}</span>
             </summary>
             <div class="dashboard-user-menu" role="menu">
               <strong class="dashboard-account-name" title="{html.escape(account_name, quote=True)}">{html.escape(account_name)}</strong>

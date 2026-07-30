@@ -3257,7 +3257,7 @@ function App() {
             <div className="portal-menu-wrap" ref={accountMenuRef}>
               <button
                 type="button"
-                className="icon-button portal-icon-button portal-menu-button"
+                className="icon-button portal-icon-button portal-menu-button portal-account-trigger"
                 aria-label="Conta"
                 aria-controls="portal-account-menu"
                 aria-expanded={isAccountMenuOpen}
@@ -3268,6 +3268,9 @@ function App() {
                 }}
               >
                 <UserRound aria-hidden="true" />
+                {accountDisplayName && (
+                  <span className="portal-account-trigger-label">{accountDisplayName}</span>
+                )}
               </button>
               {isAccountMenuOpen && (
                 <div className="portal-menu portal-account-menu" id="portal-account-menu" role="menu">
